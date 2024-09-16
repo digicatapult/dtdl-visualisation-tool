@@ -1,2 +1,6 @@
 node_modules/
 build
+src/lib/server/swagger.json
+src/lib/server/routes.ts
+
+.tsimp

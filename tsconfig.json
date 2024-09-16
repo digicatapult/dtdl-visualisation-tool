@@ -4,6 +4,8 @@
     "rootDir": "./",
     "lib": ["ES6", "ES2015", "ESNext"],
     "types": ["node", "mocha"],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "resolveJsonModule": true,
     "target": "es6",
     "module": "ESNext",
@@ -14,7 +16,8 @@
     "skipLibCheck": true,
     "allowJs": false,
     "checkJs": false,
-    "declaration": true
+    "declaration": true,
+    "noImplicitAny": false
   },
   "ts-node": { "files": true },
   "include": ["src/**/*", "src/tests/*", "tests/**/*"],
