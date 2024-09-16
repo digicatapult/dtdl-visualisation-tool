@@ -11,5 +11,5 @@ COPY tsconfig.json ./
 RUN npm ci
 COPY . .
 RUN npm run build
-RUN npm run local
+RUN npm i -g
 CMD ["dtdl-visulaiser", "help"] 

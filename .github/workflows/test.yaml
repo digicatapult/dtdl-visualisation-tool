@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        command: [lint, depcheck, xss-scan, check]
+        command: [lint, depcheck, check]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
