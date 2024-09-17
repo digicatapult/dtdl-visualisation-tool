@@ -1,0 +1,7 @@
+{
+  "timeout": 5000,
+  "exit": true,
+  "extension": "ts",
+  "file": ["test/init.ts"],
+  "node-option": ["import=@digicatapult/tsimp/import"]
+}

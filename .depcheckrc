@@ -1,0 +1,4 @@
+ignores: [
+    'prettier-plugin-organize-imports',
+    '@digicatapult/tsimp',
+]

@@ -1,0 +1,22 @@
+{
+    "entryFile": "src/lib/server/server.ts",
+    "noImplicitAdditionalProperties": "throw-on-extras",
+    "controllerPathGlobs": [
+      "src/lib/server/controllers/**/*.tsx",
+      "src/lib/server/controllers/**/*.ts"
+    ],
+    "multerOpts": {
+      "limits": {
+        "fileSize": 104857600
+      }
+    },
+    "spec": {
+      "outputDirectory": "src/lib/server",
+      "specVersion": 3
+    },
+    "routes": {
+      "esm": true,
+      "routesDir": "src/lib/server",
+      "iocModule": "src/lib/server/ioc"
+    }
+  }
