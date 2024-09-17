@@ -27,3 +27,9 @@ npm i -g
 ```sh
 dtdl-visualiser help
 ```
+
+## validate
+
+```sh
+dtdl-visualiser validate -P <http-server-port> -p <path-to-dtdl-ontology>
+```
