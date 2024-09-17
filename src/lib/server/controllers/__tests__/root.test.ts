@@ -1,5 +1,5 @@
 import { describe, it } from 'mocha'
-import { RootController } from '../server/controllers/root'
+import { RootController } from '../root'
 import { pino } from 'pino'
 import sinon from 'sinon'
 import { expect } from 'chai'
