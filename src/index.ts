@@ -4,7 +4,7 @@ import 'reflect-metadata'
 
 import chalk from 'chalk'
 import { Command } from 'commander'
-import { parseDirectory } from './lib/parser.js'
+import { parseDirectories } from './lib/parser/index.js'
 import { httpServer } from './lib/server/index.js'
 import version from './version.js'
 
@@ -23,14 +23,12 @@ program
   .helpOption('--help', 'display help for command')
 
 program
-  .command('validate')
-  .description('Validate a dtdl ontology')
+  .command('parse')
+  .description('parse a dtdl ontology')
   .option('-P, --port <port>', 'specify host port number if it is not a default, default - 3000', '3000')
   .requiredOption('-p --path <path/to/dir>', 'Path to dtdl ontology directory')
   .action(async (options) => {
-    log(`Parsing DTDL at: ${options.path}`)
-
-    const parsedDtdl = await parseDirectory(options.path)
+    const parsedDtdl = await parseDirectories(options.path)
 
     if (parsedDtdl) {
       httpServer(options)

@@ -12,7 +12,8 @@
     <DebuggerSupport>false</DebuggerSupport>
     <UseSystemResourceKeys>true</UseSystemResourceKeys>
     <EventSourceSupport>false</EventSourceSupport>
-    <WasmEmitSymbolMap>true</WasmEmitSymbolMap>
+    <WasmEmitSymbolMap>false</WasmEmitSymbolMap>
+    <WasmAppDir>../build/interop</WasmAppDir>
   </PropertyGroup>
 
   <ItemGroup>

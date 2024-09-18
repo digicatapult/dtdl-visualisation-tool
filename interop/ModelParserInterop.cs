@@ -8,7 +8,7 @@ namespace DtdlParserJSInterop;
 [SupportedOSPlatform("browser")]
 public partial class ModelParserInterop
 {
-    public static void Main() => Console.WriteLine(typeof(ModelParser).Assembly.FullName);
+    public static void Main() => Console.WriteLine("hi");
 
     [JSExport]
     public static string ParserVersion() => typeof(ModelParser).Assembly.FullName;
