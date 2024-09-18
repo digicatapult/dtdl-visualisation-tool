@@ -1,9 +1,10 @@
 #!/usr/bin/env node --no-warnings
 
-import "reflect-metadata"
+import 'reflect-metadata'
 
 import chalk from 'chalk'
 import { Command } from 'commander'
+import { parseDirectory } from './lib/parser.js'
 import { httpServer } from './lib/server/index.js'
 import version from './version.js'
 
@@ -30,6 +31,7 @@ program
     log(`path: ${options.path}`)
     log(`Port: ${options.port}`)
     // start server with specified port
+    parseDirectory(options.path)
     httpServer(options)
   })
 

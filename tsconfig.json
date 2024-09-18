@@ -20,6 +20,6 @@
     "noImplicitAny": false
   },
   "ts-node": { "files": true },
-  "include": ["src/**/*", "src/tests/*", "tests/**/*"],
+  "include": ["src/**/*", "src/tests/*", "tests/**/*", "DTDLParserJSInterop"],
   "exclude": ["node_modules"]
 }
