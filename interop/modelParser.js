@@ -4,7 +4,7 @@ const { getAssemblyExports, getConfig } = await dotnet.withDiagnosticTracing(fal
 const config = getConfig()
 const assemblyExports = await getAssemblyExports(config.mainAssemblyName)
 await dotnet.run()
-
+console.log('interop')
 const ParserVersion = () => assemblyExports.DtdlParserJSInterop.ModelParserInterop.ParserVersion()
 const Parse = (dtdl) => assemblyExports.DtdlParserJSInterop.ModelParserInterop.Parse(dtdl)
 

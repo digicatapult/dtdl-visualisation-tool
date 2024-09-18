@@ -12,7 +12,12 @@
     <DebuggerSupport>false</DebuggerSupport>
     <UseSystemResourceKeys>true</UseSystemResourceKeys>
     <EventSourceSupport>false</EventSourceSupport>
+    <WasmEmitSymbolMap>true</WasmEmitSymbolMap>
   </PropertyGroup>
+
+  <ItemGroup>
+    <WasmExtraFilesToDeploy Include="modelParser.js" />
+  </ItemGroup>
  
   <ItemGroup>
     <PackageReference Include="DTDLParser" Version="1.0.52" />

@@ -19,20 +19,22 @@ const { red: r } = {
 program
   .name('dtdl-visualiser')
   .description('A CLI tool for visualising digital twin ontologies')
-  .version(version, '-v, --version', 'ouput current version')
+  .version(version, '-v, --version', 'output current version')
   .helpOption('--help', 'display help for command')
 
 program
   .command('validate')
   .description('Validate a dtdl ontology')
   .option('-P, --port <port>', 'specify host port number if it is not a default, default - 3000', '3000')
-  .requiredOption('-p --path <path/to/dir>', 'Path to dtdl ontolody directory')
+  .requiredOption('-p --path <path/to/dir>', 'Path to dtdl ontology directory')
   .action(async (options) => {
-    log(`path: ${options.path}`)
-    log(`Port: ${options.port}`)
-    // start server with specified port
-    parseDirectory(options.path)
-    httpServer(options)
+    log(`Parsing DTDL at: ${options.path}`)
+
+    const parsedDtdl = await parseDirectory(options.path)
+
+    if (parsedDtdl) {
+      httpServer(options)
+    }
   })
 
 program.parse()

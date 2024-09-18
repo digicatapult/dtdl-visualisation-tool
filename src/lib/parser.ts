@@ -1,6 +1,8 @@
 import fs from 'fs'
 import path from 'path'
-import * as parser from '../../interop/bin/Release/net8.0/browser-wasm/AppBundle/modelParser.js'
+//import * as parser from '../../interop/bin/Release/net8.0/browser-wasm/AppBundle/modelParser.js'
+
+const { log } = console
 
 const searchForJsonFiles = (directory: string): string[] => {
   return fs
@@ -30,13 +32,18 @@ const searchForJsonFiles = (directory: string): string[] => {
 //   }
 // };
 
-export const parseDirectory = (directory: string) => {
-  console.log(`Looking for files in '${directory}'`)
+export const parseDirectory = async (directory: string): Promise<string | null> => {
+  if (!fs.existsSync(directory)) {
+    log(`'${directory}' not a valid filepath`)
+    return null
+  }
+
+  log(`Looking for files in '${directory}'`)
   const filepaths = searchForJsonFiles(directory)
 
-  console.log(`Found ${filepaths.length} files:`)
-  console.log(filepaths)
+  log(`Found ${filepaths.length} files:`)
+  log(filepaths)
 
   // filepaths.map(async (filepath) => await parse(filepath))
-  console.log(parser.ParserVersion())
+  return null
 }
