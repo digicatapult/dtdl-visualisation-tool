@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import * as parser from '../../DTDLParserJSInterop/bin/Release/net8.0/browser-wasm/AppBundle/modelParser.js'
+import * as parser from '../../interop/bin/Release/net8.0/browser-wasm/AppBundle/modelParser.js'
 
 const searchForJsonFiles = (directory: string): string[] => {
   return fs

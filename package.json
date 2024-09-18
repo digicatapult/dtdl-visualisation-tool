@@ -10,12 +10,14 @@
   "scripts": {
     "depcheck": "depcheck",
     "test": "NODE_ENV=test ./node_modules/.bin/mocha --config ./test/mocharc.json ./src/**/*.test.ts",
-    "build": "npm run tsoa:build && tsc --build && npm run copy-interop",
+    "build": "npm run tsoa:build && tsc --build && npm run interop:copy",
     "tsoa:build": "tsoa spec-and-routes",
     "local": "npm i -g && dtdl-visualiser",
     "lint": "eslint . --fix",
     "check": "npm run tsoa:build && tsc --noEmit",
-    "copy-interop": "cp -r DTDLParserJSInterop build"
+    "interop:copy": "cp -r interop build",
+    "interop:debug": "dotnet build interop",
+    "interop:release": "dotnet build interop --configuration Release"
   },
   "repository": {
     "type": "git",
