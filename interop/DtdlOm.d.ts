@@ -92,8 +92,10 @@ export type DurationType = DurationInfo;
 export interface EntityInfo {
   EntityKind: 'Array' | 'Boolean' | 'Command' | 'CommandPayload' | 'CommandType' | 'Component' | 'Date' | 'DateTime' | 'Double' | 'Duration' | 'Enum' | 'EnumValue' | 'Field' | 'Float' | 'Integer' | 'Interface' | 'Long' | 'Map' | 'MapKey' | 'MapValue' | 'Object' | 'Property' | 'Relationship' | 'String' | 'Telemetry' | 'Time' | 'CommandRequest' | 'CommandResponse' | 'Unit' | 'UnitAttribute' | 'LatentType' | 'NamedLatentType';
   SupplementalTypes: string[];
+  // eslint-disable-next-line  @typescript-eslint/no-explicit-any
   SupplementalProperties: { [property: string]: any };
   UndefinedTypes: string[];
+  // eslint-disable-next-line  @typescript-eslint/no-explicit-any
   UndefinedProperties: { [property: string]: any };
   ClassId: string;
   comment?: string;

@@ -26,9 +26,9 @@ const readAndParse = async (filepath: string): Promise<DtdlObjectModel | null> =
     const model = JSON.parse(await parse(file)) as DtdlObjectModel
     log(`Successfully parsed '${filepath}'`)
     return model
-  } catch (err: any) {
+  } catch (err) {
     error(`Error parsing '${filepath}'`)
-    handleParsingException(err.toString())
+    handleParsingException(err)
     return null
   }
 }

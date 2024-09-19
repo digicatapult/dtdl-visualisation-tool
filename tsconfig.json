@@ -20,6 +20,6 @@
     "noImplicitAny": false
   },
   "ts-node": { "files": true },
-  "include": ["src/**/*", "src/tests/*", "tests/**/*", "interop"],
+  "include": ["src/**/*", "src/tests/*", "tests/**/*"],
   "exclude": ["node_modules"]
 }
