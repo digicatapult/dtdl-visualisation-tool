@@ -1,22 +1,20 @@
+import { expect } from 'chai'
 import { describe, it } from 'mocha'
-import { RootController } from '../root'
 import { pino } from 'pino'
 import sinon from 'sinon'
-import { expect } from 'chai'
-
+import { RootController } from '../root'
 
 describe('RootController', async () => {
+  afterEach(() => {
+    sinon.restore()
+  })
 
-    afterEach(() => {
-      sinon.restore()
+  describe('get', () => {
+    it('should return Hello, World', async () => {
+      const mockLogger = pino({ level: 'silent' })
+      const controller = new RootController(mockLogger)
+      const result = await controller.get()
+      expect(result).to.equal('Hello, World')
     })
-  
-    describe('get', () => {
-      it('should return Hello, World', async () => {
-        const mockLogger = pino({ level: 'silent' })
-        const controller = new RootController(mockLogger)
-        const result = await controller.get()
-        expect(result).to.equal('Hello, World')
-      })
-    })
+  })
 })
