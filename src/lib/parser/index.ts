@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { DtdlObjectModel } from '../../../interop/DtdlOm.js'
+import { DtdlObjectModel, InterfaceInfo } from '../../../interop/DtdlOm.js'
 import { parse, parserVersion } from '../../../interop/modelParser.js'
 import { handleParsingException } from './error.js'
 
@@ -33,7 +33,7 @@ const readAndParse = async (filepath: string): Promise<DtdlObjectModel | null> =
   }
 }
 
-export const parseDirectories = async (directory: string): Promise<DtdlObjectModel[] | null> => {
+export const parseDirectories = async (directory: string): Promise<DtdlObjectModel | null> => {
   log(`Parsing DTDL at: ${directory}`)
 
   if (!fs.existsSync(directory)) {
@@ -48,16 +48,22 @@ export const parseDirectories = async (directory: string): Promise<DtdlObjectMod
   log(`Found ${filepaths.length} files:`)
   log(filepaths)
 
-  let models: DtdlObjectModel[] = []
+  let fullModel: DtdlObjectModel = {}
   for (const filepath of filepaths) {
-    const model = await readAndParse(filepath)
-    if (model === null) return null // stop parsing if error
-    models.push(model)
+    const parsedModel = await readAndParse(filepath)
+    if (parsedModel === null) return null // stop parsing if error
+    fullModel = { ...fullModel, ...parsedModel }
   }
 
   log(`All files parsed!\n`)
   log(`Entities:`)
-  models.map((entity) => log(Object.keys(entity)))
+  log(Object.keys(fullModel))
 
-  return models
+  // Example type guard
+  const interfaces: InterfaceInfo[] = Object.values(fullModel).filter(
+    (value): value is InterfaceInfo => value.EntityKind === 'Interface'
+  )
+  log(`Number of interfaces: ${interfaces.length}`)
+
+  return fullModel
 }
