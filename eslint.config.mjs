@@ -42,7 +42,7 @@ export default [
         },
       ],
 
-      'no-console': 2,
+      'no-console': 'off',
       'no-duplicate-imports': 'warn',
     },
   },
