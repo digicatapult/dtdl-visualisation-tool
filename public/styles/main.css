@@ -1,0 +1,29 @@
+*,*::before,*::after {
+  box-sizing: border-box;
+}
+
+body {
+  display: grid;
+  padding-top: 10vh;
+  align-items: flex-start;
+  justify-items: center;
+  font-family: system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 10rem;
+}
+
+#counter {
+  position: relative;
+}
+
+#counter.htmx-request > span {
+  opacity: 0;
+}
+
+.spinner {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  height: 100%;
+  width: 100%;
+}

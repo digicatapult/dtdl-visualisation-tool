@@ -1,4 +1,6 @@
 ignores: [
     'prettier-plugin-organize-imports',
     '@digicatapult/tsimp',
+    '@kitajs/ts-html-plugin',
+    'mermaid'
 ]

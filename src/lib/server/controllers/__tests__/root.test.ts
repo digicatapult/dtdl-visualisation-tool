@@ -1,8 +1,10 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
-import { pino } from 'pino'
 import sinon from 'sinon'
+import { direction, relationships } from '../../models/exampleOntology.js'
+import Flowchart from '../../utils/mermaid/flowchart.js'
 import { RootController } from '../root'
+import { flowhchartMock, mockLogger, templateMock, toHTMLString } from './helpers'
 
 describe('RootController', async () => {
   afterEach(() => {
@@ -10,11 +12,11 @@ describe('RootController', async () => {
   })
 
   describe('get', () => {
-    it('should return Hello, World', async () => {
-      const mockLogger = pino({ level: 'silent' })
-      const controller = new RootController(mockLogger)
-      const result = await controller.get()
-      expect(result).to.equal('Hello, World')
+    it('should return rendered root template', async () => {
+      const controller = new RootController(templateMock, flowhchartMock, mockLogger)
+      const result = await controller.get().then(toHTMLString)
+      const flowchart = new Flowchart()
+      expect(result).to.equal(`root_${flowchart.generateFlowchart(relationships, direction)}_root`)
     })
   })
 })

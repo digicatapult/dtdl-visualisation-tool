@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`HomepageTemplates should render homepage 1`] = `"<!DOCTYPE html><html lang=\\"en\\"><head><script src=\\"/lib/mermaidConfig.js\\" type=\\"module\\"></script><link rel=\\"icon\\" type=\\"image/ico\\" sizes=\\"48x48\\" href=\\"/public/images/favicon.ico\\"/><link rel=\\"stylesheet\\" type=\\"text/css\\" href=\\"/public/styles/main.css\\"/><title>Mermaid - Homepage</title></head><body><pre class=\\"mermaid\\"></pre></body></html>"`;

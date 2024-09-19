@@ -1,5 +1,5 @@
+import { Express } from 'express'
 import 'reflect-metadata'
-import { Express, Request, Response } from 'express'
 import { logger } from './logger.js'
 import server from './server.js'
 
