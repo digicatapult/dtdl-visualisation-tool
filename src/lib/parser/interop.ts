@@ -4,6 +4,6 @@ export const getInterop = async (): Promise<Parser> => {
 }
 
 export interface Parser {
-  parse: (file: string) => Promise<string>
-  parserVersion: () => Promise<string>
+  parse: (file: string) => string
+  parserVersion: () => string
 }

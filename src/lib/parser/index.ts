@@ -23,7 +23,7 @@ export const searchForJsonFiles = (directory: string): string[] => {
 export const readAndParse = async (filepath: string, parserModule: Parser): Promise<DtdlObjectModel | null> => {
   try {
     const file = fs.readFileSync(filepath, 'utf-8')
-    const model = JSON.parse(await parserModule.parse(file)) as DtdlObjectModel
+    const model = JSON.parse(parserModule.parse(file)) as DtdlObjectModel
     log(`Successfully parsed '${filepath}'`)
     return model
   } catch (err) {
@@ -34,7 +34,7 @@ export const readAndParse = async (filepath: string, parserModule: Parser): Prom
 }
 
 export const parseDirectories = async (directory: string, parser: Parser): Promise<DtdlObjectModel | null> => {
-  log(`Parsing DTDL at: ${directory}`)
+  log(`Parsing DTDL at: '${directory}'`)
 
   if (!fs.existsSync(directory)) {
     error(`'${directory}' not a valid filepath`)
@@ -42,7 +42,6 @@ export const parseDirectories = async (directory: string, parser: Parser): Promi
   }
   log(`${parser.parserVersion()}\n`)
 
-  log(`Looking for files in '${directory}'`)
   const filepaths = searchForJsonFiles(directory)
 
   log(`Found ${filepaths.length} files:`)

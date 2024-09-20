@@ -9,22 +9,15 @@ const isResolutionException = (exception: ModelingException): exception is Resol
 }
 
 export const handleParsingException = (err: unknown) => {
-  if (!(err instanceof Error)) console.error(`Unexpected error: ${err}`)
+  if (!(err instanceof Error)) return console.error(`Unexpected error: ${err}`)
 
-  const error = (err as Error).toString()
-
-  // DTDL parser produces error strings prefixed with 'Error:'
-  if (!error.startsWith('Error:')) console.error(`Unexpected error: ${err}`)
-
-  const stripErrorPrefix = error.replace(/^Error:\s*/, '')
-
-  const exception = JSON.parse(stripErrorPrefix) as ModelingException
+  const exception = JSON.parse(err.message) as ModelingException
 
   // determine type in case we want to log differently
   if (isParsingException(exception)) {
-    console.log(exception)
+    console.error(exception)
   } else if (isResolutionException(exception)) {
-    console.log(exception)
+    console.error(exception)
   } else {
     console.error('Unknown exception type')
     console.error(exception)
