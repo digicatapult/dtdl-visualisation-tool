@@ -26,12 +26,12 @@ const exampleModel = {
 }
 
 const mockParser: Parser = {
-  parse: (_: string) => JSON.stringify(exampleModel),
+  parse: () => JSON.stringify(exampleModel),
   parserVersion: () => '1.0.0',
 }
 
 const mockParserWithParsingException: Parser = {
-  parse: (file: string) => {
+  parse: () => {
     throw new Error(
       JSON.stringify({
         ExceptionKind: 'Parsing',
