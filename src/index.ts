@@ -4,7 +4,7 @@ import 'reflect-metadata'
 
 import chalk from 'chalk'
 import { Command } from 'commander'
-import { parseDirectories } from './lib/parser/index.js'
+import { parseDirectories, validateDirectories } from './lib/parser/index.js'
 import { getInterop } from './lib/parser/interop.js'
 import { httpServer } from './lib/server/index.js'
 import version from './version.js'
@@ -25,16 +25,27 @@ program
 
 program
   .command('parse')
-  .description('parse a dtdl ontology')
+  .description('parse a dtdl ontology and start a server')
   .option('-P, --port <port>', 'specify host port number if it is not a default, default - 3000', '3000')
   .requiredOption('-p --path <path/to/dir>', 'Path to dtdl ontology directory')
   .action(async (options) => {
     const parser = await getInterop()
-    const parsedDtdl = await parseDirectories(options.path, parser)
+    const parsedDtdl = parseDirectories(options.path, parser)
 
     if (parsedDtdl) {
       httpServer(options)
     }
+  })
+
+program
+  .command('validate')
+  .description('validate a dtdl ontology')
+  .requiredOption('-p --path <path/to/dir>', 'Path to dtdl ontology directory')
+  .option('-r', 'include Resolution exceptions in validation', false)
+  .action(async (options) => {
+    const parser = await getInterop()
+    const allValid = validateDirectories(options.path, parser, options.r)
+    process.exit(allValid ? 0 : 1)
   })
 
 program.parse()
