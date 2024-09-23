@@ -1,56 +1,5 @@
 import { singleton } from 'tsyringe'
-
-export type DtdlObjectModel = { [entityId: string]: EntityType }
-
-export type EntityType = EntityInfo 
-
-export interface EntityInfo {
-  EntityKind:
-    | 'Array'
-    | 'Boolean'
-    | 'Command'
-    | 'CommandPayload'
-    | 'CommandType'
-    | 'Component'
-    | 'Date'
-    | 'DateTime'
-    | 'Double'
-    | 'Duration'
-    | 'Enum'
-    | 'EnumValue'
-    | 'Field'
-    | 'Float'
-    | 'Integer'
-    | 'Interface'
-    | 'Long'
-    | 'Map'
-    | 'MapKey'
-    | 'MapValue'
-    | 'Object'
-    | 'Property'
-    | 'Relationship'
-    | 'String'
-    | 'Telemetry'
-    | 'Time'
-    | 'CommandRequest'
-    | 'CommandResponse'
-    | 'Unit'
-    | 'UnitAttribute'
-    | 'LatentType'
-    | 'NamedLatentType'
-  SupplementalTypes: string[]
-  SupplementalProperties: { [property: string]: object }
-  UndefinedTypes: string[]
-  UndefinedProperties: { [property: string]: object }
-  ClassId: string
-  comment?: string
-  description: { [languageCode: string]: string }
-  displayName: { [languageCode: string]: string }
-  languageMajorVersion: number
-  Id: string
-  ChildOf?: string
-  DefinedIn?: string
-}
+import { DtdlObjectModel, EntityType } from '../../../../../interop/DtdlOm'
 
 export enum Direction {
   TopToBottom = ' TD',
@@ -80,17 +29,18 @@ export default class Flowchart {
   createNodeString(node: Node): string {
     const type_prefix = node.nodeType.split('<>')[0]
     const type_suffix = node.nodeType.split('<>')[1]
-    return node.id + type_prefix + node.name + type_suffix
+    const id = node.id.split(';')[0]
+    return `${id}${type_prefix}${node.name}${type_suffix}`
   }
 
-  createEntityString(entity: EntityInfo): string {
+  createEntityString(entity: EntityType): string {
     const entityAsNodeString: string = this.createNodeString({
       id: entity.Id,
-      name: entity.displayName.en,
+      name: entity.displayName.toHTMLString,
       nodeType: NodeType.Component,
     })
     if (entity.ChildOf) {
-      return `\n\t${entity.ChildOf} --- ${entityAsNodeString}`
+      return `\n\t${entity.ChildOf.split(';')[0]} --- ${entityAsNodeString}`
     }
     return `\n\t${entityAsNodeString}`
   }

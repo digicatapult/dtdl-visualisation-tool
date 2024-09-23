@@ -1,11 +1,13 @@
-import { Get, Produces, Route, SuccessResponse } from 'tsoa'
+import { Get, Produces, Route, SuccessResponse, Request } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
-
+import type * as express from 'express'
 import { type ILogger, Logger } from '../logger.js'
-import { direction, dtdlObjectModel } from '../models/exampleOntology.js'
-import Flowchart from '../utils/mermaid/flowchart.js'
+import Flowchart, {Direction} from '../utils/mermaid/flowchart.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
+import { parseDirectories } from '../../parser/index.js'
+import { getInterop } from '../../parser/interop.js'
+import { parseError } from '../views/common.js'
 
 @singleton()
 @injectable()
@@ -24,9 +26,16 @@ export class RootController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('/')
-  public async get(): Promise<HTML> {
+  public async get(@Request() req: express.Request): Promise<HTML> {
     this.logger.debug('root page requested')
 
-    return this.html(this.templates.flowchart({ graph: this.flowchart.getFlowchartMarkdown(dtdlObjectModel, direction) }))
+    const parser = await getInterop()
+    const parsedDtdl = await parseDirectories(req.app.get('dtdl-path'), parser)
+    if (parsedDtdl) {
+      return this.html(this.templates.flowchart({ graph: this.flowchart.getFlowchartMarkdown(parsedDtdl, Direction.TopToBottom) }))
+    }
+    return this.html(parseError({path:req.app.get('dtdl-path')}))
   }
+    
+  
 }
