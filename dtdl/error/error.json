@@ -1,0 +1,11 @@
+{
+  "@type": "Interface",
+  "@id": "dtmi:com:example:Thermostat",
+  "contents": [
+    {
+      "@type": "Telemetry",
+      "name": "temperature",
+      "schema": "double"
+    }
+  ]
+}

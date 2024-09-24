@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RuntimeIdentifier>browser-wasm</RuntimeIdentifier>
+    <OutputType>Exe</OutputType>
+    <WasmMainJSPath>modelParser.js</WasmMainJSPath>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RunAOTCompilation>false</RunAOTCompilation>
+    <PublishTrimmed>true</PublishTrimmed>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <EmccInitialHeapSize>16mb</EmccInitialHeapSize>
+    <DebuggerSupport>false</DebuggerSupport>
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
+    <EventSourceSupport>false</EventSourceSupport>
+    <WasmEmitSymbolMap>false</WasmEmitSymbolMap>
+    <WasmAppDir>../build/interop</WasmAppDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <WasmExtraFilesToDeploy Include="modelParser.js" />
+  </ItemGroup>
+ 
+  <ItemGroup>
+    <PackageReference Include="DTDLParser" Version="1.0.52" />
+  </ItemGroup>
+</Project>

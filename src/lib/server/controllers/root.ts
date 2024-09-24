@@ -6,7 +6,7 @@ import { type ILogger, Logger } from '../logger.js'
 @singleton()
 @injectable()
 @Route()
-@Produces('text/hmtl')
+@Produces('text/html')
 export class RootController {
 
     constructor(

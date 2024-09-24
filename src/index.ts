@@ -1,9 +1,11 @@
 #!/usr/bin/env node --no-warnings
 
-import "reflect-metadata"
+import 'reflect-metadata'
 
 import chalk from 'chalk'
 import { Command } from 'commander'
+import { parseDirectories, validateDirectories } from './lib/parser/index.js'
+import { getInterop } from './lib/parser/interop.js'
 import { httpServer } from './lib/server/index.js'
 import version from './version.js'
 
@@ -18,19 +20,34 @@ const { red: r } = {
 program
   .name('dtdl-visualiser')
   .description('A CLI tool for visualising digital twin ontologies')
-  .version(version, '-v, --version', 'ouput current version')
+  .version(version, '-v, --version', 'output current version')
   .helpOption('--help', 'display help for command')
 
 program
-  .command('validate')
-  .description('Validate a dtdl ontology')
+  .command('parse')
+  .description('parse a dtdl ontology and start a server')
   .option('-P, --port <port>', 'specify host port number if it is not a default, default - 3000', '3000')
-  .requiredOption('-p --path <path/to/dir>', 'Path to dtdl ontolody directory')
+  .requiredOption('-p --path <path/to/dir>', 'Path to dtdl ontology directory')
   .action(async (options) => {
-    log(`path: ${options.path}`)
-    log(`Port: ${options.port}`)
-    // start server with specified port
-    httpServer(options)
+    const parser = await getInterop()
+    const parsedDtdl = parseDirectories(options.path, parser)
+
+    if (parsedDtdl) {
+      httpServer(options)
+    } else {
+      process.exit(1)
+    }
+  })
+
+program
+  .command('validate')
+  .description('validate a dtdl ontology')
+  .requiredOption('-p --path <path/to/dir>', 'Path to dtdl ontology directory')
+  .option('-r', 'include Resolution exceptions in validation', false)
+  .action(async (options) => {
+    const parser = await getInterop()
+    const allValid = validateDirectories(options.path, parser, options.r)
+    process.exit(allValid ? 0 : 1)
   })
 
 program.parse()

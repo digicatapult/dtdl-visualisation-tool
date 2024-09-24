@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "CLI tool for dtdl visualisation",
   "main": "src/index.js",
   "bin": {
@@ -14,7 +14,9 @@
     "tsoa:build": "tsoa spec-and-routes",
     "local": "npm i -g && dtdl-visualiser",
     "lint": "eslint . --fix",
-    "check": "npm run tsoa:build && tsc --noEmit"
+    "check": "npm run tsoa:build && tsc --noEmit",
+    "interop:debug": "dotnet build interop",
+    "interop:build": "dotnet build interop --configuration Release"
   },
   "repository": {
     "type": "git",
@@ -59,5 +61,8 @@
     "prettier-plugin-organize-imports": "^4.1.0",
     "sinon": "^19.0.2",
     "typescript": "^5.6.2"
+  },
+  "engines": {
+    "node": ">= 20"
   }
 }
