@@ -37,12 +37,18 @@ const readJsonFile = (filepath: string): unknown | null => {
   }
 }
 
-export const combineJson = (filepaths: string[]) => {
-  return filepaths.reduce((combinedJson, filepath) => {
+const combineJson = (filepaths: string[]) => {
+  const combinedJson: unknown[] = []
+
+  for (const filepath of filepaths) {
     const json = readJsonFile(filepath)
-    if (json) combinedJson.push(json)
-    return combinedJson
-  }, [] as unknown[])
+    if (json === null) {
+      return null // exit on any error
+    }
+    combinedJson.push(json)
+  }
+
+  return combinedJson
 }
 
 export const validate = (filepath: string, parserModule: Parser, incResolutionException: boolean): boolean => {
@@ -105,6 +111,8 @@ export const parseDirectories = (directory: string, parser: Parser): DtdlObjectM
   log(filepaths)
 
   const fullJson = combineJson(filepaths)
+  if (fullJson === null) return null
+
   const fullModel = readAndParseJson(fullJson, parser)
   if (fullModel === null) return null
 

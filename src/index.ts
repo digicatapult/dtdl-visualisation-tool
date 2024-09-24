@@ -32,9 +32,7 @@ program
     const parser = await getInterop()
     const parsedDtdl = parseDirectories(options.path, parser)
 
-    if (parsedDtdl) {
-      httpServer(options)
-    }
+    parsedDtdl ? httpServer(options) : process.exit(1)
   })
 
 program
