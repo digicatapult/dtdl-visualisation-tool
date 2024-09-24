@@ -4,6 +4,7 @@ import { pino } from 'pino'
 import Flowchart from '../../utils/mermaid/flowchart'
 import MermaidTemplates from '../../views/components/mermaid'
 import type * as express from 'express'
+import { mockDtdlObjectModel } from '../../utils/mermaid/__tests__/flowchart.test'
 
 export const templateMock = {
   flowchart: (props: PropsWithChildren<{ graph: string }>) => `root_${props.graph}_root`,
@@ -22,7 +23,7 @@ export const flowhchartMock = {
 export const mockRequestObject = {
   app: {
     get: () => {
-      return './dtdl/simple'
+      return mockDtdlObjectModel
     }
   }
 } as unknown as express.Request

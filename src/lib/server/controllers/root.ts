@@ -5,8 +5,6 @@ import { type ILogger, Logger } from '../logger.js'
 import Flowchart, {Direction} from '../utils/mermaid/flowchart.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
-import { parseDirectories } from '../../parser/index.js'
-import { getInterop } from '../../parser/interop.js'
 import { parseError } from '../views/common.js'
 
 @singleton()
@@ -29,10 +27,8 @@ export class RootController extends HTMLController {
   public async get(@Request() req: express.Request): Promise<HTML> {
     this.logger.debug('root page requested')
 
-    const parser = await getInterop()
-    const parsedDtdl = await parseDirectories(req.app.get('dtdl-path'), parser)
-    if (parsedDtdl) {
-      return this.html(this.templates.flowchart({ graph: this.flowchart.getFlowchartMarkdown(parsedDtdl, Direction.TopToBottom) }))
+    if (req.app.get('dtdl')) {
+      return this.html(this.templates.flowchart({ graph: this.flowchart.getFlowchartMarkdown(req.app.get('dtdl'), Direction.TopToBottom) }))
     }
     return this.html(parseError({path:req.app.get('dtdl-path')}))
   }

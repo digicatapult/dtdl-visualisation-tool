@@ -16,7 +16,7 @@ export enum NodeType {
 
 export type Node = {
   id: string
-  name: string
+  name: string | undefined
   nodeType: NodeType
 }
 
@@ -30,14 +30,27 @@ export default class Flowchart {
     const type_prefix = node.nodeType.split('<>')[0]
     const type_suffix = node.nodeType.split('<>')[1]
     const id = node.id.split(';')[0]
-    return `${id}${type_prefix}${node.name}${type_suffix}`
+    if (node.name){return `${id}${type_prefix}${node.name}${type_suffix}`}
+    return `${id}`
+  }
+
+  getNodeType(entityKind: EntityType["EntityKind"]): NodeType {
+    switch (entityKind){
+      case 'Component':
+        return NodeType.Component
+      case 'Interface': 
+        return NodeType.Interface
+      default:
+        return NodeType.Custom
+    }
   }
 
   createEntityString(entity: EntityType): string {
+    console.log(entity)
     const entityAsNodeString: string = this.createNodeString({
       id: entity.Id,
-      name: entity.displayName.toHTMLString,
-      nodeType: NodeType.Component,
+      name: ((entity.displayName) ? entity.displayName.en : undefined),
+      nodeType: this.getNodeType(entity.EntityKind),
     })
     if (entity.ChildOf) {
       return `\n\t${entity.ChildOf.split(';')[0]} --- ${entityAsNodeString}`
