@@ -1,22 +1,22 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
+import { DtdlObjectModel } from '../../../../../../interop/DtdlOm'
 import Flowchart, { Node, NodeType } from '../flowchart'
-import { DtdlObjectModel } from "../../../../../../interop/DtdlOm"
 
 export const mockDtdlObjectModel = {
-    '1': {
-        Id: '1',
-        displayName: {
-            'en': 'node 1'
-        }
+  '1': {
+    Id: '1',
+    displayName: {
+      en: 'node 1',
     },
-    '2': {
-        Id: '2',
-        displayName: {
-            'en': 'node 2'
-        },
-        ChildOf: '1'
+  },
+  '2': {
+    Id: '2',
+    displayName: {
+      en: 'node 2',
     },
+    ChildOf: '1',
+  },
 } as unknown as DtdlObjectModel
 
 export const nodes: Node[] = [
@@ -33,8 +33,6 @@ export const nodes: Node[] = [
 ]
 
 export const flowchartFixture = `flowchart TD\n\t1["node 1"]\n\t1 --- 2["node 2"]`
-
-
 
 describe('Flowchart', () => {
   const flowchart = new Flowchart()

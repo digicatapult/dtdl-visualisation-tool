@@ -30,15 +30,17 @@ export default class Flowchart {
     const type_prefix = node.nodeType.split('<>')[0]
     const type_suffix = node.nodeType.split('<>')[1]
     const id = node.id.split(';')[0]
-    if (node.name){return `${id}${type_prefix}${node.name}${type_suffix}`}
+    if (node.name) {
+      return `${id}${type_prefix}${node.name}${type_suffix}`
+    }
     return `${id}`
   }
 
-  getNodeType(entityKind: EntityType["EntityKind"]): NodeType {
-    switch (entityKind){
+  getNodeType(entityKind: EntityType['EntityKind']): NodeType {
+    switch (entityKind) {
       case 'Component':
         return NodeType.Component
-      case 'Interface': 
+      case 'Interface':
         return NodeType.Interface
       default:
         return NodeType.Custom
@@ -48,7 +50,7 @@ export default class Flowchart {
   createEntityString(entity: EntityType): string {
     const entityAsNodeString: string = this.createNodeString({
       id: entity.Id,
-      name: ((entity.displayName) ? entity.displayName.en : undefined),
+      name: entity.displayName ? entity.displayName.en : undefined,
       nodeType: this.getNodeType(entity.EntityKind),
     })
     if (entity.ChildOf) {

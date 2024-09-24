@@ -33,7 +33,7 @@ program
     const parsedDtdl = parseDirectories(options.path, parser)
 
     if (parsedDtdl) {
-      httpServer({port: options.port, parsedDtdl: parsedDtdl})
+      httpServer({ port: options.port, parsedDtdl: parsedDtdl })
     }
   })
 

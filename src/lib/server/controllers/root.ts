@@ -1,11 +1,11 @@
-import { Get, Produces, Route, SuccessResponse, Request } from 'tsoa'
-import { inject, injectable, singleton } from 'tsyringe'
 import type * as express from 'express'
+import { Get, Produces, Request, Route, SuccessResponse } from 'tsoa'
+import { inject, injectable, singleton } from 'tsyringe'
 import { type ILogger, Logger } from '../logger.js'
-import Flowchart, {Direction} from '../utils/mermaid/flowchart.js'
+import Flowchart, { Direction } from '../utils/mermaid/flowchart.js'
+import { parseError } from '../views/common.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
-import { parseError } from '../views/common.js'
 
 @singleton()
 @injectable()
@@ -28,10 +28,12 @@ export class RootController extends HTMLController {
     this.logger.debug('root page requested')
 
     if (req.app.get('dtdl')) {
-      return this.html(this.templates.flowchart({ graph: this.flowchart.getFlowchartMarkdown(req.app.get('dtdl'), Direction.TopToBottom) }))
+      return this.html(
+        this.templates.flowchart({
+          graph: this.flowchart.getFlowchartMarkdown(req.app.get('dtdl'), Direction.TopToBottom),
+        })
+      )
     }
-    return this.html(parseError({path:req.app.get('dtdl-path')}))
+    return this.html(parseError({ path: req.app.get('dtdl-path') }))
   }
-    
-  
 }
