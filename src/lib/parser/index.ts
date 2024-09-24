@@ -51,7 +51,7 @@ const combineJson = (filepaths: string[]) => {
   return combinedJson
 }
 
-export const validate = (filepath: string, parserModule: Parser, incResolutionException: boolean): boolean => {
+const validateFile = (filepath: string, parserModule: Parser, incResolutionException: boolean): boolean => {
   try {
     const file = fs.readFileSync(filepath, 'utf-8')
     parserModule.parse(file)
@@ -69,7 +69,7 @@ export const validate = (filepath: string, parserModule: Parser, incResolutionEx
   }
 }
 
-export const readAndParseJson = (json: unknown[], parserModule: Parser): DtdlObjectModel | null => {
+const parseDtdl = (json: unknown[], parserModule: Parser): DtdlObjectModel | null => {
   try {
     const model = JSON.parse(parserModule.parse(JSON.stringify(json))) as DtdlObjectModel
     log(`Successfully parsed`)
@@ -92,7 +92,7 @@ export const validateDirectories = (directory: string, parser: Parser, incResolu
   log(filepaths)
 
   for (const filepath of filepaths) {
-    const isValid = validate(filepath, parser, incResolutionException)
+    const isValid = validateFile(filepath, parser, incResolutionException)
     if (!isValid) return false // stop validating if error
   }
 
@@ -113,7 +113,7 @@ export const parseDirectories = (directory: string, parser: Parser): DtdlObjectM
   const fullJson = combineJson(filepaths)
   if (fullJson === null) return null
 
-  const fullModel = readAndParseJson(fullJson, parser)
+  const fullModel = parseDtdl(fullJson, parser)
   if (fullModel === null) return null
 
   log(`All files parsed!\n`)
