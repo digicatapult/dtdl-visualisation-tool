@@ -1,6 +1,6 @@
 import { ModelingException, ParsingException, ResolutionException } from '../../../interop/DtdlErr.js'
 
-export type ExceptionOptions = 'Parsing' | 'Resolution'
+const { error } = console
 
 const isParsingEx = (exception: ModelingException): exception is ParsingException => {
   return exception.ExceptionKind === 'Parsing'
@@ -15,16 +15,11 @@ export const isResolutionException = (err: unknown) => {
   return isResolutionEx(JSON.parse(err.message))
 }
 
-export const errorHandler = (err: unknown): boolean => {
-  if (!(err instanceof Error)) {
-    console.error(`Unexpected error: ${err}`)
-    return false
-  }
+export const errorHandler = (err: unknown) => {
+  if (!(err instanceof Error)) return error(`Unexpected error: ${err}`)
 
   const exception = JSON.parse(err.message) as ModelingException
 
-  if (!(isParsingEx(exception) || isResolutionEx(exception))) console.error('Unknown exception type')
-  console.error(exception)
-
-  return false
+  if (!(isParsingEx(exception) || isResolutionEx(exception))) error('Unknown exception type')
+  error(exception)
 }

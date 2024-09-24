@@ -34,6 +34,8 @@ program
 
     if (parsedDtdl) {
       httpServer({ port: options.port, parsedDtdl: parsedDtdl })
+    } else {
+      process.exit(1)
     }
   })
 

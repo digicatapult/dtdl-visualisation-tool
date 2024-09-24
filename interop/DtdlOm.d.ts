@@ -1,372 +1,293 @@
-export type DtdlObjectModel = { [entityId: string]: EntityType }
+export type DtdlObjectModel = { [entityId: string]: EntityType };
 
 export interface ArrayInfo extends ComplexSchemaInfo {
-  EntityKind: 'Array'
-  elementSchema: string
+  EntityKind: 'Array';
+  elementSchema: string;
 }
 
-export type ArrayType = ArrayInfo
+export type ArrayType = ArrayInfo;
 
 export interface BooleanInfo extends PrimitiveSchemaInfo {
-  EntityKind: 'Boolean'
+  EntityKind: 'Boolean';
 }
 
-export type BooleanType = BooleanInfo
+export type BooleanType = BooleanInfo;
 
 export interface CommandInfo extends ContentInfo {
-  EntityKind: 'Command'
-  commandType?: string
-  request?: string
-  response?: string
+  EntityKind: 'Command';
+  commandType?: string;
+  request?: string;
+  response?: string;
 }
 
-export type CommandType = CommandInfo
+export type CommandType = CommandInfo;
 
 export interface CommandPayloadInfo extends SchemaFieldInfo {
-  EntityKind: 'CommandPayload' | 'CommandRequest' | 'CommandResponse'
+  EntityKind: 'CommandPayload' | 'CommandRequest' | 'CommandResponse';
 }
 
-export type CommandPayloadType = CommandPayloadInfo | CommandRequestType | CommandResponseType
+export type CommandPayloadType = CommandPayloadInfo | CommandRequestType | CommandResponseType;
 
 export interface CommandRequestInfo extends CommandPayloadInfo {
-  EntityKind: 'CommandRequest'
+  EntityKind: 'CommandRequest';
 }
 
-export type CommandRequestType = CommandRequestInfo
+export type CommandRequestType = CommandRequestInfo;
 
 export interface CommandResponseInfo extends CommandPayloadInfo {
-  EntityKind: 'CommandResponse'
+  EntityKind: 'CommandResponse';
 }
 
-export type CommandResponseType = CommandResponseInfo
+export type CommandResponseType = CommandResponseInfo;
 
 export interface CommandTypeInfo extends EntityInfo {
-  EntityKind: 'CommandType'
+  EntityKind: 'CommandType';
 }
 
-export type CommandTypeType = CommandTypeInfo
+export type CommandTypeType = CommandTypeInfo;
 
 export interface ComplexSchemaInfo extends SchemaInfo {
-  EntityKind: 'Array' | 'Enum' | 'Map' | 'Object'
+  EntityKind: 'Array' | 'Enum' | 'Map' | 'Object';
 }
 
-export type ComplexSchemaType = ComplexSchemaInfo | ArrayType | EnumType | MapType | ObjectType
+export type ComplexSchemaType = ComplexSchemaInfo | ArrayType | EnumType | MapType | ObjectType;
 
 export interface ComponentInfo extends ContentInfo {
-  EntityKind: 'Component'
-  schema: string
+  EntityKind: 'Component';
+  schema: string;
 }
 
-export type ComponentType = ComponentInfo
+export type ComponentType = ComponentInfo;
 
 export interface ContentInfo extends NamedEntityInfo {
-  EntityKind: 'Command' | 'Component' | 'Property' | 'Relationship' | 'Telemetry'
+  EntityKind: 'Command' | 'Component' | 'Property' | 'Relationship' | 'Telemetry';
 }
 
-export type ContentType = ContentInfo | CommandType | ComponentType | PropertyType | RelationshipType | TelemetryType
+export type ContentType = ContentInfo | CommandType | ComponentType | PropertyType | RelationshipType | TelemetryType;
 
 export interface DateInfo extends TemporalSchemaInfo {
-  EntityKind: 'Date'
+  EntityKind: 'Date';
 }
 
-export type DateType = DateInfo
+export type DateType = DateInfo;
 
 export interface DateTimeInfo extends TemporalSchemaInfo {
-  EntityKind: 'DateTime'
+  EntityKind: 'DateTime';
 }
 
-export type DateTimeType = DateTimeInfo
+export type DateTimeType = DateTimeInfo;
 
 export interface DoubleInfo extends NumericSchemaInfo {
-  EntityKind: 'Double'
+  EntityKind: 'Double';
 }
 
-export type DoubleType = DoubleInfo
+export type DoubleType = DoubleInfo;
 
 export interface DurationInfo extends TemporalSchemaInfo {
-  EntityKind: 'Duration'
+  EntityKind: 'Duration';
 }
 
-export type DurationType = DurationInfo
+export type DurationType = DurationInfo;
 
 export interface EntityInfo {
-  EntityKind:
-    | 'Array'
-    | 'Boolean'
-    | 'Command'
-    | 'CommandPayload'
-    | 'CommandType'
-    | 'Component'
-    | 'Date'
-    | 'DateTime'
-    | 'Double'
-    | 'Duration'
-    | 'Enum'
-    | 'EnumValue'
-    | 'Field'
-    | 'Float'
-    | 'Integer'
-    | 'Interface'
-    | 'Long'
-    | 'Map'
-    | 'MapKey'
-    | 'MapValue'
-    | 'Object'
-    | 'Property'
-    | 'Relationship'
-    | 'String'
-    | 'Telemetry'
-    | 'Time'
-    | 'CommandRequest'
-    | 'CommandResponse'
-    | 'Unit'
-    | 'UnitAttribute'
-    | 'LatentType'
-    | 'NamedLatentType'
-  SupplementalTypes: string[]
+  EntityKind: 'Array' | 'Boolean' | 'Command' | 'CommandPayload' | 'CommandType' | 'Component' | 'Date' | 'DateTime' | 'Double' | 'Duration' | 'Enum' | 'EnumValue' | 'Field' | 'Float' | 'Integer' | 'Interface' | 'Long' | 'Map' | 'MapKey' | 'MapValue' | 'Object' | 'Property' | 'Relationship' | 'String' | 'Telemetry' | 'Time' | 'CommandRequest' | 'CommandResponse' | 'Unit' | 'UnitAttribute' | 'LatentType' | 'NamedLatentType';
+  SupplementalTypes: string[];
   // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-  SupplementalProperties: { [property: string]: any }
-  UndefinedTypes: string[]
+  SupplementalProperties: { [property: string]: any };
+  UndefinedTypes: string[];
   // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-  UndefinedProperties: { [property: string]: any }
-  ClassId: string
-  comment?: string
-  description: { [languageCode: string]: string }
-  displayName: { [languageCode: string]: string }
-  languageMajorVersion: number
-  Id: string
-  ChildOf?: string
-  DefinedIn?: string
+  UndefinedProperties: { [property: string]: any };
+  ClassId: string;
+  comment?: string;
+  description: { [languageCode: string]: string };
+  displayName: { [languageCode: string]: string };
+  languageMajorVersion: number;
+  Id: string;
+  ChildOf?: string;
+  DefinedIn?: string;
 }
 
-export type EntityType =
-  | EntityInfo
-  | CommandTypeType
-  | InterfaceType
-  | LatentTypeType
-  | NamedEntityType
-  | SchemaType
-  | UnitType
+export type EntityType = EntityInfo | CommandTypeType | InterfaceType | LatentTypeType | NamedEntityType | SchemaType | UnitType;
 
 export interface EnumInfo extends ComplexSchemaInfo {
-  EntityKind: 'Enum'
-  enumValues: string[]
-  valueSchema: string
+  EntityKind: 'Enum';
+  enumValues: string[];
+  valueSchema: string;
 }
 
-export type EnumType = EnumInfo
+export type EnumType = EnumInfo;
 
 export interface EnumValueInfo extends NamedEntityInfo {
-  EntityKind: 'EnumValue'
-  enumValue: string | number | boolean
+  EntityKind: 'EnumValue';
+  enumValue: string | number | boolean;
 }
 
-export type EnumValueType = EnumValueInfo
+export type EnumValueType = EnumValueInfo;
 
 export interface FieldInfo extends SchemaFieldInfo {
-  EntityKind: 'Field'
+  EntityKind: 'Field';
 }
 
-export type FieldType = FieldInfo
+export type FieldType = FieldInfo;
 
 export interface FloatInfo extends NumericSchemaInfo {
-  EntityKind: 'Float'
+  EntityKind: 'Float';
 }
 
-export type FloatType = FloatInfo
+export type FloatType = FloatInfo;
 
 export interface IntegerInfo extends NumericSchemaInfo {
-  EntityKind: 'Integer'
+  EntityKind: 'Integer';
 }
 
-export type IntegerType = IntegerInfo
+export type IntegerType = IntegerInfo;
 
 export interface InterfaceInfo extends EntityInfo {
-  EntityKind: 'Interface'
-  contents: { [name: string]: string }
-  commands: { [name: string]: string }
-  components: { [name: string]: string }
-  properties: { [name: string]: string }
-  relationships: { [name: string]: string }
-  telemetries: { [name: string]: string }
-  extends: string[]
-  extendedBy: string[]
-  schemas: string[]
+  EntityKind: 'Interface';
+  contents: { [name: string]: string };
+  commands: { [name: string]: string };
+  components: { [name: string]: string };
+  properties: { [name: string]: string };
+  relationships: { [name: string]: string };
+  telemetries: { [name: string]: string };
+  extends: string[];
+  extendedBy: string[];
+  schemas: string[];
 }
 
-export type InterfaceType = InterfaceInfo
+export type InterfaceType = InterfaceInfo;
 
 export interface LatentTypeInfo extends EntityInfo {
-  EntityKind: 'LatentType'
+  EntityKind: 'LatentType';
 }
 
-export type LatentTypeType = LatentTypeInfo
+export type LatentTypeType = LatentTypeInfo;
 
 export interface LongInfo extends NumericSchemaInfo {
-  EntityKind: 'Long'
+  EntityKind: 'Long';
 }
 
-export type LongType = LongInfo
+export type LongType = LongInfo;
 
 export interface MapInfo extends ComplexSchemaInfo {
-  EntityKind: 'Map'
-  mapKey: string
-  mapValue: string
+  EntityKind: 'Map';
+  mapKey: string;
+  mapValue: string;
 }
 
-export type MapType = MapInfo
+export type MapType = MapInfo;
 
 export interface MapKeyInfo extends NamedEntityInfo {
-  EntityKind: 'MapKey'
-  schema: string
+  EntityKind: 'MapKey';
+  schema: string;
 }
 
-export type MapKeyType = MapKeyInfo
+export type MapKeyType = MapKeyInfo;
 
 export interface MapValueInfo extends SchemaFieldInfo {
-  EntityKind: 'MapValue'
+  EntityKind: 'MapValue';
 }
 
-export type MapValueType = MapValueInfo
+export type MapValueType = MapValueInfo;
 
 export interface NamedEntityInfo extends EntityInfo {
-  EntityKind:
-    | 'Command'
-    | 'CommandPayload'
-    | 'Component'
-    | 'EnumValue'
-    | 'Field'
-    | 'MapKey'
-    | 'MapValue'
-    | 'Property'
-    | 'Relationship'
-    | 'Telemetry'
-    | 'CommandRequest'
-    | 'CommandResponse'
-    | 'UnitAttribute'
-    | 'NamedLatentType'
-  name: string
+  EntityKind: 'Command' | 'CommandPayload' | 'Component' | 'EnumValue' | 'Field' | 'MapKey' | 'MapValue' | 'Property' | 'Relationship' | 'Telemetry' | 'CommandRequest' | 'CommandResponse' | 'UnitAttribute' | 'NamedLatentType';
+  name: string;
 }
 
-export type NamedEntityType =
-  | NamedEntityInfo
-  | ContentType
-  | EnumValueType
-  | MapKeyType
-  | NamedLatentTypeType
-  | SchemaFieldType
-  | UnitAttributeType
+export type NamedEntityType = NamedEntityInfo | ContentType | EnumValueType | MapKeyType | NamedLatentTypeType | SchemaFieldType | UnitAttributeType;
 
 export interface NamedLatentTypeInfo extends NamedEntityInfo {
-  EntityKind: 'NamedLatentType'
+  EntityKind: 'NamedLatentType';
 }
 
-export type NamedLatentTypeType = NamedLatentTypeInfo
+export type NamedLatentTypeType = NamedLatentTypeInfo;
 
 export interface NumericSchemaInfo extends PrimitiveSchemaInfo {
-  EntityKind: 'Double' | 'Float' | 'Integer' | 'Long'
+  EntityKind: 'Double' | 'Float' | 'Integer' | 'Long';
 }
 
-export type NumericSchemaType = NumericSchemaInfo | DoubleType | FloatType | IntegerType | LongType
+export type NumericSchemaType = NumericSchemaInfo | DoubleType | FloatType | IntegerType | LongType;
 
 export interface ObjectInfo extends ComplexSchemaInfo {
-  EntityKind: 'Object'
-  fields: string[]
+  EntityKind: 'Object';
+  fields: string[];
 }
 
-export type ObjectType = ObjectInfo
+export type ObjectType = ObjectInfo;
 
 export interface PrimitiveSchemaInfo extends SchemaInfo {
-  EntityKind: 'Boolean' | 'Date' | 'DateTime' | 'Double' | 'Duration' | 'Float' | 'Integer' | 'Long' | 'String' | 'Time'
+  EntityKind: 'Boolean' | 'Date' | 'DateTime' | 'Double' | 'Duration' | 'Float' | 'Integer' | 'Long' | 'String' | 'Time';
 }
 
-export type PrimitiveSchemaType =
-  | PrimitiveSchemaInfo
-  | BooleanType
-  | NumericSchemaType
-  | StringType
-  | TemporalSchemaType
+export type PrimitiveSchemaType = PrimitiveSchemaInfo | BooleanType | NumericSchemaType | StringType | TemporalSchemaType;
 
 export interface PropertyInfo extends ContentInfo {
-  EntityKind: 'Property'
-  schema: string
-  writable: boolean
+  EntityKind: 'Property';
+  schema: string;
+  writable: boolean;
 }
 
-export type PropertyType = PropertyInfo
+export type PropertyType = PropertyInfo;
 
 export interface RelationshipInfo extends ContentInfo {
-  EntityKind: 'Relationship'
-  maxMultiplicity?: number
-  minMultiplicity?: number
-  properties: string[]
-  target?: string
-  writable: boolean
+  EntityKind: 'Relationship';
+  maxMultiplicity?: number;
+  minMultiplicity?: number;
+  properties: string[];
+  target?: string;
+  writable: boolean;
 }
 
-export type RelationshipType = RelationshipInfo
+export type RelationshipType = RelationshipInfo;
 
 export interface SchemaInfo extends EntityInfo {
-  EntityKind:
-    | 'Array'
-    | 'Boolean'
-    | 'Date'
-    | 'DateTime'
-    | 'Double'
-    | 'Duration'
-    | 'Enum'
-    | 'Float'
-    | 'Integer'
-    | 'Long'
-    | 'Map'
-    | 'Object'
-    | 'String'
-    | 'Time'
+  EntityKind: 'Array' | 'Boolean' | 'Date' | 'DateTime' | 'Double' | 'Duration' | 'Enum' | 'Float' | 'Integer' | 'Long' | 'Map' | 'Object' | 'String' | 'Time';
 }
 
-export type SchemaType = SchemaInfo | ComplexSchemaType | PrimitiveSchemaType
+export type SchemaType = SchemaInfo | ComplexSchemaType | PrimitiveSchemaType;
 
 export interface SchemaFieldInfo extends NamedEntityInfo {
-  EntityKind: 'CommandPayload' | 'Field' | 'MapValue' | 'CommandRequest' | 'CommandResponse'
-  schema: string
+  EntityKind: 'CommandPayload' | 'Field' | 'MapValue' | 'CommandRequest' | 'CommandResponse';
+  schema: string;
 }
 
-export type SchemaFieldType = SchemaFieldInfo | CommandPayloadType | FieldType | MapValueType
+export type SchemaFieldType = SchemaFieldInfo | CommandPayloadType | FieldType | MapValueType;
 
 export interface StringInfo extends PrimitiveSchemaInfo {
-  EntityKind: 'String'
+  EntityKind: 'String';
 }
 
-export type StringType = StringInfo
+export type StringType = StringInfo;
 
 export interface TelemetryInfo extends ContentInfo {
-  EntityKind: 'Telemetry'
-  schema: string
+  EntityKind: 'Telemetry';
+  schema: string;
 }
 
-export type TelemetryType = TelemetryInfo
+export type TelemetryType = TelemetryInfo;
 
 export interface TemporalSchemaInfo extends PrimitiveSchemaInfo {
-  EntityKind: 'Date' | 'DateTime' | 'Duration' | 'Time'
+  EntityKind: 'Date' | 'DateTime' | 'Duration' | 'Time';
 }
 
-export type TemporalSchemaType = TemporalSchemaInfo | DateType | DateTimeType | DurationType | TimeType
+export type TemporalSchemaType = TemporalSchemaInfo | DateType | DateTimeType | DurationType | TimeType;
 
 export interface TimeInfo extends TemporalSchemaInfo {
-  EntityKind: 'Time'
+  EntityKind: 'Time';
 }
 
-export type TimeType = TimeInfo
+export type TimeType = TimeInfo;
 
 export interface UnitInfo extends EntityInfo {
-  EntityKind: 'Unit'
-  symbol?: string
+  EntityKind: 'Unit';
+  symbol?: string;
 }
 
-export type UnitType = UnitInfo
+export type UnitType = UnitInfo;
 
 export interface UnitAttributeInfo extends NamedEntityInfo {
-  EntityKind: 'UnitAttribute'
+  EntityKind: 'UnitAttribute';
 }
 
-export type UnitAttributeType = UnitAttributeInfo
+export type UnitAttributeType = UnitAttributeInfo;

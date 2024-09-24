@@ -1,0 +1,1 @@
+This directory modifies code from `DTDLParser for .NET`, licensed under an [MIT License](./LICENSE). You can find the original project [here](https://github.com/digitaltwinconsortium/DTDLParser).

@@ -37,15 +37,21 @@ const readJsonFile = (filepath: string): unknown | null => {
   }
 }
 
-export const combineJson = (filepaths: string[]) => {
-  return filepaths.reduce((combinedJson, filepath) => {
+const combineJson = (filepaths: string[]) => {
+  const combinedJson: unknown[] = []
+
+  for (const filepath of filepaths) {
     const json = readJsonFile(filepath)
-    if (json) combinedJson.push(json)
-    return combinedJson
-  }, [] as unknown[])
+    if (json === null) {
+      return null // exit on any error
+    }
+    combinedJson.push(json)
+  }
+
+  return combinedJson
 }
 
-export const validate = (filepath: string, parserModule: Parser, incResolutionException: boolean): boolean => {
+const validateFile = (filepath: string, parserModule: Parser, incResolutionException: boolean): boolean => {
   try {
     const file = fs.readFileSync(filepath, 'utf-8')
     parserModule.parse(file)
@@ -63,7 +69,7 @@ export const validate = (filepath: string, parserModule: Parser, incResolutionEx
   }
 }
 
-export const readAndParseJson = (json: unknown[], parserModule: Parser): DtdlObjectModel | null => {
+const parseDtdl = (json: unknown[], parserModule: Parser): DtdlObjectModel | null => {
   try {
     const model = JSON.parse(parserModule.parse(JSON.stringify(json))) as DtdlObjectModel
     log(`Successfully parsed`)
@@ -86,7 +92,7 @@ export const validateDirectories = (directory: string, parser: Parser, incResolu
   log(filepaths)
 
   for (const filepath of filepaths) {
-    const isValid = validate(filepath, parser, incResolutionException)
+    const isValid = validateFile(filepath, parser, incResolutionException)
     if (!isValid) return false // stop validating if error
   }
 
@@ -105,7 +111,9 @@ export const parseDirectories = (directory: string, parser: Parser): DtdlObjectM
   log(filepaths)
 
   const fullJson = combineJson(filepaths)
-  const fullModel = readAndParseJson(fullJson, parser)
+  if (fullJson === null) return null
+
+  const fullModel = parseDtdl(fullJson, parser)
   if (fullModel === null) return null
 
   log(`All files parsed!\n`)
