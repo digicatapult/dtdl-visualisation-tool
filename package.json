@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "CLI tool for dtdl visualisation",
   "main": "src/index.js",
   "bin": {
@@ -28,6 +28,7 @@
   "dependencies": {
     "@kitajs/html": "^4.2.2",
     "@kitajs/ts-html-plugin": "^4.1.0",
+    "@mermaid-js/layout-elk": "^0.1.4",
     "@tsoa/runtime": "^6.4.0",
     "body-parser": "^1.20.3",
     "chalk": "^5.3.0",
