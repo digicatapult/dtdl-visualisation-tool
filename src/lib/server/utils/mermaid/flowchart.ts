@@ -46,7 +46,6 @@ export default class Flowchart {
   }
 
   createEntityString(entity: EntityType): string {
-    console.log(entity)
     const entityAsNodeString: string = this.createNodeString({
       id: entity.Id,
       name: ((entity.displayName) ? entity.displayName.en : undefined),
