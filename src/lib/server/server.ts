@@ -26,7 +26,6 @@ export default async (): Promise<Express> => {
   app.use('/public', express.static('public'))
   app.use('/lib/mermaid', express.static('node_modules/mermaid/dist'))
   app.use('/lib/mermaid-elk', express.static('node_modules/@mermaid-js/layout-elk/dist'))
-  app.use('/lib', express.static('build/src/lib/server/utils/mermaid'))
 
   return app
 }
