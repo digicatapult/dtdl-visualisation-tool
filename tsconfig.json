@@ -20,8 +20,8 @@
     "resolveJsonModule": true,
     "types": ["@kitajs/html"],
     "noImplicitAny": false,
-    "allowJs": true
+    "allowJs": false
   },
   "include": ["src/", "src/swagger.json"],
-  "exclude": ["**/__tests__", "test/"]
+  "exclude": ["node_modules", "**/__tests__", "test/"]
 }
