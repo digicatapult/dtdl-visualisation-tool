@@ -2,7 +2,7 @@ import { escapeHtml, type PropsWithChildren } from '@kitajs/html'
 
 export const parseError = (props: PropsWithChildren<{ path: string }>): JSX.Element => (
   <>
-    <p>The DTDL ontology at path {props.path} produced a parseError</p>
+    <p>The DTDL ontology at path {escapeHtml(props.path)} produced a parseError</p>
   </>
 )
 
