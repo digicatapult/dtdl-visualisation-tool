@@ -1,9 +1,7 @@
 import { escapeHtml, type PropsWithChildren } from '@kitajs/html'
 
-export const parseError = (props: PropsWithChildren<{ path: string }>): JSX.Element => (
-  <>
-    <p>The DTDL ontology at path {escapeHtml(props.path)} produced a parseError</p>
-  </>
+export const parseError = (): JSX.Element => (
+  <p>Ontology Undefined</p>
 )
 
 export const Page = (props: PropsWithChildren<{ title: string }>): JSX.Element => (

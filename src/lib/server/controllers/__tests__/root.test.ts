@@ -28,7 +28,7 @@ describe('RootController', async () => {
       const controller = new RootController(templateMock, flowhchartMock, mockLogger)
 
       const result = await controller.get(mockRequestObjectUndefined).then(toHTMLString)
-      expect(result).to.equal(`<p>The DTDL ontology at path  produced a parseError</p>`)
+      expect(result).to.equal(`<p>Ontology Undefined</p>`)
     })
   })
 })

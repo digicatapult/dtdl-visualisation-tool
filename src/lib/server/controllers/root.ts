@@ -34,6 +34,6 @@ export class RootController extends HTMLController {
         })
       )
     }
-    return this.html(parseError({ path: req.app.get('dtdl-path') }))
+    return this.html(parseError())
   }
 }
