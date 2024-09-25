@@ -1,9 +1,16 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import sinon from 'sinon'
-import { RootController } from '../root'
-import { flowhchartMock, mockLogger, templateMock, toHTMLString, mockRequestObject, mockRequestObjectUndefined } from './helpers'
 import { flowchartFixture } from '../../utils/mermaid/__tests__/flowchart.test.js'
+import { RootController } from '../root'
+import {
+  flowhchartMock,
+  mockLogger,
+  mockRequestObject,
+  mockRequestObjectUndefined,
+  templateMock,
+  toHTMLString,
+} from './helpers'
 
 describe('RootController', async () => {
   afterEach(() => {
