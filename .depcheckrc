@@ -2,5 +2,6 @@ ignores: [
     'prettier-plugin-organize-imports',
     '@digicatapult/tsimp',
     '@kitajs/ts-html-plugin',
-    'mermaid'
+    'mermaid',
+    '@mermaid-js/layout-elk'
 ]
