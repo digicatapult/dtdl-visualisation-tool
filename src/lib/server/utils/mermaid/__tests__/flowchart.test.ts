@@ -50,6 +50,9 @@ describe('Flowchart', () => {
   it('should return a relationship string between two nodes', () => {
     expect(flowchart.createEntityString(mockDtdlObjectModel['2'])).to.equal(`\n\t1 --- 2["node 2"]`)
   })
+  it('should return a EntitySting with no relationship', () => {
+    expect(flowchart.createEntityString(mockDtdlObjectModel['1'])).to.equal(`\n\t1["node 1"]`)
+  })
   it('should return a flowchart in markdown', () => {
     expect(flowchart.getFlowchartMarkdown(mockDtdlObjectModel)).to.equal(flowchartFixture)
   })

@@ -6,10 +6,9 @@ import { RootController } from '../root'
 import {
   flowhchartMock,
   mockLogger,
-  mockRequestObject,
-  mockRequestObjectUndefined,
   templateMock,
   toHTMLString,
+  mockDtdlLoader
 } from './helpers'
 
 describe('RootController', async () => {
@@ -19,16 +18,10 @@ describe('RootController', async () => {
 
   describe('get', () => {
     it('should return rendered root template', async () => {
-      const controller = new RootController(templateMock, flowhchartMock, mockLogger)
+      const controller = new RootController(mockDtdlLoader,templateMock, flowhchartMock, mockLogger)
 
-      const result = await controller.get(mockRequestObject).then(toHTMLString)
+      const result = await controller.get().then(toHTMLString)
       expect(result).to.equal(`root_${flowchartFixture}_root`)
-    })
-    it('should render failed to generate mermaid diagram', async () => {
-      const controller = new RootController(templateMock, flowhchartMock, mockLogger)
-
-      const result = await controller.get(mockRequestObjectUndefined).then(toHTMLString)
-      expect(result).to.equal(`<p>Ontology Undefined</p>`)
     })
   })
 })

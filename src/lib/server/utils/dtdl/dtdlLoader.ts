@@ -1,5 +1,5 @@
 import { singleton } from "tsyringe";
-import { DtdlObjectModel } from "../../../../../interop/DtdlOm";
+import { type DtdlObjectModel } from "../../../../../interop/DtdlOm";
 
 
 @singleton()
