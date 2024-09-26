@@ -1,3 +1,7 @@
+/* styling for top level elements that appear on all pages */
+
+@import url('/public/styles/reset.css'); /* generics/defaults */
+
 *,*::before,*::after {
   box-sizing: border-box;
 }

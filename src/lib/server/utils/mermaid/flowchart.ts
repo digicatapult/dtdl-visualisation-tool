@@ -1,4 +1,3 @@
-import { singleton } from 'tsyringe'
 import { DtdlObjectModel, EntityType } from '../../../../../interop/DtdlOm'
 
 export enum Direction {
@@ -20,7 +19,6 @@ export type Node = {
   nodeType: NodeType
 }
 
-@singleton()
 export default class Flowchart {
   private graphDefinition = 'flowchart'
 

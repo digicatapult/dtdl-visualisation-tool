@@ -30,6 +30,11 @@ export const nodes: Node[] = [
     name: 'node 2',
     nodeType: NodeType.Component,
   },
+  {
+    id: 'nodeWithNoName',
+    name: undefined,
+    nodeType: NodeType.Custom
+  }
 ]
 
 export const flowchartFixture = `flowchart TD\n\t1["node 1"]\n\t1 --- 2["node 2"]`
@@ -38,6 +43,9 @@ describe('Flowchart', () => {
   const flowchart = new Flowchart()
   it('should return a node string', () => {
     expect(flowchart.createNodeString(nodes[0])).to.equal(`1(("node 1"))`)
+  })
+  it('should return a node string without a name', () => {
+    expect(flowchart.createNodeString(nodes[2])).to.equal(`nodeWithNoName`)
   })
   it('should return a relationship string between two nodes', () => {
     expect(flowchart.createEntityString(mockDtdlObjectModel['2'])).to.equal(`\n\t1 --- 2["node 2"]`)

@@ -8,6 +8,8 @@ import { parseDirectories, validateDirectories } from './lib/parser/index.js'
 import { getInterop } from './lib/parser/interop.js'
 import { httpServer } from './lib/server/index.js'
 import version from './version.js'
+import { container } from 'tsyringe'
+import { DtdlLoader } from './lib/server/utils/dtdl/dtdlLoader.js'
 
 const { log } = console
 
@@ -33,7 +35,8 @@ program
     const parsedDtdl = parseDirectories(options.path, parser)
 
     if (parsedDtdl) {
-      httpServer({ port: options.port, parsedDtdl: parsedDtdl })
+      container.register(DtdlLoader, { useValue: new DtdlLoader(parsedDtdl) })
+      httpServer(options.port)
     } else {
       process.exit(1)
     }

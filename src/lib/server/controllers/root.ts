@@ -1,11 +1,10 @@
-import type * as express from 'express'
-import { Get, Produces, Request, Route, SuccessResponse } from 'tsoa'
+import { Get, Produces, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
 import { type ILogger, Logger } from '../logger.js'
 import Flowchart, { Direction } from '../utils/mermaid/flowchart.js'
-import { parseError } from '../views/common.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
+import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 
 @singleton()
 @injectable()
@@ -13,6 +12,7 @@ import { HTML, HTMLController } from './HTMLController.js'
 @Produces('text/html')
 export class RootController extends HTMLController {
   constructor(
+    private dtdlLoader: DtdlLoader,
     private templates: MermaidTemplates,
     private flowchart: Flowchart,
     @inject(Logger) private logger: ILogger
@@ -24,16 +24,13 @@ export class RootController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('/')
-  public async get(@Request() req: express.Request): Promise<HTML> {
+  public async get(): Promise<HTML> {
     this.logger.debug('root page requested')
 
-    if (req.app.get('dtdl')) {
-      return this.html(
-        this.templates.flowchart({
-          graph: this.flowchart.getFlowchartMarkdown(req.app.get('dtdl'), Direction.TopToBottom),
-        })
-      )
-    }
-    return this.html(parseError())
+    return this.html(
+      this.templates.flowchart({
+        graph: this.flowchart.getFlowchartMarkdown(this.dtdlLoader.getDefaultDtdlModel(), Direction.TopToBottom),
+      })
+    )
   }
 }
