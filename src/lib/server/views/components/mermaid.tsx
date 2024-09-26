@@ -8,7 +8,15 @@ export default class MermaidTemplates {
   public flowchart = (props: PropsWithChildren<{ graph: string }>) => {
     return (
       <Page title="Mermaid - Homepage">
-        <pre class="mermaid">{escapeHtml(props.graph)}</pre>
+        <button id='layouts' >dagre</button>
+        <button id='layouts' >dagre-wrapper</button>
+        <button id='layouts' >elk.stress</button>
+        <button id='layouts' >elk.force</button>
+        <button id='layouts' >elk.mrtree</button>
+        <button id='layouts' >elk.sporeOverlap</button>
+        
+        <div id='graphMarkdown' style='display: none'>{escapeHtml(props.graph)}</div>
+        <div id="mermaidOutput" class='mermaid'></div>
       </Page>
     )
   }
