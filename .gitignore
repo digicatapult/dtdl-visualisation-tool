@@ -3,6 +3,5 @@ build
 src/lib/server/swagger.json
 src/lib/server/routes.ts
 
-.tsimp
 bin
 obj

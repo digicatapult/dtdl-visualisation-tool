@@ -1,4 +1,1 @@
-ignores: [
-    'prettier-plugin-organize-imports',
-    '@digicatapult/tsimp',
-]
+ignores: ['@swc-node/register', 'prettier-plugin-organize-imports', 'rimraf']
