@@ -21,6 +21,9 @@ export const mockDtdlObjectModel = {
   },
   '3': {
     Id: '3',
+    displayName: {
+      fr: 'é'
+    }
   },
 } as unknown as DtdlObjectModel
 
