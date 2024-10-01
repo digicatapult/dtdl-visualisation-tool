@@ -10,7 +10,11 @@
     "transform": {
       "legacyDecorator": true,
       "decoratorMetadata": true,
-      "useDefineForClassFields": true
+      "useDefineForClassFields": true,
+      "react": {
+        "runtime": "automatic",
+        "importSource": "@kitajs/html"
+      },
     },
     "minify": {
       "compress": {
