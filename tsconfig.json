@@ -18,7 +18,8 @@
     "allowSyntheticDefaultImports": true,
     "outDir": "build",
     "resolveJsonModule": true,
-    "types": ["@kitajs/html"]
+    "types": ["@kitajs/html"],
+    "noImplicitAny": false
   },
   "include": ["src/", "src/swagger.json"],
   "exclude": ["node_modules", "**/__tests__", "test"]
