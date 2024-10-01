@@ -28,10 +28,10 @@ export default class Flowchart {
     const type_prefix = node.nodeType.split('<>')[0]
     const type_suffix = node.nodeType.split('<>')[1]
     const id = node.id.split(';')[0]
-    if (node.name) {
-      return `${id}${type_prefix}${node.name}${type_suffix}`
+    if (!node.name) {
+      node.name = id
     }
-    return `${id}`
+    return `${id}${type_prefix}${node.name}${type_suffix}`
   }
 
   getNodeType(entityKind: EntityType['EntityKind']): NodeType {
