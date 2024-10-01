@@ -1,3 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`HomepageTemplates should render homepage 1`] = `"<!DOCTYPE html><html lang=\\"en\\"><head><script src=\\"/public/scripts/mermaidConfig.js\\" type=\\"module\\"></script><link rel=\\"icon\\" type=\\"image/ico\\" sizes=\\"48x48\\" href=\\"/public/images/favicon.ico\\"/><title>Mermaid - Homepage</title></head><body><button id=\\"layouts\\">dagre</button><button id=\\"layouts\\">dagre-wrapper</button><button id=\\"layouts\\">elk.stress</button><button id=\\"layouts\\">elk.force</button><button id=\\"layouts\\">elk.mrtree</button><button id=\\"layouts\\">elk.sporeOverlap</button><div id=\\"graphMarkdown\\" style=\\"display: none\\"></div><div id=\\"mermaidOutput\\" class=\\"mermaid\\"></div></body></html>"`;
