@@ -1,1 +1,8 @@
-ignores: ['@swc-node/register', 'prettier-plugin-organize-imports', 'rimraf']
+ignores: [
+    '@swc-node/register',
+    'prettier-plugin-organize-imports',
+    'rimraf',
+    '@kitajs/ts-html-plugin',
+    'mermaid',
+    '@mermaid-js/layout-elk',
+]

@@ -1,3 +1,6 @@
+import bodyParser from 'body-parser'
+import compression from 'compression'
+import cors from 'cors'
 import express, { Express } from 'express'
 import requestLogger from 'pino-http'
 import { RegisterRoutes } from './routes.js'
@@ -13,7 +16,16 @@ export default async (): Promise<Express> => {
     })
   )
 
+  app.use(bodyParser.urlencoded({ extended: true }))
+  app.use(bodyParser.json())
+  app.use(cors())
+  app.use(compression())
+
   RegisterRoutes(app)
+
+  app.use('/public', express.static('public'))
+  app.use('/lib/mermaid', express.static('node_modules/mermaid/dist'))
+  app.use('/lib/mermaid-elk', express.static('node_modules/@mermaid-js/layout-elk/dist'))
 
   return app
 }

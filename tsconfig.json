@@ -1,25 +1,27 @@
 {
   "compilerOptions": {
-    "outDir": "build/",
-    "rootDir": "./",
-    "lib": ["ES6", "ES2015", "ESNext"],
-    "types": ["node", "mocha"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "@kitajs/html",
+    "plugins": [{ "name": "@kitajs/ts-html-plugin" }],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "resolveJsonModule": true,
-    "target": "es6",
+    "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "node",
-    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
+    "sourceMap": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "skipLibCheck": true,
-    "allowJs": false,
-    "checkJs": false,
-    "declaration": true,
-    "noImplicitAny": false
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "outDir": "build",
+    "resolveJsonModule": true,
+    "types": ["@kitajs/html"],
+    "noImplicitAny": false,
+    "allowJs": false
   },
-  "ts-node": { "files": true },
-  "include": ["src/**/*", "src/tests/*", "tests/**/*"],
-  "exclude": ["node_modules"]
+  "include": ["src/", "src/swagger.json"],
+  "exclude": ["node_modules", "**/__tests__", "test/"]
 }
