@@ -1,11 +1,11 @@
-import Html from '@kitajs/html'
+import { escapeHtml, type PropsWithChildren } from '@kitajs/html'
 import { singleton } from 'tsyringe'
 import { Page } from '../common.js'
 
 @singleton()
 export default class MermaidTemplates {
   constructor() {}
-  public flowchart = (props: Html.PropsWithChildren<{ graph: string }>) => {
+  public flowchart = (props: PropsWithChildren<{ graph: string }>) => {
     return (
       <Page title="Mermaid - Homepage">
         <button id='layouts' >dagre</button>
@@ -15,7 +15,7 @@ export default class MermaidTemplates {
         <button id='layouts' >elk.mrtree</button>
         <button id='layouts' >elk.sporeOverlap</button>
         
-        <div id='graphMarkdown' style='display: none'>{Html.escapeHtml(props.graph)}</div>
+        <div id='graphMarkdown' style='display: none'>{escapeHtml(props.graph)}</div>
         <div id="mermaidOutput" class='mermaid'></div>
       </Page>
     )
