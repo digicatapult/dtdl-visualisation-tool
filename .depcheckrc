@@ -2,7 +2,6 @@ ignores: [
     '@swc-node/register',
     'prettier-plugin-organize-imports',
     'rimraf',
-    '@digicatapult/tsimp',
     '@kitajs/ts-html-plugin',
     'mermaid',
     '@mermaid-js/layout-elk',

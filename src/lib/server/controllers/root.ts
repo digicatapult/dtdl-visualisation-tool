@@ -1,10 +1,10 @@
 import { Get, Produces, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
 import { type ILogger, Logger } from '../logger.js'
+import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import Flowchart, { Direction } from '../utils/mermaid/flowchart.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
-import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 
 @singleton()
 @injectable()

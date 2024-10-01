@@ -33,8 +33,8 @@ export const nodes: Node[] = [
   {
     id: 'nodeWithNoName',
     name: undefined,
-    nodeType: NodeType.Custom
-  }
+    nodeType: NodeType.Custom,
+  },
 ]
 
 export const flowchartFixture = `flowchart TD\n\t1["node 1"]\n\t1 --- 2["node 2"]`

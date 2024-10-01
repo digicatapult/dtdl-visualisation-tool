@@ -1,17 +1,15 @@
-import { singleton } from "tsyringe";
-import { type DtdlObjectModel } from "../../../../../interop/DtdlOm";
-
+import { singleton } from 'tsyringe'
+import { type DtdlObjectModel } from '../../../../../interop/DtdlOm'
 
 @singleton()
 export class DtdlLoader {
-    private defaultDtdlModel: DtdlObjectModel
+  private defaultDtdlModel: DtdlObjectModel
 
-    constructor(dtdlObjectModel: DtdlObjectModel){
-        this.defaultDtdlModel = dtdlObjectModel
-    }
+  constructor(dtdlObjectModel: DtdlObjectModel) {
+    this.defaultDtdlModel = dtdlObjectModel
+  }
 
-    getDefaultDtdlModel():DtdlObjectModel{
-        return this.defaultDtdlModel
-    }
-
+  getDefaultDtdlModel(): DtdlObjectModel {
+    return this.defaultDtdlModel
+  }
 }

@@ -1,17 +1,17 @@
 import { PropsWithChildren } from '@kitajs/html'
 import { Readable } from 'node:stream'
 import { pino } from 'pino'
+import { DtdlLoader } from '../../utils/dtdl/dtdlLoader'
 import { mockDtdlObjectModel } from '../../utils/mermaid/__tests__/flowchart.test'
 import Flowchart from '../../utils/mermaid/flowchart'
 import MermaidTemplates from '../../views/components/mermaid'
-import { DtdlLoader } from '../../utils/dtdl/dtdlLoader'
 
 export const templateMock = {
   flowchart: (props: PropsWithChildren<{ graph: string }>) => `root_${props.graph}_root`,
 } as MermaidTemplates
 export const mockLogger = pino({ level: 'silent' })
 
-export const mockDtdlLoader:DtdlLoader = new DtdlLoader(mockDtdlObjectModel)
+export const mockDtdlLoader: DtdlLoader = new DtdlLoader(mockDtdlObjectModel)
 
 export const flowhchartMock = {
   getFlowchartMarkdown: () => {
@@ -23,7 +23,6 @@ export const flowhchartMock = {
     return tmp.join('')
   },
 } as unknown as Flowchart
-
 
 export const toHTMLString = async (stream: Readable) => {
   const chunks: Uint8Array[] = []
