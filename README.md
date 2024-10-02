@@ -55,6 +55,13 @@ dtdl-visualiser parse -p dtdl/simple
 dtdl-visualiser parse -p dtdl/error
 ```
 
+### visualise render of parsed ontology
+
+```sh
+dtdl-visualiser parse -p dtdl/simple
+```
+Go to http://localhost:3000
+
 ## validate
 
 Attempts to validate every DTDL JSON file within the supplied directory and its sub-directories. Files are validated one at a time. The process exits immediately if a file fails validation.

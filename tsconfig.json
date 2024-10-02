@@ -19,9 +19,8 @@
     "outDir": "build",
     "resolveJsonModule": true,
     "types": ["@kitajs/html"],
-    "noImplicitAny": false,
-    "allowJs": false
+    "noImplicitAny": false
   },
   "include": ["src/", "src/swagger.json"],
-  "exclude": ["node_modules", "**/__tests__", "test/"]
+  "exclude": ["node_modules", "**/__tests__", "test"]
 }

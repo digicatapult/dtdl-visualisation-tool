@@ -7,8 +7,8 @@ import Flowchart from '../../utils/mermaid/flowchart'
 import MermaidTemplates from '../../views/components/mermaid'
 
 export const templateMock = {
-  flowchart: (props: PropsWithChildren<{ graph: string }>) => `root_${props.graph}_root`,
-} as MermaidTemplates
+  MermaidRoot: ({ graph }: { graph: string }) => `root_${graph}_root`,
+} as unknown as MermaidTemplates
 export const mockLogger = pino({ level: 'silent' })
 
 export const mockDtdlLoader: DtdlLoader = new DtdlLoader(mockDtdlObjectModel)
