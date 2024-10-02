@@ -1,6 +1,7 @@
-import { Get, Produces, Route, SuccessResponse } from 'tsoa'
+import { Get, Produces, Query, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
 import { type ILogger, Logger } from '../logger.js'
+import { type Layout } from '../models/mermaidLayouts.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import Flowchart, { Direction } from '../utils/mermaid/flowchart.js'
 import MermaidTemplates from '../views/components/mermaid.js'
@@ -28,8 +29,19 @@ export class RootController extends HTMLController {
     this.logger.debug('root page requested')
 
     return this.html(
-      this.templates.flowchart({
+      this.templates.MermaidRoot({
         graph: this.flowchart.getFlowchartMarkdown(this.dtdlLoader.getDefaultDtdlModel(), Direction.TopToBottom),
+      })
+    )
+  }
+
+  @SuccessResponse(200)
+  @Get('/update-layout')
+  public async layoutButton(@Query() layout: Layout = 'dagre'): Promise<HTML> {
+    return this.html(
+      this.templates.mermaidMarkdown({
+        graph: this.flowchart.getFlowchartMarkdown(this.dtdlLoader.getDefaultDtdlModel(), Direction.TopToBottom),
+        layout: layout,
       })
     )
   }
