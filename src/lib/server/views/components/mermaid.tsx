@@ -16,7 +16,7 @@ export type Layout = 'dagre' | 'dagre-wrapper' | 'elk.stress' | 'elk.force' | 'e
 
 @singleton()
 export default class MermaidTemplates {
-  constructor() {}
+  constructor() { }
 
   public MermaidRoot = ({ graph }: { graph: string }) => (
     <Page title={'Mermaid Ontology visualiser'}>
@@ -29,17 +29,17 @@ export default class MermaidTemplates {
   public mermaidMarkdown = ({ graph, layout }: { graph: string; layout?: Layout }) => {
     const attributes = layout
       ? {
-          'hx-on::after-settle': `globalThis.renderLayoutChange('mermaidOutput', 'graphMarkdown', '${layout}')`,
-        }
+        'hx-on::after-settle': `globalThis.renderLayoutChange('mermaidOutput', 'graphMarkdown', '${layout}')`,
+      }
       : {
-          'hx-get': '/update-layout',
-          'hx-swap': 'outerHTML',
-          'hx-trigger': 'load',
-          'hx-on::after-settle': `globalThis.renderMermaid('mermaidOutput', 'graphMarkdown')`,
-        }
+        'hx-get': '/update-layout',
+        'hx-swap': 'outerHTML',
+        'hx-trigger': 'load',
+        'hx-on::after-settle': `globalThis.renderMermaid('mermaidOutput', 'graphMarkdown')`,
+      }
     return (
       <div id="graphMarkdown" style="display: none" {...attributes}>
-        {graph}
+        {escapeHtml(graph)}
       </div>
     )
   }
