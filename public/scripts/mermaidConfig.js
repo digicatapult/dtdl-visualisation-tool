@@ -4,26 +4,31 @@ import mermaid from '/lib/mermaid/mermaid.esm.mjs'
 mermaid.registerLayoutLoaders(elkLayouts)
 
 const config = {
-  startOnLoad: false,
+  startOnLoad: true,
   flowchart: {
     useMaxWidth: false,
     htmlLabels: true,
     rankSpacing: 0,
   },
   maxTextSize: 99999999,
+  securityLevel: 'loose',
 }
 
 mermaid.initialize(config)
 
 globalThis.renderMermaid = async function renderMermaid(mermaidOutputElement, mermaidMarkdown) {
-  console.log('I RAN')
   let element = document.getElementById(mermaidOutputElement)
   const graphDefinition = document.getElementById(mermaidMarkdown).innerText
-  const { svg } = await mermaid.render('tmpRenderedDiv', graphDefinition)
+  const { svg, bindFunctions } = await mermaid.render('tmpRenderedDiv', graphDefinition)
   element.innerHTML = svg
+  bindFunctions(element)
 }
 
 globalThis.renderLayoutChange = async function renderLayoutChange(mermaidOutputElement, mermaidMarkdown, layoutType) {
   mermaid.mermaidAPI.updateSiteConfig({ layout: layoutType })
   await renderMermaid(mermaidOutputElement, mermaidMarkdown)
+}
+
+globalThis.callback = function callback(id) {
+  htmx.ajax('GET', `/entity/${id}`, '#navigationPanel')
 }

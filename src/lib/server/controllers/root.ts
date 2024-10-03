@@ -45,4 +45,11 @@ export class RootController extends HTMLController {
       })
     )
   }
+
+  @SuccessResponse(200)
+  @Get('/entity/{id}')
+  public async getEntityById(id: string): Promise<HTML> {
+    const entity = this.dtdlLoader.getDefaultDtdlModel()[`${id};1`]
+    return this.html(`<pre><code>${JSON.stringify(entity, null, 4)}</code></pre>`)
+  }
 }

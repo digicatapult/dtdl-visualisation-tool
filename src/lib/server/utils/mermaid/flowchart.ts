@@ -7,16 +7,17 @@ export enum Direction {
   LeftToRight = ' LR',
 }
 
-export enum NodeType {
-  Interface = '[["<>"]]',
-  Component = '(("<>"))',
-  Custom = '["<>"]',
+const entityKindToShape = {
+  Interface: '[["<>"]]',
+  Component: '(("<>"))',
+  Custom: '["<>"]',
+  Default: '["<>"]',
 }
 
 export type Node = {
   id: string
   name: string | undefined
-  nodeType: NodeType
+  flowchartShape: string
 }
 
 export default class Flowchart {
@@ -25,36 +26,27 @@ export default class Flowchart {
   constructor() {}
 
   createNodeString(node: Node): string {
-    const type_prefix = node.nodeType.split('<>')[0]
-    const type_suffix = node.nodeType.split('<>')[1]
     const id = node.id.split(';')[0]
-    if (!node.name) {
-      node.name = id
-    }
-    return `${id}${type_prefix}${node.name}${type_suffix}`
-  }
-
-  getNodeType(entityKind: EntityType['EntityKind']): NodeType {
-    switch (entityKind) {
-      case 'Component':
-        return NodeType.Component
-      case 'Interface':
-        return NodeType.Interface
-      default:
-        return NodeType.Custom
-    }
+    const displayName = node.name ?? id
+    const nameWithBorders = node.flowchartShape.replace('<>', displayName)
+    return `${id}${nameWithBorders}`
   }
 
   createEntityString(entity: EntityType): string {
     const entityAsNodeString: string = this.createNodeString({
       id: entity.Id,
-      name: entity.displayName ? entity.displayName.en : undefined,
-      nodeType: this.getNodeType(entity.EntityKind),
+      name: entity.displayName?.en,
+      flowchartShape: entityKindToShape[entity.EntityKind] || entityKindToShape.Default,
     })
     if (entity.ChildOf) {
       return `\n\t${entity.ChildOf.split(';')[0]} --- ${entityAsNodeString}`
     }
-    return `\n\t${entityAsNodeString}`
+
+    const string = `\n\t${entityAsNodeString}
+        click dtmi:com:example callback
+      `
+    console.log(string)
+    return string
   }
 
   getFlowchartMarkdown(dtdlObjectModel: DtdlObjectModel, direction: Direction = Direction.TopToBottom): string {
@@ -62,6 +54,8 @@ export default class Flowchart {
     for (const entity in dtdlObjectModel) {
       tmp.push(this.createEntityString(dtdlObjectModel[entity]))
     }
-    return tmp.join('')
+    const md = tmp.join('')
+    console.log(md)
+    return md
   }
 }

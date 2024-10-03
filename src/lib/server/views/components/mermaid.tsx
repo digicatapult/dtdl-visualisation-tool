@@ -23,6 +23,7 @@ export default class MermaidTemplates {
       <this.layoutForm />
       <this.mermaidTarget target="mermaidOutput" />
       <this.mermaidMarkdown graph={graph} />
+      <div id="navigationPanel" />
     </Page>
   )
 
@@ -54,7 +55,7 @@ export default class MermaidTemplates {
     }
 
     return (
-      <form class="button-group" {...attributes}>
+      <form id="layoutButtons" class="button-group" {...attributes}>
         {layoutEntries.map((entry) => (
           <button name="layout" value={entry}>
             {escapeHtml(entry)}

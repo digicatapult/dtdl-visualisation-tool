@@ -8,12 +8,13 @@
 
 body {
   display: grid;
-  padding-top: 10vh;
-  align-items: flex-start;
   justify-items: center;
   font-family: system-ui, sans-serif;
   font-weight: 500;
-  font-size: 10rem;
+  font-size: 1rem;
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
 }
 
 #counter {
@@ -30,4 +31,41 @@ body {
   top: 0px;
   height: 100%;
   width: 100%;
+}
+
+#content-main {
+  display: grid;
+  grid-template-rows: 100px 1fr; 
+  grid-template-columns: 1fr 400px;
+  height: 100%;
+  width: 100%;
+}
+
+#layoutButtons {
+    grid-column: 1 / -1; 
+    grid-row: 1;   
+    display: flex;
+    justify-content: center;
+}
+
+button[name="layout"] {
+  margin: 20px;
+  height: 50px;
+  padding: 20px;
+  display: inline-flex;
+  align-items: center;
+}
+
+#mermaidOutput {
+  background-color: #F5F6FA;
+  grid-column: 1; 
+  grid-row: 2; 
+}
+
+#navigationPanel {
+  background-color: #fff;
+  grid-column: 2; 
+  grid-row: 2; 
+  font-size: 0.7rem;
+  visibility: hidden;
 }
