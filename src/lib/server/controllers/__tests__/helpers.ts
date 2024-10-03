@@ -1,4 +1,3 @@
-import { PropsWithChildren } from '@kitajs/html'
 import { Readable } from 'node:stream'
 import { pino } from 'pino'
 import { DtdlLoader } from '../../utils/dtdl/dtdlLoader'
