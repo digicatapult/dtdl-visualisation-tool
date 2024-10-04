@@ -43,12 +43,12 @@ export const mockDtdlObjectModel = {
   },
 } as DtdlObjectModel
 
-export const flowchartFixture = `flowchart TD\n1(("node 1"))\n1 --- 2[["node 2"]]\n3["3"]`
+export const flowchartFixture = `flowchart TD\n1(("node 1"))\nclick 1 callback\n\n1 --- 2[["node 2"]]\nclick 2 callback\n\n3["3"]\nclick 3 callback\n`
 
 describe('Flowchart', () => {
   const flowchart = new Flowchart()
   it('should return an entity string', () => {
-    expect(flowchart.createEntityString(mockDtdlObjectModel['1'], false)).to.equal(`1(("node 1"))`)
+    expect(flowchart.createEntityString(mockDtdlObjectModel['1'])).to.equal(`1(("node 1"))`)
   })
   it('should return an entity string without a name', () => {
     expect(flowchart.createEntityString(mockDtdlObjectModel['3'])).to.equal(`3["3"]`)
