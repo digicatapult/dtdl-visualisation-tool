@@ -29,6 +29,6 @@ globalThis.renderLayoutChange = async function renderLayoutChange(mermaidOutputE
   await renderMermaid(mermaidOutputElement, mermaidMarkdown)
 }
 
-globalThis.callback = function callback(id) {
+globalThis.getEntity = function getEntity(id) {
   htmx.ajax('GET', `/entity/${id}?chartType=mermaid`, '#navigationPanelContent')
 }

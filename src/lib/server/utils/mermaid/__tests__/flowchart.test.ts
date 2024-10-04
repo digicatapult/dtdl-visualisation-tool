@@ -43,7 +43,7 @@ export const mockDtdlObjectModel = {
   },
 } as DtdlObjectModel
 
-export const flowchartFixture = `flowchart TD\n1(("node 1"))\nclick 1 callback\n\n1 --- 2[["node 2"]]\nclick 2 callback\n\n3["3"]\nclick 3 callback\n`
+export const flowchartFixture = `flowchart TD\n1(("node 1"))\nclick 1 getEntity\n\n1 --- 2[["node 2"]]\nclick 2 getEntity\n\n3["3"]\nclick 3 getEntity\n`
 
 describe('Flowchart', () => {
   const flowchart = new Flowchart()

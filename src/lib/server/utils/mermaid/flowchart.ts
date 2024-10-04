@@ -41,7 +41,7 @@ export default class Flowchart {
     const mermaidSafeId = this.dtdlIdReplaceSemicolon(entity.Id)
     let entityMarkdown = mermaidSafeId
     entityMarkdown += this.displayNameWithBorders(displayName, entity.EntityKind)
-    entityMarkdown += withClick ? `\nclick ${mermaidSafeId} callback\n` : ``
+    entityMarkdown += withClick ? `\nclick ${mermaidSafeId} getEntity\n` : ``
 
     if (entity.ChildOf) {
       const parentId = this.dtdlIdReplaceSemicolon(entity.ChildOf)
