@@ -33,7 +33,6 @@ program
   .action(async (options) => {
     const parser = await getInterop()
     const parsedDtdl = parseDirectories(options.path, parser)
-    log(parsedDtdl)
 
     if (parsedDtdl) {
       container.register(DtdlLoader, { useValue: new DtdlLoader(parsedDtdl) })
