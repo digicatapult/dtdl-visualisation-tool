@@ -37,11 +37,11 @@ body {
   display: grid;
   grid-template-rows: 100px 1fr; 
   grid-template-columns: 1fr 400px;
-  height: 100%;
+  height: 100vh;
   width: 100%;
 }
 
-#layoutButtons {
+#layout-buttons {
     grid-column: 1 / -1; 
     grid-row: 1;   
     display: flex;
@@ -56,16 +56,18 @@ button[name="layout"] {
   align-items: center;
 }
 
-#mermaidOutput {
+#mermaid-output {
   background-color: #F5F6FA;
   grid-column: 1; 
   grid-row: 2; 
+  overflow: scroll;
 }
 
-#navigationPanel {
+#navigation-panel {
   background-color: #fff;
   grid-column: 2; 
   grid-row: 2; 
   font-size: 0.7rem;
-  visibility: hidden;
+  padding: 10px;
+  overflow: scroll;
 }

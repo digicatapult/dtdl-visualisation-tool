@@ -25,36 +25,43 @@ export default class Flowchart {
 
   constructor() {}
 
-  createNodeString(node: Node): string {
-    const id = node.id.split(';')[0]
-    const displayName = node.name ?? id
-    const nameWithBorders = node.flowchartShape.replace('<>', displayName)
-    return `${id}${nameWithBorders}`
+  /*
+    IDs have format `dtmi:<domain>:<unique-model-identifier>;<model-version-number>`
+    Mermaid IDs can't contain semicolons, so replace final semicolon with a colon.
+  */
+  private dtdlIdReplaceSemicolon(idWithSemicolon: string): string {
+    return idWithSemicolon.replace(/;(?=\d+$)/, ':') // replace final ; with :
   }
 
-  createEntityString(entity: EntityType): string {
-    const entityAsNodeString: string = this.createNodeString({
-      id: entity.Id,
-      name: entity.displayName?.en,
-      flowchartShape: entityKindToShape[entity.EntityKind] || entityKindToShape.Default,
-    })
+  dtdlIdReintroduceSemicolon(idWithColon: string): string {
+    return idWithColon.replace(/:(?=\d+$)/, ';') // replace final : with ;
+  }
+
+  private displayNameWithBorders(displayName: string, entityKind: string) {
+    const shapeTemplate = entityKindToShape[entityKind] || entityKindToShape.Default
+    return shapeTemplate.replace('<>', displayName)
+  }
+
+  private createEntityString(entity: EntityType): string {
+    const displayName = entity.displayName?.en ?? entity.Id
+    const mermaidSafeId = this.dtdlIdReplaceSemicolon(entity.Id)
+    const entityMarkdown = `${mermaidSafeId}${this.displayNameWithBorders(displayName, entity.EntityKind)}`
+    const entityMarkdownWithClick = `${entityMarkdown}\nclick ${mermaidSafeId} callback\n`
+
     if (entity.ChildOf) {
-      return `\n\t${entity.ChildOf.split(';')[0]} --- ${entityAsNodeString}`
+      const parentId = this.dtdlIdReplaceSemicolon(entity.ChildOf)
+      return `${parentId} --- ${entityMarkdownWithClick}`
     }
 
-    const string = `\n\t${entityAsNodeString}
-        click dtmi:com:example callback
-      `
-    console.log(string)
-    return string
+    return entityMarkdownWithClick
   }
 
   getFlowchartMarkdown(dtdlObjectModel: DtdlObjectModel, direction: Direction = Direction.TopToBottom): string {
-    const tmp: Array<string> = [this.graphDefinition, direction]
+    const tmp: Array<string> = [`${this.graphDefinition}${direction}`]
     for (const entity in dtdlObjectModel) {
       tmp.push(this.createEntityString(dtdlObjectModel[entity]))
     }
-    const md = tmp.join('')
+    const md = tmp.join('\n')
     console.log(md)
     return md
   }

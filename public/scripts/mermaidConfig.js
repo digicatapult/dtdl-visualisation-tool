@@ -4,7 +4,7 @@ import mermaid from '/lib/mermaid/mermaid.esm.mjs'
 mermaid.registerLayoutLoaders(elkLayouts)
 
 const config = {
-  startOnLoad: true,
+  startOnLoad: false,
   flowchart: {
     useMaxWidth: false,
     htmlLabels: true,
@@ -30,5 +30,5 @@ globalThis.renderLayoutChange = async function renderLayoutChange(mermaidOutputE
 }
 
 globalThis.callback = function callback(id) {
-  htmx.ajax('GET', `/entity/${id}`, '#navigationPanel')
+  htmx.ajax('GET', `/entity/${id}?chartType=mermaid`, '#navigationPanelContent')
 }
