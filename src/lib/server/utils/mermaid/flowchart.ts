@@ -62,7 +62,6 @@ export default class Flowchart {
       tmp.push(this.createEntityString(dtdlObjectModel[entity]))
     }
     const md = tmp.join('\n')
-    console.log(md)
     return md
   }
 }
