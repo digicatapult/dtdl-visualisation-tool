@@ -56,7 +56,6 @@ export default class Flowchart {
     for (const entity in dtdlObjectModel) {
       tmp.push(this.createEntityString(dtdlObjectModel[entity], true))
     }
-    const md = tmp.join('\n')
-    return md
+    return tmp.join('\n')
   }
 }
