@@ -50,7 +50,7 @@ export class RootController extends HTMLController {
   @Get('/entity/{id}')
   public async getEntityById(id: string, @Query() chartType?: string): Promise<HTML> {
     let entityId = id
-    if (chartType === 'mermaid') entityId = this.flowchart.dtdlIdReintroduceSemicolon(id)
+    if (chartType === 'mermaid') entityId = this.flowchart.dtdlIdReinstateSemicolon(id)
     const entity = this.dtdlLoader.getDefaultDtdlModel()[entityId]
     return this.html(`${JSON.stringify(entity, null, 4)}`)
   }

@@ -70,6 +70,7 @@ button[name="layout"] {
   font-size: 0.6rem;
   padding: 10px;
   word-wrap: break-word;
+  overflow-y: auto;
 }
 
 pre {
