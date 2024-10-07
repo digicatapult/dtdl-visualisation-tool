@@ -2,7 +2,7 @@ import * as envalid from 'envalid'
 import { singleton } from 'tsyringe'
 
 const envConfig = {
-  LOG_LEVEL: envalid.str({ default: 'info', devDefault: 'debug' }),
+  LOG_LEVEL: envalid.str({ default: 'warn', devDefault: 'debug' }),
 }
 
 export type ENV_CONFIG = typeof envConfig

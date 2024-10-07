@@ -1,4 +1,3 @@
-import { PropsWithChildren } from '@kitajs/html'
 import { Readable } from 'node:stream'
 import { pino } from 'pino'
 import { DtdlLoader } from '../../utils/dtdl/dtdlLoader'
@@ -13,7 +12,7 @@ export const mockLogger = pino({ level: 'silent' })
 
 export const mockDtdlLoader: DtdlLoader = new DtdlLoader(mockDtdlObjectModel)
 
-export const flowhchartMock = {
+export const flowchartMock = {
   getFlowchartMarkdown: () => {
     const tmp: Array<string> = []
     tmp.push('flowchart')

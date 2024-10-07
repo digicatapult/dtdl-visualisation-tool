@@ -3,9 +3,8 @@ import compression from 'compression'
 import cors from 'cors'
 import express, { Express } from 'express'
 import requestLogger from 'pino-http'
-import { RegisterRoutes } from './routes.js'
-
 import { logger } from './logger.js'
+import { RegisterRoutes } from './routes.js'
 
 export default async (): Promise<Express> => {
   const app: Express = express()

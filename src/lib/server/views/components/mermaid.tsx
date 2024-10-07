@@ -16,27 +16,32 @@ export type Layout = 'dagre' | 'dagre-wrapper' | 'elk.stress' | 'elk.force' | 'e
 
 @singleton()
 export default class MermaidTemplates {
-  constructor() { }
+  constructor() {}
 
   public MermaidRoot = ({ graph }: { graph: string }) => (
     <Page title={'Mermaid Ontology visualiser'}>
       <this.layoutForm />
-      <this.mermaidTarget target="mermaidOutput" />
+      <this.mermaidTarget target="mermaid-output" />
       <this.mermaidMarkdown graph={graph} />
+      <div id="navigation-panel">
+        <pre>
+          <code id="navigationPanelContent">Click on a node to view attributes</code>
+        </pre>
+      </div>
     </Page>
   )
 
   public mermaidMarkdown = ({ graph, layout }: { graph: string; layout?: Layout }) => {
     const attributes = layout
       ? {
-        'hx-on::after-settle': `globalThis.renderLayoutChange('mermaidOutput', 'graphMarkdown', '${layout}')`,
-      }
+          'hx-on::after-settle': `globalThis.renderLayoutChange('mermaid-output', 'graphMarkdown', '${layout}')`,
+        }
       : {
-        'hx-get': '/update-layout',
-        'hx-swap': 'outerHTML',
-        'hx-trigger': 'load',
-        'hx-on::after-settle': `globalThis.renderMermaid('mermaidOutput', 'graphMarkdown')`,
-      }
+          'hx-get': '/update-layout',
+          'hx-swap': 'outerHTML',
+          'hx-trigger': 'load',
+          'hx-on::after-settle': `globalThis.renderMermaid('mermaid-output', 'graphMarkdown')`,
+        }
     return (
       <div id="graphMarkdown" style="display: none" {...attributes}>
         {escapeHtml(graph)}
@@ -54,7 +59,7 @@ export default class MermaidTemplates {
     }
 
     return (
-      <form class="button-group" {...attributes}>
+      <form id="layout-buttons" class="button-group" {...attributes}>
         {layoutEntries.map((entry) => (
           <button name="layout" value={entry}>
             {escapeHtml(entry)}

@@ -7,16 +7,11 @@ export enum Direction {
   LeftToRight = ' LR',
 }
 
-export enum NodeType {
-  Interface = '[["<>"]]',
-  Component = '(("<>"))',
-  Custom = '["<>"]',
-}
-
-export type Node = {
-  id: string
-  name: string | undefined
-  nodeType: NodeType
+const entityKindToShape = {
+  Interface: '[["<>"]]',
+  Component: '(("<>"))',
+  Custom: '["<>"]',
+  Default: '["<>"]',
 }
 
 export default class Flowchart {
@@ -24,44 +19,43 @@ export default class Flowchart {
 
   constructor() {}
 
-  createNodeString(node: Node): string {
-    const type_prefix = node.nodeType.split('<>')[0]
-    const type_suffix = node.nodeType.split('<>')[1]
-    const id = node.id.split(';')[0]
-    if (!node.name) {
-      node.name = id
-    }
-    return `${id}${type_prefix}${node.name}${type_suffix}`
+  /*
+    IDs have format `dtmi:<domain>:<unique-model-identifier>;<model-version-number>`
+    Mermaid IDs can't contain semicolons, so replace final semicolon with a colon.
+  */
+  dtdlIdReplaceSemicolon(idWithSemicolon: string): string {
+    return idWithSemicolon.replace(/;(?=\d+$)/, ':') // replace final ; with :
   }
 
-  getNodeType(entityKind: EntityType['EntityKind']): NodeType {
-    switch (entityKind) {
-      case 'Component':
-        return NodeType.Component
-      case 'Interface':
-        return NodeType.Interface
-      default:
-        return NodeType.Custom
-    }
+  dtdlIdReinstateSemicolon(idWithColon: string): string {
+    return idWithColon.replace(/:(?=\d+$)/, ';') // replace final : with ;
   }
 
-  createEntityString(entity: EntityType): string {
-    const entityAsNodeString: string = this.createNodeString({
-      id: entity.Id,
-      name: entity.displayName ? entity.displayName.en : undefined,
-      nodeType: this.getNodeType(entity.EntityKind),
-    })
+  displayNameWithBorders(displayName: string, entityKind: string) {
+    const shapeTemplate = entityKindToShape[entityKind] || entityKindToShape.Default
+    return shapeTemplate.replace('<>', displayName)
+  }
+
+  createEntityString(entity: EntityType, withClick?: boolean): string {
+    const displayName = entity.displayName?.en ?? entity.Id
+    const mermaidSafeId = this.dtdlIdReplaceSemicolon(entity.Id)
+    let entityMarkdown = mermaidSafeId
+    entityMarkdown += this.displayNameWithBorders(displayName, entity.EntityKind)
+    entityMarkdown += withClick ? `\nclick ${mermaidSafeId} getEntity\n` : ``
+
     if (entity.ChildOf) {
-      return `\n\t${entity.ChildOf.split(';')[0]} --- ${entityAsNodeString}`
+      const parentId = this.dtdlIdReplaceSemicolon(entity.ChildOf)
+      return `${parentId} --- ${entityMarkdown}`
     }
-    return `\n\t${entityAsNodeString}`
+
+    return entityMarkdown
   }
 
   getFlowchartMarkdown(dtdlObjectModel: DtdlObjectModel, direction: Direction = Direction.TopToBottom): string {
-    const tmp: Array<string> = [this.graphDefinition, direction]
+    const tmp: Array<string> = [`${this.graphDefinition}${direction}`]
     for (const entity in dtdlObjectModel) {
-      tmp.push(this.createEntityString(dtdlObjectModel[entity]))
+      tmp.push(this.createEntityString(dtdlObjectModel[entity], true))
     }
-    return tmp.join('')
+    return tmp.join('\n')
   }
 }

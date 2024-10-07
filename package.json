@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "CLI tool for dtdl visualisation",
   "main": "src/index.js",
   "bin": {
@@ -14,7 +14,7 @@
     "clean": "rimraf -rf ./build",
     "tsoa:build": "tsoa spec-and-routes",
     "local": "npm i -g && dtdl-visualiser",
-    "lint": "eslint . --fix",
+    "lint": "eslint .",
     "check": "npm run tsoa:build && tsc --noEmit",
     "interop:debug": "dotnet build interop",
     "interop:build": "dotnet build interop --configuration Release",
