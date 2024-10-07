@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "CLI tool for dtdl visualisation",
   "main": "src/index.js",
   "bin": {
@@ -29,7 +29,7 @@
   "dependencies": {
     "@kitajs/html": "^4.2.2",
     "@kitajs/ts-html-plugin": "^4.1.0",
-    "@mermaid-js/layout-elk": "^0.1.4",
+    "@mermaid-js/layout-elk": "^0.1.5",
     "@tsoa/runtime": "^6.4.0",
     "@types/compression": "^1.7.5",
     "body-parser": "^1.20.3",
@@ -43,7 +43,7 @@
     "express": "^4.21.0",
     "htmx-ext-json-enc": "^2.0.1",
     "htmx.org": "^1.9.12",
-    "mermaid": "^11.2.1",
+    "mermaid": "^11.3.0",
     "pino": "^9.4.0",
     "pino-http": "^10.3.0",
     "react": "^18.3.1",
@@ -53,7 +53,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.1.0",
-    "@eslint/js": "^9.11.1",
+    "@eslint/js": "^9.12.0",
     "@swc-node/register": "^1.10.9",
     "@swc/cli": "^0.4.1-nightly.20240914",
     "@swc/core": "^1.7.26",
@@ -68,7 +68,7 @@
     "@typescript-eslint/eslint-plugin": "^8.8.0",
     "@typescript-eslint/parser": "^8.8.0",
     "depcheck": "^1.4.7",
-    "eslint": "^9.11.1",
+    "eslint": "^9.12.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
     "globals": "^15.10.0",
