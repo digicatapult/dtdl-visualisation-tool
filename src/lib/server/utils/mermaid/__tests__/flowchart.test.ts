@@ -13,8 +13,8 @@ const emptyProperties = {
 }
 
 export const mockDtdlObjectModel = {
-  '1': {
-    Id: '1',
+  'dtmi:com:example;1': {
+    Id: 'dtmi:com:example;1',
     displayName: {
       en: 'node 1',
     },
@@ -22,18 +22,18 @@ export const mockDtdlObjectModel = {
     ClassId: 'dtmi:dtdl:class:Component;2',
     ...emptyProperties,
   },
-  '2': {
-    Id: '2',
+  'dtmi:com:example;2': {
+    Id: 'dtmi:com:example;2',
     displayName: {
       en: 'node 2',
     },
     EntityKind: 'Interface',
-    ChildOf: '1',
+    ChildOf: 'dtmi:com:example;1',
     ClassId: 'dtmi:dtdl:class:Interface;2',
     ...emptyProperties,
   },
-  '3': {
-    Id: '3',
+  'dtmi:com:example;3': {
+    Id: 'dtmi:com:example;3',
     displayName: {
       fr: 'é',
     },
@@ -43,21 +43,29 @@ export const mockDtdlObjectModel = {
   },
 } as DtdlObjectModel
 
-export const flowchartFixture = `flowchart TD\n1(("node 1"))\nclick 1 getEntity\n\n1 --- 2[["node 2"]]\nclick 2 getEntity\n\n3["3"]\nclick 3 getEntity\n`
+export const flowchartFixture = `flowchart TD\ndtmi:com:example:1(("node 1"))\nclick dtmi:com:example:1 getEntity\n\ndtmi:com:example:1 --- dtmi:com:example:2[["node 2"]]\nclick dtmi:com:example:2 getEntity\n\ndtmi:com:example:3["dtmi:com:example;3"]\nclick dtmi:com:example:3 getEntity\n`
 
 describe('Flowchart', () => {
   const flowchart = new Flowchart()
   it('should return an entity string', () => {
-    expect(flowchart.createEntityString(mockDtdlObjectModel['1'])).to.equal(`1(("node 1"))`)
+    expect(flowchart.createEntityString(mockDtdlObjectModel['dtmi:com:example;1'])).to.equal(
+      `dtmi:com:example:1(("node 1"))`
+    )
   })
   it('should return an entity string without a name', () => {
-    expect(flowchart.createEntityString(mockDtdlObjectModel['3'])).to.equal(`3["3"]`)
+    expect(flowchart.createEntityString(mockDtdlObjectModel['dtmi:com:example;3'])).to.equal(
+      `dtmi:com:example:3["dtmi:com:example;3"]`
+    )
   })
   it('should return a relationship string between two nodes', () => {
-    expect(flowchart.createEntityString(mockDtdlObjectModel['2'])).to.equal(`1 --- 2[["node 2"]]`)
+    expect(flowchart.createEntityString(mockDtdlObjectModel['dtmi:com:example;2'])).to.equal(
+      `dtmi:com:example:1 --- dtmi:com:example:2[["node 2"]]`
+    )
   })
   it('should return a EntitySting with no relationship', () => {
-    expect(flowchart.createEntityString(mockDtdlObjectModel['1'])).to.equal(`1(("node 1"))`)
+    expect(flowchart.createEntityString(mockDtdlObjectModel['dtmi:com:example;1'])).to.equal(
+      `dtmi:com:example:1(("node 1"))`
+    )
   })
   it('should return a flowchart in markdown', () => {
     expect(flowchart.getFlowchartMarkdown(mockDtdlObjectModel)).to.equal(flowchartFixture)
