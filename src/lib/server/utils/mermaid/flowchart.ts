@@ -1,4 +1,9 @@
-import { DtdlObjectModel, EntityType } from '../../../../../interop/DtdlOm'
+import {
+  DtdlObjectModel,
+  EntityType,
+  InterfaceType,
+  RelationshipType,
+} from '../../../../../interop/DtdlOm'
 
 export enum Direction {
   TopToBottom = ' TD',
@@ -16,8 +21,11 @@ const entityKindToShape = {
 
 export default class Flowchart {
   private graphDefinition = 'flowchart'
+  private dtdlObjectModel: DtdlObjectModel
 
-  constructor() {}
+  constructor(dtdlObjectModel: DtdlObjectModel) {
+    this.dtdlObjectModel = dtdlObjectModel
+  }
 
   /*
     IDs have format `dtmi:<domain>:<unique-model-identifier>;<model-version-number>`
@@ -36,25 +44,55 @@ export default class Flowchart {
     return shapeTemplate.replace('<>', displayName)
   }
 
-  createEntityString(entity: EntityType, withClick?: boolean): string {
+  createNodeString(entity: EntityType, withClick: boolean = true): string {
     const displayName = entity.displayName?.en ?? entity.Id
     const mermaidSafeId = this.dtdlIdReplaceSemicolon(entity.Id)
     let entityMarkdown = mermaidSafeId
     entityMarkdown += this.displayNameWithBorders(displayName, entity.EntityKind)
     entityMarkdown += withClick ? `\nclick ${mermaidSafeId} getEntity\n` : ``
 
-    if (entity.ChildOf) {
-      const parentId = this.dtdlIdReplaceSemicolon(entity.ChildOf)
-      return `${parentId} --- ${entityMarkdown}`
-    }
-
     return entityMarkdown
   }
 
-  getFlowchartMarkdown(dtdlObjectModel: DtdlObjectModel, direction: Direction = Direction.TopToBottom): string {
-    const tmp: Array<string> = [`${this.graphDefinition}${direction}`]
-    for (const entity in dtdlObjectModel) {
-      tmp.push(this.createEntityString(dtdlObjectModel[entity], true))
+  createEdgeString(nodeFrom: string, nodeTo: string, label?: string): string {
+    return `${this.dtdlIdReplaceSemicolon(nodeFrom)} --- ${label && '|' + label + '|'} ${this.dtdlIdReplaceSemicolon(nodeTo)}`
+  }
+
+  relationshipToMarkdown(entity: RelationshipType): string | undefined {
+    if (entity.ChildOf && entity.target && entity.target in this.dtdlObjectModel) {
+      const parentEntity = this.dtdlIdReplaceSemicolon(entity.ChildOf)
+      const childEntity = this.dtdlIdReplaceSemicolon(entity.ChildOf)
+      const relationshipName = entity.name
+      return this.createEdgeString(parentEntity, childEntity, relationshipName)
+    }
+  }
+
+  interfaceToMarkdown(entity: InterfaceType): string[] {
+    const tmp: string[] = []
+    tmp.push(this.createNodeString(entity))
+    for (const child of entity.extendedBy) {
+      tmp.push(this.createEdgeString(entity.Id, child))
+    }
+    for (const parent of entity.extends) {
+      tmp.push(this.createEdgeString(parent, entity.Id))
+    }
+    return tmp
+  }
+
+
+  getFlowchartMarkdown(direction: Direction = Direction.TopToBottom): string {
+    const tmp: string[] = [`${this.graphDefinition}${direction}`]
+    for (const entity in this.dtdlObjectModel) {
+      const entityObject: EntityType = this.dtdlObjectModel[entity]
+      switch (entityObject.EntityKind) {
+        case 'Interface':
+          tmp.push(...this.interfaceToMarkdown(entityObject as InterfaceType))
+          break
+        case 'Relationship':
+          const relationshipMarkdown = this.relationshipToMarkdown(entityObject as RelationshipType)
+          relationshipMarkdown && tmp.push(relationshipMarkdown)
+          break
+      }
     }
     return tmp.join('\n')
   }

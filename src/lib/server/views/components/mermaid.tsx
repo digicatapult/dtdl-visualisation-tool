@@ -1,22 +1,12 @@
 /// <reference types="@kitajs/html/htmx.d.ts" />
 import { escapeHtml } from '@kitajs/html'
 import { singleton } from 'tsyringe'
+import { type Layout, layoutEntries } from '../../models/mermaidLayouts.js'
 import { Page } from '../common.js'
-
-export const layoutEntries = [
-  'dagre',
-  'dagre-wrapper',
-  'elk.stress',
-  'elk.force',
-  'elk.mrtree',
-  'elk.sporeOverlap',
-] as const
-
-export type Layout = 'dagre' | 'dagre-wrapper' | 'elk.stress' | 'elk.force' | 'elk.mrtree' | 'elk.sporeOverlap'
 
 @singleton()
 export default class MermaidTemplates {
-  constructor() {}
+  constructor() { }
 
   public MermaidRoot = ({ graph }: { graph: string }) => (
     <Page title={'Mermaid Ontology visualiser'}>
@@ -34,14 +24,14 @@ export default class MermaidTemplates {
   public mermaidMarkdown = ({ graph, layout }: { graph: string; layout?: Layout }) => {
     const attributes = layout
       ? {
-          'hx-on::after-settle': `globalThis.renderLayoutChange('mermaid-output', 'graphMarkdown', '${layout}')`,
-        }
+        'hx-on::after-settle': `globalThis.renderLayoutChange('mermaid-output', 'graphMarkdown', '${layout}')`,
+      }
       : {
-          'hx-get': '/update-layout',
-          'hx-swap': 'outerHTML',
-          'hx-trigger': 'load',
-          'hx-on::after-settle': `globalThis.renderMermaid('mermaid-output', 'graphMarkdown')`,
-        }
+        'hx-get': '/update-layout',
+        'hx-swap': 'outerHTML',
+        'hx-trigger': 'load',
+        'hx-on::after-settle': `globalThis.renderMermaid('mermaid-output', 'graphMarkdown')`,
+      }
     return (
       <div id="graphMarkdown" style="display: none" {...attributes}>
         {escapeHtml(graph)}

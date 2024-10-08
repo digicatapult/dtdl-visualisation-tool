@@ -7,11 +7,11 @@ const config = {
   startOnLoad: false,
   flowchart: {
     useMaxWidth: false,
-    htmlLabels: true,
-    rankSpacing: 0,
+    htmlLabels: false
   },
   maxTextSize: 99999999,
   securityLevel: 'loose',
+  maxEdges: 99999999,
 }
 
 mermaid.initialize(config)

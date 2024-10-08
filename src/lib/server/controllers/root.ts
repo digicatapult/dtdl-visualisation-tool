@@ -20,7 +20,7 @@ export class RootController extends HTMLController {
   ) {
     super()
     this.logger = logger.child({ controller: '/' })
-    this.flowchart = new Flowchart()
+    this.flowchart = new Flowchart(this.dtdlLoader.getDefaultDtdlModel())
   }
 
   @SuccessResponse(200)
@@ -30,17 +30,17 @@ export class RootController extends HTMLController {
 
     return this.html(
       this.templates.MermaidRoot({
-        graph: this.flowchart.getFlowchartMarkdown(this.dtdlLoader.getDefaultDtdlModel(), Direction.TopToBottom),
+        graph: this.flowchart.getFlowchartMarkdown(Direction.TopToBottom),
       })
     )
   }
 
   @SuccessResponse(200)
   @Get('/update-layout')
-  public async layoutButton(@Query() layout: Layout = 'dagre'): Promise<HTML> {
+  public async layoutButton(@Query() layout: Layout = 'dagre-d3'): Promise<HTML> {
     return this.html(
       this.templates.mermaidMarkdown({
-        graph: this.flowchart.getFlowchartMarkdown(this.dtdlLoader.getDefaultDtdlModel(), Direction.TopToBottom),
+        graph: this.flowchart.getFlowchartMarkdown(Direction.TopToBottom),
         layout: layout,
       })
     )
