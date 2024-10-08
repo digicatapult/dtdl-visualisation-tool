@@ -1,9 +1,4 @@
-import {
-  DtdlObjectModel,
-  EntityType,
-  InterfaceType,
-  RelationshipType,
-} from '../../../../../interop/DtdlOm'
+import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '../../../../../interop/DtdlOm'
 
 export enum Direction {
   TopToBottom = ' TD',
