@@ -13,10 +13,8 @@ export enum Direction {
 }
 
 const entityKindToShape = {
-  Interface: '[["<>"]]',
-  Component: '(("<>"))',
-  Custom: '["<>"]',
-  Default: '["<>"]',
+  Interface: 'subproc',
+  Default: 'rect',
 }
 
 export default class Flowchart {
@@ -41,7 +39,7 @@ export default class Flowchart {
 
   displayNameWithBorders(displayName: string, entityKind: string) {
     const shapeTemplate = entityKindToShape[entityKind] || entityKindToShape.Default
-    return shapeTemplate.replace('<>', displayName)
+    return `@{ shape: ${shapeTemplate}, label: "${displayName}"}`
   }
 
   createNodeString(entity: EntityType, withClick: boolean = true): string {
@@ -49,19 +47,19 @@ export default class Flowchart {
     const mermaidSafeId = this.dtdlIdReplaceSemicolon(entity.Id)
     let entityMarkdown = mermaidSafeId
     entityMarkdown += this.displayNameWithBorders(displayName, entity.EntityKind)
-    entityMarkdown += withClick ? `\nclick ${mermaidSafeId} getEntity\n` : ``
+    entityMarkdown += withClick ? `\nclick ${mermaidSafeId} getEntity` : ``
 
     return entityMarkdown
   }
 
   createEdgeString(nodeFrom: string, nodeTo: string, label?: string): string {
-    return `${this.dtdlIdReplaceSemicolon(nodeFrom)} --- ${label && '|' + label + '|'} ${this.dtdlIdReplaceSemicolon(nodeTo)}`
+    return `${this.dtdlIdReplaceSemicolon(nodeFrom)} --- ${label ? '|' + label + '|' : ``} ${this.dtdlIdReplaceSemicolon(nodeTo)}`
   }
 
   relationshipToMarkdown(entity: RelationshipType): string | undefined {
     if (entity.ChildOf && entity.target && entity.target in this.dtdlObjectModel) {
       const parentEntity = this.dtdlIdReplaceSemicolon(entity.ChildOf)
-      const childEntity = this.dtdlIdReplaceSemicolon(entity.ChildOf)
+      const childEntity = this.dtdlIdReplaceSemicolon(entity.target)
       const relationshipName = entity.name
       return this.createEdgeString(parentEntity, childEntity, relationshipName)
     }
@@ -70,15 +68,11 @@ export default class Flowchart {
   interfaceToMarkdown(entity: InterfaceType): string[] {
     const tmp: string[] = []
     tmp.push(this.createNodeString(entity))
-    for (const child of entity.extendedBy) {
-      tmp.push(this.createEdgeString(entity.Id, child))
-    }
-    for (const parent of entity.extends) {
+    entity.extends.map((parent) => {
       tmp.push(this.createEdgeString(parent, entity.Id))
-    }
+    })
     return tmp
   }
-
 
   getFlowchartMarkdown(direction: Direction = Direction.TopToBottom): string {
     const tmp: string[] = [`${this.graphDefinition}${direction}`]

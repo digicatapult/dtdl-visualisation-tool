@@ -12,15 +12,16 @@ import { HTML, HTMLController } from './HTMLController.js'
 @Route()
 @Produces('text/html')
 export class RootController extends HTMLController {
+  private flowchart: Flowchart
+
   constructor(
     private dtdlLoader: DtdlLoader,
     private templates: MermaidTemplates,
-    private flowchart: Flowchart,
     @inject(Logger) private logger: ILogger
   ) {
     super()
+    this.flowchart = new Flowchart(dtdlLoader.getDefaultDtdlModel())
     this.logger = logger.child({ controller: '/' })
-    this.flowchart = new Flowchart(this.dtdlLoader.getDefaultDtdlModel())
   }
 
   @SuccessResponse(200)

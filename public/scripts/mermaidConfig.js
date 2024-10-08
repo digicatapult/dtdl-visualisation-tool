@@ -7,7 +7,8 @@ const config = {
   startOnLoad: false,
   flowchart: {
     useMaxWidth: false,
-    htmlLabels: false
+    htmlLabels: false,
+    nodeSpacing: 2555
   },
   maxTextSize: 99999999,
   securityLevel: 'loose',
