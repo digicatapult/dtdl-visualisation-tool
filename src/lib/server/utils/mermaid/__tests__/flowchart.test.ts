@@ -123,19 +123,19 @@ describe('Mermaid', () => {
       ]
       expect(interfaceAsMarkdown).to.deep.equal(test)
     })
-    it('should return a list of mermaid markdown string that represent a relationship ', () => {
-      const interfaceAsMarkdown = flowchart.relationshipToMarkdown(
+    it('should return a list of mermaid markdown string that represents a relationship ', () => {
+      const relationshipAsMarkdown = flowchart.relationshipToMarkdown(
         mockDtdlObjectModel['dtmi:com:example_relationship;1'] as RelationshipType
       )
-      const test = `dtmi:com:example:1 --- |A relationship| dtmi:com:example_related:1`
-      expect(interfaceAsMarkdown).to.deep.equal(test)
+      const test = [`dtmi:com:example:1 --- |A relationship| dtmi:com:example_related:1`]
+      expect(relationshipAsMarkdown).to.deep.equal(test)
     })
     it('should return undefined for a relationship with an undefined interface', () => {
-      const interfaceAsMarkdown = flowchart.relationshipToMarkdown(
+      const relationshipAsMarkdown = flowchart.relationshipToMarkdown(
         mockDtdlObjectModel['dtmi:com:example_relationship_undefined_interface;1'] as RelationshipType
       )
-      const test = undefined
-      expect(interfaceAsMarkdown).to.deep.equal(test)
+      const test = []
+      expect(relationshipAsMarkdown).to.deep.equal(test)
     })
     it('should return node string without a callback defined', () => {
       const interfaceAsMarkdown = flowchart.createNodeString(mockDtdlObjectModel['dtmi:com:example_extended;1'], false)

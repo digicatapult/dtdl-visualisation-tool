@@ -6,6 +6,7 @@ import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import Flowchart, { Direction } from '../utils/mermaid/flowchart.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
+import { type MermaidId } from '../models/strings.js'
 
 @singleton()
 @injectable()
@@ -49,7 +50,7 @@ export class RootController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('/entity/{id}')
-  public async getEntityById(id: string, @Query() chartType?: string): Promise<HTML> {
+  public async getEntityById(id: MermaidId, @Query() chartType?: string): Promise<HTML> {
     let entityId = id
     if (chartType === 'mermaid') entityId = this.flowchart.dtdlIdReinstateSemicolon(id)
     const entity = this.dtdlLoader.getDefaultDtdlModel()[entityId]

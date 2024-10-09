@@ -8,7 +8,6 @@ const config = {
   flowchart: {
     useMaxWidth: false,
     htmlLabels: false,
-    nodeSpacing: 2555
   },
   maxTextSize: 99999999,
   securityLevel: 'loose',

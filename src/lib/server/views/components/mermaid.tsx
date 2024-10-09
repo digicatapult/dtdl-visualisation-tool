@@ -6,7 +6,7 @@ import { Page } from '../common.js'
 
 @singleton()
 export default class MermaidTemplates {
-  constructor() { }
+  constructor() {}
 
   public MermaidRoot = ({ graph }: { graph: string }) => (
     <Page title={'Mermaid Ontology visualiser'}>
@@ -24,14 +24,14 @@ export default class MermaidTemplates {
   public mermaidMarkdown = ({ graph, layout }: { graph: string; layout?: Layout }) => {
     const attributes = layout
       ? {
-        'hx-on::after-settle': `globalThis.renderLayoutChange('mermaid-output', 'graphMarkdown', '${layout}')`,
-      }
+          'hx-on::after-settle': `globalThis.renderLayoutChange('mermaid-output', 'graphMarkdown', '${layout}')`,
+        }
       : {
-        'hx-get': '/update-layout',
-        'hx-swap': 'outerHTML',
-        'hx-trigger': 'load',
-        'hx-on::after-settle': `globalThis.renderMermaid('mermaid-output', 'graphMarkdown')`,
-      }
+          'hx-get': '/update-layout',
+          'hx-swap': 'outerHTML',
+          'hx-trigger': 'load',
+          'hx-on::after-settle': `globalThis.renderMermaid('mermaid-output', 'graphMarkdown')`,
+        }
     return (
       <div id="graphMarkdown" style="display: none" {...attributes}>
         {escapeHtml(graph)}
