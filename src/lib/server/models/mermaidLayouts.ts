@@ -1,10 +1,11 @@
 export const layoutEntries = [
-  'dagre',
+  'dagre-d3',
   'dagre-wrapper',
   'elk.stress',
   'elk.force',
   'elk.mrtree',
   'elk.sporeOverlap',
+  'elk',
 ] as const
 
-export type Layout = 'dagre' | 'dagre-wrapper' | 'elk.stress' | 'elk.force' | 'elk.mrtree' | 'elk.sporeOverlap'
+export type Layout = (typeof layoutEntries)[number]

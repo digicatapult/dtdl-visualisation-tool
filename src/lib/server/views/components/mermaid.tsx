@@ -1,18 +1,8 @@
 /// <reference types="@kitajs/html/htmx.d.ts" />
 import { escapeHtml } from '@kitajs/html'
 import { singleton } from 'tsyringe'
+import { type Layout, layoutEntries } from '../../models/mermaidLayouts.js'
 import { Page } from '../common.js'
-
-export const layoutEntries = [
-  'dagre',
-  'dagre-wrapper',
-  'elk.stress',
-  'elk.force',
-  'elk.mrtree',
-  'elk.sporeOverlap',
-] as const
-
-export type Layout = 'dagre' | 'dagre-wrapper' | 'elk.stress' | 'elk.force' | 'elk.mrtree' | 'elk.sporeOverlap'
 
 @singleton()
 export default class MermaidTemplates {
