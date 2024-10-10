@@ -1,12 +1,8 @@
-g.highlighted polygon {
-    animation: highlight-border 0.2s ease-in-out forwards;
+g polygon {
+    transition: outline 0.2s ease-in-out; 
 }
 
-@keyframes highlight-border {
-    from {
-        stroke-width: 1;
-    }
-    to {
-        stroke-width: 3;
-    }
+g.highlighted polygon {
+    outline: 4px solid #9370DB; 
+    outline-offset: -2px;
 }
