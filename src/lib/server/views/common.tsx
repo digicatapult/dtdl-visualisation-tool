@@ -16,6 +16,7 @@ export const Page = (props: PropsWithChildren<{ title: string }>): JSX.Element =
         <script src="/public/scripts/mermaidConfig.js" type="module"></script>
         <link rel="icon" type="image/ico" sizes="48x48" href="/public/images/favicon.ico" />
         <link rel="stylesheet" type="text/css" href="/public/styles/main.css" />
+        <link rel="stylesheet" type="text/css" href="/public/styles/flowchart.css" />
         <title>{escapeHtml(props.title)}</title>
       </head>
       <body hx-ext="json-enc">

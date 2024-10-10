@@ -1,0 +1,12 @@
+g.highlighted polygon {
+    animation: highlight-border 0.2s ease-in-out forwards;
+}
+
+@keyframes highlight-border {
+    from {
+        stroke-width: 1;
+    }
+    to {
+        stroke-width: 3;
+    }
+}

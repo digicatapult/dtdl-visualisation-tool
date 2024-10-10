@@ -2,7 +2,6 @@ import { Get, Produces, Query, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
 import { type ILogger, Logger } from '../logger.js'
 import { type Layout } from '../models/mermaidLayouts.js'
-import { type MermaidId } from '../models/strings.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import Flowchart, { Direction } from '../utils/mermaid/flowchart.js'
 import MermaidTemplates from '../views/components/mermaid.js'
@@ -50,7 +49,7 @@ export class RootController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('/entity/{id}')
-  public async getEntityById(id: MermaidId, @Query() chartType?: string): Promise<HTML> {
+  public async getEntityById(id: string, @Query() chartType?: string): Promise<HTML> {
     let entityId = id
     if (chartType === 'mermaid') entityId = this.flowchart.dtdlIdReinstateSemicolon(id)
     const entity = this.dtdlLoader.getDefaultDtdlModel()[entityId]

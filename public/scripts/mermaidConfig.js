@@ -31,4 +31,14 @@ globalThis.renderLayoutChange = async function renderLayoutChange(mermaidOutputE
 
 globalThis.getEntity = function getEntity(id) {
   htmx.ajax('GET', `/entity/${id}?chartType=mermaid`, '#navigationPanelContent')
+  highlightNode(id)
+}
+
+const highlightNode = (id) => {
+  const mermaidOutputDiv = document.querySelector('#mermaid-output')
+  const node = mermaidOutputDiv.querySelector(`g[id^="flowchart-${id}-"]`)
+  if (node) {
+    mermaidOutputDiv.querySelectorAll('.highlighted').forEach((el) => el.classList.remove('highlighted'))
+    node.classList.add('highlighted')
+  }
 }
