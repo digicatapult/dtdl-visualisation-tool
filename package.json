@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "description": "CLI tool for dtdl visualisation",
   "main": "src/index.js",
   "bin": {
@@ -40,7 +40,7 @@
     "compression": "^1.7.4",
     "cors": "^2.8.5",
     "envalid": "^8.0.0",
-    "express": "^4.21.0",
+    "express": "^4.21.1",
     "htmx-ext-json-enc": "^2.0.1",
     "htmx.org": "^1.9.12",
     "mermaid": "^11.3.0",
@@ -71,13 +71,13 @@
     "eslint": "^9.12.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
-    "globals": "^15.10.0",
+    "globals": "^15.11.0",
     "mocha": "^10.7.3",
     "prettier": "^3.3.3",
     "prettier-plugin-organize-imports": "^4.1.0",
     "rimraf": "^6.0.1",
     "sinon": "^19.0.2",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.3"
   },
   "engines": {
     "node": ">= 20"
