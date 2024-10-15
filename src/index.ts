@@ -2,10 +2,10 @@
 
 import 'reflect-metadata'
 
+import { getInterop, parseDirectories, validateDirectories } from '@digicatapult/dtdl-parser'
 import chalk from 'chalk'
 import { Command } from 'commander'
 import { container } from 'tsyringe'
-import { parseDirectories, validateDirectories, getInterop } from '@digicatapult/dtdl-parser'
 import { httpServer } from './lib/server/index.js'
 import { DtdlLoader } from './lib/server/utils/dtdl/dtdlLoader.js'
 import version from './version.js'
