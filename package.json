@@ -16,8 +16,6 @@
     "local": "npm i -g && dtdl-visualiser",
     "lint": "eslint .",
     "check": "npm run tsoa:build && tsc --noEmit",
-    "interop:debug": "dotnet build interop",
-    "interop:build": "dotnet build interop --configuration Release",
     "xss-scan": "xss-scan"
   },
   "repository": {
