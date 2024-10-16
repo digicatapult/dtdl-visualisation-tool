@@ -1,5 +1,5 @@
+import { type DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { singleton } from 'tsyringe'
-import { type DtdlObjectModel } from '../../../../../interop/DtdlOm'
 
 @singleton()
 export class DtdlLoader {
