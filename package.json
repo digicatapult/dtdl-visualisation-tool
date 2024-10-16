@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "description": "CLI tool for dtdl visualisation",
   "main": "src/index.js",
   "bin": {
@@ -16,8 +16,6 @@
     "local": "npm i -g && dtdl-visualiser",
     "lint": "eslint .",
     "check": "npm run tsoa:build && tsc --noEmit",
-    "interop:debug": "dotnet build interop",
-    "interop:build": "dotnet build interop --configuration Release",
     "xss-scan": "xss-scan"
   },
   "repository": {
@@ -27,6 +25,7 @@
   "author": "Digital Catapult",
   "license": "Apache-2.0",
   "dependencies": {
+    "@digicatapult/dtdl-parser": "^0.0.18",
     "@kitajs/html": "^4.2.2",
     "@kitajs/ts-html-plugin": "^4.1.0",
     "@mermaid-js/layout-elk": "^0.1.5",

@@ -1,4 +1,4 @@
-import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '../../../../../interop/DtdlOm'
+import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 import { DtdlId, MermaidId } from '../../models/strings'
 
 export enum Direction {
