@@ -1,0 +1,8 @@
+g polygon {
+    transition: outline 0.2s ease-in-out; 
+}
+
+g.highlighted polygon {
+    outline: 4px solid #9370DB; 
+    outline-offset: -2px;
+}
