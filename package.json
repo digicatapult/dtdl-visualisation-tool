@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.0.27",
+  "version": "0.0.28",
   "description": "CLI tool for dtdl visualisation",
   "main": "src/index.js",
   "bin": {
@@ -25,7 +25,7 @@
   "author": "Digital Catapult",
   "license": "Apache-2.0",
   "dependencies": {
-    "@digicatapult/dtdl-parser": "^0.0.18",
+    "@digicatapult/dtdl-parser": "^0.0.20",
     "@kitajs/html": "^4.2.3",
     "@kitajs/ts-html-plugin": "^4.1.0",
     "@mermaid-js/layout-elk": "^0.1.5",
@@ -61,7 +61,7 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/mocha": "^10.0.9",
-    "@types/node": "^22.7.5",
+    "@types/node": "^22.7.6",
     "@types/pino-http": "^5.8.4",
     "@types/sinon": "^17.0.3",
     "@typescript-eslint/eslint-plugin": "^8.9.0",
