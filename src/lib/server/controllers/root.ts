@@ -5,6 +5,7 @@ import { inject, injectable, singleton } from 'tsyringe'
 import { type ILogger, Logger } from '../logger.js'
 import { type Layout } from '../models/mermaidLayouts.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
+import { filterModelByDisplayName } from '../utils/dtdl/filter.js'
 import Flowchart, { Direction } from '../utils/mermaid/flowchart.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
@@ -22,18 +23,24 @@ export class RootController extends HTMLController {
     @inject(Logger) private logger: ILogger
   ) {
     super()
-    this.flowchart = new Flowchart(dtdlLoader.getDefaultDtdlModel())
+    this.flowchart = new Flowchart()
     this.logger = logger.child({ controller: '/' })
   }
 
   @SuccessResponse(200)
   @Get('/')
-  public async get(@Query() layout: Layout = 'dagre-d3'): Promise<HTML> {
-    this.logger.debug('root page requested')
+  public async get(@Query() layout: Layout = 'dagre-d3', @Query() search?: string): Promise<HTML> {
+    this.logger.debug('root page requested with search: %o', { layout, search })
+
+    let model = this.dtdlLoader.getDefaultDtdlModel()
+    if (search) {
+      model = filterModelByDisplayName(model, search)
+    }
 
     return this.html(
       this.templates.MermaidRoot({
-        graph: this.flowchart.getFlowchartMarkdown(Direction.TopToBottom),
+        graph: this.flowchart.getFlowchartMarkdown(model, Direction.TopToBottom),
+        search,
         layout,
       })
     )
@@ -41,22 +48,29 @@ export class RootController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('/update-layout')
-  public async updateLayout(@Request() req: express.Request, @Query() layout: Layout = 'dagre-d3'): Promise<HTML> {
-    this.logger.debug('search: %o', { layout, originalUrl: req.originalUrl })
+  public async updateLayout(
+    @Request() req: express.Request,
+    @Query() layout: Layout = 'dagre-d3',
+    @Query() search?: string
+  ): Promise<HTML> {
+    this.logger.debug('search: %o', { search, layout })
 
     const current = this.getCurrentPathQuery(req)
     if (current) {
-      const { path, query } = current
-      query.set('layout', layout)
-      this.setHeader('HX-Replace-Url', `${path}?${query}`)
+      this.setReplaceUrl(current, layout, search)
+    }
+
+    let model = this.dtdlLoader.getDefaultDtdlModel()
+    if (search) {
+      model = filterModelByDisplayName(model, search)
     }
 
     return this.html(
       this.templates.mermaidMarkdown({
-        graph: this.flowchart.getFlowchartMarkdown(Direction.TopToBottom),
+        graph: this.flowchart.getFlowchartMarkdown(model, Direction.TopToBottom),
         layout: layout,
       }),
-      this.templates.layoutForm({ layout, swapOutOfBand: true })
+      this.templates.layoutForm({ search, layout, swapOutOfBand: true })
     )
   }
 
@@ -79,5 +93,14 @@ export class RootController extends HTMLController {
       path: url.pathname,
       query: url.searchParams,
     }
+  }
+
+  private setReplaceUrl(current: { path: string; query: URLSearchParams }, layout: Layout, search?: string): void {
+    const { path, query } = current
+    query.set('layout', layout)
+    if (search) {
+      query.set('search', search)
+    }
+    this.setHeader('HX-Replace-Url', `${path}?${query}`)
   }
 }

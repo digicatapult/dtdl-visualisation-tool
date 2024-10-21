@@ -1,6 +1,6 @@
+import { DtdlObjectModel, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
-import { DtdlObjectModel, InterfaceType, RelationshipType } from '../../../../../../interop/DtdlOm'
 import Flowchart from '../flowchart'
 
 const emptyEntityProperties = {
@@ -93,9 +93,9 @@ export const mockDtdlObjectModel = {
 
 describe('Mermaid', () => {
   describe('Flowchart', () => {
-    const flowchart = new Flowchart(mockDtdlObjectModel)
+    const flowchart = new Flowchart()
     it('should return a flowchart in markdown', () => {
-      expect(flowchart.getFlowchartMarkdown()).to.equal(flowchartFixture)
+      expect(flowchart.getFlowchartMarkdown(mockDtdlObjectModel)).to.equal(flowchartFixture)
     })
     it('should replace the final semicolon in DTDL ID', () => {
       expect(flowchart.dtdlIdReplaceSemicolon('dtmi:digitaltwins:ngsi_ld:cim:energy:ACDCTerminal;1')).to.equal(
@@ -125,6 +125,7 @@ describe('Mermaid', () => {
     })
     it('should return a list of mermaid markdown string that represents a relationship ', () => {
       const relationshipAsMarkdown = flowchart.relationshipToMarkdown(
+        mockDtdlObjectModel,
         mockDtdlObjectModel['dtmi:com:example_relationship;1'] as RelationshipType
       )
       const test = [`dtmi:com:example:1 --- |A relationship| dtmi:com:example_related:1`]
@@ -132,6 +133,7 @@ describe('Mermaid', () => {
     })
     it('should return undefined for a relationship with an undefined interface', () => {
       const relationshipAsMarkdown = flowchart.relationshipToMarkdown(
+        mockDtdlObjectModel,
         mockDtdlObjectModel['dtmi:com:example_relationship_undefined_interface;1'] as RelationshipType
       )
       const test = []
