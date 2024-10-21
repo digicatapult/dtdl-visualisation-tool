@@ -2,7 +2,9 @@
 
 @import url('/public/styles/reset.css'); /* generics/defaults */
 
-*,*::before,*::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -15,6 +17,11 @@ body {
   height: 100vh;
   width: 100vw;
   margin: 0;
+}
+
+button.highlighted {
+  outline: 4px solid #9370db;
+  outline-offset: -2px;
 }
 
 #counter {
@@ -35,20 +42,20 @@ body {
 
 #content-main {
   display: grid;
-  grid-template-rows: 100px 1fr; 
+  grid-template-rows: 100px 1fr;
   grid-template-columns: 1fr 400px;
   height: 100vh;
   width: 100%;
 }
 
 #layout-buttons {
-    grid-column: 1 / -1; 
-    grid-row: 1;   
-    display: flex;
-    justify-content: center;
+  grid-column: 1 / -1;
+  grid-row: 1;
+  display: flex;
+  justify-content: center;
 }
 
-button[name="layout"] {
+button[name='layout'] {
   margin: 20px;
   height: 50px;
   padding: 20px;
@@ -57,16 +64,16 @@ button[name="layout"] {
 }
 
 #mermaid-output {
-  background-color: #F5F6FA;
-  grid-column: 1; 
-  grid-row: 2; 
+  background-color: #f5f6fa;
+  grid-column: 1;
+  grid-row: 2;
   overflow: scroll;
 }
 
 #navigation-panel {
   background-color: #fff;
-  grid-column: 2; 
-  grid-row: 2; 
+  grid-column: 2;
+  grid-row: 2;
   font-size: 0.6rem;
   padding: 10px;
   word-wrap: break-word;
@@ -74,5 +81,5 @@ button[name="layout"] {
 }
 
 pre {
-  white-space: pre-wrap; 
+  white-space: pre-wrap;
 }
