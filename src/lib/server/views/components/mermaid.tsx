@@ -8,9 +8,9 @@ import { Page } from '../common.js'
 export default class MermaidTemplates {
   constructor() {}
 
-  public MermaidRoot = ({ graph }: { graph: string }) => (
+  public MermaidRoot = ({ graph, layout }: { graph: string; layout: Layout }) => (
     <Page title={'Mermaid Ontology visualiser'}>
-      <this.layoutForm />
+      <this.layoutForm layout={layout} />
       <this.mermaidTarget target="mermaid-output" />
       <this.mermaidMarkdown graph={graph} />
       <div id="navigation-panel">
@@ -39,19 +39,22 @@ export default class MermaidTemplates {
     )
   }
 
-  public mermaidTarget = ({ target }: { target: string }) => <div id={target} class="mermaid"></div>
+  private mermaidTarget = ({ target }: { target: string }) => <div id={target} class="mermaid"></div>
 
-  public layoutForm = () => {
+  public layoutForm = ({ layout, swapOutOfBand }: { layout: Layout; swapOutOfBand?: boolean }) => {
     const attributes = {
       'hx-target': '#graphMarkdown',
       'hx-get': '/update-layout',
       'hx-swap': 'outerHTML',
     }
+    if (swapOutOfBand) {
+      attributes['hx-swap-oob'] = 'true'
+    }
 
     return (
       <form id="layout-buttons" class="button-group" {...attributes}>
         {layoutEntries.map((entry) => (
-          <button name="layout" value={entry}>
+          <button name="layout" value={entry} class={entry === layout ? 'highlighted' : ''}>
             {escapeHtml(entry)}
           </button>
         ))}
