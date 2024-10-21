@@ -12,10 +12,10 @@ import { Layout } from '../models/mermaidLayouts.js'
 import { MermaidId } from '../models/strings.js'
 
 export interface QueryParams {
-  layout: Layout
+  layout?: Layout
+  chartType?: 'flowchart'
+  output?: 'svg' | 'png' | 'pdf'
   highlightNodeId?: MermaidId
-  chartType: 'flowchart'
-  output: 'svg' | 'png' | 'pdf'
 }
 
 @singleton()
@@ -38,34 +38,36 @@ export class RootController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('/')
-  public async get(@Queries() queryObjects: QueryParams = {layout: 'dagre-d3', chartType:'flowchart', output:'svg'}): Promise<HTML> {
+  public async get(
+    @Queries() params: QueryParams
+  ): Promise<HTML> {
     this.logger.debug('root page requested')
 
     return this.html(
       this.templates.MermaidRoot({
-        generatedOutput: (await this.generator.run(this.dtdlLoader.getDefaultDtdlModel(), queryObjects)),
-        layout: queryObjects.layout
+        generatedOutput: (await this.generator.run(this.dtdlLoader.getDefaultDtdlModel(), params)),
+        layout: params.layout ? params.layout : 'dagre-d3'
       })
     )
   }
 
   @SuccessResponse(200)
   @Get('/update-layout')
-  public async updateLayout(@Request() req: express.Request, @Queries() queryParams: QueryParams): Promise<HTML> {
-    this.logger.debug('search: %o', { layout, originalUrl: req.originalUrl })
+  public async updateLayout(@Request() req: express.Request, @Queries() params: QueryParams): Promise<HTML> {
+    this.logger.debug('search: %o', { layout: params.layout, originalUrl: req.originalUrl })
 
     const current = this.getCurrentPathQuery(req)
     if (current) {
       const { path, query } = current
-      query.set('layout', queryParams.layout)
+      query.set('layout', params.layout ? params.layout : 'dagre-d3')
       this.setHeader('HX-Replace-Url', `${path}?${query}`)
     }
 
     return this.html(
       this.templates.mermaidGenerated({
-        generatedOutput: (await this.generator.run(this.dtdlLoader.getDefaultDtdlModel(), queryParams)),
+        generatedOutput: (await this.generator.run(this.dtdlLoader.getDefaultDtdlModel(), params)),
       }),
-      this.templates.layoutForm({ layout: queryParams.layout, swapOutOfBand: true })
+      this.templates.layoutForm({ layout: params.layout ? params.layout : 'dagre-d3', swapOutOfBand: true })
     )
   }
 

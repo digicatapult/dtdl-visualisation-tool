@@ -1,0 +1,411 @@
+flowchart TD
+dtmi:digitaltwins:ngsi_ld:cim:energy:ACDCTerminal:1@{ shape: subproc, label: "ACDCTerminal"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:ACDCTerminal:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:IdentifiedObject:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:ACDCTerminal:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:BaseVoltage:1@{ shape: subproc, label: "BaseVoltage"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:BaseVoltage:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:IdentifiedObject:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:BaseVoltage:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:BasicIntervalSchedule:1@{ shape: subproc, label: "BasicIntervalSchedule"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:BasicIntervalSchedule:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:Bay:1 --- |VoltageLevel| dtmi:digitaltwins:ngsi_ld:cim:energy:VoltageLevel:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Bay:1 --- |memberOfSubstation| dtmi:digitaltwins:ngsi_ld:cim:energy:Substation:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Bay:1@{ shape: subproc, label: "Bay"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:Bay:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:EquipmentContainer:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:Bay:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:ConductingEquipment:1 --- |BaseVoltage| dtmi:digitaltwins:ngsi_ld:cim:energy:BaseVoltage:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:ConductingEquipment:1@{ shape: subproc, label: "ConductingEquipment"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:ConductingEquipment:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:Equipment:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:ConductingEquipment:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:ConnectivityNode:1 --- |ConnectivityNodeContainer| dtmi:digitaltwins:ngsi_ld:cim:energy:ConnectivityNodeContainer:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:ConnectivityNode:1@{ shape: subproc, label: "ConnectivityNode"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:ConnectivityNode:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:IdentifiedObject:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:ConnectivityNode:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:ConnectivityNodeContainer:1 --- |ConnectivityNodes| dtmi:digitaltwins:ngsi_ld:cim:energy:ConnectivityNode:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:ConnectivityNodeContainer:1@{ shape: subproc, label: "ConnectivityNodeContainer"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:ConnectivityNodeContainer:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerSystemResource:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:ConnectivityNodeContainer:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Curve:1 --- |CurveDatas| dtmi:digitaltwins:ngsi_ld:cim:energy:CurveData:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Curve:1 --- |curveStyle| dtmi:digitaltwins:ngsi_ld:cim:energy:CurveStyle:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Curve:1@{ shape: subproc, label: "Curve"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:Curve:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:IdentifiedObject:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:Curve:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:CurveData:1 --- |Curve| dtmi:digitaltwins:ngsi_ld:cim:energy:Curve:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:CurveData:1@{ shape: subproc, label: "CurveData"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:CurveData:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:CurveStyle:1@{ shape: subproc, label: "CurveStyle"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:CurveStyle:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:Equipment:1 --- |EquipmentContainer| dtmi:digitaltwins:ngsi_ld:cim:energy:EquipmentContainer:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Equipment:1@{ shape: subproc, label: "Equipment"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:Equipment:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerSystemResource:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:Equipment:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:EquipmentContainer:1 --- |Equipments| dtmi:digitaltwins:ngsi_ld:cim:energy:Equipment:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:EquipmentContainer:1@{ shape: subproc, label: "EquipmentContainer"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:EquipmentContainer:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:ConnectivityNodeContainer:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:EquipmentContainer:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:GeographicalRegion:1@{ shape: subproc, label: "GeographicalRegion"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:GeographicalRegion:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:IdentifiedObject:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:GeographicalRegion:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Location:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:GeographicalRegion:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:IdentifiedObject:1@{ shape: subproc, label: "IdentifiedObject"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:IdentifiedObject:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:Location:1@{ shape: subproc, label: "Location"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:Location:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerSystemResource:1@{ shape: subproc, label: "PowerSystemResource"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:PowerSystemResource:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:IdentifiedObject:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:PowerSystemResource:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RegularIntervalSchedule:1 --- |TimePoints| dtmi:digitaltwins:ngsi_ld:cim:energy:RegularTimePoint:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RegularIntervalSchedule:1@{ shape: subproc, label: "RegularIntervalSchedule"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:RegularIntervalSchedule:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:BasicIntervalSchedule:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:RegularIntervalSchedule:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RegularTimePoint:1 --- |IntervalSchedule| dtmi:digitaltwins:ngsi_ld:cim:energy:RegularIntervalSchedule:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RegularTimePoint:1@{ shape: subproc, label: "RegularTimePoint"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:RegularTimePoint:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:ReportingGroup:1@{ shape: subproc, label: "ReportingGroup"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:ReportingGroup:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:IdentifiedObject:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:ReportingGroup:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:SubGeographicalRegion:1 --- |withIn| dtmi:digitaltwins:ngsi_ld:cim:energy:GeographicalRegion:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:SubGeographicalRegion:1@{ shape: subproc, label: "SubGeographicalRegion"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:SubGeographicalRegion:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:IdentifiedObject:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:SubGeographicalRegion:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Location:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:SubGeographicalRegion:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Substation:1 --- |locatedAt| dtmi:digitaltwins:ngsi_ld:cim:energy:SubGeographicalRegion:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Substation:1@{ shape: subproc, label: "Substation"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:Substation:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:EquipmentContainer:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:Substation:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Terminal:1 --- |conductingEquipment| dtmi:digitaltwins:ngsi_ld:cim:energy:ConductingEquipment:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Terminal:1 --- |connectivityNode| dtmi:digitaltwins:ngsi_ld:cim:energy:ConnectivityNode:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Terminal:1 --- |regulatingControl| dtmi:digitaltwins:ngsi_ld:cim:energy:RegulatingControl:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Terminal:1 --- |transformerEnd| dtmi:digitaltwins:ngsi_ld:cim:energy:TransformerEnd:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Terminal:1@{ shape: subproc, label: "Terminal"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:Terminal:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:ACDCTerminal:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:Terminal:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:VoltageLevel:1 --- |assignedBaseVoltage| dtmi:digitaltwins:ngsi_ld:cim:energy:BaseVoltage:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:VoltageLevel:1 --- |MemberOf_Substation| dtmi:digitaltwins:ngsi_ld:cim:energy:Substation:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:VoltageLevel:1@{ shape: subproc, label: "VoltageLevel"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:VoltageLevel:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:EquipmentContainer:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:VoltageLevel:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:BatteryUnit:1@{ shape: subproc, label: "BatteryUnit"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:BatteryUnit:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerElectronicsUnit:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:BatteryUnit:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:CAESPlant:1 --- |ThermalGeneratingUnit| dtmi:digitaltwins:ngsi_ld:cim:energy:ThermalGeneratingUnit:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:CAESPlant:1@{ shape: subproc, label: "CAESPlant"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:CAESPlant:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerSystemResource:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:CAESPlant:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:CogenerationPlant:1 --- |ThermalGeneratingUnits| dtmi:digitaltwins:ngsi_ld:cim:energy:ThermalGeneratingUnit:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:CogenerationPlant:1@{ shape: subproc, label: "CogenerationPlant"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:CogenerationPlant:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerSystemResource:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:CogenerationPlant:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:FossilFuel:1 --- |ThermalGeneratingUnit| dtmi:digitaltwins:ngsi_ld:cim:energy:ThermalGeneratingUnit:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:FossilFuel:1 --- |fossilFuelType| dtmi:digitaltwins:ngsi_ld:cim:energy:FuelType:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:FossilFuel:1@{ shape: subproc, label: "FossilFuel"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:FossilFuel:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:IdentifiedObject:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:FossilFuel:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:FuelType:1@{ shape: subproc, label: "FuelType"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:FuelType:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:GeneratingUnit:1 --- |GrossToNetActivePowerCurves| dtmi:digitaltwins:ngsi_ld:cim:energy:GrossToNetActivePowerCurve:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:GeneratingUnit:1 --- |RotatingMachine| dtmi:digitaltwins:ngsi_ld:cim:energy:RotatingMachine:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:GeneratingUnit:1 --- |genControlSource| dtmi:digitaltwins:ngsi_ld:cim:energy:GeneratorControlSource:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:GeneratingUnit:1@{ shape: subproc, label: "GeneratingUnit"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:GeneratingUnit:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:Equipment:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:GeneratingUnit:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:GeneratorControlSource:1@{ shape: subproc, label: "GeneratorControlSource"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:GeneratorControlSource:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:GrossToNetActivePowerCurve:1 --- |GeneratingUnit| dtmi:digitaltwins:ngsi_ld:cim:energy:GeneratingUnit:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:GrossToNetActivePowerCurve:1@{ shape: subproc, label: "GrossToNetActivePowerCurve"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:GrossToNetActivePowerCurve:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:Curve:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:GrossToNetActivePowerCurve:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:HydroEnergyConversionKind:1@{ shape: subproc, label: "HydroEnergyConversionKind"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:HydroEnergyConversionKind:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:HydroGeneratingUnit:1 --- |HydroPowerPlant| dtmi:digitaltwins:ngsi_ld:cim:energy:HydroPowerPlant:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:HydroGeneratingUnit:1 --- |energyConversionCapability| dtmi:digitaltwins:ngsi_ld:cim:energy:HydroEnergyConversionKind:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:HydroGeneratingUnit:1@{ shape: subproc, label: "HydroGeneratingUnit"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:HydroGeneratingUnit:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:GeneratingUnit:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:HydroGeneratingUnit:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:HydroPlantStorageKind:1@{ shape: subproc, label: "HydroPlantStorageKind"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:HydroPlantStorageKind:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:HydroPowerPlant:1 --- |HydroGeneratingUnits| dtmi:digitaltwins:ngsi_ld:cim:energy:HydroGeneratingUnit:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:HydroPowerPlant:1 --- |HydroPumps| dtmi:digitaltwins:ngsi_ld:cim:energy:HydroPump:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:HydroPowerPlant:1 --- |hydroPlantStorageType| dtmi:digitaltwins:ngsi_ld:cim:energy:HydroPlantStorageKind:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:HydroPowerPlant:1@{ shape: subproc, label: "HydroPowerPlant"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:HydroPowerPlant:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerSystemResource:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:HydroPowerPlant:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:HydroPump:1 --- |HydroPowerPlant| dtmi:digitaltwins:ngsi_ld:cim:energy:HydroPowerPlant:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:HydroPump:1 --- |RotatingMachine| dtmi:digitaltwins:ngsi_ld:cim:energy:RotatingMachine:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:HydroPump:1@{ shape: subproc, label: "HydroPump"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:HydroPump:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:Equipment:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:HydroPump:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:NuclearGeneratingUnit:1@{ shape: subproc, label: "NuclearGeneratingUnit"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:NuclearGeneratingUnit:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:GeneratingUnit:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:NuclearGeneratingUnit:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:PhotoVoltaicUnit:1@{ shape: subproc, label: "PhotoVoltaicUnit"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:PhotoVoltaicUnit:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerElectronicsUnit:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:PhotoVoltaicUnit:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerElectronicsUnit:1 --- |PowerElectronicsConnection| dtmi:digitaltwins:ngsi_ld:cim:energy:PowerElectronicsConnection:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerElectronicsUnit:1@{ shape: subproc, label: "PowerElectronicsUnit"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:PowerElectronicsUnit:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:Equipment:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:PowerElectronicsUnit:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerElectronicsWindUnit:1@{ shape: subproc, label: "PowerElectronicsWindUnit"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:PowerElectronicsWindUnit:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerElectronicsUnit:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:PowerElectronicsWindUnit:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:SolarGeneratingUnit:1 --- |SolarPowerPlant| dtmi:digitaltwins:ngsi_ld:cim:energy:SolarPowerPlant:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:SolarGeneratingUnit:1@{ shape: subproc, label: "SolarGeneratingUnit"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:SolarGeneratingUnit:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:GeneratingUnit:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:SolarGeneratingUnit:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:SolarPowerPlant:1 --- |SolarGeneratingUnits| dtmi:digitaltwins:ngsi_ld:cim:energy:SolarGeneratingUnit:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:SolarPowerPlant:1@{ shape: subproc, label: "SolarPowerPlant"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:SolarPowerPlant:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerSystemResource:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:SolarPowerPlant:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:ThermalGeneratingUnit:1 --- |CAESPlant| dtmi:digitaltwins:ngsi_ld:cim:energy:CAESPlant:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:ThermalGeneratingUnit:1 --- |CogenerationPlant| dtmi:digitaltwins:ngsi_ld:cim:energy:CogenerationPlant:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:ThermalGeneratingUnit:1 --- |FossilFuels| dtmi:digitaltwins:ngsi_ld:cim:energy:FossilFuel:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:ThermalGeneratingUnit:1@{ shape: subproc, label: "ThermalGeneratingUnit"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:ThermalGeneratingUnit:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:GeneratingUnit:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:ThermalGeneratingUnit:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:WindGenUnitKind:1@{ shape: subproc, label: "WindGenUnitKind"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:WindGenUnitKind:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:WindGeneratingUnit:1 --- |windGenUnitType| dtmi:digitaltwins:ngsi_ld:cim:energy:WindGenUnitKind:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:WindGeneratingUnit:1 --- |WindPowerPlant| dtmi:digitaltwins:ngsi_ld:cim:energy:WindPowerPlant:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:WindGeneratingUnit:1@{ shape: subproc, label: "WindGeneratingUnit"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:WindGeneratingUnit:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:GeneratingUnit:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:WindGeneratingUnit:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:WindPowerPlant:1 --- |WindGeneratingUnits| dtmi:digitaltwins:ngsi_ld:cim:energy:WindGeneratingUnit:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:WindPowerPlant:1@{ shape: subproc, label: "WindPowerPlant"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:WindPowerPlant:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerSystemResource:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:WindPowerPlant:1
+dtmi:igitaltwins:cim:energy:Battery:1@{ shape: subproc, label: "Battery"}
+click dtmi:igitaltwins:cim:energy:Battery:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:ElectricVehicle:1@{ shape: subproc, label: "ElectricVehicle"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:ElectricVehicle:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:EquivalentLoad:1 --- |memberOf_EquipmentContainer| dtmi:digitaltwins:ngsi_ld:cim:energy:EquipmentContainer:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:EquivalentLoad:1@{ shape: subproc, label: "EquivalentLoad"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:EquivalentLoad:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:Meter:1 --- |meterReading| dtmi:digitaltwins:ngsi_ld:cim:energy:MeterReading:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Meter:1@{ shape: subproc, label: "Meter"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:Meter:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:MeterReading:1@{ shape: subproc, label: "MeterReading"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:MeterReading:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:IdentifiedObject:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:MeterReading:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:UsagePoint:1 --- |relatedEquipment| dtmi:digitaltwins:ngsi_ld:cim:energy:Equipment:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:UsagePoint:1@{ shape: subproc, label: "UsagePoint"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:UsagePoint:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:CustomerLoad:1 --- |MemberOf_EquipmentContainerVL| dtmi:digitaltwins:ngsi_ld:cim:energy:VoltageLevel:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:CustomerLoad:1@{ shape: subproc, label: "CustomerLoad"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:CustomerLoad:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:ACLineSegment:1 --- |Conductor| dtmi:digitaltwins:ngsi_ld:cim:energy:Conductor:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:ACLineSegment:1@{ shape: subproc, label: "ACLineSegment"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:ACLineSegment:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:Conductor:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:ACLineSegment:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:AsynchronousMachine:1@{ shape: subproc, label: "AsynchronousMachine"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:AsynchronousMachine:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:RotatingMachine:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:AsynchronousMachine:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Breaker:1@{ shape: subproc, label: "Breaker"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:Breaker:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:ProtectedSwitch:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:Breaker:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:BusbarSection:1@{ shape: subproc, label: "BusbarSection"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:BusbarSection:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:Connector:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:BusbarSection:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Clamp:1 --- |ACLineSegment| dtmi:digitaltwins:ngsi_ld:cim:energy:ACLineSegment:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Clamp:1@{ shape: subproc, label: "Clamp"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:Clamp:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:ConductingEquipment:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:Clamp:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Conductor:1@{ shape: subproc, label: "Conductor"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:Conductor:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:ConductingEquipment:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:Conductor:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Connector:1@{ shape: subproc, label: "Connector"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:Connector:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:ConductingEquipment:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:Connector:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Cut:1 --- |associatedTo| dtmi:digitaltwins:ngsi_ld:cim:energy:ACLineSegment:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Cut:1@{ shape: subproc, label: "Cut"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:Cut:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:Switch:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:Cut:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:DCConductingEquipment:1@{ shape: subproc, label: "DCConductingEquipment"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:DCConductingEquipment:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:Equipment:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:DCConductingEquipment:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:DCEquipmentContainer:1@{ shape: subproc, label: "DCEquipmentContainer"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:DCEquipmentContainer:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:EquipmentContainer:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:DCEquipmentContainer:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:DCLine:1 --- |region| dtmi:digitaltwins:ngsi_ld:cim:energy:SubGeographicalRegion:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:DCLine:1@{ shape: subproc, label: "DCLine"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:DCLine:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:DCEquipmentContainer:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:DCLine:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:DCLineSegment:1@{ shape: subproc, label: "DCLineSegment"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:DCLineSegment:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:DCConductingEquipment:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:DCLineSegment:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:DisconnectingCircuitBreaker:1@{ shape: subproc, label: "DisconnectingCircuitBreaker"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:DisconnectingCircuitBreaker:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:Breaker:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:DisconnectingCircuitBreaker:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Disconnector:1@{ shape: subproc, label: "Disconnector"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:Disconnector:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:Switch:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:Disconnector:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:EarthFaultCompensator:1@{ shape: subproc, label: "EarthFaultCompensator"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:EarthFaultCompensator:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:ConductingEquipment:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:EarthFaultCompensator:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:EnergyConnection:1@{ shape: subproc, label: "EnergyConnection"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:EnergyConnection:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:ConductingEquipment:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:EnergyConnection:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:EnergyConsumer:1@{ shape: subproc, label: "EnergyConsumer"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:EnergyConsumer:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:EnergyConnection:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:EnergyConsumer:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:EnergySchedulingType:1 --- |EnergySource| dtmi:digitaltwins:ngsi_ld:cim:energy:EnergySource:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:EnergySchedulingType:1@{ shape: subproc, label: "EnergySchedulingType"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:EnergySchedulingType:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:IdentifiedObject:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:EnergySchedulingType:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:EnergySource:1 --- |EnergySchedulingType| dtmi:digitaltwins:ngsi_ld:cim:energy:EnergySchedulingType:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:EnergySource:1@{ shape: subproc, label: "EnergySource"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:EnergySource:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:EnergyConnection:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:EnergySource:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Fuse:1@{ shape: subproc, label: "Fuse"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:Fuse:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:Switch:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:Fuse:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Jumper:1@{ shape: subproc, label: "Jumper"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:Jumper:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:Switch:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:Jumper:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Junction:1@{ shape: subproc, label: "Junction"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:Junction:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:Connector:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:Junction:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Line:1 --- |region| dtmi:digitaltwins:ngsi_ld:cim:energy:SubGeographicalRegion:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Line:1@{ shape: subproc, label: "Line"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:Line:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:EquipmentContainer:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:Line:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:LinearShuntCompensator:1@{ shape: subproc, label: "LinearShuntCompensator"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:LinearShuntCompensator:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:ShuntCompensator:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:LinearShuntCompensator:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:LoadBreakSwitch:1@{ shape: subproc, label: "LoadBreakSwitch"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:LoadBreakSwitch:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:ProtectedSwitch:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:LoadBreakSwitch:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:NonlinearShuntCompensator:1 --- |NonlinearShuntCompensatorPoints| dtmi:digitaltwins:ngsi_ld:cim:energy:NonlinearShuntCompensatorPoint:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:NonlinearShuntCompensator:1@{ shape: subproc, label: "NonlinearShuntCompensator"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:NonlinearShuntCompensator:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:ShuntCompensator:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:NonlinearShuntCompensator:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:NonlinearShuntCompensatorPoint:1 --- |NonlinearShuntCompensator| dtmi:digitaltwins:ngsi_ld:cim:energy:NonlinearShuntCompensator:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:NonlinearShuntCompensatorPoint:1@{ shape: subproc, label: "NonlinearShuntCompensatorPoint"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:NonlinearShuntCompensatorPoint:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:PetersenCoil:1@{ shape: subproc, label: "PetersenCoil"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:PetersenCoil:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:EarthFaultCompensator:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:PetersenCoil:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChanger:1 --- |TransformerEnd| dtmi:digitaltwins:ngsi_ld:cim:energy:TransformerEnd:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChanger:1@{ shape: subproc, label: "PhaseTapChanger"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChanger:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:TapChanger:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChanger:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChangerLinear:1@{ shape: subproc, label: "PhaseTapChangerLinear"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChangerLinear:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChanger:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChangerLinear:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChangerTable:1 --- |PhaseTapChangerTablePoint| dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChangerTablePoint:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChangerTable:1 --- |PhaseTapChangerTabular| dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChangerTabular:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChangerTable:1@{ shape: subproc, label: "PhaseTapChangerTable"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChangerTable:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:IdentifiedObject:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChangerTable:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChangerTablePoint:1 --- |PhaseTapChangerTable| dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChangerTable:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChangerTablePoint:1@{ shape: subproc, label: "PhaseTapChangerTablePoint"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChangerTablePoint:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:TapChangerTablePoint:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChangerTablePoint:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChangerTabular:1 --- |PhaseTapChangerTable| dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChangerTable:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChangerTabular:1@{ shape: subproc, label: "PhaseTapChangerTabular"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChangerTabular:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChanger:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChangerTabular:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerElectronicsConnection:1 --- |PowerElectronicsUnit| dtmi:digitaltwins:ngsi_ld:cim:energy:PowerElectronicsUnit:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerElectronicsConnection:1@{ shape: subproc, label: "PowerElectronicsConnection"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:PowerElectronicsConnection:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:RegulatingCondEq:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:PowerElectronicsConnection:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerTransformer:1 --- |MemberOf_Substation| dtmi:digitaltwins:ngsi_ld:cim:energy:Substation:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerTransformer:1 --- |PowerTransformerEnds| dtmi:digitaltwins:ngsi_ld:cim:energy:PowerTransformerEnd:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerTransformer:1@{ shape: subproc, label: "PowerTransformer"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:PowerTransformer:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:ConductingEquipment:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:PowerTransformer:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerTransformerEnd:1 --- |PowerTransformer| dtmi:digitaltwins:ngsi_ld:cim:energy:PowerTransformer:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerTransformerEnd:1 --- |connectionKind| dtmi:digitaltwins:ngsi_ld:cim:energy:WindingConnection:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerTransformerEnd:1@{ shape: subproc, label: "PowerTransformerEnd"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:PowerTransformerEnd:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:TransformerEnd:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:PowerTransformerEnd:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:ProtectedSwitch:1@{ shape: subproc, label: "ProtectedSwitch"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:ProtectedSwitch:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:Switch:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:ProtectedSwitch:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RatioTapChanger:1 --- |RatioTapChangerTable| dtmi:digitaltwins:ngsi_ld:cim:energy:RatioTapChangerTable:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RatioTapChanger:1 --- |TransformerEnd| dtmi:digitaltwins:ngsi_ld:cim:energy:TransformerEnd:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RatioTapChanger:1@{ shape: subproc, label: "RatioTapChanger"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:RatioTapChanger:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:TapChanger:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:RatioTapChanger:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RatioTapChangerTable:1 --- |RatioTapChanger| dtmi:digitaltwins:ngsi_ld:cim:energy:RatioTapChanger:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RatioTapChangerTable:1 --- |RatioTapChangerTablePoint| dtmi:digitaltwins:ngsi_ld:cim:energy:RatioTapChangerTablePoint:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RatioTapChangerTable:1@{ shape: subproc, label: "RatioTapChangerTable"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:RatioTapChangerTable:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:IdentifiedObject:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:RatioTapChangerTable:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RatioTapChangerTablePoint:1 --- |RatioTapChangerTable| dtmi:digitaltwins:ngsi_ld:cim:energy:RatioTapChangerTable:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RatioTapChangerTablePoint:1@{ shape: subproc, label: "RatioTapChangerTablePoint"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:RatioTapChangerTablePoint:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:TapChangerTablePoint:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:RatioTapChangerTablePoint:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:ReactiveCapabilityCurve:1 --- |InitiallyUsedBySynchronousMachines| dtmi:digitaltwins:ngsi_ld:cim:energy:SynchronousMachine:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:ReactiveCapabilityCurve:1@{ shape: subproc, label: "ReactiveCapabilityCurve"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:ReactiveCapabilityCurve:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:Curve:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:ReactiveCapabilityCurve:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RegulatingCondEq:1 --- |RegulatingControl| dtmi:digitaltwins:ngsi_ld:cim:energy:RegulatingControl:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RegulatingCondEq:1@{ shape: subproc, label: "RegulatingCondEq"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:RegulatingCondEq:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:EnergyConnection:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:RegulatingCondEq:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RegulatingControl:1 --- |RegulatingCondEq| dtmi:digitaltwins:ngsi_ld:cim:energy:RegulatingCondEq:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RegulatingControl:1 --- |RegulationSchedule| dtmi:digitaltwins:ngsi_ld:cim:energy:RegulationSchedule:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RegulatingControl:1 --- |mode| dtmi:digitaltwins:ngsi_ld:cim:energy:RegulatingControlModeKind:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RegulatingControl:1@{ shape: subproc, label: "RegulatingControl"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:RegulatingControl:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerSystemResource:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:RegulatingControl:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RegulatingControlModeKind:1@{ shape: subproc, label: "RegulatingControlModeKind"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:RegulatingControlModeKind:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:RegulationSchedule:1 --- |RegulatingControl| dtmi:digitaltwins:ngsi_ld:cim:energy:RegulatingControl:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RegulationSchedule:1@{ shape: subproc, label: "RegulationSchedule"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:RegulationSchedule:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:SeasonDayTypeSchedule:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:RegulationSchedule:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RotatingMachine:1 --- |GeneratingUnit| dtmi:digitaltwins:ngsi_ld:cim:energy:GeneratingUnit:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RotatingMachine:1 --- |HydroPump| dtmi:digitaltwins:ngsi_ld:cim:energy:HydroPump:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:RotatingMachine:1@{ shape: subproc, label: "RotatingMachine"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:RotatingMachine:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:RegulatingCondEq:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:RotatingMachine:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:SeasonDayTypeSchedule:1@{ shape: subproc, label: "SeasonDayTypeSchedule"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:SeasonDayTypeSchedule:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:RegularIntervalSchedule:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:SeasonDayTypeSchedule:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:SeriesCompensator:1@{ shape: subproc, label: "SeriesCompensator"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:SeriesCompensator:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:ConductingEquipment:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:SeriesCompensator:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:ShuntCompensator:1@{ shape: subproc, label: "ShuntCompensator"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:ShuntCompensator:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:RegulatingCondEq:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:ShuntCompensator:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:StaticVarCompensator:1@{ shape: subproc, label: "StaticVarCompensator"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:StaticVarCompensator:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:RegulatingCondEq:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:StaticVarCompensator:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Switch:1 --- |SwitchSchedules| dtmi:digitaltwins:ngsi_ld:cim:energy:SwitchSchedule:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:Switch:1@{ shape: subproc, label: "Switch"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:Switch:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:ConductingEquipment:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:Switch:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:SwitchSchedule:1 --- |Switch| dtmi:digitaltwins:ngsi_ld:cim:energy:Switch:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:SwitchSchedule:1@{ shape: subproc, label: "SwitchSchedule"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:SwitchSchedule:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:SeasonDayTypeSchedule:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:SwitchSchedule:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:SynchronousMachine:1 --- |InitialReactiveCapabilityCurve| dtmi:digitaltwins:ngsi_ld:cim:energy:ReactiveCapabilityCurve:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:SynchronousMachine:1 --- |type| dtmi:digitaltwins:ngsi_ld:cim:energy:SynchronousMachineKind:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:SynchronousMachine:1@{ shape: subproc, label: "SynchronousMachine"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:SynchronousMachine:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:RotatingMachine:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:SynchronousMachine:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:SynchronousMachineKind:1@{ shape: subproc, label: "SynchronousMachineKind"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:SynchronousMachineKind:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:TapChanger:1 --- |TapChangerControl| dtmi:digitaltwins:ngsi_ld:cim:energy:TapChangerControl:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:TapChanger:1 --- |TapSchedules| dtmi:digitaltwins:ngsi_ld:cim:energy:TapSchedule:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:TapChanger:1@{ shape: subproc, label: "TapChanger"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:TapChanger:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:PowerSystemResource:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:TapChanger:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:TapChangerControl:1 --- |TapChanger| dtmi:digitaltwins:ngsi_ld:cim:energy:TapChanger:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:TapChangerControl:1@{ shape: subproc, label: "TapChangerControl"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:TapChangerControl:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:RegulatingControl:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:TapChangerControl:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:TapChangerTablePoint:1@{ shape: subproc, label: "TapChangerTablePoint"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:TapChangerTablePoint:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:TapSchedule:1 --- |TapChanger| dtmi:digitaltwins:ngsi_ld:cim:energy:TapChanger:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:TapSchedule:1@{ shape: subproc, label: "TapSchedule"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:TapSchedule:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:SeasonDayTypeSchedule:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:TapSchedule:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:TransformerEnd:1 --- |BaseVoltage| dtmi:digitaltwins:ngsi_ld:cim:energy:BaseVoltage:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:TransformerEnd:1 --- |PhaseTapChanger| dtmi:digitaltwins:ngsi_ld:cim:energy:PhaseTapChanger:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:TransformerEnd:1 --- |RatioTapChanger| dtmi:digitaltwins:ngsi_ld:cim:energy:RatioTapChanger:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:TransformerEnd:1@{ shape: subproc, label: "TransformerEnd"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:TransformerEnd:1 call getEntity()
+dtmi:digitaltwins:ngsi_ld:cim:energy:IdentifiedObject:1 ---  dtmi:digitaltwins:ngsi_ld:cim:energy:TransformerEnd:1
+dtmi:digitaltwins:ngsi_ld:cim:energy:WindingConnection:1@{ shape: subproc, label: "WindingConnection"}
+click dtmi:digitaltwins:ngsi_ld:cim:energy:WindingConnection:1 call getEntity()

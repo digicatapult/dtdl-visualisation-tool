@@ -4,6 +4,7 @@ import { singleton } from 'tsyringe'
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import Flowchart, { Direction } from './flowchart.js'
 import { QueryParams } from '../../controllers/root.js'
+import { MermaidId } from '../../models/strings.js'
 type GeneratorOption = (g: Generator,) => void
 
 @singleton()
@@ -19,16 +20,22 @@ export class Generator {
         }
 
     }
-    
-    private mermaidMarkdownByChartType(dtdlObject: DtdlObjectModel,chartType: QueryParams['chartType']):string {
+
+    private mermaidMarkdownByChartType(dtdlObject: DtdlObjectModel, chartType: QueryParams['chartType'], highlightNodeId?: MermaidId): string {
         switch (chartType) {
             case 'flowchart':
+                if (highlightNodeId) {
+                    return new Flowchart(dtdlObject).getFlowchartMarkdown(Direction.TopToBottom, highlightNodeId)
+                } else {
+                    return new Flowchart(dtdlObject).getFlowchartMarkdown(Direction.TopToBottom)
+                }
+            default:
                 return new Flowchart(dtdlObject).getFlowchartMarkdown(Direction.TopToBottom)
+                
         }
     }
 
-    public static async createBrowser (puppeteerLaunchOptions: LaunchOptions)
-    {
+    public static async createBrowser(puppeteerLaunchOptions: LaunchOptions) {
         const browser: Browser = await puppeteer.launch(puppeteerLaunchOptions)
         return (g: Generator): void => {
             g.browser = browser
@@ -37,20 +44,25 @@ export class Generator {
 
     public async run(
         dtdlObject: DtdlObjectModel,
-        queryParams: QueryParams
-    ): Promise<string>
-    {
+        params: QueryParams
+    ): Promise<string> {
         //  Mermaid config
         const parseMDDOptions: ParseMDDOptions = {
             mermaidConfig: {
+                flowchart: {
+                    useMaxWidth: false,
+                    htmlLabels: false,
+                },
+                maxTextSize: 99999999,
                 securityLevel: 'loose',
-                layout:queryParams.layout
+                maxEdges: 99999999,
+                layout: 'elk'
             }
         }
         const { data } = await renderMermaid(
             this.browser,
-            this.mermaidMarkdownByChartType(dtdlObject,queryParams.chartType), 
-            queryParams.output, 
+            this.mermaidMarkdownByChartType(dtdlObject, params.chartType, params.highlightNodeId),
+            params.output ? params.output : 'svg',
             parseMDDOptions)
         const decoder = new TextDecoder()
         return decoder.decode(data)
