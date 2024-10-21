@@ -1,13 +1,22 @@
 import express from 'express'
-import { Get, Produces, Query, Request, Route, SuccessResponse } from 'tsoa'
+import { Get, Produces, Query, Queries, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
 
 import { type ILogger, Logger } from '../logger.js'
-import { type Layout } from '../models/mermaidLayouts.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
-import Flowchart, { Direction } from '../utils/mermaid/flowchart.js'
+import { Generator } from '../utils/mermaid/generator.js'
+import Flowchart from '../utils/mermaid/flowchart.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
+import { Layout } from '../models/mermaidLayouts.js'
+import { MermaidId } from '../models/strings.js'
+
+export interface QueryParams {
+  layout: Layout
+  highlightNodeId?: MermaidId
+  chartType: 'flowchart'
+  output: 'svg' | 'png' | 'pdf'
+}
 
 @singleton()
 @injectable()
@@ -18,6 +27,7 @@ export class RootController extends HTMLController {
 
   constructor(
     private dtdlLoader: DtdlLoader,
+    private generator: Generator,
     private templates: MermaidTemplates,
     @inject(Logger) private logger: ILogger
   ) {
@@ -28,35 +38,34 @@ export class RootController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('/')
-  public async get(@Query() layout: Layout = 'dagre-d3'): Promise<HTML> {
+  public async get(@Queries() queryObjects: QueryParams = {layout: 'dagre-d3', chartType:'flowchart', output:'svg'}): Promise<HTML> {
     this.logger.debug('root page requested')
 
     return this.html(
       this.templates.MermaidRoot({
-        graph: this.flowchart.getFlowchartMarkdown(Direction.TopToBottom),
-        layout,
+        generatedOutput: (await this.generator.run(this.dtdlLoader.getDefaultDtdlModel(), queryObjects)),
+        layout: queryObjects.layout
       })
     )
   }
 
   @SuccessResponse(200)
   @Get('/update-layout')
-  public async updateLayout(@Request() req: express.Request, @Query() layout: Layout = 'dagre-d3'): Promise<HTML> {
+  public async updateLayout(@Request() req: express.Request, @Queries() queryParams: QueryParams): Promise<HTML> {
     this.logger.debug('search: %o', { layout, originalUrl: req.originalUrl })
 
     const current = this.getCurrentPathQuery(req)
     if (current) {
       const { path, query } = current
-      query.set('layout', layout)
+      query.set('layout', queryParams.layout)
       this.setHeader('HX-Replace-Url', `${path}?${query}`)
     }
 
     return this.html(
-      this.templates.mermaidMarkdown({
-        graph: this.flowchart.getFlowchartMarkdown(Direction.TopToBottom),
-        layout: layout,
+      this.templates.mermaidGenerated({
+        generatedOutput: (await this.generator.run(this.dtdlLoader.getDefaultDtdlModel(), queryParams)),
       }),
-      this.templates.layoutForm({ layout, swapOutOfBand: true })
+      this.templates.layoutForm({ layout: queryParams.layout, swapOutOfBand: true })
     )
   }
 

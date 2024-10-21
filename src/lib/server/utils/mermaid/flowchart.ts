@@ -75,12 +75,13 @@ export default class Flowchart {
     return graph
   }
 
-  getFlowchartMarkdown(direction: Direction = Direction.TopToBottom): string {
+  getFlowchartMarkdown(direction: Direction = Direction.TopToBottom, highlightNodeId?: MermaidId): string {
     const graph: string[] = [`${this.graphDefinition}${direction}`]
     for (const entity in this.dtdlObjectModel) {
       const entityObject: EntityType = this.dtdlObjectModel[entity]
       const markdown = this.entityKindToMarkdown[entityObject.EntityKind] || this.entityKindToMarkdown.Default
       graph.push(...markdown(entityObject))
+      highlightNodeId && graph.push(`class ${highlightNodeId} highlighted`)
     }
     return graph.join('\n')
   }

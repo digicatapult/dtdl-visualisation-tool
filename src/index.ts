@@ -8,6 +8,7 @@ import { Command } from 'commander'
 import { container } from 'tsyringe'
 import { httpServer } from './lib/server/index.js'
 import { DtdlLoader } from './lib/server/utils/dtdl/dtdlLoader.js'
+import { Generator } from './lib/server/utils/mermaid/generator.js'
 import version from './version.js'
 
 const { log } = console
@@ -35,6 +36,7 @@ program
 
     if (parsedDtdl) {
       container.register(DtdlLoader, { useValue: new DtdlLoader(parsedDtdl) })
+      container.register(Generator, { useValue: new Generator(await Generator.createBrowser({})) })
       httpServer(options.port)
     } else {
       process.exit(1)
