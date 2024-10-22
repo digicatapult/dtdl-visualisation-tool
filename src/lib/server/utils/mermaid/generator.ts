@@ -24,14 +24,10 @@ export class Generator {
     private mermaidMarkdownByChartType(dtdlObject: DtdlObjectModel, chartType: QueryParams['chartType'], highlightNodeId?: MermaidId): string {
         switch (chartType) {
             case 'flowchart':
-                if (highlightNodeId) {
-                    return new Flowchart(dtdlObject).getFlowchartMarkdown(Direction.TopToBottom, highlightNodeId)
-                } else {
-                    return new Flowchart(dtdlObject).getFlowchartMarkdown(Direction.TopToBottom)
-                }
+                return new Flowchart(dtdlObject).getFlowchartMarkdown(Direction.TopToBottom, highlightNodeId)
             default:
                 return new Flowchart(dtdlObject).getFlowchartMarkdown(Direction.TopToBottom)
-                
+
         }
     }
 
@@ -56,7 +52,7 @@ export class Generator {
                 maxTextSize: 99999999,
                 securityLevel: 'loose',
                 maxEdges: 99999999,
-                layout: 'elk'
+                layout: params.layout
             }
         }
         const { data } = await renderMermaid(

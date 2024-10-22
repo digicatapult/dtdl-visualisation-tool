@@ -81,7 +81,9 @@ export default class Flowchart {
       const entityObject: EntityType = this.dtdlObjectModel[entity]
       const markdown = this.entityKindToMarkdown[entityObject.EntityKind] || this.entityKindToMarkdown.Default
       graph.push(...markdown(entityObject))
-      highlightNodeId && graph.push(`\nclass ${highlightNodeId} highlighted`)
+      if (highlightNodeId && entityObject.Id == highlightNodeId) {
+        graph.push(`\nclass ${highlightNodeId} highlighted`)
+      }
     }
 
     return graph.join('\n')

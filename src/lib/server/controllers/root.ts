@@ -45,7 +45,6 @@ export class RootController extends HTMLController {
 
     return this.html(
       this.templates.MermaidRoot({
-        generatedOutput: (await this.generator.run(this.dtdlLoader.getDefaultDtdlModel(), params)),
         layout: params.layout ? params.layout : 'dagre-d3'
       })
     )
@@ -64,8 +63,9 @@ export class RootController extends HTMLController {
     }
 
     return this.html(
-      this.templates.mermaidGenerated({
+      this.templates.mermaidTarget({
         generatedOutput: (await this.generator.run(this.dtdlLoader.getDefaultDtdlModel(), params)),
+        target: 'mermaid-output'
       }),
       this.templates.layoutForm({ layout: params.layout ? params.layout : 'dagre-d3', swapOutOfBand: true })
     )
