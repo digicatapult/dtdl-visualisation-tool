@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import { DtdlObjectModel, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
-import Flowchart from '../flowchart'
+import { Generator } from '../generator'
 
 const emptyEntityProperties = {
   SupplementalTypes: [],
@@ -92,8 +92,9 @@ export const mockDtdlObjectModel = {
 } as DtdlObjectModel
 
 describe('Mermaid', () => {
-  describe('Flowchart', () => {
-    const flowchart = new Flowchart(mockDtdlObjectModel)
+  describe('Flowchart', async () => {
+    const generator = new Generator(await Generator.createBrowser({}))
+    
     it('should return a flowchart in markdown', () => {
       expect(flowchart.getFlowchartMarkdown()).to.equal(flowchartFixture)
     })
