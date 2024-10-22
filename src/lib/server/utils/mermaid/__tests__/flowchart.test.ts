@@ -40,6 +40,13 @@ dtmi:com:example_related:1@{ shape: subproc, label: "example related"}
 click dtmi:com:example_related:1 getEntity
 dtmi:com:example:1 --- |A relationship| dtmi:com:example_related:1`
 
+export const flowchartFixtureFiltered = `flowchart TD
+dtmi:com:example:1@{ shape: subproc, label: "example 1"}
+click dtmi:com:example:1 getEntity
+dtmi:com:example:1 --- |A relationship| dtmi:com:example_related:1
+dtmi:com:example_related:1@{ shape: subproc, label: "example related"}
+click dtmi:com:example_related:1 getEntity`
+
 export const mockDtdlObjectModel = {
   'dtmi:com:example;1': {
     Id: 'dtmi:com:example;1',

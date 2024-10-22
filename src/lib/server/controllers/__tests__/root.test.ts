@@ -1,7 +1,11 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import sinon from 'sinon'
-import { flowchartFixture, mockDtdlObjectModel } from '../../utils/mermaid/__tests__/flowchart.test.js'
+import {
+  flowchartFixture,
+  flowchartFixtureFiltered,
+  mockDtdlObjectModel,
+} from '../../utils/mermaid/__tests__/flowchart.test.js'
 import { RootController } from '../root'
 import { mockDtdlLoader, mockLogger, mockReq, templateMock, toHTMLString } from './helpers'
 
@@ -14,8 +18,15 @@ describe('RootController', async () => {
     it('should return rendered root template', async () => {
       const controller = new RootController(mockDtdlLoader, templateMock, mockLogger)
 
-      const result = await controller.get().then(toHTMLString)
-      expect(result).to.equal(`root_${flowchartFixture}_dagre-d3_root`)
+      const result = await controller.get('dagre-d3').then(toHTMLString)
+      expect(result).to.equal(`root_${flowchartFixture}_dagre-d3_undefined_root`)
+    })
+
+    it('should filter model by search if provided', async () => {
+      const controller = new RootController(mockDtdlLoader, templateMock, mockLogger)
+
+      const result = await controller.get('dagre-d3', 'example 1').then(toHTMLString)
+      expect(result).to.equal(`root_${flowchartFixtureFiltered}_dagre-d3_example 1_root`)
     })
 
     it('should return parsed entity by ID', async () => {
@@ -42,7 +53,22 @@ describe('RootController', async () => {
       const req = mockReq({})
       const result = await controller.updateLayout(req).then(toHTMLString)
       expect(result).to.equal(
-        [`mermaidMarkdown_${flowchartFixture}_dagre-d3_mermaidMarkdown`, `layoutForm_dagre-d3_true_layoutForm`].join('')
+        [
+          `mermaidMarkdown_${flowchartFixture}_dagre-d3_mermaidMarkdown`,
+          `layoutForm_undefined_dagre-d3_true_layoutForm`,
+        ].join('')
+      )
+    })
+
+    it('should return templated mermaidMarkdown and layoutForm filtered', async () => {
+      const controller = new RootController(mockDtdlLoader, templateMock, mockLogger)
+      const req = mockReq({})
+      const result = await controller.updateLayout(req, 'dagre-d3', 'example 1').then(toHTMLString)
+      expect(result).to.equal(
+        [
+          `mermaidMarkdown_${flowchartFixture}_dagre-d3_mermaidMarkdown`,
+          `layoutForm_example 1_dagre-d3_true_layoutForm`,
+        ].join('')
       )
     })
 
