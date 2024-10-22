@@ -22,12 +22,11 @@ export class Generator {
     }
 
     private mermaidMarkdownByChartType(dtdlObject: DtdlObjectModel, chartType: QueryParams['chartType'], highlightNodeId?: MermaidId): string {
-        switch (chartType) {
+        switch(chartType){
             case 'flowchart':
                 return new Flowchart(dtdlObject).getFlowchartMarkdown(Direction.TopToBottom, highlightNodeId)
             default:
-                return new Flowchart(dtdlObject).getFlowchartMarkdown(Direction.TopToBottom)
-
+                return new Flowchart(dtdlObject).getFlowchartMarkdown(Direction.TopToBottom, highlightNodeId)
         }
     }
 
@@ -58,7 +57,7 @@ export class Generator {
         const { data } = await renderMermaid(
             this.browser,
             this.mermaidMarkdownByChartType(dtdlObject, params.chartType, params.highlightNodeId),
-            params.output ? params.output : 'svg',
+            params.output,
             parseMDDOptions)
         const decoder = new TextDecoder()
         return decoder.decode(data)

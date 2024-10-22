@@ -12,9 +12,9 @@ import { Layout } from '../models/mermaidLayouts.js'
 import { MermaidId } from '../models/strings.js'
 
 export interface QueryParams {
-  layout?: Layout
-  chartType?: 'flowchart'
-  output?: 'svg' | 'png' | 'pdf'
+  layout: Layout
+  chartType: 'flowchart'
+  output: 'svg' | 'png' | 'pdf'
   highlightNodeId?: MermaidId
 }
 
@@ -52,13 +52,16 @@ export class RootController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('/update-layout')
-  public async updateLayout(@Request() req: express.Request, @Queries() params: QueryParams): Promise<HTML> {
+  public async updateLayout(@Request() req: express.Request, @Queries() params: QueryParams = { layout: 'dagre-d3', chartType: 'flowchart', output: 'svg' }): Promise<HTML> {
     this.logger.debug('search: %o', { layout: params.layout, originalUrl: req.originalUrl })
 
     const current = this.getCurrentPathQuery(req)
     if (current) {
       const { path, query } = current
-      query.set('layout', params.layout ? params.layout : 'dagre-d3')
+      for (const param in params) {
+        query.set(param, params[param])
+      }
+
       this.setHeader('HX-Replace-Url', `${path}?${query}`)
     }
 
@@ -67,7 +70,7 @@ export class RootController extends HTMLController {
         generatedOutput: (await this.generator.run(this.dtdlLoader.getDefaultDtdlModel(), params)),
         target: 'mermaid-output'
       }),
-      this.templates.layoutForm({ layout: params.layout ? params.layout : 'dagre-d3', swapOutOfBand: true })
+      this.templates.layoutForm({ layout: params.layout, swapOutOfBand: true })
     )
   }
 
@@ -75,7 +78,7 @@ export class RootController extends HTMLController {
   @Get('/entity/{id}')
   public async getEntityById(id: string, @Query() chartType?: string): Promise<HTML> {
     let entityId = id
-    if (chartType === 'mermaid') entityId = this.flowchart.dtdlIdReinstateSemicolon(id)
+    if (chartType === 'flowchart') entityId = this.flowchart.dtdlIdReinstateSemicolon(id)
     const entity = this.dtdlLoader.getDefaultDtdlModel()[entityId]
     return this.html(`${JSON.stringify(entity, null, 4)}`)
   }

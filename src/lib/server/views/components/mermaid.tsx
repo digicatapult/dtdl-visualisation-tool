@@ -21,7 +21,8 @@ export default class MermaidTemplates {
   )
 
   public mermaidTarget = ({ generatedOutput, target }: { generatedOutput?: JSX.Element, target: string }): JSX.Element => {
-    const attributes = generatedOutput ? { 'hx-on::after-settle': `globalThis.setMermaidListeners()` }
+    const attributes = generatedOutput
+      ? { 'hx-on::after-settle': `globalThis.setMermaidListeners()` }
       : {
         'hx-get': '/update-layout',
         'hx-swap': 'outerHTML',
