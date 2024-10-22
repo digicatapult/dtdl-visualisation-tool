@@ -2,10 +2,11 @@ import { DtdlObjectModel, EntityType, RelationshipType } from '@digicatapult/dtd
 
 import { getDisplayName } from './extract.js'
 
-const interfaceFilter =
-  (name: string) =>
-  ([, entity]: [unknown, EntityType]) =>
-    entity.EntityKind === 'Interface' && getDisplayName(entity).includes(name)
+const interfaceFilter = (name: string) => {
+  const nameLower = name.toLowerCase()
+  return ([, entity]: [unknown, EntityType]) =>
+    entity.EntityKind === 'Interface' && getDisplayName(entity).toLowerCase().includes(nameLower)
+}
 
 const relationshipFilter =
   (dtdlObjectModel: DtdlObjectModel, matchingIds: Set<string>) =>
