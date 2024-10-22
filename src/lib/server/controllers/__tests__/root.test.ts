@@ -66,7 +66,7 @@ describe('RootController', async () => {
       const result = await controller.updateLayout(req, 'dagre-d3', 'example 1').then(toHTMLString)
       expect(result).to.equal(
         [
-          `mermaidMarkdown_${flowchartFixture}_dagre-d3_mermaidMarkdown`,
+          `mermaidMarkdown_${flowchartFixtureFiltered}_dagre-d3_mermaidMarkdown`,
           `layoutForm_example 1_dagre-d3_true_layoutForm`,
         ].join('')
       )
