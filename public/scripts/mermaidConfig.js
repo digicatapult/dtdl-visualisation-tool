@@ -19,6 +19,9 @@ mermaid.initialize(config)
 globalThis.renderMermaid = async function renderMermaid(mermaidOutputElement, mermaidMarkdown) {
   let element = document.getElementById(mermaidOutputElement)
   const graphDefinition = document.getElementById(mermaidMarkdown).innerText
+  if (!graphDefinition) {
+    element.innerHTML = 'Not Found'
+  }
   const { svg, bindFunctions } = await mermaid.render('tmpRenderedDiv', graphDefinition)
   element.innerHTML = svg
   bindFunctions(element)

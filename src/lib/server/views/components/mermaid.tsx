@@ -15,7 +15,7 @@ const commonUpdateAttrs = {
 export default class MermaidTemplates {
   constructor() {}
 
-  public MermaidRoot = ({ graph, search, layout }: { graph: string; search?: string; layout: Layout }) => (
+  public MermaidRoot = ({ graph, search, layout }: { graph: string | null; search?: string; layout: Layout }) => (
     <Page title={'Mermaid Ontology visualiser'}>
       <this.layoutForm layout={layout} search={search} />
       <this.mermaidTarget target="mermaid-output" />
@@ -28,7 +28,7 @@ export default class MermaidTemplates {
     </Page>
   )
 
-  public mermaidMarkdown = ({ graph, layout }: { graph: string; layout?: Layout }) => {
+  public mermaidMarkdown = ({ graph, layout }: { graph: string | null; layout?: Layout }) => {
     const attributes = layout
       ? {
           'hx-on::after-settle': `globalThis.renderLayoutChange('mermaid-output', 'graphMarkdown', '${layout}')`,
@@ -41,7 +41,7 @@ export default class MermaidTemplates {
         }
     return (
       <div id="graphMarkdown" style="display: none" {...attributes}>
-        {escapeHtml(graph)}
+        {escapeHtml(graph ?? '')}
       </div>
     )
   }
@@ -57,15 +57,8 @@ export default class MermaidTemplates {
     layout: Layout
     swapOutOfBand?: boolean
   }) => {
-    const formAttributes = {
-      ...commonUpdateAttrs,
-    }
-    if (swapOutOfBand) {
-      formAttributes['hx-swap-oob'] = 'true'
-    }
-
     return (
-      <form id="layout-buttons" class="button-group" {...formAttributes}>
+      <form id="layout-buttons" class="button-group" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
         <input
           id="search"
           name="search"
@@ -74,13 +67,13 @@ export default class MermaidTemplates {
           hx-trigger="input changed delay:500ms, search"
           {...commonUpdateAttrs}
         />
-        {/* note the hidden duplicate "layout" input to make sure the current value of layout is passed if the search changes */}
-        <input name="layout" type="hidden" value={layout} />
-        {layoutEntries.map((entry) => (
-          <button name="layout" value={entry} class={entry === layout ? 'highlighted' : ''}>
-            {escapeHtml(entry)}
-          </button>
-        ))}
+        <select id="layout" name="layout" hx-trigger="input changed" {...commonUpdateAttrs}>
+          {layoutEntries.map((entry) => (
+            <option value={entry} selected={entry === layout}>
+              {escapeHtml(entry)}
+            </option>
+          ))}
+        </select>
       </form>
     )
   }

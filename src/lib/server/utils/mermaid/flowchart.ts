@@ -85,8 +85,8 @@ export default class Flowchart {
     return graph
   }
 
-  getFlowchartMarkdown(dtdlObjectModel: DtdlObjectModel, direction: Direction = Direction.TopToBottom): string {
-    const graph: string[] = [`${this.graphDefinition}${direction}`]
+  getFlowchartMarkdown(dtdlObjectModel: DtdlObjectModel, direction: Direction = Direction.TopToBottom): string | null {
+    const graph: string[] = []
     for (const entity in dtdlObjectModel) {
       const entityObject: EntityType = dtdlObjectModel[entity]
       const markdown = (this.entityKindToMarkdown[entityObject.EntityKind] || defaultMarkdownFn) as NarrowMappingFn<
@@ -94,6 +94,9 @@ export default class Flowchart {
       >
       graph.push(...markdown(dtdlObjectModel, entityObject))
     }
-    return graph.join('\n')
+    if (graph.length === 0) {
+      return null
+    }
+    return `${this.graphDefinition}${direction}\n${graph.join('\n')}`
   }
 }
