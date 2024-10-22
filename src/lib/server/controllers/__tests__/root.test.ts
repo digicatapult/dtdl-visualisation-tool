@@ -72,7 +72,7 @@ describe('RootController', async () => {
       )
     })
 
-    it('should set HX-Replace-Url header if hx-current-url is passed', async () => {
+    it('should set HX-Push-Url header if hx-current-url is passed', async () => {
       const controller = new RootController(mockDtdlLoader, templateMock, mockLogger)
       const stub = sinon.stub(controller, 'setHeader')
 
@@ -82,11 +82,11 @@ describe('RootController', async () => {
       await controller.updateLayout(req).then(toHTMLString)
 
       expect(stub.callCount).to.equal(2)
-      expect(stub.firstCall.args).to.deep.equal(['HX-Replace-Url', '/some/path?param1=x&param2=y&layout=dagre-d3'])
+      expect(stub.firstCall.args).to.deep.equal(['HX-Push-Url', '/some/path?param1=x&param2=y&layout=dagre-d3'])
       expect(stub.secondCall.args).to.deep.equal(['Content-Type', 'text/html'])
     })
 
-    it('should overwrite layout in HX-Replace-Url header', async () => {
+    it('should overwrite layout in HX-Push-Url header', async () => {
       const controller = new RootController(mockDtdlLoader, templateMock, mockLogger)
       const stub = sinon.stub(controller, 'setHeader')
 
@@ -95,10 +95,10 @@ describe('RootController', async () => {
       })
       await controller.updateLayout(req).then(toHTMLString)
 
-      expect(stub.firstCall.args).to.deep.equal(['HX-Replace-Url', '/some/path?param1=x&layout=dagre-d3'])
+      expect(stub.firstCall.args).to.deep.equal(['HX-Push-Url', '/some/path?param1=x&layout=dagre-d3'])
     })
 
-    it('should not set HX-Replace-Url header if hx-current-url is not passed', async () => {
+    it('should not set HX-Push-Url header if hx-current-url is not passed', async () => {
       const controller = new RootController(mockDtdlLoader, templateMock, mockLogger)
       const stub = sinon.stub(controller, 'setHeader')
 

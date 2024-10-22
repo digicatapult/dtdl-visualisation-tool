@@ -101,6 +101,6 @@ export class RootController extends HTMLController {
     if (search) {
       query.set('search', search)
     }
-    this.setHeader('HX-Replace-Url', `${path}?${query}`)
+    this.setHeader('HX-Push-Url', `${path}?${query}`)
   }
 }
