@@ -1,13 +1,4 @@
 
-function getParams() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const layout = urlParams.get('layout');
-  const chartType = urlParams.get('chartType');
-  const output = urlParams.get('output')
-
-  return { layout: layout, chartType: chartType, output: output };
-}
-
 globalThis.getEntity = function getEntity(id) {
   htmx.ajax('GET', `/entity/${id}?chartType=flowchart`, '#navigationPanelContent')
   const layout = htmx.values(htmx.find("#layout-buttons"))

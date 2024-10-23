@@ -8,11 +8,12 @@ import { mockDtdlObjectModel } from '../../utils/mermaid/__tests__/flowchart.tes
 import MermaidTemplates from '../../views/components/mermaid'
 
 export const templateMock = {
-  MermaidRoot: ({ graph, layout }: { graph: string; layout: string }) => `root_${graph}_${layout}_root`,
+  MermaidRoot: ({ search, graph, layout }: { search: string; graph: string; layout: string }) =>
+    `root_${graph}_${layout}_${search}_root`,
   mermaidMarkdown: ({ graph, layout }: { graph: string; layout?: Layout }) =>
     `mermaidMarkdown_${graph}_${layout}_mermaidMarkdown`,
-  layoutForm: ({ layout, swapOutOfBand }: { layout: Layout; swapOutOfBand?: boolean }) =>
-    `layoutForm_${layout}_${swapOutOfBand || false}_layoutForm`,
+  layoutForm: ({ search, layout, swapOutOfBand }: { search?: string; layout: Layout; swapOutOfBand?: boolean }) =>
+    `layoutForm_${search}_${layout}_${swapOutOfBand || false}_layoutForm`,
 } as unknown as MermaidTemplates
 export const mockLogger = pino({ level: 'silent' })
 

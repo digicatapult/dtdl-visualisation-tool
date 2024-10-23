@@ -4,14 +4,21 @@ import { singleton } from 'tsyringe'
 import { Layout, layoutEntries } from '../../models/mermaidLayouts.js'
 import { Page } from '../common.js'
 
+const commonUpdateAttrs = {
+  'hx-target': '#graphMarkdown',
+  'hx-get': '/update-layout',
+  'hx-swap': 'outerHTML',
+  'hx-include': '#layout-buttons',
+}
+
 @singleton()
 export default class MermaidTemplates {
   constructor() { }
 
-  public MermaidRoot = ({ layout }: { layout: Layout }) => (
+  public MermaidRoot = ({ generatedOutput, search, layout }: { generatedOutput: JSX.Element | undefined; search?: string; layout: Layout }) => (
     <Page title={'Mermaid Ontology visualiser'}>
-      <this.layoutForm layout={layout} />
-      <this.mermaidTarget target="mermaid-output" />
+      <this.layoutForm layout={layout} search={search} />
+      <this.mermaidTarget target="mermaid-output" generatedOutput={generatedOutput} />
       <div id="navigation-panel">
         <pre>
           <code id="navigationPanelContent">Click on a node to view attributes</code>
@@ -36,25 +43,32 @@ export default class MermaidTemplates {
     )
   }
 
-  public layoutForm = ({ layout, swapOutOfBand }: { layout: Layout; swapOutOfBand?: boolean }) => {
-    const attributes = {
-      'hx-target': '#mermaid-output',
-      'hx-get': '/update-layout',
-      'hx-swap': 'outerHTML',
-    }
-    if (swapOutOfBand) {
-      attributes['hx-swap-oob'] = 'true'
-    }
-
+  public layoutForm = ({
+    search,
+    layout,
+    swapOutOfBand,
+  }: {
+    search?: string
+    layout: Layout
+    swapOutOfBand?: boolean
+  }) => {
     return (
-      <form id="layout-buttons" class="button-group" {...attributes}>
-        {/* note the hidden duplicate "layout" input to make sure the current value of layout is passed if the search changes */}
-        <input name="layout" type="hidden" value={layout} />
-        {layoutEntries.map((entry) => (
-          <button name="layout" value={entry} class={entry === layout ? 'highlighted' : ''}>
-            {escapeHtml(entry)}
-          </button>
-        ))}
+      <form id="layout-buttons" class="button-group" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
+        <input
+          id="search"
+          name="search"
+          type="search"
+          value={escapeHtml(search || '')}
+          hx-trigger="input changed delay:500ms, search"
+          {...commonUpdateAttrs}
+        />
+        <select id="layout" name="layout" hx-trigger="input changed" {...commonUpdateAttrs}>
+          {layoutEntries.map((entry) => (
+            <option value={entry} selected={entry === layout}>
+              {escapeHtml(entry)}
+            </option>
+          ))}
+        </select>
       </form>
     )
   }

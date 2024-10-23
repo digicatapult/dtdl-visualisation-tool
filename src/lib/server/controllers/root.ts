@@ -6,6 +6,8 @@ import { type ILogger, Logger } from '../logger.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import { Generator } from '../utils/mermaid/generator.js'
 import Flowchart from '../utils/mermaid/flowchart.js'
+import { filterModelByDisplayName } from '../utils/dtdl/filter.js'
+import Flowchart, { Direction } from '../utils/mermaid/flowchart.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
 import { Layout } from '../models/mermaidLayouts.js'
@@ -16,6 +18,13 @@ export interface QueryParams {
   chartType: 'flowchart'
   output: 'svg' | 'png' | 'pdf'
   highlightNodeId?: MermaidId
+  search?: string
+}
+
+const paramsDefault: QueryParams = {
+  layout: 'dagre-d3',
+  chartType: 'flowchart',
+  output: 'svg'
 }
 
 @singleton()
@@ -32,37 +41,45 @@ export class RootController extends HTMLController {
     @inject(Logger) private logger: ILogger
   ) {
     super()
-    this.flowchart = new Flowchart(dtdlLoader.getDefaultDtdlModel())
+    this.flowchart = new Flowchart()
     this.logger = logger.child({ controller: '/' })
   }
 
   @SuccessResponse(200)
   @Get('/')
-  public async get(
-    @Queries() params: QueryParams
-  ): Promise<HTML> {
-    this.logger.debug('root page requested')
+  public async get(@Queries() params: QueryParams = paramsDefault): Promise<HTML> {
+    this.logger.debug('root page requested with search: %o', { params.layout, params.search })
+
+    let model = this.dtdlLoader.getDefaultDtdlModel()
+    if (params.search) {
+      model = filterModelByDisplayName(model, params.search)
+    }
 
     return this.html(
       this.templates.MermaidRoot({
-        layout: params.layout ? params.layout : 'dagre-d3'
+        generatedOutput: await this.generator.run(model, params),
+        search: params.search,
+        layout: params.layout,
       })
     )
   }
 
   @SuccessResponse(200)
   @Get('/update-layout')
-  public async updateLayout(@Request() req: express.Request, @Queries() params: QueryParams = { layout: 'dagre-d3', chartType: 'flowchart', output: 'svg' }): Promise<HTML> {
-    this.logger.debug('search: %o', { layout: params.layout, originalUrl: req.originalUrl })
+  public async updateLayout(
+    @Request() req: express.Request,
+    @Queries() params: QueryParams = { layout: 'dagre-d3', chartType: 'flowchart', output: 'svg' }
+  ): Promise<HTML> {
+    this.logger.debug('search: %o', { params.search, params.layout })
 
     const current = this.getCurrentPathQuery(req)
     if (current) {
-      const { path, query } = current
-      for (const param in params) {
-        query.set(param, params[param])
-      }
+      this.setReplaceUrl(current, params.layout, params.search)
+    }
 
-      this.setHeader('HX-Replace-Url', `${path}?${query}`)
+    let model = this.dtdlLoader.getDefaultDtdlModel()
+    if (params.search) {
+      model = filterModelByDisplayName(model, params.search)
     }
 
     return this.html(
@@ -93,5 +110,14 @@ export class RootController extends HTMLController {
       path: url.pathname,
       query: url.searchParams,
     }
+  }
+
+  private setReplaceUrl(current: { path: string; query: URLSearchParams }, layout: Layout, search?: string): void {
+    const { path, query } = current
+    query.set('layout', layout)
+    if (search) {
+      query.set('search', search)
+    }
+    this.setHeader('HX-Push-Url', `${path}?${query}`)
   }
 }
