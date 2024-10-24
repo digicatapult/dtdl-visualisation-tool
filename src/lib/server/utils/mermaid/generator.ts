@@ -39,9 +39,10 @@ export class Generator {
     return true
   }
 
-  async run(dtdlObject: DtdlObjectModel, params: QueryParams): Promise<string> {
+  async run(dtdlObject: DtdlObjectModel, params: QueryParams, options: ParseMDDOptions = {}): Promise<string> {
     //  Mermaid config
     const parseMDDOptions: ParseMDDOptions = {
+      ...options,
       mermaidConfig: {
         flowchart: {
           useMaxWidth: false,

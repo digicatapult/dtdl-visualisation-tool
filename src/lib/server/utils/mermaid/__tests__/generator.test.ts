@@ -11,6 +11,7 @@ import {
   generatedSVGFixtureHiglighted,
   simpleMockDtdlObjectModel,
 } from './fixtures'
+import { ParseMDDOptions } from '@mermaid-js/mermaid-cli'
 
 describe('Generator', () => {
   const generator = new Generator()
@@ -42,8 +43,14 @@ describe('Generator', () => {
   })
 
   describe('run', () => {
+    const options: ParseMDDOptions = {viewport:{
+        width: 640,
+        height: 480,
+        deviceScaleFactor: 1,
+      }}
+
     it('should return a simple svg', async () => {
-      const generatedOutput = await generator.run(simpleMockDtdlObjectModel, defaultParams)
+      const generatedOutput = await generator.run(simpleMockDtdlObjectModel, defaultParams, options)
       expect(generatedOutput).to.equal(generatedSVGFixture)
     })
     it('should return a simple svg with layout elk', async () => {
@@ -52,7 +59,7 @@ describe('Generator', () => {
         output: 'svg',
         chartType: 'flowchart',
       }
-      const generatedOutput = await generator.run(simpleMockDtdlObjectModel, params)
+      const generatedOutput = await generator.run(simpleMockDtdlObjectModel, params, options)
       expect(generatedOutput).to.equal(generatedSVGFixtureElk)
     })
     it('should return a simple svg with chartType that does not exist', async () => {
@@ -61,7 +68,7 @@ describe('Generator', () => {
         output: 'svg',
         chartType: 'chartType that does not exist',
       }
-      const generatedOutput = await generator.run(simpleMockDtdlObjectModel, params)
+      const generatedOutput = await generator.run(simpleMockDtdlObjectModel, params, options)
       expect(generatedOutput).to.equal(`No Graph`)
     })
     it('should return a simple svg with highlighted node', async () => {
@@ -71,7 +78,7 @@ describe('Generator', () => {
         chartType: 'flowchart',
         highlightNodeId: 'dtmi:com:example:1',
       }
-      const generatedOutput = await generator.run(simpleMockDtdlObjectModel, params)
+      const generatedOutput = await generator.run(simpleMockDtdlObjectModel, params, options)
 
       expect(generatedOutput).to.equal(generatedSVGFixtureHiglighted)
     })
