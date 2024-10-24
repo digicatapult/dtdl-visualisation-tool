@@ -1,31 +1,15 @@
 import express from 'express'
-import { Get, Produces, Query, Queries, Request, Route, SuccessResponse } from 'tsoa'
+import { Get, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
 
 import { type ILogger, Logger } from '../logger.js'
+import { type QueryParams } from '../models/contollerTypes.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
-import { Generator } from '../utils/mermaid/generator.js'
-import Flowchart from '../utils/mermaid/flowchart.js'
 import { filterModelByDisplayName } from '../utils/dtdl/filter.js'
-import Flowchart, { Direction } from '../utils/mermaid/flowchart.js'
+import Flowchart from '../utils/mermaid/flowchart.js'
+import { Generator } from '../utils/mermaid/generator.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
-import { Layout } from '../models/mermaidLayouts.js'
-import { MermaidId } from '../models/strings.js'
-
-export interface QueryParams {
-  layout: Layout
-  chartType: 'flowchart'
-  output: 'svg' | 'png' | 'pdf'
-  highlightNodeId?: MermaidId
-  search?: string
-}
-
-const paramsDefault: QueryParams = {
-  layout: 'dagre-d3',
-  chartType: 'flowchart',
-  output: 'svg'
-}
 
 @singleton()
 @injectable()
@@ -47,34 +31,25 @@ export class RootController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('/')
-  public async get(@Queries() params: QueryParams = paramsDefault): Promise<HTML> {
-    this.logger.debug('root page requested with search: %o', { params.layout, params.search })
-
-    let model = this.dtdlLoader.getDefaultDtdlModel()
-    if (params.search) {
-      model = filterModelByDisplayName(model, params.search)
-    }
+  public async get(@Queries() params: QueryParams): Promise<HTML> {
+    this.logger.debug('root page requested with search: %o', { search: params.search, layout: params.layout })
 
     return this.html(
       this.templates.MermaidRoot({
-        generatedOutput: await this.generator.run(model, params),
-        search: params.search,
         layout: params.layout,
+        search: params.search,
       })
     )
   }
 
   @SuccessResponse(200)
   @Get('/update-layout')
-  public async updateLayout(
-    @Request() req: express.Request,
-    @Queries() params: QueryParams = { layout: 'dagre-d3', chartType: 'flowchart', output: 'svg' }
-  ): Promise<HTML> {
-    this.logger.debug('search: %o', { params.search, params.layout })
+  public async updateLayout(@Request() req: express.Request, @Queries() params: QueryParams): Promise<HTML> {
+    this.logger.debug('search: %o', { search: params.search, layout: params.layout })
 
     const current = this.getCurrentPathQuery(req)
     if (current) {
-      this.setReplaceUrl(current, params.layout, params.search)
+      this.setReplaceUrl(current, params)
     }
 
     let model = this.dtdlLoader.getDefaultDtdlModel()
@@ -84,10 +59,15 @@ export class RootController extends HTMLController {
 
     return this.html(
       this.templates.mermaidTarget({
-        generatedOutput: (await this.generator.run(this.dtdlLoader.getDefaultDtdlModel(), params)),
-        target: 'mermaid-output'
+        generatedOutput: await this.generator.run(model, params),
+        target: 'mermaid-output',
       }),
-      this.templates.layoutForm({ layout: params.layout, swapOutOfBand: true })
+      this.templates.layoutForm({
+        layout: params.layout,
+        swapOutOfBand: true,
+        search: params.search,
+        highlightNodeId: params.highlightNodeId,
+      })
     )
   }
 
@@ -112,11 +92,10 @@ export class RootController extends HTMLController {
     }
   }
 
-  private setReplaceUrl(current: { path: string; query: URLSearchParams }, layout: Layout, search?: string): void {
+  private setReplaceUrl(current: { path: string; query: URLSearchParams }, params: QueryParams): void {
     const { path, query } = current
-    query.set('layout', layout)
-    if (search) {
-      query.set('search', search)
+    for (const param in params) {
+      query.set(param, params[param])
     }
     this.setHeader('HX-Push-Url', `${path}?${query}`)
   }

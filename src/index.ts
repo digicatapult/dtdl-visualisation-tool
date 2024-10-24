@@ -36,7 +36,7 @@ program
 
     if (parsedDtdl) {
       container.register(DtdlLoader, { useValue: new DtdlLoader(parsedDtdl) })
-      container.register(Generator, { useValue: new Generator(await Generator.createBrowser({})) })
+      container.register(Generator, { useValue: new Generator() })
       httpServer(options.port)
     } else {
       process.exit(1)

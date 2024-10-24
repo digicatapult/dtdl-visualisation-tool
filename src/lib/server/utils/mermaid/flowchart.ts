@@ -35,7 +35,7 @@ export default class Flowchart {
     Relationship: (dtdlObjectModel, entity) => this.relationshipToMarkdown(dtdlObjectModel, entity),
   }
 
-  constructor() { }
+  constructor() {}
 
   /*
     IDs have format `dtmi:<domain>:<unique-model-identifier>;<model-version-number>`
@@ -85,7 +85,11 @@ export default class Flowchart {
     return graph
   }
 
-  getFlowchartMarkdown(dtdlObjectModel: DtdlObjectModel, direction: Direction = Direction.TopToBottom, highlightNodeId?: MermaidId): string | null {
+  getFlowchartMarkdown(
+    dtdlObjectModel: DtdlObjectModel,
+    direction: Direction = Direction.TopToBottom,
+    highlightNodeId?: MermaidId
+  ): string | null {
     const graph: string[] = []
     for (const entity in dtdlObjectModel) {
       const entityObject: EntityType = dtdlObjectModel[entity]

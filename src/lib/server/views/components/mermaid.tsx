@@ -2,10 +2,11 @@
 import { escapeHtml } from '@kitajs/html'
 import { singleton } from 'tsyringe'
 import { Layout, layoutEntries } from '../../models/mermaidLayouts.js'
+import { MermaidId } from '../../models/strings.js'
 import { Page } from '../common.js'
 
 const commonUpdateAttrs = {
-  'hx-target': '#graphMarkdown',
+  'hx-target': '#mermaid-output',
   'hx-get': '/update-layout',
   'hx-swap': 'outerHTML',
   'hx-include': '#layout-buttons',
@@ -13,9 +14,17 @@ const commonUpdateAttrs = {
 
 @singleton()
 export default class MermaidTemplates {
-  constructor() { }
+  constructor() {}
 
-  public MermaidRoot = ({ generatedOutput, search, layout }: { generatedOutput: JSX.Element | undefined; search?: string; layout: Layout }) => (
+  public MermaidRoot = ({
+    generatedOutput,
+    search,
+    layout,
+  }: {
+    generatedOutput?: JSX.Element | undefined
+    search?: string
+    layout: Layout
+  }) => (
     <Page title={'Mermaid Ontology visualiser'}>
       <this.layoutForm layout={layout} search={search} />
       <this.mermaidTarget target="mermaid-output" generatedOutput={generatedOutput} />
@@ -27,18 +36,28 @@ export default class MermaidTemplates {
     </Page>
   )
 
-  public mermaidTarget = ({ generatedOutput, target }: { generatedOutput?: JSX.Element, target: string }): JSX.Element => {
+  public output = ({ generatedOutput }: { generatedOutput: JSX.Element }): JSX.Element => {
+    return generatedOutput
+  }
+
+  public mermaidTarget = ({
+    generatedOutput,
+    target,
+  }: {
+    generatedOutput?: JSX.Element
+    target: string
+  }): JSX.Element => {
     const attributes = generatedOutput
       ? { 'hx-on::after-settle': `globalThis.setMermaidListeners()` }
       : {
-        'hx-get': '/update-layout',
-        'hx-swap': 'outerHTML',
-        'hx-trigger': 'load',
-        'hx-on::after-settle': `globalThis.setMermaidListeners()`,
-      }
+          'hx-on::after-settle': `globalThis.setMermaidListeners()`,
+          'hx-trigger': 'load',
+          ...commonUpdateAttrs,
+        }
+    const output = generatedOutput ?? ''
     return (
       <div id={target} class="mermaid" {...attributes}>
-        {generatedOutput ?? ''}
+        <this.output generatedOutput={output} />
       </div>
     )
   }
@@ -47,10 +66,12 @@ export default class MermaidTemplates {
     search,
     layout,
     swapOutOfBand,
+    highlightNodeId,
   }: {
     search?: string
     layout: Layout
     swapOutOfBand?: boolean
+    highlightNodeId?: MermaidId
   }) => {
     return (
       <form id="layout-buttons" class="button-group" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
@@ -60,8 +81,10 @@ export default class MermaidTemplates {
           type="search"
           value={escapeHtml(search || '')}
           hx-trigger="input changed delay:500ms, search"
+          hx-sync="this:replace"
           {...commonUpdateAttrs}
         />
+        <input id="highlightNodeId" name="highlightNodeId" type="hidden" value={escapeHtml(highlightNodeId || '')} />
         <select id="layout" name="layout" hx-trigger="input changed" {...commonUpdateAttrs}>
           {layoutEntries.map((entry) => (
             <option value={entry} selected={entry === layout}>

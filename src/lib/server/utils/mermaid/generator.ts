@@ -1,65 +1,64 @@
-import { renderMermaid, type ParseMDDOptions } from '@mermaid-js/mermaid-cli'
-import puppeteer, { Browser, LaunchOptions } from 'puppeteer'
-import { singleton } from 'tsyringe'
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
-import Flowchart, { Direction } from './flowchart.js'
-import { QueryParams } from '../../controllers/root.js'
+import { renderMermaid, type ParseMDDOptions } from '@mermaid-js/mermaid-cli'
+import mermaid from 'mermaid'
+import puppeteer, { Browser } from 'puppeteer'
+import { singleton } from 'tsyringe'
+import { QueryParams } from '../../models/contollerTypes.js'
 import { MermaidId } from '../../models/strings.js'
-type GeneratorOption = (g: Generator,) => void
+import Flowchart, { Direction } from './flowchart.js'
+type GeneratorOption = (g: Generator) => void
 
 @singleton()
 export class Generator {
-    public browser: any
-    constructor(
-        ...options: GeneratorOption[]
-    ) {
-        this.browser = null
+  public browser: Promise<Browser>
+  constructor(...options: GeneratorOption[]) {
+    this.browser = puppeteer.launch({})
 
-        for (const option of options) {
-            option(this)
-        }
-
+    for (const option of options) {
+      option(this)
     }
+  }
 
-    private mermaidMarkdownByChartType(dtdlObject: DtdlObjectModel, chartType: QueryParams['chartType'], highlightNodeId?: MermaidId): string {
-        switch(chartType){
-            case 'flowchart':
-                return new Flowchart(dtdlObject).getFlowchartMarkdown(Direction.TopToBottom, highlightNodeId)
-            default:
-                return new Flowchart(dtdlObject).getFlowchartMarkdown(Direction.TopToBottom, highlightNodeId)
-        }
+  mermaidMarkdownByChartType(
+    dtdlObject: DtdlObjectModel,
+    chartType: QueryParams['chartType'],
+    highlightNodeId?: MermaidId
+  ): string {
+    switch (chartType) {
+      case 'flowchart':
+        return new Flowchart().getFlowchartMarkdown(dtdlObject, Direction.TopToBottom, highlightNodeId) ?? 'No graph'
+      default:
+        return 'No graph'
     }
+  }
 
-    public static async createBrowser(puppeteerLaunchOptions: LaunchOptions) {
-        const browser: Browser = await puppeteer.launch(puppeteerLaunchOptions)
-        return (g: Generator): void => {
-            g.browser = browser
-        }
+  async parseGraph(graph: string): Promise<boolean> {
+    if ((await mermaid.parse(graph, { suppressErrors: true })) == false) {
+      return false
     }
+    return true
+  }
 
-    public async run(
-        dtdlObject: DtdlObjectModel,
-        params: QueryParams
-    ): Promise<string> {
-        //  Mermaid config
-        const parseMDDOptions: ParseMDDOptions = {
-            mermaidConfig: {
-                flowchart: {
-                    useMaxWidth: false,
-                    htmlLabels: false,
-                },
-                maxTextSize: 99999999,
-                securityLevel: 'loose',
-                maxEdges: 99999999,
-                layout: params.layout
-            }
-        }
-        const { data } = await renderMermaid(
-            this.browser,
-            this.mermaidMarkdownByChartType(dtdlObject, params.chartType, params.highlightNodeId),
-            params.output,
-            parseMDDOptions)
-        const decoder = new TextDecoder()
-        return decoder.decode(data)
+  async run(dtdlObject: DtdlObjectModel, params: QueryParams): Promise<string> {
+    //  Mermaid config
+    const parseMDDOptions: ParseMDDOptions = {
+      mermaidConfig: {
+        flowchart: {
+          useMaxWidth: false,
+          htmlLabels: false,
+        },
+        maxTextSize: 99999999,
+        securityLevel: 'loose',
+        maxEdges: 99999999,
+        layout: params.layout,
+      },
     }
+    const graph = this.mermaidMarkdownByChartType(dtdlObject, params.chartType, params.highlightNodeId)
+    if (!(await this.parseGraph(graph))) {
+      return 'No Graph'
+    }
+    const { data } = await renderMermaid(await this.browser, graph, params.output, parseMDDOptions)
+    const decoder = new TextDecoder()
+    return decoder.decode(data)
+  }
 }
