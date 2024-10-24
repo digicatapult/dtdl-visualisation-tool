@@ -2,7 +2,7 @@ import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import sinon from 'sinon'
 import { QueryParams } from '../../models/contollerTypes.js'
-import { generatedSVGFixture, mockDtdlObjectModel } from '../../utils/mermaid/__tests__/fixtures'
+import { mockDtdlObjectModel } from '../../utils/mermaid/__tests__/fixtures'
 import { RootController } from '../root'
 import { mockGenerator, mockLogger, mockReq, simpleMockDtdlLoader, templateMock, toHTMLString } from './helpers'
 
@@ -45,7 +45,7 @@ describe('RootController', async () => {
       const result = await controller.updateLayout(req, defaultParams).then(toHTMLString)
       expect(result).to.equal(
         [
-          `mermaidTarget_${generatedSVGFixture}_mermaid-output_mermaidTarget`,
+          `mermaidTarget_SVG_mermaid-output_mermaidTarget`,
           `layoutForm_undefined_dagre-d3_true_layoutForm`,
         ].join('')
       )
@@ -56,7 +56,7 @@ describe('RootController', async () => {
       const result = await controller.updateLayout(req, { ...defaultParams, search: 'example 1' }).then(toHTMLString)
       expect(result).to.equal(
         [
-          `mermaidTarget_${generatedSVGFixture}_mermaid-output_mermaidTarget`,
+          `mermaidTarget_SVG_mermaid-output_mermaidTarget`,
           `layoutForm_example 1_dagre-d3_true_layoutForm`,
         ].join('')
       )
