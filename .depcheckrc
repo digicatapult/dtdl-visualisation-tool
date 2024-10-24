@@ -3,8 +3,6 @@ ignores: [
     'prettier-plugin-organize-imports',
     'rimraf',
     '@kitajs/ts-html-plugin',
-    'mermaid',
-    '@mermaid-js/layout-elk',
     'htmx-ext-json-enc',
     'htmx.org'
 ]

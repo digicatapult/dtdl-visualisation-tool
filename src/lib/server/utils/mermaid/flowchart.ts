@@ -85,7 +85,11 @@ export default class Flowchart {
     return graph
   }
 
-  getFlowchartMarkdown(dtdlObjectModel: DtdlObjectModel, direction: Direction = Direction.TopToBottom): string | null {
+  getFlowchartMarkdown(
+    dtdlObjectModel: DtdlObjectModel,
+    direction: Direction = Direction.TopToBottom,
+    highlightNodeId?: MermaidId
+  ): string | null {
     const graph: string[] = []
     for (const entity in dtdlObjectModel) {
       const entityObject: EntityType = dtdlObjectModel[entity]
@@ -93,6 +97,9 @@ export default class Flowchart {
         (typeof entityObject)['EntityKind']
       >
       graph.push(...markdown(dtdlObjectModel, entityObject))
+    }
+    if (highlightNodeId && this.dtdlIdReinstateSemicolon(highlightNodeId) in dtdlObjectModel) {
+      graph.push(`\nclass ${highlightNodeId} highlighted`)
     }
     if (graph.length === 0) {
       return null
