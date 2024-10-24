@@ -1,7 +1,6 @@
 import express from 'express'
 import { Get, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
-
 import { type ILogger, Logger } from '../logger.js'
 import { type QueryParams } from '../models/contollerTypes.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'

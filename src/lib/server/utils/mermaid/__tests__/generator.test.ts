@@ -1,3 +1,4 @@
+import { ParseMDDOptions } from '@mermaid-js/mermaid-cli'
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import { defaultParams } from '../../../controllers/__tests__/root.test'
@@ -11,7 +12,6 @@ import {
   generatedSVGFixtureHiglighted,
   simpleMockDtdlObjectModel,
 } from './fixtures'
-import { ParseMDDOptions } from '@mermaid-js/mermaid-cli'
 
 describe('Generator', () => {
   const generator = new Generator()
@@ -43,11 +43,13 @@ describe('Generator', () => {
   })
 
   describe('run', () => {
-    const options: ParseMDDOptions = {viewport:{
-        width: 640,
-        height: 480,
+    const options: ParseMDDOptions = {
+      viewport: {
+        width: 120,
+        height: 48,
         deviceScaleFactor: 1,
-      }}
+      },
+    }
 
     it('should return a simple svg', async () => {
       const generatedOutput = await generator.run(simpleMockDtdlObjectModel, defaultParams, options)
