@@ -5,10 +5,14 @@ globalThis.getEntity = function getEntity(id) {
   htmx.ajax('GET', `/update-layout`, { target: '#mermaid-output', values: { ...layout, highlightNodeId: id } })
 }
 
+const nodeIdPattern = /^[^-]+\-(.+)\-\d+$/
 globalThis.setMermaidListeners = function setMermaidListeners() {
   let nodes = document.getElementsByClassName('node clickable')
   for (let node of nodes) {
-    let mermaidId = node.id.split('-').slice(1, -1).join('')
-    node.setAttribute('onclick', `getEntity('${mermaidId}')`)
+    let mermaidId = node.id.match(nodeIdPattern)
+    if (mermaidId === null){
+      continue
+    }
+    node.setAttribute('onclick', `getEntity('${mermaidId[1]}')`)
   }
 }

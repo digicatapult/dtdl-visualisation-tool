@@ -5,7 +5,7 @@ import { pino } from 'pino'
 import { Layout } from '../../models/mermaidLayouts.js'
 import { DtdlLoader } from '../../utils/dtdl/dtdlLoader'
 import { mockDtdlObjectModel, simpleMockDtdlObjectModel } from '../../utils/mermaid/__tests__/fixtures'
-import { Generator } from '../../utils/mermaid/generator.js'
+import { SvgGenerator } from '../../utils/mermaid/generator.js'
 import MermaidTemplates from '../../views/components/mermaid'
 
 export const templateMock = {
@@ -21,7 +21,7 @@ export const mockDtdlLoader: DtdlLoader = new DtdlLoader(mockDtdlObjectModel)
 
 export const simpleMockDtdlLoader: DtdlLoader = new DtdlLoader(simpleMockDtdlObjectModel)
 
-export const mockGenerator: Generator = new Generator()
+export const mockGenerator: SvgGenerator = new SvgGenerator()
 
 export const toHTMLString = async (...streams: Readable[]) => {
   const chunks: Uint8Array[] = []

@@ -6,7 +6,7 @@ import { type QueryParams } from '../models/contollerTypes.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import { filterModelByDisplayName } from '../utils/dtdl/filter.js'
 import Flowchart from '../utils/mermaid/flowchart.js'
-import { Generator } from '../utils/mermaid/generator.js'
+import { SvgGenerator } from '../utils/mermaid/generator.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
@@ -19,7 +19,7 @@ export class RootController extends HTMLController {
 
   constructor(
     private dtdlLoader: DtdlLoader,
-    private generator: Generator,
+    private generator: SvgGenerator,
     private templates: MermaidTemplates,
     @inject(Logger) private logger: ILogger
   ) {

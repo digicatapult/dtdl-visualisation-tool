@@ -6,6 +6,5 @@ ignores: [
     'mermaid',
     '@mermaid-js/layout-elk',
     'htmx-ext-json-enc',
-    'htmx.org',
-    'puppeteer'
+    'htmx.org'
 ]

@@ -97,9 +97,9 @@ export default class Flowchart {
         (typeof entityObject)['EntityKind']
       >
       graph.push(...markdown(dtdlObjectModel, entityObject))
-      if (highlightNodeId && entityObject.Id == this.dtdlIdReinstateSemicolon(highlightNodeId)) {
-        graph.push(`\nclass ${highlightNodeId} highlighted`)
-      }
+    }
+    if (highlightNodeId && this.dtdlIdReinstateSemicolon(highlightNodeId) in dtdlObjectModel) {
+      graph.push(`\nclass ${highlightNodeId} highlighted`)
     }
     if (graph.length === 0) {
       return null

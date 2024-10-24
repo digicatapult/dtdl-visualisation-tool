@@ -6,17 +6,13 @@ import { singleton } from 'tsyringe'
 import { QueryParams } from '../../models/contollerTypes.js'
 import { MermaidId } from '../../models/strings.js'
 import Flowchart, { Direction } from './flowchart.js'
-type GeneratorOption = (g: Generator) => void
 
 @singleton()
-export class Generator {
+export class SvgGenerator {
+  private flowchart = new Flowchart()  
   public browser: Promise<Browser>
-  constructor(...options: GeneratorOption[]) {
+  constructor() {
     this.browser = puppeteer.launch({})
-
-    for (const option of options) {
-      option(this)
-    }
   }
 
   mermaidMarkdownByChartType(
@@ -26,7 +22,7 @@ export class Generator {
   ): string {
     switch (chartType) {
       case 'flowchart':
-        return new Flowchart().getFlowchartMarkdown(dtdlObject, Direction.TopToBottom, highlightNodeId) ?? 'No graph'
+        return this.flowchart.getFlowchartMarkdown(dtdlObject, Direction.TopToBottom, highlightNodeId) ?? 'No graph'
       default:
         return 'No graph'
     }

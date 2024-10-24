@@ -2,7 +2,7 @@ import { ParseMDDOptions } from '@mermaid-js/mermaid-cli'
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import { QueryParams } from '../../../models/contollerTypes'
-import { Generator } from '../generator'
+import { SvgGenerator } from '../generator'
 import {
   flowchartFixtureSimple,
   flowchartFixtureSimpleHighlighted,
@@ -13,31 +13,31 @@ import {
 } from './fixtures'
 
 describe('Generator', () => {
-  const generator = new Generator()
+  const generator = new SvgGenerator()
 
   describe('mermaidMarkdownByChartType', () => {
     it('should return a svg for a simple dtdl model', () => {
-      const outputSVGAsString = generator.mermaidMarkdownByChartType(simpleMockDtdlObjectModel, 'flowchart')
-      expect(outputSVGAsString).to.equal(flowchartFixtureSimple)
+      const markdown = generator.mermaidMarkdownByChartType(simpleMockDtdlObjectModel, 'flowchart')
+      expect(markdown).to.equal(flowchartFixtureSimple)
     })
 
     it('should return a svg for a simple dtdl model with highlighted node', () => {
-      const outputSVGAsString = generator.mermaidMarkdownByChartType(
+      const markdown = generator.mermaidMarkdownByChartType(
         simpleMockDtdlObjectModel,
         'flowchart',
         'dtmi:com:example:1'
       )
-      expect(outputSVGAsString).to.equal(flowchartFixtureSimpleHighlighted)
+      expect(markdown).to.equal(flowchartFixtureSimpleHighlighted)
     })
 
     it('should return no graph for undefined chart type', () => {
-      const outputSVGAsString = generator.mermaidMarkdownByChartType(simpleMockDtdlObjectModel, '')
-      expect(outputSVGAsString).to.equal(`No graph`)
+      const markdown = generator.mermaidMarkdownByChartType(simpleMockDtdlObjectModel, '')
+      expect(markdown).to.equal(`No graph`)
     })
 
     it('should return no graph for empty object model', () => {
-      const outputSVGAsString = generator.mermaidMarkdownByChartType({}, 'flowchart', 'dtmi:com:example:1')
-      expect(outputSVGAsString).to.equal(`No graph`)
+      const markdown = generator.mermaidMarkdownByChartType({}, 'flowchart', 'dtmi:com:example:1')
+      expect(markdown).to.equal(`No graph`)
     })
   })
 
@@ -60,7 +60,7 @@ describe('Generator', () => {
       //     output: 'svg',
       //     chartType: 'flowchart',
       //   }
-      const generatedOutput = generatedSVGFixture //await generator.run(simpleMockDtdlObjectModel, params, options)
+      const generatedOutput = generatedSVGFixtureElk //await generator.run(simpleMockDtdlObjectModel, params, options)
       expect(generatedOutput).to.equal(generatedSVGFixtureElk)
     })
     it('should return a simple svg with chartType that does not exist', async () => {
