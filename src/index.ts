@@ -35,7 +35,6 @@ program
 
     if (parsedDtdl) {
       container.register(DtdlLoader, { useValue: new DtdlLoader(parsedDtdl) })
-      // container.registerSingleton(Generator)
       httpServer(options.port)
     } else {
       process.exit(1)
