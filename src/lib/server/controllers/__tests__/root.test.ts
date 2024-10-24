@@ -44,10 +44,7 @@ describe('RootController', async () => {
       const req = mockReq({})
       const result = await controller.updateLayout(req, defaultParams).then(toHTMLString)
       expect(result).to.equal(
-        [
-          `mermaidTarget_SVG_mermaid-output_mermaidTarget`,
-          `layoutForm_undefined_dagre-d3_true_layoutForm`,
-        ].join('')
+        [`mermaidTarget_SVG_mermaid-output_mermaidTarget`, `layoutForm_undefined_dagre-d3_true_layoutForm`].join('')
       )
     })
 
@@ -55,10 +52,7 @@ describe('RootController', async () => {
       const req = mockReq({})
       const result = await controller.updateLayout(req, { ...defaultParams, search: 'example 1' }).then(toHTMLString)
       expect(result).to.equal(
-        [
-          `mermaidTarget_SVG_mermaid-output_mermaidTarget`,
-          `layoutForm_example 1_dagre-d3_true_layoutForm`,
-        ].join('')
+        [`mermaidTarget_SVG_mermaid-output_mermaidTarget`, `layoutForm_example 1_dagre-d3_true_layoutForm`].join('')
       )
     })
 
