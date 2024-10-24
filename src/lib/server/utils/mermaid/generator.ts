@@ -9,7 +9,7 @@ import Flowchart, { Direction } from './flowchart.js'
 
 @singleton()
 export class SvgGenerator {
-  private flowchart = new Flowchart()  
+  private flowchart = new Flowchart()
   public browser: Promise<Browser>
   constructor() {
     this.browser = puppeteer.launch({})

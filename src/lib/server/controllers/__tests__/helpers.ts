@@ -2,9 +2,14 @@ import express from 'express'
 import { Readable } from 'node:stream'
 import { pino } from 'pino'
 
+import sinon from 'sinon'
 import { Layout } from '../../models/mermaidLayouts.js'
 import { DtdlLoader } from '../../utils/dtdl/dtdlLoader'
-import { mockDtdlObjectModel, simpleMockDtdlObjectModel } from '../../utils/mermaid/__tests__/fixtures'
+import {
+  generatedSVGFixture,
+  mockDtdlObjectModel,
+  simpleMockDtdlObjectModel,
+} from '../../utils/mermaid/__tests__/fixtures'
 import { SvgGenerator } from '../../utils/mermaid/generator.js'
 import MermaidTemplates from '../../views/components/mermaid'
 
@@ -21,7 +26,9 @@ export const mockDtdlLoader: DtdlLoader = new DtdlLoader(mockDtdlObjectModel)
 
 export const simpleMockDtdlLoader: DtdlLoader = new DtdlLoader(simpleMockDtdlObjectModel)
 
-export const mockGenerator: SvgGenerator = new SvgGenerator()
+export const mockGenerator: SvgGenerator = {
+  run: sinon.stub().resolves(generatedSVGFixture),
+} as unknown as SvgGenerator
 
 export const toHTMLString = async (...streams: Readable[]) => {
   const chunks: Uint8Array[] = []
