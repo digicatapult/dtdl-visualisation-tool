@@ -27,6 +27,7 @@ export default async (): Promise<Express> => {
   app.use('/lib/htmx-ext-json-enc/json-enc.js', express.static('node_modules/htmx-ext-json-enc/json-enc.js'))
   app.use('/lib/mermaid', express.static('node_modules/mermaid/dist'))
   app.use('/lib/mermaid-elk', express.static('node_modules/@mermaid-js/layout-elk/dist'))
+  app.use('/lib/svg-pan-zoom', express.static('node_modules/svg-pan-zoom/dist'))
 
   return app
 }

@@ -46,7 +46,16 @@ export default class MermaidTemplates {
     )
   }
 
-  private mermaidTarget = ({ target }: { target: string }) => <div id={target} class="mermaid"></div>
+  private mermaidTarget = ({ target }: { target: string }) => (
+    <div id="mermaid-wrapper">
+      <div id={target} class="mermaid"></div>
+      <div id="svg-controls">
+        <button id="zoom-in">+</button>
+        <button id="reset-pan-zoom">◯</button>
+        <button id="zoom-out">-</button>
+      </div>
+    </div>
+  )
 
   public layoutForm = ({
     search,

@@ -22,9 +22,20 @@ globalThis.renderMermaid = async function renderMermaid(mermaidOutputElement, me
   if (!graphDefinition) {
     element.innerHTML = 'Not Found'
   }
-  const { svg, bindFunctions } = await mermaid.render('tmpRenderedDiv', graphDefinition)
+  const { svg, bindFunctions } = await mermaid.render('mermaid-svg', graphDefinition)
   element.innerHTML = svg
   bindFunctions(element)
+  const panZoom = svgPanZoom('#mermaid-svg', { maxZoom: 20 })
+  document.getElementById('reset-pan-zoom').onclick = () => {
+    panZoom.resetZoom()
+    panZoom.resetPan()
+  }
+  document.getElementById('zoom-in').onclick = () => {
+    panZoom.zoomIn()
+  }
+  document.getElementById('zoom-out').onclick = () => {
+    panZoom.zoomOut()
+  }
 }
 
 globalThis.renderLayoutChange = async function renderLayoutChange(mermaidOutputElement, mermaidMarkdown, layoutType) {
