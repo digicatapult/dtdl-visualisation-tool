@@ -1,11 +1,12 @@
 /// <reference types="@kitajs/html/htmx.d.ts" />
 import { escapeHtml } from '@kitajs/html'
 import { singleton } from 'tsyringe'
-import { type Layout, layoutEntries } from '../../models/mermaidLayouts.js'
+import { Layout, layoutEntries } from '../../models/mermaidLayouts.js'
+import { MermaidId } from '../../models/strings.js'
 import { Page } from '../common.js'
 
 const commonUpdateAttrs = {
-  'hx-target': '#graphMarkdown',
+  'hx-target': '#mermaid-output',
   'hx-get': '/update-layout',
   'hx-swap': 'outerHTML',
   'hx-include': '#layout-buttons',
@@ -15,11 +16,18 @@ const commonUpdateAttrs = {
 export default class MermaidTemplates {
   constructor() {}
 
-  public MermaidRoot = ({ graph, search, layout }: { graph: string | null; search?: string; layout: Layout }) => (
+  public MermaidRoot = ({
+    generatedOutput,
+    search,
+    layout,
+  }: {
+    generatedOutput?: JSX.Element | undefined
+    search?: string
+    layout: Layout
+  }) => (
     <Page title={'Mermaid Ontology visualiser'}>
       <this.layoutForm layout={layout} search={search} />
-      <this.mermaidTarget target="mermaid-output" />
-      <this.mermaidMarkdown graph={graph} />
+      <this.mermaidTarget target="mermaid-output" generatedOutput={generatedOutput} />
       <div id="navigation-panel">
         <pre>
           <code id="navigationPanelContent">Click on a node to view attributes</code>
@@ -28,43 +36,49 @@ export default class MermaidTemplates {
     </Page>
   )
 
-  public mermaidMarkdown = ({ graph, layout }: { graph: string | null; layout?: Layout }) => {
-    const attributes = layout
-      ? {
-          'hx-on::after-settle': `globalThis.renderLayoutChange('mermaid-output', 'graphMarkdown', '${layout}')`,
-        }
-      : {
-          ...commonUpdateAttrs,
+  public output = ({ generatedOutput }: { generatedOutput: JSX.Element }): JSX.Element => {
+    return generatedOutput
+  }
 
+  public mermaidTarget = ({
+    generatedOutput,
+    target,
+  }: {
+    generatedOutput?: JSX.Element
+    target: string
+  }): JSX.Element => {
+    const attributes = generatedOutput
+      ? { 'hx-on::after-settle': `globalThis.setMermaidListeners()` }
+      : {
+          'hx-on::after-settle': `globalThis.setMermaidListeners()`,
           'hx-trigger': 'load',
-          'hx-on::after-settle': `globalThis.renderMermaid('mermaid-output', 'graphMarkdown')`,
+          ...commonUpdateAttrs,
         }
+    const output = generatedOutput ?? ''
     return (
-      <div id="graphMarkdown" style="display: none" {...attributes}>
-        {escapeHtml(graph ?? '')}
+      <div id="mermaid-wrapper">
+        <div id={target} class="mermaid" {...attributes}>
+          <this.output generatedOutput={output} />
+          <div id="svg-controls">
+            <button id="zoom-in">+</button>
+            <button id="reset-pan-zoom">◯</button>
+            <button id="zoom-out">-</button>
+          </div>
+        </div>
       </div>
     )
   }
-
-  private mermaidTarget = ({ target }: { target: string }) => (
-    <div id="mermaid-wrapper">
-      <div id={target} class="mermaid"></div>
-      <div id="svg-controls">
-        <button id="zoom-in">+</button>
-        <button id="reset-pan-zoom">◯</button>
-        <button id="zoom-out">-</button>
-      </div>
-    </div>
-  )
 
   public layoutForm = ({
     search,
     layout,
     swapOutOfBand,
+    highlightNodeId,
   }: {
     search?: string
     layout: Layout
     swapOutOfBand?: boolean
+    highlightNodeId?: MermaidId
   }) => {
     return (
       <form id="layout-buttons" class="button-group" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
@@ -74,8 +88,10 @@ export default class MermaidTemplates {
           type="search"
           value={escapeHtml(search || '')}
           hx-trigger="input changed delay:500ms, search"
+          hx-sync="this:replace"
           {...commonUpdateAttrs}
         />
+        <input id="highlightNodeId" name="highlightNodeId" type="hidden" value={escapeHtml(highlightNodeId || '')} />
         <select id="layout" name="layout" hx-trigger="input changed" {...commonUpdateAttrs}>
           {layoutEntries.map((entry) => (
             <option value={entry} selected={entry === layout}>

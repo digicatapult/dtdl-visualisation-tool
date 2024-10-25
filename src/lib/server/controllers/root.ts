@@ -1,12 +1,12 @@
 import express from 'express'
-import { Get, Produces, Query, Request, Route, SuccessResponse } from 'tsoa'
+import { Get, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
-
 import { type ILogger, Logger } from '../logger.js'
-import { type Layout } from '../models/mermaidLayouts.js'
+import { type QueryParams } from '../models/contollerTypes.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import { filterModelByDisplayName } from '../utils/dtdl/filter.js'
-import Flowchart, { Direction } from '../utils/mermaid/flowchart.js'
+import Flowchart from '../utils/mermaid/flowchart.js'
+import { SvgGenerator } from '../utils/mermaid/generator.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
@@ -19,6 +19,7 @@ export class RootController extends HTMLController {
 
   constructor(
     private dtdlLoader: DtdlLoader,
+    private generator: SvgGenerator,
     private templates: MermaidTemplates,
     @inject(Logger) private logger: ILogger
   ) {
@@ -29,48 +30,43 @@ export class RootController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('/')
-  public async get(@Query() layout: Layout = 'dagre-d3', @Query() search?: string): Promise<HTML> {
-    this.logger.debug('root page requested with search: %o', { layout, search })
-
-    let model = this.dtdlLoader.getDefaultDtdlModel()
-    if (search) {
-      model = filterModelByDisplayName(model, search)
-    }
+  public async get(@Queries() params: QueryParams): Promise<HTML> {
+    this.logger.debug('root page requested with search: %o', { search: params.search, layout: params.layout })
 
     return this.html(
       this.templates.MermaidRoot({
-        graph: this.flowchart.getFlowchartMarkdown(model, Direction.TopToBottom),
-        search,
-        layout,
+        layout: params.layout,
+        search: params.search,
       })
     )
   }
 
   @SuccessResponse(200)
   @Get('/update-layout')
-  public async updateLayout(
-    @Request() req: express.Request,
-    @Query() layout: Layout = 'dagre-d3',
-    @Query() search?: string
-  ): Promise<HTML> {
-    this.logger.debug('search: %o', { search, layout })
+  public async updateLayout(@Request() req: express.Request, @Queries() params: QueryParams): Promise<HTML> {
+    this.logger.debug('search: %o', { search: params.search, layout: params.layout })
 
     const current = this.getCurrentPathQuery(req)
     if (current) {
-      this.setReplaceUrl(current, layout, search)
+      this.setReplaceUrl(current, params)
     }
 
     let model = this.dtdlLoader.getDefaultDtdlModel()
-    if (search) {
-      model = filterModelByDisplayName(model, search)
+    if (params.search) {
+      model = filterModelByDisplayName(model, params.search)
     }
 
     return this.html(
-      this.templates.mermaidMarkdown({
-        graph: this.flowchart.getFlowchartMarkdown(model, Direction.TopToBottom),
-        layout: layout,
+      this.templates.mermaidTarget({
+        generatedOutput: await this.generator.run(model, params),
+        target: 'mermaid-output',
       }),
-      this.templates.layoutForm({ search, layout, swapOutOfBand: true })
+      this.templates.layoutForm({
+        layout: params.layout,
+        swapOutOfBand: true,
+        search: params.search,
+        highlightNodeId: params.highlightNodeId,
+      })
     )
   }
 
@@ -78,7 +74,7 @@ export class RootController extends HTMLController {
   @Get('/entity/{id}')
   public async getEntityById(id: string, @Query() chartType?: string): Promise<HTML> {
     let entityId = id
-    if (chartType === 'mermaid') entityId = this.flowchart.dtdlIdReinstateSemicolon(id)
+    if (chartType === 'flowchart') entityId = this.flowchart.dtdlIdReinstateSemicolon(id)
     const entity = this.dtdlLoader.getDefaultDtdlModel()[entityId]
     return this.html(`${JSON.stringify(entity, null, 4)}`)
   }
@@ -95,11 +91,10 @@ export class RootController extends HTMLController {
     }
   }
 
-  private setReplaceUrl(current: { path: string; query: URLSearchParams }, layout: Layout, search?: string): void {
+  private setReplaceUrl(current: { path: string; query: URLSearchParams }, params: QueryParams): void {
     const { path, query } = current
-    query.set('layout', layout)
-    if (search) {
-      query.set('search', search)
+    for (const param in params) {
+      query.set(param, params[param])
     }
     this.setHeader('HX-Push-Url', `${path}?${query}`)
   }
