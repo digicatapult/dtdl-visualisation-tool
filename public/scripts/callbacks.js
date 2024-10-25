@@ -14,8 +14,8 @@ globalThis.setMermaidListeners = function setMermaidListeners() {
     }
     node.setAttribute('onclick', `getEntity('${mermaidId[1]}')`)
   }
-  console.log('hi')
-  const panZoom = svgPanZoom('my-svg', { maxZoom: 20 })
+
+  const panZoom = svgPanZoom('#mermaid-svg', { maxZoom: 20 })
   document.getElementById('reset-pan-zoom').onclick = () => {
     panZoom.resetZoom()
     panZoom.resetPan()

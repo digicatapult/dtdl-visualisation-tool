@@ -70,7 +70,7 @@ button[name='layout'] {
   position: relative;
 }
 
-#my-svg {
+#mermaid-svg {
   height: 100%;
   width: 100%;
 }
