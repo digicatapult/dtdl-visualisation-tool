@@ -1,6 +1,5 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { renderMermaid, type ParseMDDOptions } from '@mermaid-js/mermaid-cli'
-import mermaid from 'mermaid'
 import puppeteer, { Browser } from 'puppeteer'
 import { singleton } from 'tsyringe'
 import { QueryParams } from '../../models/contollerTypes.js'
@@ -28,13 +27,6 @@ export class SvgGenerator {
     }
   }
 
-  async parseGraph(graph: string): Promise<boolean> {
-    if ((await mermaid.parse(graph, { suppressErrors: true })) == false) {
-      return false
-    }
-    return true
-  }
-
   async run(dtdlObject: DtdlObjectModel, params: QueryParams, options: ParseMDDOptions = {}): Promise<string> {
     //  Mermaid config
     const parseMDDOptions: ParseMDDOptions = {
@@ -52,9 +44,7 @@ export class SvgGenerator {
       },
     }
     const graph = this.mermaidMarkdownByChartType(dtdlObject, params.chartType, params.highlightNodeId)
-    if (!(await this.parseGraph(graph))) {
-      return 'No Graph'
-    }
+
     const { data } = await renderMermaid(await this.browser, graph, params.output, parseMDDOptions)
     const decoder = new TextDecoder()
     return decoder.decode(data)
