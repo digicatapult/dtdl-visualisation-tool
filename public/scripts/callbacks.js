@@ -1,3 +1,7 @@
+const resetButton = document.getElementById('reset-pan-zoom')
+const zoomInButton = document.getElementById('zoom-in')
+const zoomOutButton = document.getElementById('zoom-out')
+
 globalThis.getEntity = function getEntity(id) {
   htmx.ajax('GET', `/entity/${id}?chartType=flowchart`, '#navigationPanelContent')
   const layout = htmx.values(htmx.find('#layout-buttons'))
@@ -16,14 +20,14 @@ globalThis.setMermaidListeners = function setMermaidListeners() {
   }
 
   const panZoom = svgPanZoom('#mermaid-svg', { maxZoom: 20 })
-  document.getElementById('reset-pan-zoom').onclick = () => {
+  resetButton.onclick = () => {
     panZoom.resetZoom()
     panZoom.resetPan()
   }
-  document.getElementById('zoom-in').onclick = () => {
+  zoomInButton.onclick = () => {
     panZoom.zoomIn()
   }
-  document.getElementById('zoom-out').onclick = () => {
+  zoomOutButton.onclick = () => {
     panZoom.zoomOut()
   }
 }
