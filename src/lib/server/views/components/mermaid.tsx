@@ -20,13 +20,15 @@ export default class MermaidTemplates {
     generatedOutput,
     search,
     layout,
+    highlightNodeId,
   }: {
     generatedOutput?: JSX.Element | undefined
     search?: string
     layout: Layout
+    highlightNodeId?: string
   }) => (
     <Page title={'Mermaid Ontology visualiser'}>
-      <this.layoutForm layout={layout} search={search} />
+      <this.layoutForm layout={layout} search={search} highlightNodeId={highlightNodeId} />
       <div id="mermaid-wrapper">
         <this.mermaidTarget target="mermaid-output" generatedOutput={generatedOutput} />
         <div id="svg-controls">
