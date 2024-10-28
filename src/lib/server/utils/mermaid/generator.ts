@@ -2,7 +2,7 @@ import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { renderMermaid, type ParseMDDOptions } from '@mermaid-js/mermaid-cli'
 import puppeteer, { Browser } from 'puppeteer'
 import { singleton } from 'tsyringe'
-import { QueryParams } from '../../models/contollerTypes.js'
+import { ChartTypes, QueryParams } from '../../models/contollerTypes.js'
 import { MermaidId } from '../../models/strings.js'
 import Flowchart, { Direction } from './flowchart.js'
 
@@ -14,17 +14,12 @@ export class SvgGenerator {
     this.browser = puppeteer.launch({})
   }
 
-  mermaidMarkdownByChartType(
-    dtdlObject: DtdlObjectModel,
-    chartType: QueryParams['chartType'],
-    highlightNodeId?: MermaidId
-  ): string {
-    switch (chartType) {
-      case 'flowchart':
-        return this.flowchart.getFlowchartMarkdown(dtdlObject, Direction.TopToBottom, highlightNodeId) ?? 'No graph'
-      default:
-        return 'No graph'
-    }
+  mermaidMarkdownByChartType: Record<
+    ChartTypes,
+    (dtdlObject: DtdlObjectModel, highlightNodeId?: MermaidId) => string | null
+  > = {
+    flowchart: (dtdlObject, highlightNodeId) =>
+      this.flowchart.getFlowchartMarkdown(dtdlObject, Direction.TopToBottom, highlightNodeId),
   }
 
   async run(dtdlObject: DtdlObjectModel, params: QueryParams, options: ParseMDDOptions = {}): Promise<string> {
@@ -43,7 +38,9 @@ export class SvgGenerator {
         layout: params.layout,
       },
     }
-    const graph = this.mermaidMarkdownByChartType(dtdlObject, params.chartType, params.highlightNodeId)
+
+    const graph = this.mermaidMarkdownByChartType[params.chartType](dtdlObject, params.highlightNodeId)
+    if (!graph) return 'No graph'
 
     const { data } = await renderMermaid(await this.browser, graph, params.output, parseMDDOptions)
     const decoder = new TextDecoder()
