@@ -37,6 +37,7 @@ export class RootController extends HTMLController {
       this.templates.MermaidRoot({
         layout: params.layout,
         search: params.search,
+        highlightNodeId: params.highlightNodeId,
       })
     )
   }
