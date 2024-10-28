@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.0.35",
+  "version": "0.0.36",
   "description": "CLI tool for dtdl visualisation",
   "main": "src/index.js",
   "bin": {
@@ -43,7 +43,6 @@
     "express": "^4.21.1",
     "htmx-ext-json-enc": "^2.0.1",
     "htmx.org": "^1.9.12",
-    "mermaid": "^11.3.0",
     "pino": "^9.5.0",
     "pino-http": "^10.3.0",
     "puppeteer": "^23.6.0",
