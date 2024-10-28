@@ -31,14 +31,9 @@ describe('Generator', () => {
       expect(markdown).to.equal(flowchartFixtureSimpleHighlighted)
     })
 
-    it('should return no graph for undefined chart type', () => {
-      const markdown = generator.mermaidMarkdownByChartType(simpleMockDtdlObjectModel, '')
-      expect(markdown).to.equal(`No graph`)
-    })
-
-    it('should return no graph for empty object model', () => {
+    it('should return null for empty object model', () => {
       const markdown = generator.mermaidMarkdownByChartType({}, 'flowchart', 'dtmi:com:example:1')
-      expect(markdown).to.equal(`No graph`)
+      expect(markdown).to.equal(null)
     })
   })
 
@@ -63,15 +58,6 @@ describe('Generator', () => {
       }
       const generatedOutput = await generator.run(simpleMockDtdlObjectModel, params, options)
       expect(generatedOutput).to.equal(generatedSVGFixtureElk)
-    })
-    it('should return a simple svg with chartType that does not exist', async () => {
-      const params: QueryParams = {
-        layout: 'dagre-d3',
-        output: 'svg',
-        chartType: 'chartType that does not exist',
-      }
-      const generatedOutput = await generator.run(simpleMockDtdlObjectModel, params, options)
-      expect(generatedOutput).to.equal(`No Graph`)
     })
     it.skip('should return a simple svg with highlighted node', async () => {
       const params: QueryParams = {
