@@ -46,6 +46,11 @@ describe('Generator', () => {
       },
     }
 
+    it('should return no graph for empty object model', async () => {
+      const generatedOutput = await generator.run({}, defaultParams, options)
+      expect(generatedOutput).to.equal(`No graph`)
+    })
+
     it.skip('should return a simple svg', async () => {
       const generatedOutput = await generator.run(simpleMockDtdlObjectModel, defaultParams, options)
       expect(generatedOutput).to.equal(generatedSVGFixture)
