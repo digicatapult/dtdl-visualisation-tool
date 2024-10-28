@@ -18,21 +18,20 @@ describe('Generator', () => {
 
   describe('mermaidMarkdownByChartType', () => {
     it('should return a svg for a simple dtdl model', () => {
-      const markdown = generator.mermaidMarkdownByChartType(simpleMockDtdlObjectModel, 'flowchart')
+      const markdown = generator.mermaidMarkdownByChartType['flowchart'](simpleMockDtdlObjectModel)
       expect(markdown).to.equal(flowchartFixtureSimple)
     })
 
     it('should return a svg for a simple dtdl model with highlighted node', () => {
-      const markdown = generator.mermaidMarkdownByChartType(
+      const markdown = generator.mermaidMarkdownByChartType['flowchart'](
         simpleMockDtdlObjectModel,
-        'flowchart',
         'dtmi:com:example:1'
       )
       expect(markdown).to.equal(flowchartFixtureSimpleHighlighted)
     })
 
     it('should return null for empty object model', () => {
-      const markdown = generator.mermaidMarkdownByChartType({}, 'flowchart', 'dtmi:com:example:1')
+      const markdown = generator.mermaidMarkdownByChartType['flowchart']({}, 'dtmi:com:example:1')
       expect(markdown).to.equal(null)
     })
   })

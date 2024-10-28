@@ -14,15 +14,12 @@ export class SvgGenerator {
     this.browser = puppeteer.launch({})
   }
 
-  mermaidMarkdownByChartType(
-    dtdlObject: DtdlObjectModel,
-    chartType: ChartTypes,
-    highlightNodeId?: MermaidId
-  ): string | null {
-    const chartTypeHandlers = {
-      flowchart: () => this.flowchart.getFlowchartMarkdown(dtdlObject, Direction.TopToBottom, highlightNodeId),
-    }
-    return chartTypeHandlers[chartType]()
+  mermaidMarkdownByChartType: Record<
+    ChartTypes,
+    (dtdlObject: DtdlObjectModel, highlightNodeId?: MermaidId) => string | null
+  > = {
+    flowchart: (dtdlObject, highlightNodeId) =>
+      this.flowchart.getFlowchartMarkdown(dtdlObject, Direction.TopToBottom, highlightNodeId),
   }
 
   async run(dtdlObject: DtdlObjectModel, params: QueryParams, options: ParseMDDOptions = {}): Promise<string> {
@@ -40,7 +37,8 @@ export class SvgGenerator {
         layout: params.layout,
       },
     }
-    const graph = this.mermaidMarkdownByChartType(dtdlObject, params.chartType, params.highlightNodeId)
+
+    const graph = this.mermaidMarkdownByChartType[params.chartType](dtdlObject, params.highlightNodeId)
     if (!graph) return 'No graph'
 
     const { data } = await renderMermaid(await this.browser, graph, params.output, parseMDDOptions)
