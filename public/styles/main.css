@@ -63,11 +63,21 @@ button[name='layout'] {
   align-items: center;
 }
 
-#mermaid-output {
+#mermaid-wrapper {
   background-color: #f5f6fa;
   grid-column: 1;
   grid-row: 2;
-  overflow: scroll;
+  position: relative;
+}
+
+#mermaid-svg {
+  height: 100%;
+  width: 100%;
+}
+
+#mermaid-output {
+  height: 100%;
+  width: 100%;
 }
 
 #navigation-panel {
@@ -82,4 +92,19 @@ button[name='layout'] {
 
 pre {
   white-space: pre-wrap;
+}
+
+#svg-controls {
+  display: grid;
+  gap: 5px;
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+}
+
+#svg-controls button {
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+  font-size: 0.7rem;
 }

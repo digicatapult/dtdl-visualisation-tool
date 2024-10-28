@@ -5,8 +5,6 @@ A CLI tool for visualising dtdl ontologies.
 ## Prerequisites
 
 `node` >= 20
-`dotnet` [CLI](https://learn.microsoft.com/en-us/dotnet/core/install/)
-Run `dotnet workload install wasm-tools` to install `wasm-tools`
 
 ## Getting started
 
@@ -14,12 +12,6 @@ The build command should be run first to create the converted ts files.
 
 ```shell
 npm run build
-```
-
-Create a release build of the DTDLParser WASM interop, outputs to the typescript build directory under `build/interop/`
-
-```shell
-npm run interop:build
 ```
 
 To start the basic application
@@ -60,6 +52,7 @@ dtdl-visualiser parse -p dtdl/error
 ```sh
 dtdl-visualiser parse -p dtdl/simple
 ```
+
 Go to http://localhost:3000
 
 ## validate

@@ -26,6 +26,7 @@ export class SvgGenerator {
     //  Mermaid config
     const parseMDDOptions: ParseMDDOptions = {
       ...options,
+      svgId: 'mermaid-svg',
       mermaidConfig: {
         flowchart: {
           useMaxWidth: false,
