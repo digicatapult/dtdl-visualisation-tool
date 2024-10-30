@@ -5,8 +5,7 @@ import { getDisplayName } from './extract.js'
 export type DtdlModelWithMetadata = {
   model: DtdlObjectModel
   metadata: {
-    expanded: Set<string>
-    unexpanded: Set<string>
+    expanded: string[]
   }
 }
 
@@ -39,6 +38,15 @@ const relationshipFilter =
     return false
   }
 
+const getRelationshipIds = (entityPairs: [string, EntityType][], model: DtdlObjectModel, matchingIds: Set<string>) => {
+  return new Set(
+    entityPairs.filter(relationshipFilter(model, matchingIds)).flatMap(([, entity]) => {
+      const relationship = entity as RelationshipType
+      return [relationship.Id, relationship.ChildOf, relationship.target].filter((x) => x !== undefined)
+    })
+  )
+}
+
 export const filterModelByDisplayName = (
   dtdlObjectModel: DtdlModelWithMetadata,
   name: string
@@ -46,27 +54,22 @@ export const filterModelByDisplayName = (
   const { metadata, model } = dtdlObjectModel
   const entityPairs = Object.entries(model)
 
-  const matchingIds = new Set([
-    ...metadata.expanded,
-    ...entityPairs.filter(interfaceFilter(name)).map(([, { Id }]) => Id),
-  ])
+  const matchingIds = new Set(entityPairs.filter(interfaceFilter(name)).map(([, { Id }]) => Id))
 
-  if (matchingIds.size === 0) {
+  if (matchingIds.size === 0 || !metadata.expanded.every((id) => id in model)) {
     return { metadata, model: {} }
   }
 
-  const matchingRelationships = new Set(
-    entityPairs.filter(relationshipFilter(model, matchingIds)).flatMap(([, entity]) => {
-      const relationship = entity as RelationshipType
-      return [relationship.Id, relationship.ChildOf, relationship.target].filter((x) => x !== undefined)
-    })
-  )
+  const expandedIds = new Set([...matchingIds, ...metadata.expanded])
+  console.log(expandedIds)
 
-  const idsAndRelationships = new Set([...matchingIds, ...matchingRelationships])
+  const expandedRelationships = getRelationshipIds(entityPairs, model, expandedIds)
+
+  const idsAndRelationships = new Set([...expandedIds, ...expandedRelationships])
 
   const filteredModel = [...idsAndRelationships].reduce((acc, id) => {
     acc[id] = model[id]
     return acc
   }, {} as DtdlObjectModel)
-  return { metadata, model: filteredModel }
+  return { metadata: { expanded: [...expandedIds] }, model: filteredModel }
 }

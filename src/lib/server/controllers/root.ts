@@ -4,7 +4,7 @@ import { inject, injectable, singleton } from 'tsyringe'
 import { type ILogger, Logger } from '../logger.js'
 import { type QueryParams } from '../models/contollerTypes.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
-import { filterModelByDisplayName } from '../utils/dtdl/filter.js'
+import { DtdlModelWithMetadata, filterModelByDisplayName } from '../utils/dtdl/filter.js'
 import Flowchart from '../utils/mermaid/flowchart.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
 import MermaidTemplates from '../views/components/mermaid.js'
@@ -38,6 +38,7 @@ export class RootController extends HTMLController {
         layout: params.layout,
         search: params.search,
         highlightNodeId: params.highlightNodeId,
+        expandedIds: params.expandedIds,
       })
     )
   }
@@ -53,11 +54,16 @@ export class RootController extends HTMLController {
     }
 
     const defModel = this.dtdlLoader.getDefaultDtdlModel()
-    let model = { metadata: { expanded: new Set(''), unexpanded: new Set('') }, model: defModel }
+    const safeIds = params.expandedIds?.map(this.flowchart.dtdlIdReinstateSemicolon) ?? []
+
+    let model: DtdlModelWithMetadata = {
+      metadata: { expanded: safeIds },
+      model: defModel,
+    }
     if (params.search) {
       model = filterModelByDisplayName(model, params.search)
     }
-    console.log(model)
+
     return this.html(
       this.templates.mermaidTarget({
         generatedOutput: await this.generator.run(model, params),
@@ -68,6 +74,7 @@ export class RootController extends HTMLController {
         swapOutOfBand: true,
         search: params.search,
         highlightNodeId: params.highlightNodeId,
+        expandedIds: params.expandedIds,
       })
     )
   }
@@ -96,8 +103,15 @@ export class RootController extends HTMLController {
   private setReplaceUrl(current: { path: string; query: URLSearchParams }, params: QueryParams): void {
     const { path, query } = current
     for (const param in params) {
-      query.set(param, params[param])
+      const value = params[param]
+      if (Array.isArray(value)) {
+        query.delete(`${param}[]`)
+        value.forEach((item) => query.append(`${param}[]`, item))
+      } else {
+        query.set(param, value)
+      }
     }
+    console.log(query)
     this.setHeader('HX-Push-Url', `${path}?${query}`)
   }
 }

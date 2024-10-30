@@ -5,7 +5,11 @@ const zoomOutButton = document.getElementById('zoom-out')
 globalThis.getEntity = function getEntity(id) {
   htmx.ajax('GET', `/entity/${id}?chartType=flowchart`, '#navigationPanelContent')
   const layout = htmx.values(htmx.find('#layout-buttons'))
-  htmx.ajax('GET', `/update-layout`, { target: '#mermaid-output', values: { ...layout, highlightNodeId: id } })
+  const expandedIds = layout.expandedIds ? [...layout.expandedIds, id] : [id]
+  htmx.ajax('GET', `/update-layout`, {
+    target: '#mermaid-output',
+    values: { ...layout, highlightNodeId: id, expandedIds },
+  })
 }
 
 const nodeIdPattern = /^[^-]+\-(.+)\-\d+$/

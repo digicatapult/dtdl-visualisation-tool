@@ -61,7 +61,6 @@ export default class Flowchart {
     let entityMarkdown = mermaidSafeId
     entityMarkdown += this.displayNameWithBorders(displayName, entity.EntityKind)
     entityMarkdown += withClick ? `\nclick ${mermaidSafeId} getEntity` : ``
-    entityMarkdown += unexpanded ? `\nclick ${mermaidSafeId} getEntity` : ``
 
     return entityMarkdown
   }

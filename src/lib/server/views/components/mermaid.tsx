@@ -21,14 +21,16 @@ export default class MermaidTemplates {
     search,
     layout,
     highlightNodeId,
+    expandedIds,
   }: {
     generatedOutput?: JSX.Element | undefined
     search?: string
     layout: Layout
     highlightNodeId?: string
+    expandedIds?: string[]
   }) => (
     <Page title={'Mermaid Ontology visualiser'}>
-      <this.layoutForm layout={layout} search={search} highlightNodeId={highlightNodeId} />
+      <this.layoutForm layout={layout} search={search} highlightNodeId={highlightNodeId} expandedIds={expandedIds} />
       <div id="mermaid-wrapper">
         <this.mermaidTarget target="mermaid-output" generatedOutput={generatedOutput} />
         <div id="svg-controls">
@@ -76,11 +78,13 @@ export default class MermaidTemplates {
     layout,
     swapOutOfBand,
     highlightNodeId,
+    expandedIds,
   }: {
     search?: string
     layout: Layout
     swapOutOfBand?: boolean
     highlightNodeId?: MermaidId
+    expandedIds?: string[]
   }) => {
     return (
       <form id="layout-buttons" class="button-group" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
@@ -94,6 +98,9 @@ export default class MermaidTemplates {
           {...commonUpdateAttrs}
         />
         <input id="highlightNodeId" name="highlightNodeId" type="hidden" value={escapeHtml(highlightNodeId || '')} />
+        {expandedIds?.map((id, index) => (
+          <input id={`expandedIds_${index}`} name="expandedIds[]" type="hidden" value={id} />
+        ))}
         <select id="layout" name="layout" hx-trigger="input changed" {...commonUpdateAttrs}>
           {layoutEntries.map((entry) => (
             <option value={entry} selected={entry === layout}>

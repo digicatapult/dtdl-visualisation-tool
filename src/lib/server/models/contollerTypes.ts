@@ -20,4 +20,5 @@ export interface QueryParams {
   chartType: ChartTypes
   highlightNodeId?: string
   search?: string
+  expandedIds?: string[]
 }
