@@ -2,6 +2,14 @@ import { DtdlObjectModel, EntityType, RelationshipType } from '@digicatapult/dtd
 
 import { getDisplayName } from './extract.js'
 
+export type DtdlModelWithMetadata = {
+  model: DtdlObjectModel
+  metadata: {
+    expanded: Set<string>
+    unexpanded: Set<string>
+  }
+}
+
 const interfaceFilter = (name: string) => {
   const nameLower = name.toLowerCase()
   return ([, entity]: [unknown, EntityType]) =>
@@ -31,17 +39,24 @@ const relationshipFilter =
     return false
   }
 
-export const filterModelByDisplayName = (dtdlObjectModel: DtdlObjectModel, name: string): DtdlObjectModel => {
-  const entityPairs = Object.entries(dtdlObjectModel)
+export const filterModelByDisplayName = (
+  dtdlObjectModel: DtdlModelWithMetadata,
+  name: string
+): DtdlModelWithMetadata => {
+  const { metadata, model } = dtdlObjectModel
+  const entityPairs = Object.entries(model)
 
-  const matchingIds = new Set(entityPairs.filter(interfaceFilter(name)).map(([, { Id }]) => Id))
+  const matchingIds = new Set([
+    ...metadata.expanded,
+    ...entityPairs.filter(interfaceFilter(name)).map(([, { Id }]) => Id),
+  ])
 
   if (matchingIds.size === 0) {
-    return {}
+    return { metadata, model: {} }
   }
 
   const matchingRelationships = new Set(
-    entityPairs.filter(relationshipFilter(dtdlObjectModel, matchingIds)).flatMap(([, entity]) => {
+    entityPairs.filter(relationshipFilter(model, matchingIds)).flatMap(([, entity]) => {
       const relationship = entity as RelationshipType
       return [relationship.Id, relationship.ChildOf, relationship.target].filter((x) => x !== undefined)
     })
@@ -49,8 +64,9 @@ export const filterModelByDisplayName = (dtdlObjectModel: DtdlObjectModel, name:
 
   const idsAndRelationships = new Set([...matchingIds, ...matchingRelationships])
 
-  return [...idsAndRelationships].reduce((acc, id) => {
-    acc[id] = dtdlObjectModel[id]
+  const filteredModel = [...idsAndRelationships].reduce((acc, id) => {
+    acc[id] = model[id]
     return acc
   }, {} as DtdlObjectModel)
+  return { metadata, model: filteredModel }
 }

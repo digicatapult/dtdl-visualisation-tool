@@ -2,6 +2,7 @@ import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@d
 
 import { DtdlId, MermaidId } from '../../models/strings.js'
 import { getDisplayName } from '../dtdl/extract.js'
+import { DtdlModelWithMetadata } from '../dtdl/filter.js'
 
 export enum Direction {
   TopToBottom = ' TD',
@@ -54,12 +55,13 @@ export default class Flowchart {
     return `@{ shape: ${shapeTemplate}, label: "${displayName}"}` // TODO: looks like an injection risk
   }
 
-  createNodeString(entity: EntityType, withClick: boolean = true): string {
+  createNodeString(entity: EntityType, withClick: boolean = true, unexpanded: boolean = true): string {
     const displayName = getDisplayName(entity)
     const mermaidSafeId = this.dtdlIdReplaceSemicolon(entity.Id)
     let entityMarkdown = mermaidSafeId
     entityMarkdown += this.displayNameWithBorders(displayName, entity.EntityKind)
     entityMarkdown += withClick ? `\nclick ${mermaidSafeId} getEntity` : ``
+    entityMarkdown += unexpanded ? `\nclick ${mermaidSafeId} getEntity` : ``
 
     return entityMarkdown
   }
@@ -86,19 +88,20 @@ export default class Flowchart {
   }
 
   getFlowchartMarkdown(
-    dtdlObjectModel: DtdlObjectModel,
+    dtdlObjectModel: DtdlModelWithMetadata,
     direction: Direction = Direction.TopToBottom,
     highlightNodeId?: MermaidId
   ): string | null {
+    const { model, metadata } = dtdlObjectModel
     const graph: string[] = []
-    for (const entity in dtdlObjectModel) {
-      const entityObject: EntityType = dtdlObjectModel[entity]
+    for (const entity in model) {
+      const entityObject: EntityType = model[entity]
       const markdown = (this.entityKindToMarkdown[entityObject.EntityKind] || defaultMarkdownFn) as NarrowMappingFn<
         (typeof entityObject)['EntityKind']
       >
-      graph.push(...markdown(dtdlObjectModel, entityObject))
+      graph.push(...markdown(model, entityObject))
     }
-    if (highlightNodeId && this.dtdlIdReinstateSemicolon(highlightNodeId) in dtdlObjectModel) {
+    if (highlightNodeId && this.dtdlIdReinstateSemicolon(highlightNodeId) in model) {
       graph.push(`\nclass ${highlightNodeId} highlighted`)
     }
     if (graph.length === 0) {

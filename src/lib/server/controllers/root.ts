@@ -52,11 +52,12 @@ export class RootController extends HTMLController {
       this.setReplaceUrl(current, params)
     }
 
-    let model = this.dtdlLoader.getDefaultDtdlModel()
+    const defModel = this.dtdlLoader.getDefaultDtdlModel()
+    let model = { metadata: { expanded: new Set(''), unexpanded: new Set('') }, model: defModel }
     if (params.search) {
       model = filterModelByDisplayName(model, params.search)
     }
-
+    console.log(model)
     return this.html(
       this.templates.mermaidTarget({
         generatedOutput: await this.generator.run(model, params),
