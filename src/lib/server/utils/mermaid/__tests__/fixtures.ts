@@ -54,6 +54,37 @@ click dtmi:com:example:1 getEntity
 
 class dtmi:com:example:1 highlighted`
 
+export const classDiagramFixture = `classDiagram
+ direction  TD
+class \`dtmi:com:example:1\`["example 1"] 
+click \`dtmi:com:example:1\` call getEntity()
+class \`dtmi:com:example_extended:1\`["example extended"] 
+click \`dtmi:com:example_extended:1\` call getEntity()
+\`dtmi:com:example:1\` <|-- \`dtmi:com:example_extended:1\`
+class \`dtmi:com:example_related:1\`["example related"] 
+click \`dtmi:com:example_related:1\` call getEntity()
+\`dtmi:com:example:1\` -- \`dtmi:com:example_related:1\` : A relationship`
+
+export const classDiagramFixtureFiltered = `classDiagram
+ direction  TD
+dtmi:com:example:1@{ shape: subproc, label: "example 1"}
+click dtmi:com:example:1 getEntity
+dtmi:com:example:1 --- |A relationship| dtmi:com:example_related:1
+dtmi:com:example_related:1@{ shape: subproc, label: "example related"}
+click dtmi:com:example_related:1 getEntity`
+
+export const classDiagramFixtureSimple = `classDiagram
+ direction  TD
+class \`dtmi:com:example:1\`["example 1"] 
+click \`dtmi:com:example:1\` call getEntity()`
+
+export const classDiagramFixtureSimpleHighlighted = `classDiagram
+ direction  TD
+class \`dtmi:com:example:1\`["example 1"] 
+click \`dtmi:com:example:1\` call getEntity()
+
+class \`dtmi:com:example:1\`:::highlighted`
+
 export const mockDtdlObjectModel = {
   'dtmi:com:example;1': {
     Id: 'dtmi:com:example;1',

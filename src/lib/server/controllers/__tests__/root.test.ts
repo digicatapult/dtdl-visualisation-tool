@@ -73,7 +73,7 @@ describe('RootController', async () => {
       expect(stub.callCount).to.equal(2)
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        '/some/path?param1=x&param2=y&layout=dagre-d3&output=svg&chartType=flowchart',
+        '/some/path?param1=x&param2=y&layout=dagre-d3&output=svg&diagramType=flowchart',
       ])
       expect(stub.secondCall.args).to.deep.equal(['Content-Type', 'text/html'])
     })
@@ -88,7 +88,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        '/some/path?param1=x&layout=dagre-d3&output=svg&chartType=flowchart',
+        '/some/path?param1=x&layout=dagre-d3&output=svg&diagramType=flowchart',
       ])
     })
 

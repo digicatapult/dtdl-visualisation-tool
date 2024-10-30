@@ -3,24 +3,37 @@ import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import { defaultParams } from '../../../controllers/__tests__/root.test'
 import { SvgGenerator } from '../generator'
-import { flowchartFixtureSimple, flowchartFixtureSimpleHighlighted, simpleMockDtdlObjectModel } from './fixtures'
+import { classDiagramFixtureSimple, classDiagramFixtureSimpleHighlighted, flowchartFixtureSimple, flowchartFixtureSimpleHighlighted, simpleMockDtdlObjectModel } from './fixtures'
 import { checkIfStringIsSVG } from './helpers'
 
 describe('Generator', () => {
   const generator = new SvgGenerator()
 
   describe('mermaidMarkdownByChartType', () => {
-    it('should return a svg for a simple dtdl model', () => {
+    it('should return a flowchart graph for a simple dtdl model', () => {
       const markdown = generator.mermaidMarkdownByChartType['flowchart'](simpleMockDtdlObjectModel)
       expect(markdown).to.equal(flowchartFixtureSimple)
     })
 
-    it('should return a svg for a simple dtdl model with highlighted node', () => {
+    it('should return a flowchart graph for a simple dtdl model with highlighted node', () => {
       const markdown = generator.mermaidMarkdownByChartType['flowchart'](
         simpleMockDtdlObjectModel,
         'dtmi:com:example:1'
       )
       expect(markdown).to.equal(flowchartFixtureSimpleHighlighted)
+    })
+
+    it('should return a classDiagram graph for a simple dtdl model', () => {
+      const markdown = generator.mermaidMarkdownByChartType['classDiagram'](simpleMockDtdlObjectModel)
+      expect(markdown).to.equal(classDiagramFixtureSimple)
+    })
+
+    it('should return a classDiagram graph for a simple dtdl model with highlighted node', () => {
+      const markdown = generator.mermaidMarkdownByChartType['classDiagram'](
+        simpleMockDtdlObjectModel,
+        'dtmi:com:example:1'
+      )
+      expect(markdown).to.equal(classDiagramFixtureSimpleHighlighted)
     })
 
     it('should return null for empty object model', () => {
