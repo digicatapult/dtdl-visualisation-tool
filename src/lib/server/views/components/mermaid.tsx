@@ -32,7 +32,15 @@ export default class MermaidTemplates {
   }) => (
     <Page title={'Mermaid Ontology visualiser'}>
       <this.layoutForm layout={layout} search={search} highlightNodeId={highlightNodeId} diagramType={diagramType} />
-      <this.mermaidTarget target="mermaid-output" generatedOutput={generatedOutput} />
+
+      <div id="mermaid-wrapper">
+        <this.mermaidTarget target="mermaid-output" generatedOutput={generatedOutput} />
+        <div id="svg-controls">
+          <button id="zoom-in">+</button>
+          <button id="reset-pan-zoom">◯</button>
+          <button id="zoom-out">-</button>
+        </div>
+      </div>
       <div id="navigation-panel">
         <pre>
           <code id="navigationPanelContent">Click on a node to view attributes</code>
