@@ -1,53 +1,26 @@
 import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
-
-import { DtdlId, MermaidId } from '../../models/strings.js'
+import { MermaidId } from '../../models/strings.js'
 import { getDisplayName } from '../dtdl/extract.js'
+import { defaultMarkdownFn, dtdlIdReinstateSemicolon, dtdlIdReplaceSemicolon } from './helpers.js'
+import { EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn, Direction } from './diagramInterface.js'
+import { DiagramType } from '../../models/mermaidDiagrams.js'
 
-export enum Direction {
-  TopToBottom = ' TD',
-  BottomToTop = ' BT',
-  RightToLeft = ' RL',
-  LeftToRight = ' LR',
-}
 
 const entityKindToShape = {
   Interface: 'subproc',
   Default: 'rect',
 }
 
-type NarrowEntityType<T, N> = T extends { EntityKind: N } ? T : never
+export default class Flowchart implements IDiagram {
+  diagramType: DiagramType = 'flowchart'
 
-type NarrowMappingFn<k extends EntityType['EntityKind']> = (
-  dtdlObjectModel: DtdlObjectModel,
-  entity: NarrowEntityType<EntityType, k>
-) => string[]
-
-type EntityTypeToMarkdownFn = {
-  [k in EntityType['EntityKind']]: NarrowMappingFn<k>
-}
-const defaultMarkdownFn = (): string[] => []
-
-export default class Flowchart {
-  private graphDefinition = 'flowchart'
-
-  private entityKindToMarkdown: Partial<EntityTypeToMarkdownFn> = {
+  entityKindToMarkdown: Partial<EntityTypeToMarkdownFn> = {
     Interface: (_, entity) => this.interfaceToMarkdown(entity),
     Relationship: (dtdlObjectModel, entity) => this.relationshipToMarkdown(dtdlObjectModel, entity),
   }
 
   constructor() {}
 
-  /*
-    IDs have format `dtmi:<domain>:<unique-model-identifier>;<model-version-number>`
-    Mermaid IDs can't contain semicolons, so replace final semicolon with a colon.
-  */
-  dtdlIdReplaceSemicolon(idWithSemicolon: DtdlId): MermaidId {
-    return idWithSemicolon.replace(/;(?=\d+$)/, ':') // replace final ; with :
-  }
-
-  dtdlIdReinstateSemicolon(idWithColon: MermaidId): DtdlId {
-    return idWithColon.replace(/:(?=\d+$)/, ';') // replace final : with ;
-  }
 
   displayNameWithBorders(displayName: string, entityKind: string) {
     const shapeTemplate = entityKindToShape[entityKind] || entityKindToShape.Default
@@ -56,7 +29,7 @@ export default class Flowchart {
 
   createNodeString(entity: EntityType, withClick: boolean = true): string {
     const displayName = getDisplayName(entity)
-    const mermaidSafeId = this.dtdlIdReplaceSemicolon(entity.Id)
+    const mermaidSafeId = dtdlIdReplaceSemicolon(entity.Id)
     let entityMarkdown = mermaidSafeId
     entityMarkdown += this.displayNameWithBorders(displayName, entity.EntityKind)
     entityMarkdown += withClick ? `\nclick ${mermaidSafeId} getEntity` : ``
@@ -65,7 +38,7 @@ export default class Flowchart {
   }
 
   createEdgeString(nodeFrom: string, nodeTo: string, label?: string): string {
-    return `${this.dtdlIdReplaceSemicolon(nodeFrom)} --- ${label ? '|' + label + '|' : ``} ${this.dtdlIdReplaceSemicolon(nodeTo)}`
+    return `${dtdlIdReplaceSemicolon(nodeFrom)} --- ${label ? '|' + label + '|' : ``} ${dtdlIdReplaceSemicolon(nodeTo)}`
   }
 
   relationshipToMarkdown(dtdlObjectModel: DtdlObjectModel, entity: RelationshipType): string[] {
@@ -85,10 +58,10 @@ export default class Flowchart {
     return graph
   }
 
-  getFlowchartMarkdown(
+  generateMarkdown(
     dtdlObjectModel: DtdlObjectModel,
-    direction: Direction = Direction.TopToBottom,
-    highlightNodeId?: MermaidId
+    highlightNodeId?: MermaidId,
+    direction: Direction = ' TD'
   ): string | null {
     const graph: string[] = []
     for (const entity in dtdlObjectModel) {
@@ -98,12 +71,12 @@ export default class Flowchart {
       >
       graph.push(...markdown(dtdlObjectModel, entityObject))
     }
-    if (highlightNodeId && this.dtdlIdReinstateSemicolon(highlightNodeId) in dtdlObjectModel) {
+    if (highlightNodeId && dtdlIdReinstateSemicolon(highlightNodeId) in dtdlObjectModel) {
       graph.push(`\nclass ${highlightNodeId} highlighted`)
     }
     if (graph.length === 0) {
       return null
     }
-    return `${this.graphDefinition}${direction}\n${graph.join('\n')}`
+    return `${this.diagramType}${direction}\n${graph.join('\n')}`
   }
 }

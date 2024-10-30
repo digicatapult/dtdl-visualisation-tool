@@ -5,17 +5,16 @@ import { type ILogger, Logger } from '../logger.js'
 import { type QueryParams } from '../models/contollerTypes.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import { filterModelByDisplayName } from '../utils/dtdl/filter.js'
-import Flowchart from '../utils/mermaid/flowchart.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
+import { dtdlIdReinstateSemicolon } from '../utils/mermaid/helpers.js'
 
 @singleton()
 @injectable()
 @Route()
 @Produces('text/html')
 export class RootController extends HTMLController {
-  private flowchart: Flowchart
 
   constructor(
     private dtdlLoader: DtdlLoader,
@@ -24,7 +23,6 @@ export class RootController extends HTMLController {
     @inject(Logger) private logger: ILogger
   ) {
     super()
-    this.flowchart = new Flowchart()
     this.logger = logger.child({ controller: '/' })
   }
 
@@ -38,6 +36,7 @@ export class RootController extends HTMLController {
         layout: params.layout,
         search: params.search,
         highlightNodeId: params.highlightNodeId,
+        diagramType: params.diagramType
       })
     )
   }
@@ -67,6 +66,7 @@ export class RootController extends HTMLController {
         swapOutOfBand: true,
         search: params.search,
         highlightNodeId: params.highlightNodeId,
+        diagramType: params.diagramType
       })
     )
   }
@@ -75,7 +75,7 @@ export class RootController extends HTMLController {
   @Get('/entity/{id}')
   public async getEntityById(id: string, @Query() chartType?: string): Promise<HTML> {
     let entityId = id
-    if (chartType === 'flowchart') entityId = this.flowchart.dtdlIdReinstateSemicolon(id)
+    if (chartType === 'flowchart') entityId = dtdlIdReinstateSemicolon(id)
     const entity = this.dtdlLoader.getDefaultDtdlModel()[entityId]
     return this.html(`${JSON.stringify(entity, null, 4)}`)
   }

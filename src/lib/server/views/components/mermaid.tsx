@@ -4,6 +4,7 @@ import { singleton } from 'tsyringe'
 import { Layout, layoutEntries } from '../../models/mermaidLayouts.js'
 import { MermaidId } from '../../models/strings.js'
 import { Page } from '../common.js'
+import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 
 const commonUpdateAttrs = {
   'hx-target': '#mermaid-output',
@@ -21,22 +22,17 @@ export default class MermaidTemplates {
     search,
     layout,
     highlightNodeId,
+    diagramType
   }: {
     generatedOutput?: JSX.Element | undefined
     search?: string
+      highlightNodeId?: string
     layout: Layout
-    highlightNodeId?: string
+      diagramType: DiagramType
   }) => (
     <Page title={'Mermaid Ontology visualiser'}>
-      <this.layoutForm layout={layout} search={search} highlightNodeId={highlightNodeId} />
-      <div id="mermaid-wrapper">
-        <this.mermaidTarget target="mermaid-output" generatedOutput={generatedOutput} />
-        <div id="svg-controls">
-          <button id="zoom-in">+</button>
-          <button id="reset-pan-zoom">◯</button>
-          <button id="zoom-out">-</button>
-        </div>
-      </div>
+      <this.layoutForm layout={layout} search={search} highlightNodeId={highlightNodeId} diagramType={diagramType} />
+      <this.mermaidTarget target="mermaid-output" generatedOutput={generatedOutput} />
       <div id="navigation-panel">
         <pre>
           <code id="navigationPanelContent">Click on a node to view attributes</code>
@@ -76,11 +72,13 @@ export default class MermaidTemplates {
     layout,
     swapOutOfBand,
     highlightNodeId,
+    diagramType
   }: {
     search?: string
     layout: Layout
     swapOutOfBand?: boolean
     highlightNodeId?: MermaidId
+      diagramType: DiagramType
   }) => {
     return (
       <form id="layout-buttons" class="button-group" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
@@ -94,9 +92,16 @@ export default class MermaidTemplates {
           {...commonUpdateAttrs}
         />
         <input id="highlightNodeId" name="highlightNodeId" type="hidden" value={escapeHtml(highlightNodeId || '')} />
-        <select id="layout" name="layout" hx-trigger="input changed" {...commonUpdateAttrs}>
+        <select id="layout" name="layout" hx-trigger="input changed" disabled={diagramType === 'classDiagram'} {...commonUpdateAttrs}>
           {layoutEntries.map((entry) => (
             <option value={entry} selected={entry === layout}>
+              {escapeHtml(entry)}
+            </option>
+          ))}
+        </select>
+        <select id="diagramType" name="diagramType" hx-trigger="input changed" {...commonUpdateAttrs}>
+          {diagramTypes.map((entry) => (
+            <option value={entry} selected={entry === diagramType}>
               {escapeHtml(entry)}
             </option>
           ))}

@@ -9,7 +9,7 @@ import { mockGenerator, mockLogger, mockReq, simpleMockDtdlLoader, templateMock,
 export const defaultParams: QueryParams = {
   layout: 'dagre-d3',
   output: 'svg',
-  chartType: 'flowchart',
+  diagramType: 'flowchart',
 }
 
 describe('RootController', async () => {

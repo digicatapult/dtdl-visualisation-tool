@@ -8,23 +8,7 @@ describe('Mermaid', () => {
   describe('Flowchart', () => {
     const flowchart = new Flowchart()
     it('should return a flowchart in markdown', () => {
-      expect(flowchart.getFlowchartMarkdown(mockDtdlObjectModel)).to.equal(flowchartFixture)
-    })
-    it('should replace the final semicolon in DTDL ID', () => {
-      expect(flowchart.dtdlIdReplaceSemicolon('dtmi:digitaltwins:ngsi_ld:cim:energy:ACDCTerminal;1')).to.equal(
-        'dtmi:digitaltwins:ngsi_ld:cim:energy:ACDCTerminal:1'
-      )
-    })
-    it('should replace the final semicolon in DTDL ID with any number after the final semicolon', () => {
-      expect(flowchart.dtdlIdReplaceSemicolon('dtmi:com:example;12345')).to.equal('dtmi:com:example:12345')
-    })
-    it('should replace the final colon in a mermaid safe ID', () => {
-      expect(flowchart.dtdlIdReinstateSemicolon('dtmi:digitaltwins:ngsi_ld:cim:energy:ACDCTerminal:1')).to.equal(
-        'dtmi:digitaltwins:ngsi_ld:cim:energy:ACDCTerminal;1'
-      )
-    })
-    it('should replace the final colon in in a mermaid safe ID with any number after the final colon', () => {
-      expect(flowchart.dtdlIdReinstateSemicolon('dtmi:com:example:12345')).to.equal('dtmi:com:example;12345')
+      expect(flowchart.generateMarkdown(mockDtdlObjectModel)).to.equal(flowchartFixture)
     })
     it('should return a list of mermaid markdown string that represent an interface ', () => {
       const interfaceAsMarkdown = flowchart.interfaceToMarkdown(
