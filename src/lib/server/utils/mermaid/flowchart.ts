@@ -1,10 +1,9 @@
 import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
+import { DiagramType } from '../../models/mermaidDiagrams.js'
 import { MermaidId } from '../../models/strings.js'
 import { getDisplayName } from '../dtdl/extract.js'
+import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
 import { defaultMarkdownFn, dtdlIdReinstateSemicolon, dtdlIdReplaceSemicolon } from './helpers.js'
-import { EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn, Direction } from './diagramInterface.js'
-import { DiagramType } from '../../models/mermaidDiagrams.js'
-
 
 const entityKindToShape = {
   Interface: 'subproc',
@@ -20,7 +19,6 @@ export default class Flowchart implements IDiagram {
   }
 
   constructor() {}
-
 
   displayNameWithBorders(displayName: string, entityKind: string) {
     const shapeTemplate = entityKindToShape[entityKind] || entityKindToShape.Default

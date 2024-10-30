@@ -27,6 +27,10 @@ const emptyRelationshipProperties = {
   writable: false,
 }
 
+const emptyPropertyProperties = {
+  displayName: {},
+}
+
 export const flowchartFixture = `flowchart TD
 dtmi:com:example:1@{ shape: subproc, label: "example 1"}
 click dtmi:com:example:1 getEntity
@@ -60,10 +64,10 @@ class \`dtmi:com:example:1\`["example 1"]
 click \`dtmi:com:example:1\` call getEntity()
 class \`dtmi:com:example_extended:1\`["example extended"] 
 click \`dtmi:com:example_extended:1\` call getEntity()
-\`dtmi:com:example:1\` <|-- \`dtmi:com:example_extended:1\`
+\`dtmi:com:example_extended:1\` <|-- \`dtmi:com:example:1\`
 class \`dtmi:com:example_related:1\`["example related"] 
 click \`dtmi:com:example_related:1\` call getEntity()
-\`dtmi:com:example:1\` -- \`dtmi:com:example_related:1\` : A relationship`
+\`dtmi:com:example:1\` --> \`dtmi:com:example_related:1\` : A relationship`
 
 export const classDiagramFixtureFiltered = `classDiagram
  direction  TD
@@ -133,6 +137,39 @@ export const mockDtdlObjectModel = {
     target: 'dtmi:com:example_undefined_interface;1',
     ...emptyEntityProperties,
     ...emptyRelationshipProperties,
+  },
+} as DtdlObjectModel
+
+export const mockDtdlModelWithProperty = {
+  'dtmi:com:example;1': {
+    ...emptyEntityProperties,
+    ...emptyPropertyProperties,
+    Id: 'dtmi:com:example;1',
+    displayName: {
+      en: 'example 1',
+    },
+    EntityKind: 'Interface',
+    extends: [],
+  },
+  'dtmi:com:example_property;1': {
+    ...emptyEntityProperties,
+    ...emptyPropertyProperties,
+    Id: 'dtmi:com:example_property;1',
+    name: 'example_property',
+    ChildOf: 'dtmi:com:example;1',
+    EntityKind: 'Property',
+  },
+} as DtdlObjectModel
+export const mockDtdlModelWithPropertyNoChildOf = {
+  'dtmi:com:example;1': {
+    ...mockDtdlModelWithProperty['dtmi:com:example;1'],
+  },
+  'dtmi:com:example_property;1': {
+    ...emptyEntityProperties,
+    ...emptyPropertyProperties,
+    Id: 'dtmi:com:example_property;1',
+    name: 'example_property',
+    EntityKind: 'Property',
   },
 } as DtdlObjectModel
 

@@ -3,10 +3,10 @@ import { renderMermaid, type ParseMDDOptions } from '@mermaid-js/mermaid-cli'
 import puppeteer, { Browser } from 'puppeteer'
 import { singleton } from 'tsyringe'
 import { QueryParams } from '../../models/contollerTypes.js'
-import { MermaidId } from '../../models/strings.js'
-import Flowchart from './flowchart.js'
 import { DiagramType } from '../../models/mermaidDiagrams.js'
+import { MermaidId } from '../../models/strings.js'
 import ClassDiagram from './classDiagram.js'
+import Flowchart from './flowchart.js'
 
 @singleton()
 export class SvgGenerator {
@@ -22,7 +22,7 @@ export class SvgGenerator {
     (dtdlObject: DtdlObjectModel, highlightNodeId?: MermaidId) => string | null
   > = {
     flowchart: (dtdlObject, highlightNodeId) => this.flowchart.generateMarkdown(dtdlObject, highlightNodeId),
-    classDiagram: (dtdlObject, highlightNodeId) => this.classDiagram.generateMarkdown(dtdlObject, highlightNodeId)
+    classDiagram: (dtdlObject, highlightNodeId) => this.classDiagram.generateMarkdown(dtdlObject, highlightNodeId),
   }
 
   async run(dtdlObject: DtdlObjectModel, params: QueryParams, options: ParseMDDOptions = {}): Promise<string> {

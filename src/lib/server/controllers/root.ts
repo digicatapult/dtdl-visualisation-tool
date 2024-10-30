@@ -6,16 +6,15 @@ import { type QueryParams } from '../models/contollerTypes.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import { filterModelByDisplayName } from '../utils/dtdl/filter.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
+import { dtdlIdReinstateSemicolon } from '../utils/mermaid/helpers.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
-import { dtdlIdReinstateSemicolon } from '../utils/mermaid/helpers.js'
 
 @singleton()
 @injectable()
 @Route()
 @Produces('text/html')
 export class RootController extends HTMLController {
-
   constructor(
     private dtdlLoader: DtdlLoader,
     private generator: SvgGenerator,
@@ -36,7 +35,7 @@ export class RootController extends HTMLController {
         layout: params.layout,
         search: params.search,
         highlightNodeId: params.highlightNodeId,
-        diagramType: params.diagramType
+        diagramType: params.diagramType,
       })
     )
   }
@@ -66,7 +65,7 @@ export class RootController extends HTMLController {
         swapOutOfBand: true,
         search: params.search,
         highlightNodeId: params.highlightNodeId,
-        diagramType: params.diagramType
+        diagramType: params.diagramType,
       })
     )
   }

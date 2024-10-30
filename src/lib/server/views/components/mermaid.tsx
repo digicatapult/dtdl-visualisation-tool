@@ -1,10 +1,10 @@
 /// <reference types="@kitajs/html/htmx.d.ts" />
 import { escapeHtml } from '@kitajs/html'
 import { singleton } from 'tsyringe'
+import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { Layout, layoutEntries } from '../../models/mermaidLayouts.js'
 import { MermaidId } from '../../models/strings.js'
 import { Page } from '../common.js'
-import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 
 const commonUpdateAttrs = {
   'hx-target': '#mermaid-output',
@@ -22,13 +22,13 @@ export default class MermaidTemplates {
     search,
     layout,
     highlightNodeId,
-    diagramType
+    diagramType,
   }: {
     generatedOutput?: JSX.Element | undefined
     search?: string
-      highlightNodeId?: string
+    highlightNodeId?: string
     layout: Layout
-      diagramType: DiagramType
+    diagramType: DiagramType
   }) => (
     <Page title={'Mermaid Ontology visualiser'}>
       <this.layoutForm layout={layout} search={search} highlightNodeId={highlightNodeId} diagramType={diagramType} />
@@ -80,13 +80,13 @@ export default class MermaidTemplates {
     layout,
     swapOutOfBand,
     highlightNodeId,
-    diagramType
+    diagramType,
   }: {
     search?: string
     layout: Layout
     swapOutOfBand?: boolean
     highlightNodeId?: MermaidId
-      diagramType: DiagramType
+    diagramType: DiagramType
   }) => {
     return (
       <form id="layout-buttons" class="button-group" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
@@ -100,7 +100,13 @@ export default class MermaidTemplates {
           {...commonUpdateAttrs}
         />
         <input id="highlightNodeId" name="highlightNodeId" type="hidden" value={escapeHtml(highlightNodeId || '')} />
-        <select id="layout" name="layout" hx-trigger="input changed" disabled={diagramType === 'classDiagram'} {...commonUpdateAttrs}>
+        <select
+          id="layout"
+          name="layout"
+          hx-trigger="input changed"
+          disabled={diagramType === 'classDiagram'}
+          {...commonUpdateAttrs}
+        >
           {layoutEntries.map((entry) => (
             <option value={entry} selected={entry === layout}>
               {escapeHtml(entry)}
