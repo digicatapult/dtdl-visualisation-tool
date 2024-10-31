@@ -70,5 +70,5 @@ export const filterModelByDisplayName = (
     acc[id] = model[id]
     return acc
   }, {} as DtdlObjectModel)
-  return { metadata: { expanded: [...expandedIds] }, model: filteredModel }
+  return { metadata, model: filteredModel }
 }

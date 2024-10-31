@@ -1,4 +1,4 @@
-import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
+import { EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 
 import { DtdlId, MermaidId } from '../../models/strings.js'
 import { getDisplayName } from '../dtdl/extract.js'
@@ -19,7 +19,7 @@ const entityKindToShape = {
 type NarrowEntityType<T, N> = T extends { EntityKind: N } ? T : never
 
 type NarrowMappingFn<k extends EntityType['EntityKind']> = (
-  dtdlObjectModel: DtdlObjectModel,
+  dtdlModelWithMetadata: DtdlModelWithMetadata,
   entity: NarrowEntityType<EntityType, k>
 ) => string[]
 
@@ -32,8 +32,8 @@ export default class Flowchart {
   private graphDefinition = 'flowchart'
 
   private entityKindToMarkdown: Partial<EntityTypeToMarkdownFn> = {
-    Interface: (_, entity) => this.interfaceToMarkdown(entity),
-    Relationship: (dtdlObjectModel, entity) => this.relationshipToMarkdown(dtdlObjectModel, entity),
+    Interface: (dtdlModelWithMetadata, entity) => this.interfaceToMarkdown(dtdlModelWithMetadata, entity),
+    Relationship: (dtdlModelWithMetadata, entity) => this.relationshipToMarkdown(dtdlModelWithMetadata, entity),
   }
 
   constructor() {}
@@ -55,7 +55,7 @@ export default class Flowchart {
     return `@{ shape: ${shapeTemplate}, label: "${displayName}"}` // TODO: looks like an injection risk
   }
 
-  createNodeString(entity: EntityType, withClick: boolean = true, unexpanded: boolean = true): string {
+  createNodeString(entity: EntityType, withClick: boolean = true): string {
     const displayName = getDisplayName(entity)
     const mermaidSafeId = this.dtdlIdReplaceSemicolon(entity.Id)
     let entityMarkdown = mermaidSafeId
@@ -69,40 +69,47 @@ export default class Flowchart {
     return `${this.dtdlIdReplaceSemicolon(nodeFrom)} --- ${label ? '|' + label + '|' : ``} ${this.dtdlIdReplaceSemicolon(nodeTo)}`
   }
 
-  relationshipToMarkdown(dtdlObjectModel: DtdlObjectModel, entity: RelationshipType): string[] {
+  relationshipToMarkdown(dtdlModelWithMetadata: DtdlModelWithMetadata, entity: RelationshipType): string[] {
     const graph: string[] = []
-    if (entity.ChildOf && entity.target && entity.target in dtdlObjectModel) {
+    if (entity.ChildOf && entity.target && entity.target in dtdlModelWithMetadata.model) {
       graph.push(this.createEdgeString(entity.ChildOf, entity.target, entity.name))
     }
     return graph
   }
 
-  interfaceToMarkdown(entity: InterfaceType): string[] {
+  interfaceToMarkdown(dtdlObjectModel: DtdlModelWithMetadata, entity: InterfaceType): string[] {
     const graph: string[] = []
     graph.push(this.createNodeString(entity))
     entity.extends.map((parent) => {
       graph.push(this.createEdgeString(parent, entity.Id))
     })
+
+    console.log(entity.Id)
+    console.log(dtdlObjectModel.metadata.expanded)
+    const borderClass = dtdlObjectModel.metadata.expanded.includes(entity.Id) ? `level1` : `level0`
+    graph.push(`\nclass ${this.dtdlIdReplaceSemicolon(entity.Id)} ${borderClass}`)
+
     return graph
   }
 
   getFlowchartMarkdown(
-    dtdlObjectModel: DtdlModelWithMetadata,
+    dtdlModelWithMetadata: DtdlModelWithMetadata,
     direction: Direction = Direction.TopToBottom,
     highlightNodeId?: MermaidId
   ): string | null {
-    const { model, metadata } = dtdlObjectModel
+    const { model } = dtdlModelWithMetadata
     const graph: string[] = []
     for (const entity in model) {
       const entityObject: EntityType = model[entity]
       const markdown = (this.entityKindToMarkdown[entityObject.EntityKind] || defaultMarkdownFn) as NarrowMappingFn<
         (typeof entityObject)['EntityKind']
       >
-      graph.push(...markdown(model, entityObject))
+      graph.push(...markdown(dtdlModelWithMetadata, entityObject))
     }
     if (highlightNodeId && this.dtdlIdReinstateSemicolon(highlightNodeId) in model) {
       graph.push(`\nclass ${highlightNodeId} highlighted`)
     }
+
     if (graph.length === 0) {
       return null
     }

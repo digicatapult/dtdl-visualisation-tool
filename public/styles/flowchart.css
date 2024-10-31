@@ -6,3 +6,13 @@ g.highlighted polygon {
   outline: 4px solid #9370db;
   outline-offset: -2px;
 }
+
+g.level0 polygon {
+  outline: 4px solid #825CFF;
+  outline-offset: -2px;
+}
+
+g.level1 polygon {
+  outline: 4px dashed #3A86FF;
+  outline-offset: -2px;
+}
