@@ -5,10 +5,20 @@ const zoomOutButton = document.getElementById('zoom-out')
 globalThis.getEntity = function getEntity(id) {
   htmx.ajax('GET', `/entity/${id}?chartType=flowchart`, '#navigationPanelContent')
   const layout = htmx.values(htmx.find('#layout-buttons'))
-  const expandedIds = layout.expandedIds ? [...layout.expandedIds, id] : [id]
+  const expandedIds = layout['expandedIds[]']
+
+  // htmx.values returns single items as a string rather than array
+  const expandedIdsArray = expandedIds ? (Array.isArray(expandedIds) ? expandedIds : [expandedIds]) : []
+  // only append if not already expanded
+  const appendedExpandedIds = expandedIdsArray.includes(id) ? expandedIdsArray : [...expandedIdsArray, id]
+
   htmx.ajax('GET', `/update-layout`, {
     target: '#mermaid-output',
-    values: { ...layout, highlightNodeId: id, expandedIds },
+    values: {
+      ...layout,
+      highlightNodeId: id,
+      'expandedIds[]': appendedExpandedIds,
+    },
   })
 }
 

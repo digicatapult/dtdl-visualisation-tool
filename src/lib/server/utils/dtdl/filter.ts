@@ -61,7 +61,6 @@ export const filterModelByDisplayName = (
   }
 
   const expandedIds = new Set([...matchingIds, ...metadata.expanded])
-  console.log(expandedIds)
 
   const expandedRelationships = getRelationshipIds(entityPairs, model, expandedIds)
 

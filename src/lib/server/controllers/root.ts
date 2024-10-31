@@ -48,16 +48,17 @@ export class RootController extends HTMLController {
   public async updateLayout(@Request() req: express.Request, @Queries() params: QueryParams): Promise<HTML> {
     this.logger.debug('search: %o', { search: params.search, layout: params.layout })
 
+    const expandedIds = [...new Set(params.expandedIds)] // remove duplicates
+
     const current = this.getCurrentPathQuery(req)
     if (current) {
       this.setReplaceUrl(current, params)
     }
 
     const defModel = this.dtdlLoader.getDefaultDtdlModel()
-    const safeIds = params.expandedIds?.map(this.flowchart.dtdlIdReinstateSemicolon) ?? []
 
     let model: DtdlModelWithMetadata = {
-      metadata: { expanded: safeIds },
+      metadata: { expanded: expandedIds.map(this.flowchart.dtdlIdReinstateSemicolon) },
       model: defModel,
     }
     if (params.search) {
@@ -74,7 +75,7 @@ export class RootController extends HTMLController {
         swapOutOfBand: true,
         search: params.search,
         highlightNodeId: params.highlightNodeId,
-        expandedIds: params.expandedIds,
+        expandedIds,
       })
     )
   }
@@ -111,7 +112,6 @@ export class RootController extends HTMLController {
         query.set(param, value)
       }
     }
-    console.log(query)
     this.setHeader('HX-Push-Url', `${path}?${query}`)
   }
 }
