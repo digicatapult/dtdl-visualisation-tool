@@ -1,9 +1,9 @@
 import { DtdlObjectModel, EntityType, InterfaceType, PropertyType, RelationshipType } from '@digicatapult/dtdl-parser'
-import { DiagramType } from '../../models/mermaidDiagrams'
-import { DtdlId, MermaidId } from '../../models/strings'
-import { getDisplayName } from '../dtdl/extract'
-import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface'
-import { defaultMarkdownFn, dtdlIdReinstateSemicolon, dtdlIdReplaceSemicolon } from './helpers'
+import { DiagramType } from '../../models/mermaidDiagrams.js'
+import { DtdlId, MermaidId } from '../../models/strings.js'
+import { getDisplayName } from '../dtdl/extract.js'
+import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
+import { defaultMarkdownFn, dtdlIdReinstateSemicolon, dtdlIdReplaceSemicolon } from './helpers.js'
 
 export enum ArrowType {
   Inheritance = '<|--',
