@@ -77,17 +77,26 @@ export default class Flowchart {
     return graph
   }
 
-  interfaceToMarkdown(dtdlObjectModel: DtdlModelWithMetadata, entity: InterfaceType): string[] {
+  getInterfaceOutlineClass(dtdlModelWithMetadata: DtdlModelWithMetadata, entityId: DtdlId): string {
+    if (dtdlModelWithMetadata.metadata.searchResults?.includes(entityId)) {
+      return `search-result`
+    }
+    if (dtdlModelWithMetadata.metadata.expanded?.includes(entityId)) {
+      return `expanded`
+    }
+    return `unexpanded`
+  }
+
+  interfaceToMarkdown(dtdlModelWithMetadata: DtdlModelWithMetadata, entity: InterfaceType): string[] {
     const graph: string[] = []
     graph.push(this.createNodeString(entity))
     entity.extends.map((parent) => {
       graph.push(this.createEdgeString(parent, entity.Id))
     })
 
-    console.log(entity.Id)
-    console.log(dtdlObjectModel.metadata.expanded)
-    const borderClass = dtdlObjectModel.metadata.expanded.includes(entity.Id) ? `level1` : `level0`
-    graph.push(`\nclass ${this.dtdlIdReplaceSemicolon(entity.Id)} ${borderClass}`)
+    graph.push(
+      `\nclass ${this.dtdlIdReplaceSemicolon(entity.Id)} ${this.getInterfaceOutlineClass(dtdlModelWithMetadata, entity.Id)}`
+    )
 
     return graph
   }

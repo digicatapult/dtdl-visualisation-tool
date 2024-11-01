@@ -7,12 +7,28 @@ g.highlighted polygon {
   outline-offset: -2px;
 }
 
-g.level0 polygon {
-  outline: 4px solid #825CFF;
+g.expanded.highlighted polygon {
+  outline: 4px dashed #9370db;
   outline-offset: -2px;
 }
 
-g.level1 polygon {
-  outline: 4px dashed #3A86FF;
+g.search-result polygon {
+  outline: 2px solid #9370db;
   outline-offset: -2px;
 }
+
+g.search-result.highlighted polygon {
+  outline: 4px solid #9370db;
+  outline-offset: -2px;
+}
+
+g.unexpanded polygon {
+  outline: 4px double #9370db;
+  outline-offset: -2px;
+}
+
+g.expanded polygon {
+  outline: 2px dashed #9370db;
+  outline-offset: -2px;
+}
+

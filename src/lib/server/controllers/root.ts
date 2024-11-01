@@ -10,6 +10,7 @@ import { SvgGenerator } from '../utils/mermaid/generator.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
+export const LastSearchToken = 'LastSearchToken'
 @singleton()
 @injectable()
 @Route()
@@ -21,11 +22,13 @@ export class RootController extends HTMLController {
     private dtdlLoader: DtdlLoader,
     private generator: SvgGenerator,
     private templates: MermaidTemplates,
+    @inject(LastSearchToken) private lastSearch: string,
     @inject(Logger) private logger: ILogger
   ) {
     super()
     this.flowchart = new Flowchart()
     this.logger = logger.child({ controller: '/' })
+    this.lastSearch = ''
   }
 
   @SuccessResponse(200)
@@ -48,6 +51,11 @@ export class RootController extends HTMLController {
   public async updateLayout(@Request() req: express.Request, @Queries() params: QueryParams): Promise<HTML> {
     this.logger.debug('search: %o', { search: params.search, layout: params.layout })
 
+    //reset expanded on new search
+    if (this.lastSearch !== params.search) {
+      params.expandedIds = []
+      this.lastSearch = params.search ?? ''
+    }
     const expandedIds = [...new Set(params.expandedIds)] // remove duplicates
 
     const current = this.getCurrentPathQuery(req)

@@ -6,6 +6,7 @@ export type DtdlModelWithMetadata = {
   model: DtdlObjectModel
   metadata: {
     expanded: string[]
+    searchResults?: string[]
   }
 }
 
@@ -62,13 +63,13 @@ export const filterModelByDisplayName = (
 
   const expandedIds = new Set([...matchingIds, ...metadata.expanded])
 
-  const expandedRelationships = getRelationshipIds(entityPairs, model, expandedIds)
+  const relationships = getRelationshipIds(entityPairs, model, expandedIds)
 
-  const idsAndRelationships = new Set([...expandedIds, ...expandedRelationships])
+  const idsAndRelationships = new Set([...expandedIds, ...relationships])
 
   const filteredModel = [...idsAndRelationships].reduce((acc, id) => {
     acc[id] = model[id]
     return acc
   }, {} as DtdlObjectModel)
-  return { metadata, model: filteredModel }
+  return { metadata: { ...metadata, searchResults: [...matchingIds] }, model: filteredModel }
 }
