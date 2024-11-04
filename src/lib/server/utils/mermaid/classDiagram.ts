@@ -1,4 +1,4 @@
-import { DtdlObjectModel, EntityType, InterfaceType, PropertyType, RelationshipType } from '@digicatapult/dtdl-parser'
+import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 import { DiagramType } from '../../models/mermaidDiagrams.js'
 import { DtdlId, MermaidId } from '../../models/strings.js'
 import { getDisplayName } from '../dtdl/extract.js'
@@ -21,7 +21,7 @@ export default class ClassDiagram implements IDiagram {
   entityKindToMarkdown: Partial<EntityTypeToMarkdownFn> = {
     Interface: (_, entity) => this.interfaceToMarkdown(entity),
     Relationship: (dtdlObjectModel, entity) => this.relationshipToMarkdown(dtdlObjectModel, entity),
-    Property: (_, entity) => this.propertyToMarkdown(entity),
+    // Property: (_, entity) => this.propertyToMarkdown(entity),
   }
 
   constructor() {}
@@ -72,13 +72,10 @@ export default class ClassDiagram implements IDiagram {
     entity.extends.map((parent) => {
       graph.push(this.createEdgeString(entity.Id, parent, ArrowType.Inheritance))
     })
-    return graph
-  }
-  propertyToMarkdown(entity: PropertyType): string[] {
-    const graph: string[] = []
-    if (entity.ChildOf) {
-      graph.push(`${this.safeClassName(entity.ChildOf)} : ${entity.name}`)
-    }
+    const properties = Object.entries(entity.properties)
+    properties.flatMap(([name]) => {
+      graph.push(`${this.safeClassName(entity.Id)} : ${name}`)
+    })
     return graph
   }
 }

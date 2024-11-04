@@ -1,13 +1,8 @@
-import { InterfaceType, PropertyType, RelationshipType } from '@digicatapult/dtdl-parser'
+import { InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import ClassDiagram, { ArrowType } from '../classDiagram'
-import {
-  classDiagramFixture,
-  mockDtdlModelWithProperty,
-  mockDtdlModelWithPropertyNoChildOf,
-  mockDtdlObjectModel,
-} from './fixtures'
+import { classDiagramFixture, mockDtdlModelWithProperty, mockDtdlObjectModel } from './fixtures'
 
 describe('ClassDiagram', () => {
   const classDiagram = new ClassDiagram()
@@ -30,6 +25,16 @@ describe('ClassDiagram', () => {
       ]
       expect(interfaceAsMarkdown).to.deep.equal(test)
     })
+    it('should return a list of mermaid markdown string that represents a relationship ', () => {
+      const propertyAsMarkdown = classDiagram.interfaceToMarkdown(
+        mockDtdlModelWithProperty['dtmi:com:example;1'] as InterfaceType
+      )
+      const test = [
+        'class `dtmi:com:example:1`["example 1"] \nclick `dtmi:com:example:1` call getEntity()',
+        '`dtmi:com:example:1` : example_property',
+      ]
+      expect(propertyAsMarkdown).to.deep.equal(test)
+    })
   })
   describe('relationshipToMarkdown', () => {
     it('should return a list of mermaid markdown string that represents a relationship ', () => {
@@ -47,22 +52,6 @@ describe('ClassDiagram', () => {
       )
       const test = []
       expect(relationshipAsMarkdown).to.deep.equal(test)
-    })
-  })
-  describe('propertyToMarkdown', () => {
-    it('should return a list of mermaid markdown string that represents a relationship ', () => {
-      const propertyAsMarkdown = classDiagram.propertyToMarkdown(
-        mockDtdlModelWithProperty['dtmi:com:example_property;1'] as PropertyType
-      )
-      const test = ['`dtmi:com:example:1` : example_property']
-      expect(propertyAsMarkdown).to.deep.equal(test)
-    })
-    it('should return a empty list', () => {
-      const propertyAsMarkdown = classDiagram.propertyToMarkdown(
-        mockDtdlModelWithPropertyNoChildOf['dtmi:com:example_property;1'] as PropertyType
-      )
-      const test = []
-      expect(propertyAsMarkdown).to.deep.equal(test)
     })
   })
   describe('createNodeString', () => {

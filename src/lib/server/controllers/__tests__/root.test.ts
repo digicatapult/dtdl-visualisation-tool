@@ -34,7 +34,7 @@ describe('RootController', async () => {
     it('should return parsed entity by mermaid safe ID', async () => {
       const id = 'dtmi:com:example;1'
       const mermaidSafeId = 'dtmi:com:example:1' // :1 suffix instead of ;1
-      const result = await controller.getEntityById(mermaidSafeId, 'flowchart').then(toHTMLString)
+      const result = await controller.getEntityById(mermaidSafeId).then(toHTMLString)
       expect(result).to.equal(JSON.stringify(mockDtdlObjectModel[id], null, 4))
     })
   })

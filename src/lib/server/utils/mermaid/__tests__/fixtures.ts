@@ -150,26 +150,7 @@ export const mockDtdlModelWithProperty = {
     },
     EntityKind: 'Interface',
     extends: [],
-  },
-  'dtmi:com:example_property;1': {
-    ...emptyEntityProperties,
-    ...emptyPropertyProperties,
-    Id: 'dtmi:com:example_property;1',
-    name: 'example_property',
-    ChildOf: 'dtmi:com:example;1',
-    EntityKind: 'Property',
-  },
-} as DtdlObjectModel
-export const mockDtdlModelWithPropertyNoChildOf = {
-  'dtmi:com:example;1': {
-    ...mockDtdlModelWithProperty['dtmi:com:example;1'],
-  },
-  'dtmi:com:example_property;1': {
-    ...emptyEntityProperties,
-    ...emptyPropertyProperties,
-    Id: 'dtmi:com:example_property;1',
-    name: 'example_property',
-    EntityKind: 'Property',
+    properties: { example_property: 'dtmi:com:example_property;1' },
   },
 } as DtdlObjectModel
 

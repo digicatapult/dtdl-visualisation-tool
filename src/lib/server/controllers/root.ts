@@ -1,5 +1,5 @@
 import express from 'express'
-import { Get, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
+import { Get, Produces, Queries, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
 import { type ILogger, Logger } from '../logger.js'
 import { type QueryParams } from '../models/contollerTypes.js'
@@ -72,9 +72,8 @@ export class RootController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('/entity/{id}')
-  public async getEntityById(id: string, @Query() diagramType?: string): Promise<HTML> {
-    let entityId = id
-    if (diagramType === 'flowchart') entityId = dtdlIdReinstateSemicolon(id)
+  public async getEntityById(id: string): Promise<HTML> {
+    const entityId = dtdlIdReinstateSemicolon(id)
     const entity = this.dtdlLoader.getDefaultDtdlModel()[entityId]
     return this.html(`${JSON.stringify(entity, null, 4)}`)
   }

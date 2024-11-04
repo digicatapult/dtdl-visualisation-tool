@@ -1,4 +1,4 @@
-import { DtdlObjectModel, EntityType, PropertyType, RelationshipType } from '@digicatapult/dtdl-parser'
+import { DtdlObjectModel, EntityType, RelationshipType } from '@digicatapult/dtdl-parser'
 
 import { getDisplayName } from './extract.js'
 
@@ -31,25 +31,6 @@ const relationshipFilter =
     return false
   }
 
-const propertiesFilter =
-  (dtdlObjectModel: DtdlObjectModel, matchingIds: Set<string>) =>
-  ([, entity]: [id: unknown, entity: EntityType]) => {
-    if (entity.EntityKind !== 'Property') {
-      return false
-    }
-    const property = entity as RelationshipType
-
-    if (!property.ChildOf || !(property.ChildOf in dtdlObjectModel)) {
-      return false
-    }
-
-    if (matchingIds.has(property.ChildOf)) {
-      return true
-    }
-
-    return false
-  }
-
 export const filterModelByDisplayName = (dtdlObjectModel: DtdlObjectModel, name: string): DtdlObjectModel => {
   const entityPairs = Object.entries(dtdlObjectModel)
 
@@ -66,14 +47,7 @@ export const filterModelByDisplayName = (dtdlObjectModel: DtdlObjectModel, name:
     })
   )
 
-  const matchingProperties = new Set(
-    entityPairs.filter(propertiesFilter(dtdlObjectModel, matchingIds)).flatMap(([, entity]) => {
-      const property = entity as PropertyType
-      return [property.Id, property.ChildOf].filter((x) => x !== undefined)
-    })
-  )
-
-  const idsAndRelationships = new Set([...matchingIds, ...matchingRelationships, ...matchingProperties])
+  const idsAndRelationships = new Set([...matchingIds, ...matchingRelationships])
 
   return [...idsAndRelationships].reduce((acc, id) => {
     acc[id] = dtdlObjectModel[id]
