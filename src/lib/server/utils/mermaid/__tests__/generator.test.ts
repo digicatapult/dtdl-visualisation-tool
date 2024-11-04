@@ -3,7 +3,13 @@ import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import { defaultParams } from '../../../controllers/__tests__/root.test'
 import { SvgGenerator } from '../generator'
-import { classDiagramFixtureSimple, classDiagramFixtureSimpleHighlighted, flowchartFixtureSimple, flowchartFixtureSimpleHighlighted, simpleMockDtdlObjectModel } from './fixtures'
+import {
+  classDiagramFixtureSimple,
+  classDiagramFixtureSimpleHighlighted,
+  flowchartFixtureSimple,
+  flowchartFixtureSimpleHighlighted,
+  simpleMockDtdlObjectModel,
+} from './fixtures'
 import { checkIfStringIsSVG } from './helpers'
 
 describe('Generator', () => {
