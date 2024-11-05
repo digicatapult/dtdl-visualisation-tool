@@ -54,14 +54,14 @@ export const filterModelByDisplayName = (
 
   const allExpandedIds = new Set([...matchingIds, ...metadata.expanded])
 
-  const relationships = new Set(
+  const matchingRelationships = new Set(
     entityPairs.filter(relationshipFilter(model, allExpandedIds)).flatMap(([, entity]) => {
       const relationship = entity as RelationshipType
       return [relationship.Id, relationship.ChildOf, relationship.target].filter((x) => x !== undefined)
     })
   )
 
-  const idsAndRelationships = new Set([...allExpandedIds, ...relationships])
+  const idsAndRelationships = new Set([...allExpandedIds, ...matchingRelationships])
 
   const filteredModel = [...idsAndRelationships].reduce((acc, id) => {
     acc[id] = model[id]

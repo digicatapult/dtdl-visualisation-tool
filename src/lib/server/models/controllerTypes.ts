@@ -1,7 +1,7 @@
 import { Layout } from './mermaidLayouts.js'
 
 export type output = 'svg' | 'png' | 'pdf'
-export const chartTypes = ['flowchart']
+export const chartTypes = ['flowchart'] as const
 
 export type ChartTypes = (typeof chartTypes)[number]
 
