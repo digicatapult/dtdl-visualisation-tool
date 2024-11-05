@@ -1,5 +1,4 @@
 import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
-import { DiagramType } from '../../models/mermaidDiagrams.js'
 import { MermaidId } from '../../models/strings.js'
 import { getDisplayName } from '../dtdl/extract.js'
 import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
@@ -10,8 +9,8 @@ const entityKindToShape = {
   Default: 'rect',
 }
 
-export default class Flowchart implements IDiagram {
-  diagramType: DiagramType = 'flowchart'
+export default class Flowchart implements IDiagram<'flowchart'> {
+  get diagramType(): 'flowchart' { return 'flowchart' }
 
   entityKindToMarkdown: Partial<EntityTypeToMarkdownFn> = {
     Interface: (_, entity) => this.interfaceToMarkdown(entity),
@@ -58,8 +57,8 @@ export default class Flowchart implements IDiagram {
 
   generateMarkdown(
     dtdlObjectModel: DtdlObjectModel,
-    highlightNodeId?: MermaidId,
-    direction: Direction = ' TD'
+    direction: Direction = ' TD',
+    highlightNodeId?: MermaidId
   ): string | null {
     const graph: string[] = []
     for (const entity in dtdlObjectModel) {

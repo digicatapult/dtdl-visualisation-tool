@@ -17,33 +17,35 @@ describe('Generator', () => {
 
   describe('mermaidMarkdownByChartType', () => {
     it('should return a flowchart graph for a simple dtdl model', () => {
-      const markdown = generator.mermaidMarkdownByChartType['flowchart'](simpleMockDtdlObjectModel)
+      const markdown = generator.mermaidMarkdownByDiagramType['flowchart'].generateMarkdown(simpleMockDtdlObjectModel, ' TD')
       expect(markdown).to.equal(flowchartFixtureSimple)
     })
 
     it('should return a flowchart graph for a simple dtdl model with highlighted node', () => {
-      const markdown = generator.mermaidMarkdownByChartType['flowchart'](
+      const markdown = generator.mermaidMarkdownByDiagramType['flowchart'].generateMarkdown(
         simpleMockDtdlObjectModel,
+        ' TD',
         'dtmi:com:example:1'
       )
       expect(markdown).to.equal(flowchartFixtureSimpleHighlighted)
     })
 
     it('should return a classDiagram graph for a simple dtdl model', () => {
-      const markdown = generator.mermaidMarkdownByChartType['classDiagram'](simpleMockDtdlObjectModel)
+      const markdown = generator.mermaidMarkdownByDiagramType['classDiagram'].generateMarkdown(simpleMockDtdlObjectModel, ' TD')
       expect(markdown).to.equal(classDiagramFixtureSimple)
     })
 
     it('should return a classDiagram graph for a simple dtdl model with highlighted node', () => {
-      const markdown = generator.mermaidMarkdownByChartType['classDiagram'](
+      const markdown = generator.mermaidMarkdownByDiagramType['classDiagram'].generateMarkdown(
         simpleMockDtdlObjectModel,
+        ' TD',
         'dtmi:com:example:1'
       )
       expect(markdown).to.equal(classDiagramFixtureSimpleHighlighted)
     })
 
     it('should return null for empty object model', () => {
-      const markdown = generator.mermaidMarkdownByChartType['flowchart']({}, 'dtmi:com:example:1')
+      const markdown = generator.mermaidMarkdownByDiagramType['flowchart'].generateMarkdown({}, ' TD', 'dtmi:com:example:1')
       expect(markdown).to.equal(null)
     })
   })

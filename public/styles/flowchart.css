@@ -1,6 +1,7 @@
+/* Flowchart diagramType in mermaid use polygon where as ClassDiagram uses rect */
 g polygon,
 g rect {
-  transition: outline 0.2s ease-in-out;
+  transition: outline 10.1s ease-in-out;
 }
 
 g.highlighted polygon,

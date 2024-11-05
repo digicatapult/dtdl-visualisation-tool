@@ -5,7 +5,7 @@ export type output = 'svg' | 'png' | 'pdf'
 
 export interface QueryParams {
   /**
-   * @default 'dagre-d3'
+   * @default 'elk'
    */
   layout: Layout
   /**

@@ -1,4 +1,4 @@
-import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
+import { DtdlObjectModel, EntityType } from '@digicatapult/dtdl-parser'
 import { DiagramType } from '../../models/mermaidDiagrams'
 import { MermaidId } from '../../models/strings'
 
@@ -15,12 +15,7 @@ export type EntityTypeToMarkdownFn = {
   [k in EntityType['EntityKind']]: NarrowMappingFn<k>
 }
 
-export interface IDiagram {
-  diagramType: DiagramType
-  entityKindToMarkdown: Partial<EntityTypeToMarkdownFn>
+export interface IDiagram<D extends DiagramType> {
+  get diagramType(): D
   generateMarkdown(dtdlObjectModel: DtdlObjectModel, direction: Direction, highlightNodeId?: MermaidId): string | null
-  createNodeString(entity: EntityType, withClick: boolean): string
-  createEdgeString(nodeFrom: string, nodeTo: string, stringType, label?: string): string
-  relationshipToMarkdown(dtdlObjectModel: DtdlObjectModel, entity: RelationshipType): string[]
-  interfaceToMarkdown(entity: InterfaceType): string[]
 }

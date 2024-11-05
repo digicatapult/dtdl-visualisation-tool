@@ -1,5 +1,4 @@
 import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
-import { DiagramType } from '../../models/mermaidDiagrams.js'
 import { DtdlId, MermaidId } from '../../models/strings.js'
 import { getDisplayName } from '../dtdl/extract.js'
 import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
@@ -16,8 +15,8 @@ export enum ArrowType {
   LinkDashed = '..',
 }
 
-export default class ClassDiagram implements IDiagram {
-  diagramType: DiagramType = 'classDiagram'
+export default class ClassDiagram implements IDiagram<'classDiagram'> {
+  get diagramType(): 'classDiagram' { return 'classDiagram' }
   entityKindToMarkdown: Partial<EntityTypeToMarkdownFn> = {
     Interface: (_, entity) => this.interfaceToMarkdown(entity),
     Relationship: (dtdlObjectModel, entity) => this.relationshipToMarkdown(dtdlObjectModel, entity),
@@ -30,8 +29,8 @@ export default class ClassDiagram implements IDiagram {
 
   generateMarkdown(
     dtdlObjectModel: DtdlObjectModel,
+    direction: Direction = ' TD',
     highlightNodeId?: MermaidId,
-    direction: Direction = ' TD'
   ): string | null {
     const graph: string[] = []
     for (const entity in dtdlObjectModel) {
