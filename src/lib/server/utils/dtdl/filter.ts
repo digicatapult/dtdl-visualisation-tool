@@ -39,20 +39,11 @@ const relationshipFilter =
     return false
   }
 
-const getRelationshipIds = (entityPairs: [string, EntityType][], model: DtdlObjectModel, matchingIds: Set<string>) => {
-  return new Set(
-    entityPairs.filter(relationshipFilter(model, matchingIds)).flatMap(([, entity]) => {
-      const relationship = entity as RelationshipType
-      return [relationship.Id, relationship.ChildOf, relationship.target].filter((x) => x !== undefined)
-    })
-  )
-}
-
 export const filterModelByDisplayName = (
-  dtdlObjectModel: DtdlModelWithMetadata,
+  dtdlModelWithMetadata: DtdlModelWithMetadata,
   name: string
 ): DtdlModelWithMetadata => {
-  const { metadata, model } = dtdlObjectModel
+  const { metadata, model } = dtdlModelWithMetadata
   const entityPairs = Object.entries(model)
 
   const matchingIds = new Set(entityPairs.filter(interfaceFilter(name)).map(([, { Id }]) => Id))
@@ -61,11 +52,16 @@ export const filterModelByDisplayName = (
     return { metadata, model: {} }
   }
 
-  const expandedIds = new Set([...matchingIds, ...metadata.expanded])
+  const allExpandedIds = new Set([...matchingIds, ...metadata.expanded])
 
-  const relationships = getRelationshipIds(entityPairs, model, expandedIds)
+  const relationships = new Set(
+    entityPairs.filter(relationshipFilter(model, allExpandedIds)).flatMap(([, entity]) => {
+      const relationship = entity as RelationshipType
+      return [relationship.Id, relationship.ChildOf, relationship.target].filter((x) => x !== undefined)
+    })
+  )
 
-  const idsAndRelationships = new Set([...expandedIds, ...relationships])
+  const idsAndRelationships = new Set([...allExpandedIds, ...relationships])
 
   const filteredModel = [...idsAndRelationships].reduce((acc, id) => {
     acc[id] = model[id]

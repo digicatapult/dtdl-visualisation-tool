@@ -1,7 +1,7 @@
 import { renderMermaid, type ParseMDDOptions } from '@mermaid-js/mermaid-cli'
 import puppeteer, { Browser } from 'puppeteer'
 import { singleton } from 'tsyringe'
-import { ChartTypes, QueryParams } from '../../models/contollerTypes.js'
+import { ChartTypes, QueryParams } from '../../models/controllerTypes.js'
 import { MermaidId } from '../../models/strings.js'
 import { DtdlModelWithMetadata } from '../dtdl/filter.js'
 import Flowchart, { Direction } from './flowchart.js'
@@ -16,13 +16,17 @@ export class SvgGenerator {
 
   mermaidMarkdownByChartType: Record<
     ChartTypes,
-    (dtdlObject: DtdlModelWithMetadata, highlightNodeId?: MermaidId) => string | null
+    (dtdlModelWithMetadata: DtdlModelWithMetadata, highlightNodeId?: MermaidId) => string | null
   > = {
-    flowchart: (dtdlObject, highlightNodeId) =>
-      this.flowchart.getFlowchartMarkdown(dtdlObject, Direction.TopToBottom, highlightNodeId),
+    flowchart: (dtdlModelWithMetadata, highlightNodeId) =>
+      this.flowchart.getFlowchartMarkdown(dtdlModelWithMetadata, Direction.TopToBottom, highlightNodeId),
   }
 
-  async run(dtdlObject: DtdlModelWithMetadata, params: QueryParams, options: ParseMDDOptions = {}): Promise<string> {
+  async run(
+    dtdlModelWithMetadata: DtdlModelWithMetadata,
+    params: QueryParams,
+    options: ParseMDDOptions = {}
+  ): Promise<string> {
     //  Mermaid config
     const parseMDDOptions: ParseMDDOptions = {
       ...options,
@@ -39,7 +43,7 @@ export class SvgGenerator {
       },
     }
 
-    const graph = this.mermaidMarkdownByChartType[params.chartType](dtdlObject, params.highlightNodeId)
+    const graph = this.mermaidMarkdownByChartType[params.chartType](dtdlModelWithMetadata, params.highlightNodeId)
     if (!graph) return 'No graph'
 
     const { data } = await renderMermaid(await this.browser, graph, params.output, parseMDDOptions)

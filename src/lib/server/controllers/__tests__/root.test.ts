@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import sinon from 'sinon'
-import { QueryParams } from '../../models/contollerTypes.js'
+import { QueryParams } from '../../models/controllerTypes.js'
 import { generatedSVGFixture, mockDtdlObjectModel } from '../../utils/mermaid/__tests__/fixtures'
 import { RootController } from '../root'
 import { mockGenerator, mockLogger, mockReq, simpleMockDtdlLoader, templateMock, toHTMLString } from './helpers'
@@ -17,7 +17,7 @@ describe('RootController', async () => {
     sinon.restore()
   })
 
-  const controller = new RootController(simpleMockDtdlLoader, mockGenerator, templateMock, mockLogger)
+  const controller = new RootController(simpleMockDtdlLoader, mockGenerator, templateMock, mockLogger, undefined)
 
   describe('get', () => {
     it('should return rendered root template', async () => {
@@ -100,6 +100,34 @@ describe('RootController', async () => {
 
       expect(stub.callCount).to.equal(1)
       expect(stub.firstCall.args).to.deep.equal(['Content-Type', 'text/html'])
+    })
+
+    it('should remove duplicate expandedIds[]', async () => {
+      const stub = sinon.stub(controller, 'setHeader')
+
+      const req = mockReq({
+        'hx-current-url': 'http://localhost:3000/some/path',
+      })
+      await controller.updateLayout(req, { ...defaultParams, expandedIds: ['1', '1'] }).then(toHTMLString)
+
+      expect(stub.firstCall.args).to.deep.equal([
+        'HX-Push-Url',
+        encodeURI('/some/path?layout=dagre-d3&output=svg&chartType=flowchart&expandedIds[]=1'),
+      ])
+    })
+
+    it('should append multiple expandedIds[]', async () => {
+      const stub = sinon.stub(controller, 'setHeader')
+
+      const req = mockReq({
+        'hx-current-url': 'http://localhost:3000/some/path',
+      })
+      await controller.updateLayout(req, { ...defaultParams, expandedIds: ['1', '2'] }).then(toHTMLString)
+
+      expect(stub.firstCall.args).to.deep.equal([
+        'HX-Push-Url',
+        encodeURI('/some/path?layout=dagre-d3&output=svg&chartType=flowchart&expandedIds[]=1&expandedIds[]=2'),
+      ])
     })
   })
 })

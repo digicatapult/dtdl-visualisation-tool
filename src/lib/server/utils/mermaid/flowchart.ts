@@ -78,10 +78,12 @@ export default class Flowchart {
   }
 
   getInterfaceOutlineClass(dtdlModelWithMetadata: DtdlModelWithMetadata, entityId: DtdlId): string {
-    if (dtdlModelWithMetadata.metadata.searchResults?.includes(entityId)) {
+    const { metadata } = dtdlModelWithMetadata
+
+    if (!metadata.searchResults || metadata.searchResults?.includes(entityId)) {
       return `search-result`
     }
-    if (dtdlModelWithMetadata.metadata.expanded?.includes(entityId)) {
+    if (metadata.expanded?.includes(entityId)) {
       return `expanded`
     }
     return `unexpanded`
@@ -95,7 +97,7 @@ export default class Flowchart {
     })
 
     graph.push(
-      `\nclass ${this.dtdlIdReplaceSemicolon(entity.Id)} ${this.getInterfaceOutlineClass(dtdlModelWithMetadata, entity.Id)}`
+      `class ${this.dtdlIdReplaceSemicolon(entity.Id)} ${this.getInterfaceOutlineClass(dtdlModelWithMetadata, entity.Id)}`
     )
 
     return graph

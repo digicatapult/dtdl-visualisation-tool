@@ -8,16 +8,16 @@ globalThis.getEntity = function getEntity(id) {
   htmx.ajax('GET', `/entity/${id}?chartType=flowchart`, '#navigationPanelContent')
   const layout = htmx.values(htmx.find('#layout-buttons'))
 
-  let expandedIds = layout['expandedIds[]'] ?? []
+  const expandedIdsValue = layout['expandedIds[]'] ?? []
   // htmx.values returns single items as a string rather than array
-  const expandedIdsArray = expandedIds ? (Array.isArray(expandedIds) ? expandedIds : [expandedIds]) : []
+  let expandedIds = Array.isArray(expandedIdsValue) ? expandedIdsValue : [expandedIdsValue]
 
-  let unexpandedNodes = document.getElementsByClassName('node clickable unexpanded')
+  // only expand if node is currently unexpanded
+  const unexpandedNodes = document.getElementsByClassName('node clickable unexpanded')
   for (const node of unexpandedNodes) {
     const mermaidId = node.id.match(nodeIdPattern)
     if (mermaidId && mermaidId[1] === id) {
-      // only append if not already expanded
-      expandedIds = expandedIdsArray.includes(id) ? expandedIdsArray : [...expandedIdsArray, id]
+      expandedIds = [...expandedIds, id]
       break
     }
   }

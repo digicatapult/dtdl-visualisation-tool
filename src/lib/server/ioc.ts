@@ -8,7 +8,7 @@ container.register<ILogger>(Logger, {
   useValue: logger,
 })
 
-container.register(LastSearchToken, { useValue: '' })
+container.register(LastSearchToken, { useValue: undefined })
 
 export const iocContainer: IocContainer = {
   get: <T>(controller: { prototype: T }): T => {

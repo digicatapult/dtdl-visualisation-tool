@@ -2,15 +2,16 @@ import { ParseMDDOptions } from '@mermaid-js/mermaid-cli'
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import { defaultParams } from '../../../controllers/__tests__/root.test'
-import { QueryParams } from '../../../models/contollerTypes'
+import { QueryParams } from '../../../models/controllerTypes'
 import { SvgGenerator } from '../generator'
 import {
+  emptyModel,
   flowchartFixtureSimple,
   flowchartFixtureSimpleHighlighted,
   generatedSVGFixture,
   generatedSVGFixtureElk,
   generatedSVGFixtureHiglighted,
-  simpleMockDtdlObjectModel,
+  simpleDtdlModelWithMetadata,
 } from './fixtures'
 
 describe('Generator', () => {
@@ -18,20 +19,20 @@ describe('Generator', () => {
 
   describe('mermaidMarkdownByChartType', () => {
     it('should return a svg for a simple dtdl model', () => {
-      const markdown = generator.mermaidMarkdownByChartType['flowchart'](simpleMockDtdlObjectModel)
+      const markdown = generator.mermaidMarkdownByChartType['flowchart'](simpleDtdlModelWithMetadata)
       expect(markdown).to.equal(flowchartFixtureSimple)
     })
 
     it('should return a svg for a simple dtdl model with highlighted node', () => {
       const markdown = generator.mermaidMarkdownByChartType['flowchart'](
-        simpleMockDtdlObjectModel,
+        simpleDtdlModelWithMetadata,
         'dtmi:com:example:1'
       )
       expect(markdown).to.equal(flowchartFixtureSimpleHighlighted)
     })
 
     it('should return null for empty object model', () => {
-      const markdown = generator.mermaidMarkdownByChartType['flowchart']({}, 'dtmi:com:example:1')
+      const markdown = generator.mermaidMarkdownByChartType['flowchart'](emptyModel)
       expect(markdown).to.equal(null)
     })
   })
@@ -46,12 +47,12 @@ describe('Generator', () => {
     }
 
     it('should return no graph for empty object model', async () => {
-      const generatedOutput = await generator.run({}, defaultParams, options)
+      const generatedOutput = await generator.run(emptyModel, defaultParams, options)
       expect(generatedOutput).to.equal(`No graph`)
     })
 
     it.skip('should return a simple svg', async () => {
-      const generatedOutput = await generator.run(simpleMockDtdlObjectModel, defaultParams, options)
+      const generatedOutput = await generator.run(simpleDtdlModelWithMetadata, defaultParams, options)
       expect(generatedOutput).to.equal(generatedSVGFixture)
     })
     it.skip('should return a simple svg with layout elk', async () => {
@@ -60,7 +61,7 @@ describe('Generator', () => {
         output: 'svg',
         chartType: 'flowchart',
       }
-      const generatedOutput = await generator.run(simpleMockDtdlObjectModel, params, options)
+      const generatedOutput = await generator.run(simpleDtdlModelWithMetadata, params, options)
       expect(generatedOutput).to.equal(generatedSVGFixtureElk)
     })
     it.skip('should return a simple svg with highlighted node', async () => {
@@ -70,7 +71,7 @@ describe('Generator', () => {
         chartType: 'flowchart',
         highlightNodeId: 'dtmi:com:example:1',
       }
-      const generatedOutput = await generator.run(simpleMockDtdlObjectModel, params, options)
+      const generatedOutput = await generator.run(simpleDtdlModelWithMetadata, params, options)
 
       expect(generatedOutput).to.equal(generatedSVGFixtureHiglighted)
     })

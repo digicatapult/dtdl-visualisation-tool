@@ -2,7 +2,7 @@ import express from 'express'
 import { Get, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
 import { type ILogger, Logger } from '../logger.js'
-import { type QueryParams } from '../models/contollerTypes.js'
+import { type QueryParams } from '../models/controllerTypes.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import { DtdlModelWithMetadata, filterModelByDisplayName } from '../utils/dtdl/filter.js'
 import Flowchart from '../utils/mermaid/flowchart.js'
@@ -22,8 +22,8 @@ export class RootController extends HTMLController {
     private dtdlLoader: DtdlLoader,
     private generator: SvgGenerator,
     private templates: MermaidTemplates,
-    @inject(LastSearchToken) private lastSearch: string,
-    @inject(Logger) private logger: ILogger
+    @inject(Logger) private logger: ILogger,
+    @inject(LastSearchToken) private lastSearch: string | undefined
   ) {
     super()
     this.flowchart = new Flowchart()
@@ -52,22 +52,21 @@ export class RootController extends HTMLController {
     this.logger.debug('search: %o', { search: params.search, layout: params.layout })
 
     //reset expanded on new search
-    if (this.lastSearch !== params.search) {
+    if (this.lastSearch && this.lastSearch !== params.search) {
       params.expandedIds = []
-      this.lastSearch = params.search ?? ''
     }
-    const expandedIds = [...new Set(params.expandedIds)] // remove duplicates
+    this.lastSearch = params.search
+
+    params.expandedIds = [...new Set(params.expandedIds)] // remove duplicates
 
     const current = this.getCurrentPathQuery(req)
     if (current) {
       this.setReplaceUrl(current, params)
     }
 
-    const defModel = this.dtdlLoader.getDefaultDtdlModel()
-
     let model: DtdlModelWithMetadata = {
-      metadata: { expanded: expandedIds.map(this.flowchart.dtdlIdReinstateSemicolon) },
-      model: defModel,
+      metadata: { expanded: params.expandedIds.map(this.flowchart.dtdlIdReinstateSemicolon) },
+      model: this.dtdlLoader.getDefaultDtdlModel(),
     }
     if (params.search) {
       model = filterModelByDisplayName(model, params.search)
@@ -83,7 +82,7 @@ export class RootController extends HTMLController {
         swapOutOfBand: true,
         search: params.search,
         highlightNodeId: params.highlightNodeId,
-        expandedIds,
+        expandedIds: params.expandedIds,
       })
     )
   }
@@ -111,6 +110,7 @@ export class RootController extends HTMLController {
 
   private setReplaceUrl(current: { path: string; query: URLSearchParams }, params: QueryParams): void {
     const { path, query } = current
+    console.log(params)
     for (const param in params) {
       const value = params[param]
       if (Array.isArray(value)) {
