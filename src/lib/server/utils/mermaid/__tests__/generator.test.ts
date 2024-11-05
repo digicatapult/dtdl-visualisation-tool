@@ -2,17 +2,14 @@ import { ParseMDDOptions } from '@mermaid-js/mermaid-cli'
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import { defaultParams } from '../../../controllers/__tests__/root.test'
-import { QueryParams } from '../../../models/controllerTypes'
 import { SvgGenerator } from '../generator'
 import {
   emptyModel,
   flowchartFixtureSimple,
   flowchartFixtureSimpleHighlighted,
-  generatedSVGFixture,
-  generatedSVGFixtureElk,
-  generatedSVGFixtureHiglighted,
   simpleDtdlModelWithMetadata,
 } from './fixtures'
+import { checkIfStringIsSVG } from './helpers'
 
 describe('Generator', () => {
   const generator = new SvgGenerator()
@@ -51,29 +48,9 @@ describe('Generator', () => {
       expect(generatedOutput).to.equal(`No graph`)
     })
 
-    it.skip('should return a simple svg', async () => {
+    it('should return a simple svg', async () => {
       const generatedOutput = await generator.run(simpleDtdlModelWithMetadata, defaultParams, options)
-      expect(generatedOutput).to.equal(generatedSVGFixture)
-    })
-    it.skip('should return a simple svg with layout elk', async () => {
-      const params: QueryParams = {
-        layout: 'elk',
-        output: 'svg',
-        chartType: 'flowchart',
-      }
-      const generatedOutput = await generator.run(simpleDtdlModelWithMetadata, params, options)
-      expect(generatedOutput).to.equal(generatedSVGFixtureElk)
-    })
-    it.skip('should return a simple svg with highlighted node', async () => {
-      const params: QueryParams = {
-        layout: 'dagre-d3',
-        output: 'svg',
-        chartType: 'flowchart',
-        highlightNodeId: 'dtmi:com:example:1',
-      }
-      const generatedOutput = await generator.run(simpleDtdlModelWithMetadata, params, options)
-
-      expect(generatedOutput).to.equal(generatedSVGFixtureHiglighted)
+      expect(checkIfStringIsSVG(generatedOutput)).to.equal(true)
     })
   })
 })

@@ -7,7 +7,7 @@ export type ChartTypes = (typeof chartTypes)[number]
 
 export interface QueryParams {
   /**
-   * @default 'dagre-d3'
+   * @default 'elk'
    */
   layout: Layout
   /**
