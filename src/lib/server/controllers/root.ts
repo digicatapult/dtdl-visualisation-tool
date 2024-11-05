@@ -110,7 +110,6 @@ export class RootController extends HTMLController {
 
   private setReplaceUrl(current: { path: string; query: URLSearchParams }, params: QueryParams): void {
     const { path, query } = current
-    console.log(params)
     for (const param in params) {
       const value = params[param]
       if (Array.isArray(value)) {
