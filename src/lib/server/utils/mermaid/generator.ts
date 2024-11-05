@@ -5,8 +5,8 @@ import { singleton } from 'tsyringe'
 import { QueryParams } from '../../models/contollerTypes.js'
 import { DiagramType } from '../../models/mermaidDiagrams.js'
 import ClassDiagram from './classDiagram.js'
-import Flowchart from './flowchart.js'
 import { IDiagram } from './diagramInterface.js'
+import Flowchart from './flowchart.js'
 
 @singleton()
 export class SvgGenerator {
@@ -18,8 +18,8 @@ export class SvgGenerator {
   mermaidMarkdownByDiagramType: {
     [k in DiagramType]: IDiagram<k>
   } = {
-      flowchart: new Flowchart(),
-      classDiagram: new ClassDiagram()
+    flowchart: new Flowchart(),
+    classDiagram: new ClassDiagram(),
   }
 
   async run(dtdlObject: DtdlObjectModel, params: QueryParams, options: ParseMDDOptions = {}): Promise<string> {
@@ -39,7 +39,11 @@ export class SvgGenerator {
       },
     }
 
-    const graph = this.mermaidMarkdownByDiagramType[params.diagramType].generateMarkdown(dtdlObject, ' TD', params.highlightNodeId)
+    const graph = this.mermaidMarkdownByDiagramType[params.diagramType].generateMarkdown(
+      dtdlObject,
+      ' TD',
+      params.highlightNodeId
+    )
     if (!graph) return 'No graph'
 
     const { data } = await renderMermaid(await this.browser, graph, params.output, parseMDDOptions)

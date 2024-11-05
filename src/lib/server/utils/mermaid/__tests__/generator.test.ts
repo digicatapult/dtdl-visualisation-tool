@@ -17,7 +17,10 @@ describe('Generator', () => {
 
   describe('mermaidMarkdownByChartType', () => {
     it('should return a flowchart graph for a simple dtdl model', () => {
-      const markdown = generator.mermaidMarkdownByDiagramType['flowchart'].generateMarkdown(simpleMockDtdlObjectModel, ' TD')
+      const markdown = generator.mermaidMarkdownByDiagramType['flowchart'].generateMarkdown(
+        simpleMockDtdlObjectModel,
+        ' TD'
+      )
       expect(markdown).to.equal(flowchartFixtureSimple)
     })
 
@@ -31,7 +34,10 @@ describe('Generator', () => {
     })
 
     it('should return a classDiagram graph for a simple dtdl model', () => {
-      const markdown = generator.mermaidMarkdownByDiagramType['classDiagram'].generateMarkdown(simpleMockDtdlObjectModel, ' TD')
+      const markdown = generator.mermaidMarkdownByDiagramType['classDiagram'].generateMarkdown(
+        simpleMockDtdlObjectModel,
+        ' TD'
+      )
       expect(markdown).to.equal(classDiagramFixtureSimple)
     })
 
@@ -45,7 +51,11 @@ describe('Generator', () => {
     })
 
     it('should return null for empty object model', () => {
-      const markdown = generator.mermaidMarkdownByDiagramType['flowchart'].generateMarkdown({}, ' TD', 'dtmi:com:example:1')
+      const markdown = generator.mermaidMarkdownByDiagramType['flowchart'].generateMarkdown(
+        {},
+        ' TD',
+        'dtmi:com:example:1'
+      )
       expect(markdown).to.equal(null)
     })
   })

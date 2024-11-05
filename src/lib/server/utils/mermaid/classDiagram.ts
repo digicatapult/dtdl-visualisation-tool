@@ -16,7 +16,9 @@ export enum ArrowType {
 }
 
 export default class ClassDiagram implements IDiagram<'classDiagram'> {
-  get diagramType(): 'classDiagram' { return 'classDiagram' }
+  get diagramType(): 'classDiagram' {
+    return 'classDiagram'
+  }
   entityKindToMarkdown: Partial<EntityTypeToMarkdownFn> = {
     Interface: (_, entity) => this.interfaceToMarkdown(entity),
     Relationship: (dtdlObjectModel, entity) => this.relationshipToMarkdown(dtdlObjectModel, entity),
@@ -30,7 +32,7 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
   generateMarkdown(
     dtdlObjectModel: DtdlObjectModel,
     direction: Direction = ' TD',
-    highlightNodeId?: MermaidId,
+    highlightNodeId?: MermaidId
   ): string | null {
     const graph: string[] = []
     for (const entity in dtdlObjectModel) {

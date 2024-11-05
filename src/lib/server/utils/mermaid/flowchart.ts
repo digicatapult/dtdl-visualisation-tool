@@ -10,7 +10,9 @@ const entityKindToShape = {
 }
 
 export default class Flowchart implements IDiagram<'flowchart'> {
-  get diagramType(): 'flowchart' { return 'flowchart' }
+  get diagramType(): 'flowchart' {
+    return 'flowchart'
+  }
 
   entityKindToMarkdown: Partial<EntityTypeToMarkdownFn> = {
     Interface: (_, entity) => this.interfaceToMarkdown(entity),
