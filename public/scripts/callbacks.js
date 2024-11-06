@@ -3,7 +3,7 @@ const zoomInButton = document.getElementById('zoom-in')
 const zoomOutButton = document.getElementById('zoom-out')
 
 globalThis.getEntity = function getEntity(id) {
-  htmx.ajax('GET', `/entity/${id}?chartType=flowchart`, '#navigationPanelContent')
+  htmx.ajax('GET', `/entity/${id}`, '#navigationPanelContent')
   const layout = htmx.values(htmx.find('#layout-buttons'))
   htmx.ajax('GET', `/update-layout`, { target: '#mermaid-output', values: { ...layout, highlightNodeId: id } })
 }

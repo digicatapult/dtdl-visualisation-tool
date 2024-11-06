@@ -6,4 +6,4 @@ src/lib/server/routes.ts
 bin
 obj
 .DS_Store
-.vscode/settings.json
+.vscode/*
