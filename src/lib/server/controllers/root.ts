@@ -1,12 +1,12 @@
 import express from 'express'
-import { Get, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
+import { Get, Produces, Queries, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
 import { type ILogger, Logger } from '../logger.js'
 import { type QueryParams } from '../models/controllerTypes.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import { DtdlModelWithMetadata, filterModelByDisplayName } from '../utils/dtdl/filter.js'
-import Flowchart from '../utils/mermaid/flowchart.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
+import { dtdlIdReinstateSemicolon } from '../utils/mermaid/helpers.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
@@ -16,8 +16,6 @@ export const LastSearchToken = 'LastSearchToken'
 @Route()
 @Produces('text/html')
 export class RootController extends HTMLController {
-  private flowchart: Flowchart
-
   constructor(
     private dtdlLoader: DtdlLoader,
     private generator: SvgGenerator,
@@ -26,7 +24,6 @@ export class RootController extends HTMLController {
     @inject(LastSearchToken) private lastSearch: string | undefined
   ) {
     super()
-    this.flowchart = new Flowchart()
     this.logger = logger.child({ controller: '/' })
     this.lastSearch = ''
   }
@@ -42,6 +39,7 @@ export class RootController extends HTMLController {
         search: params.search,
         highlightNodeId: params.highlightNodeId,
         expandedIds: params.expandedIds,
+        diagramType: params.diagramType,
       })
     )
   }
@@ -65,7 +63,7 @@ export class RootController extends HTMLController {
     }
 
     let model: DtdlModelWithMetadata = {
-      metadata: { expanded: params.expandedIds.map(this.flowchart.dtdlIdReinstateSemicolon) },
+      metadata: { expanded: params.expandedIds.map(dtdlIdReinstateSemicolon) },
       model: this.dtdlLoader.getDefaultDtdlModel(),
     }
     if (params.search) {
@@ -83,15 +81,15 @@ export class RootController extends HTMLController {
         search: params.search,
         highlightNodeId: params.highlightNodeId,
         expandedIds: params.expandedIds,
+        diagramType: params.diagramType,
       })
     )
   }
 
   @SuccessResponse(200)
   @Get('/entity/{id}')
-  public async getEntityById(id: string, @Query() chartType?: string): Promise<HTML> {
-    let entityId = id
-    if (chartType === 'flowchart') entityId = this.flowchart.dtdlIdReinstateSemicolon(id)
+  public async getEntityById(id: string): Promise<HTML> {
+    const entityId = dtdlIdReinstateSemicolon(id)
     const entity = this.dtdlLoader.getDefaultDtdlModel()[entityId]
     return this.html(`${JSON.stringify(entity, null, 4)}`)
   }

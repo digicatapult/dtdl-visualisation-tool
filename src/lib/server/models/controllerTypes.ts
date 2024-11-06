@@ -1,9 +1,7 @@
-import { Layout } from './mermaidLayouts.js'
+import { Layout } from '../models/mermaidLayouts.js'
+import { DiagramType } from './mermaidDiagrams.js'
 
 export type output = 'svg' | 'png' | 'pdf'
-export const chartTypes = ['flowchart'] as const
-
-export type ChartTypes = (typeof chartTypes)[number]
 
 export interface QueryParams {
   /**
@@ -17,7 +15,7 @@ export interface QueryParams {
   /**
    * @default 'flowchart'
    */
-  chartType: ChartTypes
+  diagramType: DiagramType
   highlightNodeId?: string
   search?: string
   expandedIds?: string[]

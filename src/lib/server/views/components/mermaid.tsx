@@ -1,6 +1,7 @@
 /// <reference types="@kitajs/html/htmx.d.ts" />
 import { escapeHtml } from '@kitajs/html'
 import { singleton } from 'tsyringe'
+import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { Layout, layoutEntries } from '../../models/mermaidLayouts.js'
 import { MermaidId } from '../../models/strings.js'
 import { Page } from '../common.js'
@@ -19,18 +20,27 @@ export default class MermaidTemplates {
   public MermaidRoot = ({
     generatedOutput,
     search,
-    layout,
     highlightNodeId,
+    layout,
+    diagramType,
     expandedIds,
   }: {
     generatedOutput?: JSX.Element | undefined
     search?: string
-    layout: Layout
     highlightNodeId?: string
+    layout: Layout
+    diagramType: DiagramType
     expandedIds?: string[]
   }) => (
     <Page title={'Mermaid Ontology visualiser'}>
-      <this.layoutForm layout={layout} search={search} highlightNodeId={highlightNodeId} expandedIds={expandedIds} />
+      <this.layoutForm
+        layout={layout}
+        search={search}
+        highlightNodeId={highlightNodeId}
+        diagramType={diagramType}
+        expandedIds={expandedIds}
+      />
+
       <div id="mermaid-wrapper">
         <this.mermaidTarget target="mermaid-output" generatedOutput={generatedOutput} />
         <div id="svg-controls">
@@ -78,12 +88,14 @@ export default class MermaidTemplates {
     layout,
     swapOutOfBand,
     highlightNodeId,
+    diagramType,
     expandedIds,
   }: {
     search?: string
     layout: Layout
     swapOutOfBand?: boolean
     highlightNodeId?: MermaidId
+    diagramType: DiagramType
     expandedIds?: string[]
   }) => {
     return (
@@ -101,9 +113,22 @@ export default class MermaidTemplates {
         {expandedIds?.map((id, index) => (
           <input id={`expandedIds_${index}`} name="expandedIds[]" type="hidden" value={id} />
         ))}
-        <select id="layout" name="layout" hx-trigger="input changed" {...commonUpdateAttrs}>
+        <select
+          id="layout"
+          name="layout"
+          hx-trigger="input changed"
+          disabled={diagramType === 'classDiagram'}
+          {...commonUpdateAttrs}
+        >
           {layoutEntries.map((entry) => (
             <option value={entry} selected={entry === layout}>
+              {escapeHtml(entry)}
+            </option>
+          ))}
+        </select>
+        <select id="diagramType" name="diagramType" hx-trigger="input changed" {...commonUpdateAttrs}>
+          {diagramTypes.map((entry) => (
+            <option value={entry} selected={entry === diagramType}>
               {escapeHtml(entry)}
             </option>
           ))}

@@ -5,7 +5,7 @@ const zoomOutButton = document.getElementById('zoom-out')
 const nodeIdPattern = /^[^-]+\-(.+)\-\d+$/
 
 globalThis.getEntity = function getEntity(id) {
-  htmx.ajax('GET', `/entity/${id}?chartType=flowchart`, '#navigationPanelContent')
+  htmx.ajax('GET', `/entity/${id}`, '#navigationPanelContent')
   const layout = htmx.values(htmx.find('#layout-buttons'))
 
   const expandedIdsValue = layout['expandedIds[]'] ?? []

@@ -1,25 +1,25 @@
 import { renderMermaid, type ParseMDDOptions } from '@mermaid-js/mermaid-cli'
 import puppeteer, { Browser } from 'puppeteer'
 import { singleton } from 'tsyringe'
-import { ChartTypes, QueryParams } from '../../models/controllerTypes.js'
-import { MermaidId } from '../../models/strings.js'
+import { QueryParams } from '../../models/controllerTypes.js'
+import { DiagramType } from '../../models/mermaidDiagrams.js'
 import { DtdlModelWithMetadata } from '../dtdl/filter.js'
-import Flowchart, { Direction } from './flowchart.js'
+import ClassDiagram from './classDiagram.js'
+import { IDiagram } from './diagramInterface.js'
+import Flowchart from './flowchart.js'
 
 @singleton()
 export class SvgGenerator {
-  private flowchart = new Flowchart()
   public browser: Promise<Browser>
   constructor() {
     this.browser = puppeteer.launch({})
   }
 
-  mermaidMarkdownByChartType: Record<
-    ChartTypes,
-    (dtdlModelWithMetadata: DtdlModelWithMetadata, highlightNodeId?: MermaidId) => string | null
-  > = {
-    flowchart: (dtdlModelWithMetadata, highlightNodeId) =>
-      this.flowchart.getFlowchartMarkdown(dtdlModelWithMetadata, Direction.TopToBottom, highlightNodeId),
+  mermaidMarkdownByDiagramType: {
+    [k in DiagramType]: IDiagram<k>
+  } = {
+    flowchart: new Flowchart(),
+    classDiagram: new ClassDiagram(),
   }
 
   async run(
@@ -43,7 +43,11 @@ export class SvgGenerator {
       },
     }
 
-    const graph = this.mermaidMarkdownByChartType[params.chartType](dtdlModelWithMetadata, params.highlightNodeId)
+    const graph = this.mermaidMarkdownByDiagramType[params.diagramType].generateMarkdown(
+      dtdlModelWithMetadata,
+      ' TD',
+      params.highlightNodeId
+    )
     if (!graph) return 'No graph'
 
     const { data } = await renderMermaid(await this.browser, graph, params.output, parseMDDOptions)

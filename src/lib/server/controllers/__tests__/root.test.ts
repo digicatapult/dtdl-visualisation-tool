@@ -9,7 +9,7 @@ import { mockGenerator, mockLogger, mockReq, simpleMockDtdlLoader, templateMock,
 export const defaultParams: QueryParams = {
   layout: 'dagre-d3',
   output: 'svg',
-  chartType: 'flowchart',
+  diagramType: 'flowchart',
 }
 
 describe('RootController', async () => {
@@ -34,7 +34,7 @@ describe('RootController', async () => {
     it('should return parsed entity by mermaid safe ID', async () => {
       const id = 'dtmi:com:example;1'
       const mermaidSafeId = 'dtmi:com:example:1' // :1 suffix instead of ;1
-      const result = await controller.getEntityById(mermaidSafeId, 'flowchart').then(toHTMLString)
+      const result = await controller.getEntityById(mermaidSafeId).then(toHTMLString)
       expect(result).to.equal(JSON.stringify(mockDtdlObjectModel[id], null, 4))
     })
   })
@@ -73,7 +73,7 @@ describe('RootController', async () => {
       expect(stub.callCount).to.equal(2)
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        '/some/path?param1=x&param2=y&layout=dagre-d3&output=svg&chartType=flowchart',
+        '/some/path?param1=x&param2=y&layout=dagre-d3&output=svg&diagramType=flowchart',
       ])
       expect(stub.secondCall.args).to.deep.equal(['Content-Type', 'text/html'])
     })
@@ -88,7 +88,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        '/some/path?param1=x&layout=dagre-d3&output=svg&chartType=flowchart',
+        '/some/path?param1=x&layout=dagre-d3&output=svg&diagramType=flowchart',
       ])
     })
 
@@ -112,7 +112,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        encodeURI('/some/path?layout=dagre-d3&output=svg&chartType=flowchart&expandedIds[]=1'),
+        encodeURI('/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&expandedIds[]=1'),
       ])
     })
 
@@ -126,7 +126,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        encodeURI('/some/path?layout=dagre-d3&output=svg&chartType=flowchart&expandedIds[]=1&expandedIds[]=2'),
+        encodeURI('/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&expandedIds[]=1&expandedIds[]=2'),
       ])
     })
   })
