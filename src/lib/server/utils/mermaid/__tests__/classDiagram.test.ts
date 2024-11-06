@@ -29,6 +29,7 @@ describe('ClassDiagram', () => {
       const test = [
         'class `dtmi:com:example_extended:1`["example extended"] \nclick `dtmi:com:example_extended:1` call getEntity()',
         '`dtmi:com:example_extended:1` <|-- `dtmi:com:example:1`',
+        'class `dtmi:com:example_extended:1`:::searchResult',
       ]
       expect(interfaceAsMarkdown).to.deep.equal(test)
     })
@@ -40,6 +41,7 @@ describe('ClassDiagram', () => {
       const test = [
         'class `dtmi:com:example:1`["example 1"] \nclick `dtmi:com:example:1` call getEntity()',
         '`dtmi:com:example:1` : example_property',
+        'class `dtmi:com:example:1`:::searchResult',
       ]
       expect(propertyAsMarkdown).to.deep.equal(test)
     })
