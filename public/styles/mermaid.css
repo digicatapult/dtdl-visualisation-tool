@@ -10,27 +10,32 @@ g.highlighted rect {
   outline-offset: -2px;
 }
 
-g.expanded.highlighted polygon {
+g.expanded.highlighted polygon,
+g.expanded.highlighted rect {
   outline: 4px dashed #9370db;
   outline-offset: -2px;
 }
 
-g.search-result polygon {
+g.searchResult polygon,
+g.searchResult rect {
   outline: 2px solid #9370db;
   outline-offset: -2px;
 }
 
-g.search-result.highlighted polygon {
+g.searchResult.highlighted polygon,
+g.searchResult.highlighted rect {
   outline: 4px solid #9370db;
   outline-offset: -2px;
 }
 
-g.unexpanded polygon {
+g.unexpanded polygon,
+g.unexpanded rect {
   outline: 4px double #9370db;
   outline-offset: -2px;
 }
 
-g.expanded polygon {
+g.expanded polygon,
+g.expanded rect {
   outline: 2px dashed #9370db;
   outline-offset: -2px;
 }

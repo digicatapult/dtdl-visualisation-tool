@@ -3,7 +3,7 @@ import { DtdlId, MermaidId } from '../../models/strings.js'
 import { getDisplayName } from '../dtdl/extract.js'
 import { DtdlModelWithMetadata } from '../dtdl/filter.js'
 import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
-import { defaultMarkdownFn, dtdlIdReinstateSemicolon, dtdlIdReplaceSemicolon } from './helpers.js'
+import { defaultMarkdownFn, dtdlIdReinstateSemicolon, dtdlIdReplaceSemicolon, getOutlineClass } from './helpers.js'
 
 export enum ArrowType {
   Inheritance = '<|--',
@@ -23,12 +23,11 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
   entityKindToMarkdown: Partial<EntityTypeToMarkdownFn> = {
     Interface: (dtdlModelWithMetadata, entity) => this.interfaceToMarkdown(dtdlModelWithMetadata, entity),
     Relationship: (dtdlModelWithMetadata, entity) => this.relationshipToMarkdown(dtdlModelWithMetadata, entity),
-    // Property: (_, entity) => this.propertyToMarkdown(entity),
   }
 
   constructor() {}
 
-  safeClassName = (className: DtdlId): string => `\`${dtdlIdReplaceSemicolon(className)}\``
+  safeClassName = (className: string): string => `\`${dtdlIdReplaceSemicolon(className)}\``
 
   generateMarkdown(
     dtdlModelWithMetadata: DtdlModelWithMetadata,
@@ -79,6 +78,9 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
     properties.flatMap(([name]) => {
       graph.push(`${this.safeClassName(entity.Id)} : ${name}`)
     })
+
+    graph.push(`class ${this.safeClassName(entity.Id)}:::${getOutlineClass(dtdlModelWithMetadata, entity.Id)}`)
+
     return graph
   }
 }

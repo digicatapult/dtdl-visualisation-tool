@@ -18,7 +18,7 @@ describe('Mermaid', () => {
       const test = [
         `dtmi:com:example_extended:1@{ shape: subproc, label: "example extended"}\nclick dtmi:com:example_extended:1 getEntity`,
         `dtmi:com:example:1 ---  dtmi:com:example_extended:1`,
-        `class dtmi:com:example_extended:1 search-result`,
+        `class dtmi:com:example_extended:1 searchResult`,
       ]
       expect(interfaceAsMarkdown).to.deep.equal(test)
     })
@@ -44,20 +44,20 @@ describe('Mermaid', () => {
       expect(interfaceAsMarkdown).to.deep.equal(test)
     })
 
-    it('should assign search-result class to interfaces if undefined search results (show all)', () => {
+    it('should assign searchResult class to interfaces if undefined search results (show all)', () => {
       const interfaceAsMarkdown = flowchart.interfaceToMarkdown(
         { ...mockDtdlModellWithMetadata, metadata: { expanded: [], searchResults: undefined } },
         mockDtdlObjectModel['dtmi:com:example;1'] as InterfaceType
       )
-      expect(interfaceAsMarkdown[1]).to.deep.equal(`class dtmi:com:example:1 search-result`)
+      expect(interfaceAsMarkdown[1]).to.deep.equal(`class dtmi:com:example:1 searchResult`)
     })
 
-    it('should assign search-result class to interfaces in search results', () => {
+    it('should assign searchResult class to interfaces in search results', () => {
       const interfaceAsMarkdown = flowchart.interfaceToMarkdown(
         { ...mockDtdlModellWithMetadata, metadata: { expanded: [], searchResults: ['dtmi:com:example;1'] } },
         mockDtdlObjectModel['dtmi:com:example;1'] as InterfaceType
       )
-      expect(interfaceAsMarkdown[1]).to.deep.equal(`class dtmi:com:example:1 search-result`)
+      expect(interfaceAsMarkdown[1]).to.deep.equal(`class dtmi:com:example:1 searchResult`)
     })
 
     it('should assign expanded class to interfaces in expanded', () => {

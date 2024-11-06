@@ -1,9 +1,9 @@
 import { EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
-import { DtdlId, MermaidId } from '../../models/strings.js'
+import { MermaidId } from '../../models/strings.js'
 import { getDisplayName } from '../dtdl/extract.js'
 import { DtdlModelWithMetadata } from '../dtdl/filter.js'
 import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
-import { defaultMarkdownFn, dtdlIdReinstateSemicolon, dtdlIdReplaceSemicolon } from './helpers.js'
+import { defaultMarkdownFn, dtdlIdReinstateSemicolon, dtdlIdReplaceSemicolon, getOutlineClass } from './helpers.js'
 
 const entityKindToShape = {
   Interface: 'subproc',
@@ -49,18 +49,6 @@ export default class Flowchart implements IDiagram<'flowchart'> {
     return graph
   }
 
-  getInterfaceOutlineClass(dtdlModelWithMetadata: DtdlModelWithMetadata, entityId: DtdlId): string {
-    const { metadata } = dtdlModelWithMetadata
-
-    if (!metadata.searchResults || metadata.searchResults?.includes(entityId)) {
-      return `search-result`
-    }
-    if (metadata.expanded?.includes(entityId)) {
-      return `expanded`
-    }
-    return `unexpanded`
-  }
-
   interfaceToMarkdown(dtdlModelWithMetadata: DtdlModelWithMetadata, entity: InterfaceType): string[] {
     const graph: string[] = []
     graph.push(this.createNodeString(entity))
@@ -68,9 +56,7 @@ export default class Flowchart implements IDiagram<'flowchart'> {
       graph.push(this.createEdgeString(parent, entity.Id))
     })
 
-    graph.push(
-      `class ${dtdlIdReplaceSemicolon(entity.Id)} ${this.getInterfaceOutlineClass(dtdlModelWithMetadata, entity.Id)}`
-    )
+    graph.push(`class ${dtdlIdReplaceSemicolon(entity.Id)} ${getOutlineClass(dtdlModelWithMetadata, entity.Id)}`)
 
     return graph
   }
