@@ -17,7 +17,7 @@ describe('RootController', async () => {
     sinon.restore()
   })
 
-  const controller = new RootController(simpleMockDtdlLoader, mockGenerator, templateMock, mockLogger, undefined)
+  const controller = new RootController(simpleMockDtdlLoader, mockGenerator, templateMock, mockLogger)
 
   describe('get', () => {
     it('should return rendered root template', async () => {

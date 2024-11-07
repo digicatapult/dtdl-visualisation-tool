@@ -1,12 +1,11 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
-import { DtdlModelWithMetadata } from '../filter'
 
 export const singleInterfaceFirst: DtdlObjectModel = {
   first: {
     EntityKind: 'Interface',
     Id: 'first',
   },
-} as unknown as DtdlModelWithMetadata
+} as unknown as DtdlObjectModel
 
 export const multipleInterfaces: DtdlObjectModel = {
   ...singleInterfaceFirst,
@@ -18,7 +17,7 @@ export const multipleInterfaces: DtdlObjectModel = {
     EntityKind: 'Interface',
     Id: 'third',
   },
-} as unknown as DtdlModelWithMetadata
+} as unknown as DtdlObjectModel
 
 export const multipleInterfacesAndRelationship: DtdlObjectModel = {
   ...multipleInterfaces,
@@ -34,7 +33,7 @@ export const multipleInterfacesAndRelationship: DtdlObjectModel = {
     ChildOf: 'third',
     target: 'invalid',
   },
-} as unknown as DtdlModelWithMetadata
+} as unknown as DtdlObjectModel
 
 export const expandedWithRelationships: DtdlObjectModel = {
   first: {
@@ -61,4 +60,4 @@ export const expandedWithRelationships: DtdlObjectModel = {
     target: 'second',
     ChildOf: 'third',
   },
-} as unknown as DtdlModelWithMetadata
+} as unknown as DtdlObjectModel

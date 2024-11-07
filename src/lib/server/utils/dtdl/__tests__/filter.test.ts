@@ -10,7 +10,7 @@ import {
 } from './fixtures.js'
 
 describe('filterModelByDisplayName', function () {
-  test('should return empty model for empty model', function () {
+  test('should return empty object for empty model', function () {
     const result = filterModelByDisplayName({}, 'test', [])
     expect(result).to.deep.equal({})
   })

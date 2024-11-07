@@ -16,9 +16,9 @@ describe('ClassDiagram', () => {
   })
   describe('interfaceToMarkdown', () => {
     it('should return a list of mermaid markdown string that represents an interface ', () => {
-      const entity = mockDtdlObjectModel['dtmi:com:example_extended;1'] as InterfaceType
-      //setVisualisationState(entity, 'search')
-      const interfaceAsMarkdown = classDiagram.interfaceToMarkdown(entity)
+      const interfaceAsMarkdown = classDiagram.interfaceToMarkdown(
+        mockDtdlObjectModel['dtmi:com:example_extended;1'] as InterfaceType
+      )
       const test = [
         'class `dtmi:com:example_extended:1`["example extended"] \nclick `dtmi:com:example_extended:1` call getEntity()',
         '`dtmi:com:example_extended:1` <|-- `dtmi:com:example:1`',

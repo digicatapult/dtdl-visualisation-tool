@@ -22,7 +22,7 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
   }
   entityKindToMarkdown: Partial<EntityTypeToMarkdownFn> = {
     Interface: (_, entity) => this.interfaceToMarkdown(entity),
-    Relationship: (dtdlModelWithMetadata, entity) => this.relationshipToMarkdown(dtdlModelWithMetadata, entity),
+    Relationship: (dtdlObjectModel, entity) => this.relationshipToMarkdown(dtdlObjectModel, entity),
   }
 
   constructor() {}
@@ -60,9 +60,9 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
     edge += label ? ` : ${label}` : ''
     return edge
   }
-  relationshipToMarkdown(dtdlModelWithMetadata: DtdlObjectModel, entity: RelationshipType): string[] {
+  relationshipToMarkdown(dtdlObjectModel: DtdlObjectModel, entity: RelationshipType): string[] {
     const graph: string[] = []
-    if (entity.ChildOf && entity.target && entity.target in dtdlModelWithMetadata) {
+    if (entity.ChildOf && entity.target && entity.target in dtdlObjectModel) {
       graph.push(this.createEdgeString(entity.ChildOf, entity.target, ArrowType.Association, entity.name))
     }
     return graph

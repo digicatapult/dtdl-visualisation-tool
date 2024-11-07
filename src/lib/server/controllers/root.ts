@@ -10,7 +10,6 @@ import { dtdlIdReinstateSemicolon } from '../utils/mermaid/helpers.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
-export const LastSearchToken = 'LastSearchToken'
 @singleton()
 @injectable()
 @Route()
