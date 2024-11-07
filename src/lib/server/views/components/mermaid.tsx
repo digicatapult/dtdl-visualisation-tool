@@ -10,7 +10,7 @@ const commonUpdateAttrs = {
   'hx-target': '#mermaid-output',
   'hx-get': '/update-layout',
   'hx-swap': 'outerHTML',
-  'hx-include': '#layout-buttons',
+  'hx-include': '#search-panel',
 }
 
 @singleton()
@@ -31,7 +31,7 @@ export default class MermaidTemplates {
     diagramType: DiagramType
   }) => (
     <Page title={'Mermaid Ontology visualiser'}>
-      <this.layoutForm layout={layout} search={search} highlightNodeId={highlightNodeId} diagramType={diagramType} />
+      <this.searchPanel layout={layout} search={search} highlightNodeId={highlightNodeId} diagramType={diagramType} />
 
       <div id="mermaid-wrapper">
         <this.mermaidTarget target="mermaid-output" generatedOutput={generatedOutput} />
@@ -75,7 +75,7 @@ export default class MermaidTemplates {
     )
   }
 
-  public layoutForm = ({
+  public searchPanel = ({
     search,
     layout,
     swapOutOfBand,
@@ -89,12 +89,13 @@ export default class MermaidTemplates {
     diagramType: DiagramType
   }) => {
     return (
-      <form id="layout-buttons" class="button-group" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
+      <form id="search-panel" class="button-group" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
         <input
           id="search"
           name="search"
           type="search"
           value={escapeHtml(search || '')}
+          placeholder="Search"
           hx-trigger="input changed delay:500ms, search"
           hx-sync="this:replace"
           {...commonUpdateAttrs}

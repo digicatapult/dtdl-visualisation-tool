@@ -4,16 +4,18 @@ import { getDisplayName } from '../dtdl/extract.js'
 import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
 import { defaultMarkdownFn, dtdlIdReinstateSemicolon, dtdlIdReplaceSemicolon } from './helpers.js'
 
-export enum ArrowType {
-  Inheritance = '<|--',
-  Composition = '*--',
-  Aggregation = 'o--',
-  Association = '-->',
-  LinkSolid = '--',
-  Dependency = '..>',
-  Realization = '..|>',
-  LinkDashed = '..',
+export const arrowTypes = {
+  Inheritance: '<|--',
+  Composition: '*--',
+  Aggregation: 'o--',
+  Association: '-->',
+  LinkSolid: '--',
+  Dependency: '..>',
+  Realization: '..|>',
+  LinkDashed: '..',
 }
+
+export type ArrowType = (typeof arrowTypes)[keyof typeof arrowTypes]
 
 export default class ClassDiagram implements IDiagram<'classDiagram'> {
   get diagramType(): 'classDiagram' {
@@ -22,7 +24,6 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
   entityKindToMarkdown: Partial<EntityTypeToMarkdownFn> = {
     Interface: (_, entity) => this.interfaceToMarkdown(entity),
     Relationship: (dtdlObjectModel, entity) => this.relationshipToMarkdown(dtdlObjectModel, entity),
-    // Property: (_, entity) => this.propertyToMarkdown(entity),
   }
 
   constructor() {}
@@ -63,7 +64,7 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
   relationshipToMarkdown(dtdlObjectModel: DtdlObjectModel, entity: RelationshipType): string[] {
     const graph: string[] = []
     if (entity.ChildOf && entity.target && entity.target in dtdlObjectModel) {
-      graph.push(this.createEdgeString(entity.ChildOf, entity.target, ArrowType.Association, entity.name))
+      graph.push(this.createEdgeString(entity.ChildOf, entity.target, arrowTypes.Association, entity.name))
     }
     return graph
   }
@@ -71,7 +72,7 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
     const graph: string[] = []
     graph.push(this.createNodeString(entity))
     entity.extends.map((parent) => {
-      graph.push(this.createEdgeString(entity.Id, parent, ArrowType.Inheritance))
+      graph.push(this.createEdgeString(entity.Id, parent, arrowTypes.Inheritance))
     })
     const properties = Object.entries(entity.properties)
     properties.flatMap(([name]) => {

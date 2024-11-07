@@ -1,7 +1,7 @@
 import { InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
-import ClassDiagram, { ArrowType } from '../classDiagram'
+import ClassDiagram, { arrowTypes } from '../classDiagram'
 import { classDiagramFixture, mockDtdlModelWithProperty, mockDtdlObjectModel } from './fixtures'
 
 describe('ClassDiagram', () => {
@@ -69,7 +69,7 @@ describe('ClassDiagram', () => {
       const edgeStringWithoutLabel = classDiagram.createEdgeString(
         'dtmi:com:nodeTo;1',
         'dtmi:com:nodeFrom;1',
-        ArrowType.Association
+        arrowTypes.Association
       )
       const test = '`dtmi:com:nodeTo:1` --> `dtmi:com:nodeFrom:1`'
       expect(edgeStringWithoutLabel).to.equal(test)

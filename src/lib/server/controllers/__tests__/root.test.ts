@@ -40,24 +40,24 @@ describe('RootController', async () => {
   })
 
   describe('updateLayout', () => {
-    it('should return templated mermaidMarkdown and layoutForm', async () => {
+    it('should return templated mermaidMarkdown and searchPanel', async () => {
       const req = mockReq({})
       const result = await controller.updateLayout(req, defaultParams).then(toHTMLString)
       expect(result).to.equal(
         [
           `mermaidTarget_${generatedSVGFixture}_mermaid-output_mermaidTarget`,
-          `layoutForm_undefined_dagre-d3_true_layoutForm`,
+          `searchPanel_undefined_dagre-d3_true_searchPanel`,
         ].join('')
       )
     })
 
-    it('should return templated mermaidMarkdown and layoutForm filtered', async () => {
+    it('should return templated mermaidMarkdown and searchPanel filtered', async () => {
       const req = mockReq({})
       const result = await controller.updateLayout(req, { ...defaultParams, search: 'example 1' }).then(toHTMLString)
       expect(result).to.equal(
         [
           `mermaidTarget_${generatedSVGFixture}_mermaid-output_mermaidTarget`,
-          `layoutForm_example 1_dagre-d3_true_layoutForm`,
+          `searchPanel_example 1_dagre-d3_true_searchPanel`,
         ].join('')
       )
     })

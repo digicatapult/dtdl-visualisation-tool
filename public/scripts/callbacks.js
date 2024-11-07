@@ -4,7 +4,7 @@ const zoomOutButton = document.getElementById('zoom-out')
 
 globalThis.getEntity = function getEntity(id) {
   htmx.ajax('GET', `/entity/${id}`, '#navigationPanelContent')
-  const layout = htmx.values(htmx.find('#layout-buttons'))
+  const layout = htmx.values(htmx.find('#search-panel'))
   htmx.ajax('GET', `/update-layout`, { target: '#mermaid-output', values: { ...layout, highlightNodeId: id } })
 }
 
