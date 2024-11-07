@@ -20,12 +20,10 @@ export class RootController extends HTMLController {
     private dtdlLoader: DtdlLoader,
     private generator: SvgGenerator,
     private templates: MermaidTemplates,
-    @inject(Logger) private logger: ILogger,
-    @inject(LastSearchToken) private lastSearch: string | undefined
+    @inject(Logger) private logger: ILogger
   ) {
     super()
     this.logger = logger.child({ controller: '/' })
-    this.lastSearch = ''
   }
 
   @SuccessResponse(200)
@@ -40,6 +38,7 @@ export class RootController extends HTMLController {
         highlightNodeId: params.highlightNodeId,
         expandedIds: params.expandedIds,
         diagramType: params.diagramType,
+        lastSearch: params.lastSearch,
       })
     )
   }
@@ -49,11 +48,7 @@ export class RootController extends HTMLController {
   public async updateLayout(@Request() req: express.Request, @Queries() params: QueryParams): Promise<HTML> {
     this.logger.debug('search: %o', { search: params.search, layout: params.layout })
 
-    //reset expanded on new search
-    if (this.lastSearch && this.lastSearch !== params.search) {
-      params.expandedIds = []
-    }
-    this.lastSearch = params.search
+    if (params.search !== params.lastSearch) params.expandedIds = []
 
     params.expandedIds = [...new Set(params.expandedIds)] // remove duplicates
 
@@ -82,6 +77,7 @@ export class RootController extends HTMLController {
         highlightNodeId: params.highlightNodeId,
         expandedIds: params.expandedIds,
         diagramType: params.diagramType,
+        lastSearch: params.search,
       })
     )
   }

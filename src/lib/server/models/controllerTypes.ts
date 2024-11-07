@@ -19,4 +19,5 @@ export interface QueryParams {
   highlightNodeId?: string
   search?: string
   expandedIds?: string[]
+  lastSearch?: string
 }
