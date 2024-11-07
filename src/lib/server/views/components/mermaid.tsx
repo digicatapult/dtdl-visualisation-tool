@@ -117,7 +117,7 @@ export default class MermaidTemplates {
         <input id="highlightNodeId" name="highlightNodeId" type="hidden" value={escapeHtml(highlightNodeId || '')} />
         <input id="lastSearch" name="lastSearch" type="hidden" value={escapeHtml(lastSearch || '')} />
         {expandedIds?.map((id, index) => (
-          <input id={`expandedIds_${index}`} name="expandedIds[]" type="hidden" value={id} />
+          <input id={`expandedIds_${index}`} name="expandedIds" type="hidden" value={id} />
         ))}
         <select
           id="layout"

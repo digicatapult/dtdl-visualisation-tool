@@ -8,7 +8,7 @@ globalThis.getEntity = function getEntity(id) {
   htmx.ajax('GET', `/entity/${id}`, '#navigationPanelContent')
   const layout = htmx.values(htmx.find('#layout-buttons'))
 
-  const expandedIdsValue = layout['expandedIds[]'] ?? []
+  const expandedIdsValue = layout['expandedIds'] ?? []
   // htmx.values returns single items as a string rather than array
   let expandedIds = Array.isArray(expandedIdsValue) ? expandedIdsValue : [expandedIdsValue]
 
@@ -27,7 +27,7 @@ globalThis.getEntity = function getEntity(id) {
     values: {
       ...layout,
       highlightNodeId: id,
-      'expandedIds[]': expandedIds,
+      expandedIds: expandedIds,
     },
   })
 }

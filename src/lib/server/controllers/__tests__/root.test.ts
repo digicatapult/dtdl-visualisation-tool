@@ -102,7 +102,7 @@ describe('RootController', async () => {
       expect(stub.firstCall.args).to.deep.equal(['Content-Type', 'text/html'])
     })
 
-    it('should remove duplicate expandedIds[]', async () => {
+    it('should remove duplicate expandedIds', async () => {
       const stub = sinon.stub(controller, 'setHeader')
 
       const req = mockReq({
@@ -112,11 +112,11 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        encodeURI('/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&expandedIds[]=1'),
+        encodeURI('/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&expandedIds=1'),
       ])
     })
 
-    it('should append multiple expandedIds[]', async () => {
+    it('should append multiple expandedIds', async () => {
       const stub = sinon.stub(controller, 'setHeader')
 
       const req = mockReq({
@@ -126,7 +126,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        encodeURI('/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&expandedIds[]=1&expandedIds[]=2'),
+        encodeURI('/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&expandedIds=1&expandedIds=2'),
       ])
     })
   })
