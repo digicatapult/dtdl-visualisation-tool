@@ -7,6 +7,7 @@ import { DiagramType } from '../../models/mermaidDiagrams.js'
 import ClassDiagram from './classDiagram.js'
 import { IDiagram } from './diagramInterface.js'
 import Flowchart from './flowchart.js'
+import { JSDOM } from 'jsdom'
 
 @singleton()
 export class SvgGenerator {
@@ -33,7 +34,6 @@ export class SvgGenerator {
           htmlLabels: false,
         },
         maxTextSize: 99999999,
-        securityLevel: 'loose',
         maxEdges: 99999999,
         layout: params.layout,
       },
@@ -48,6 +48,21 @@ export class SvgGenerator {
 
     const { data } = await renderMermaid(await this.browser, graph, params.output, parseMDDOptions)
     const decoder = new TextDecoder()
+    const nodeIdPattern = /^[^-]+\-(.+)\-\d+$/
+    const dom = new JSDOM(decoder.decode(data), { contentType: 'image/svg+xml' })
+    const document = dom.window.document
+    const svgElement = document.querySelector('svg')
+    if (!svgElement) return 'No graph'
+
+    let nodes = svgElement.getElementsByClassName('node clickable')
+    for (let node of nodes) {
+      let mermaidId = node.id.match(nodeIdPattern)
+      if (mermaidId === null) {
+        continue
+      }
+      node.setAttribute('onclick', `getEntity('${mermaidId[1]}')`)
+    }
+
     return decoder.decode(data)
   }
 }
