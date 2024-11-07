@@ -16,14 +16,14 @@ g.expanded.highlighted rect {
   outline-offset: -2px;
 }
 
-g.searchResult polygon,
-g.searchResult rect {
+g.search polygon,
+g.search rect {
   outline: 2px solid #9370db;
   outline-offset: -2px;
 }
 
-g.searchResult.highlighted polygon,
-g.searchResult.highlighted rect {
+g.search.highlighted polygon,
+g.search.highlighted rect {
   outline: 4px solid #9370db;
   outline-offset: -2px;
 }

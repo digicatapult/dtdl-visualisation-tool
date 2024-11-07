@@ -112,7 +112,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        encodeURI('/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&expandedIds=1'),
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&expandedIds=1',
       ])
     })
 
@@ -126,7 +126,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        encodeURI('/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&expandedIds=1&expandedIds=2'),
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&expandedIds=1&expandedIds=2',
       ])
     })
   })

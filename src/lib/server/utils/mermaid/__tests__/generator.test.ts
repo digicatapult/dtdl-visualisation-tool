@@ -6,10 +6,9 @@ import { SvgGenerator } from '../generator'
 import {
   classDiagramFixtureSimple,
   classDiagramFixtureSimpleHighlighted,
-  emptyModel,
   flowchartFixtureSimple,
   flowchartFixtureSimpleHighlighted,
-  simpleDtdlModelWithMetadata,
+  simpleMockDtdlObjectModel,
 } from './fixtures'
 import { checkIfStringIsSVG } from './helpers'
 
@@ -19,7 +18,7 @@ describe('Generator', () => {
   describe('mermaidMarkdownByChartType', () => {
     it('should return a flowchart graph for a simple dtdl model', () => {
       const markdown = generator.mermaidMarkdownByDiagramType['flowchart'].generateMarkdown(
-        simpleDtdlModelWithMetadata,
+        simpleMockDtdlObjectModel,
         ' TD'
       )
       expect(markdown).to.equal(flowchartFixtureSimple)
@@ -27,7 +26,7 @@ describe('Generator', () => {
 
     it('should return a flowchart graph for a simple dtdl model with highlighted node', () => {
       const markdown = generator.mermaidMarkdownByDiagramType['flowchart'].generateMarkdown(
-        simpleDtdlModelWithMetadata,
+        simpleMockDtdlObjectModel,
         ' TD',
         'dtmi:com:example:1'
       )
@@ -36,7 +35,7 @@ describe('Generator', () => {
 
     it('should return a classDiagram graph for a simple dtdl model', () => {
       const markdown = generator.mermaidMarkdownByDiagramType['classDiagram'].generateMarkdown(
-        simpleDtdlModelWithMetadata,
+        simpleMockDtdlObjectModel,
         ' TD'
       )
       expect(markdown).to.equal(classDiagramFixtureSimple)
@@ -44,7 +43,7 @@ describe('Generator', () => {
 
     it('should return a classDiagram graph for a simple dtdl model with highlighted node', () => {
       const markdown = generator.mermaidMarkdownByDiagramType['classDiagram'].generateMarkdown(
-        simpleDtdlModelWithMetadata,
+        simpleMockDtdlObjectModel,
         ' TD',
         'dtmi:com:example:1'
       )
@@ -53,7 +52,7 @@ describe('Generator', () => {
 
     it('should return null for empty object model', () => {
       const markdown = generator.mermaidMarkdownByDiagramType['flowchart'].generateMarkdown(
-        emptyModel,
+        {},
         ' TD',
         'dtmi:com:example:1'
       )
@@ -71,12 +70,12 @@ describe('Generator', () => {
     }
 
     it('should return no graph for empty object model', async () => {
-      const generatedOutput = await generator.run(emptyModel, defaultParams, options)
+      const generatedOutput = await generator.run({}, defaultParams, options)
       expect(generatedOutput).to.equal(`No graph`)
     })
 
     it('should return a simple svg', async () => {
-      const generatedOutput = await generator.run(simpleDtdlModelWithMetadata, defaultParams, options)
+      const generatedOutput = await generator.run(simpleMockDtdlObjectModel, defaultParams, options)
       expect(checkIfStringIsSVG(generatedOutput)).to.equal(true)
     })
   })

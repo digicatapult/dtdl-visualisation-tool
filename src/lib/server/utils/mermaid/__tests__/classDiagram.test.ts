@@ -2,54 +2,46 @@ import { InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import ClassDiagram, { ArrowType } from '../classDiagram'
-import {
-  classDiagramFixture,
-  emptyModel,
-  mockDtdlModellWithMetadata,
-  mockDtdlModelWithProperty,
-  mockDtdlObjectModel,
-} from './fixtures'
+import { classDiagramFixture, mockDtdlModelWithProperty, mockDtdlObjectModel } from './fixtures'
 
 describe('ClassDiagram', () => {
   const classDiagram = new ClassDiagram()
   describe('generateMarkdown', () => {
     it('should return a flowchart in markdown', () => {
-      expect(classDiagram.generateMarkdown(mockDtdlModellWithMetadata)).to.equal(classDiagramFixture)
+      expect(classDiagram.generateMarkdown(mockDtdlObjectModel)).to.equal(classDiagramFixture)
     })
     it('should return null for a empty Dtdl model', () => {
-      expect(classDiagram.generateMarkdown(emptyModel)).to.equal(null)
+      expect(classDiagram.generateMarkdown({})).to.equal(null)
     })
   })
   describe('interfaceToMarkdown', () => {
     it('should return a list of mermaid markdown string that represents an interface ', () => {
-      const interfaceAsMarkdown = classDiagram.interfaceToMarkdown(
-        mockDtdlModellWithMetadata,
-        mockDtdlObjectModel['dtmi:com:example_extended;1'] as InterfaceType
-      )
+      const entity = mockDtdlObjectModel['dtmi:com:example_extended;1'] as InterfaceType
+      //setVisualisationState(entity, 'search')
+      const interfaceAsMarkdown = classDiagram.interfaceToMarkdown(entity)
       const test = [
         'class `dtmi:com:example_extended:1`["example extended"] \nclick `dtmi:com:example_extended:1` call getEntity()',
         '`dtmi:com:example_extended:1` <|-- `dtmi:com:example:1`',
-        'class `dtmi:com:example_extended:1`:::searchResult',
+        'class `dtmi:com:example_extended:1`:::search',
       ]
       expect(interfaceAsMarkdown).to.deep.equal(test)
     })
-    it('should return a list of mermaid markdown string that represents a relationship ', () => {
+    it('should return a list of mermaid markdown string that represents a relationship', () => {
       const propertyAsMarkdown = classDiagram.interfaceToMarkdown(
-        mockDtdlModellWithMetadata,
         mockDtdlModelWithProperty['dtmi:com:example;1'] as InterfaceType
       )
       const test = [
         'class `dtmi:com:example:1`["example 1"] \nclick `dtmi:com:example:1` call getEntity()',
         '`dtmi:com:example:1` : example_property',
-        'class `dtmi:com:example:1`:::searchResult',
+        'class `dtmi:com:example:1`:::search',
       ]
       expect(propertyAsMarkdown).to.deep.equal(test)
     })
   })
   describe('relationshipToMarkdown', () => {
-    it('should return a list of mermaid markdown string that represents a relationship ', () => {
+    it('should return a list of mermaid markdown string that represents a relationship', () => {
       const relationshipAsMarkdown = classDiagram.relationshipToMarkdown(
-        mockDtdlModellWithMetadata,
+        mockDtdlObjectModel,
         mockDtdlObjectModel['dtmi:com:example_relationship;1'] as RelationshipType
       )
       const test = ['`dtmi:com:example:1` --> `dtmi:com:example_related:1` : A relationship']
@@ -57,7 +49,7 @@ describe('ClassDiagram', () => {
     })
     it('should return undefined for a relationship with an undefined interface', () => {
       const relationshipAsMarkdown = classDiagram.relationshipToMarkdown(
-        mockDtdlModellWithMetadata,
+        mockDtdlObjectModel,
         mockDtdlObjectModel['dtmi:com:example_relationship_undefined_interface;1'] as RelationshipType
       )
       const test = []

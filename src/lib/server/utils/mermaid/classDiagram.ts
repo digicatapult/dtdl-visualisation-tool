@@ -1,9 +1,9 @@
-import { EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
+import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 import { DtdlId, MermaidId } from '../../models/strings.js'
 import { getDisplayName } from '../dtdl/extract.js'
-import { DtdlModelWithMetadata } from '../dtdl/filter.js'
+import { getVisualisationState } from '../dtdl/filter.js'
 import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
-import { defaultMarkdownFn, dtdlIdReinstateSemicolon, dtdlIdReplaceSemicolon, getOutlineClass } from './helpers.js'
+import { defaultMarkdownFn, dtdlIdReinstateSemicolon, dtdlIdReplaceSemicolon } from './helpers.js'
 
 export enum ArrowType {
   Inheritance = '<|--',
@@ -21,7 +21,7 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
     return 'classDiagram'
   }
   entityKindToMarkdown: Partial<EntityTypeToMarkdownFn> = {
-    Interface: (dtdlModelWithMetadata, entity) => this.interfaceToMarkdown(dtdlModelWithMetadata, entity),
+    Interface: (_, entity) => this.interfaceToMarkdown(entity),
     Relationship: (dtdlModelWithMetadata, entity) => this.relationshipToMarkdown(dtdlModelWithMetadata, entity),
   }
 
@@ -30,20 +30,19 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
   safeClassName = (className: string): string => `\`${dtdlIdReplaceSemicolon(className)}\``
 
   generateMarkdown(
-    dtdlModelWithMetadata: DtdlModelWithMetadata,
+    dtdlObjectModel: DtdlObjectModel,
     direction: Direction = ' TD',
     highlightNodeId?: MermaidId
   ): string | null {
-    const { model } = dtdlModelWithMetadata
     const graph: string[] = []
-    for (const entity in model) {
-      const entityObject: EntityType = model[entity]
+    for (const entity in dtdlObjectModel) {
+      const entityObject: EntityType = dtdlObjectModel[entity]
       const markdown = (this.entityKindToMarkdown[entityObject.EntityKind] || defaultMarkdownFn) as NarrowMappingFn<
         (typeof entityObject)['EntityKind']
       >
-      graph.push(...markdown(dtdlModelWithMetadata, entityObject))
+      graph.push(...markdown(dtdlObjectModel, entityObject))
     }
-    if (highlightNodeId && dtdlIdReinstateSemicolon(highlightNodeId) in model) {
+    if (highlightNodeId && dtdlIdReinstateSemicolon(highlightNodeId) in dtdlObjectModel) {
       graph.push(`\nclass ${this.safeClassName(highlightNodeId)}:::highlighted`)
     }
     if (graph.length === 0) {
@@ -61,14 +60,14 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
     edge += label ? ` : ${label}` : ''
     return edge
   }
-  relationshipToMarkdown(dtdlModelWithMetadata: DtdlModelWithMetadata, entity: RelationshipType): string[] {
+  relationshipToMarkdown(dtdlModelWithMetadata: DtdlObjectModel, entity: RelationshipType): string[] {
     const graph: string[] = []
-    if (entity.ChildOf && entity.target && entity.target in dtdlModelWithMetadata.model) {
+    if (entity.ChildOf && entity.target && entity.target in dtdlModelWithMetadata) {
       graph.push(this.createEdgeString(entity.ChildOf, entity.target, ArrowType.Association, entity.name))
     }
     return graph
   }
-  interfaceToMarkdown(dtdlModelWithMetadata: DtdlModelWithMetadata, entity: InterfaceType): string[] {
+  interfaceToMarkdown(entity: InterfaceType): string[] {
     const graph: string[] = []
     graph.push(this.createNodeString(entity))
     entity.extends.map((parent) => {
@@ -79,7 +78,7 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
       graph.push(`${this.safeClassName(entity.Id)} : ${name}`)
     })
 
-    graph.push(`class ${this.safeClassName(entity.Id)}:::${getOutlineClass(dtdlModelWithMetadata, entity.Id)}`)
+    graph.push(`class ${this.safeClassName(entity.Id)}:::${getVisualisationState(entity)}`)
 
     return graph
   }

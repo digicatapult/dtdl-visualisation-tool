@@ -1,5 +1,4 @@
 import { DtdlId, MermaidId } from '../../models/strings'
-import { DtdlModelWithMetadata } from '../dtdl/filter'
 export const defaultMarkdownFn = (): string[] => []
 
 /*
@@ -12,16 +11,4 @@ export const dtdlIdReplaceSemicolon = (idWithSemicolon: DtdlId): MermaidId => {
 
 export const dtdlIdReinstateSemicolon = (idWithColon: MermaidId): DtdlId => {
   return idWithColon.replace(/:(?=\d+$)/, ';') // replace final : with ;
-}
-
-export const getOutlineClass = (dtdlModelWithMetadata: DtdlModelWithMetadata, entityId: DtdlId): string => {
-  const { metadata } = dtdlModelWithMetadata
-
-  if (!metadata.searchResults || metadata.searchResults?.includes(entityId)) {
-    return `searchResult`
-  }
-  if (metadata.expanded?.includes(entityId)) {
-    return `expanded`
-  }
-  return `unexpanded`
 }

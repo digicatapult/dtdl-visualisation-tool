@@ -1,9 +1,9 @@
-import { EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
+import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 import { MermaidId } from '../../models/strings.js'
 import { getDisplayName } from '../dtdl/extract.js'
-import { DtdlModelWithMetadata } from '../dtdl/filter.js'
+import { getVisualisationState } from '../dtdl/filter.js'
 import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
-import { defaultMarkdownFn, dtdlIdReinstateSemicolon, dtdlIdReplaceSemicolon, getOutlineClass } from './helpers.js'
+import { defaultMarkdownFn, dtdlIdReinstateSemicolon, dtdlIdReplaceSemicolon } from './helpers.js'
 
 const entityKindToShape = {
   Interface: 'subproc',
@@ -16,8 +16,8 @@ export default class Flowchart implements IDiagram<'flowchart'> {
   }
 
   entityKindToMarkdown: Partial<EntityTypeToMarkdownFn> = {
-    Interface: (dtdlModelWithMetadata, entity) => this.interfaceToMarkdown(dtdlModelWithMetadata, entity),
-    Relationship: (dtdlModelWithMetadata, entity) => this.relationshipToMarkdown(dtdlModelWithMetadata, entity),
+    Interface: (_, entity) => this.interfaceToMarkdown(entity),
+    Relationship: (dtdlObjectModel, entity) => this.relationshipToMarkdown(dtdlObjectModel, entity),
   }
 
   constructor() {}
@@ -41,41 +41,40 @@ export default class Flowchart implements IDiagram<'flowchart'> {
     return `${dtdlIdReplaceSemicolon(nodeFrom)} --- ${label ? '|' + label + '|' : ``} ${dtdlIdReplaceSemicolon(nodeTo)}`
   }
 
-  relationshipToMarkdown(dtdlModelWithMetadata: DtdlModelWithMetadata, entity: RelationshipType): string[] {
+  relationshipToMarkdown(dtdlObjectModel: DtdlObjectModel, entity: RelationshipType): string[] {
     const graph: string[] = []
-    if (entity.ChildOf && entity.target && entity.target in dtdlModelWithMetadata.model) {
+    if (entity.ChildOf && entity.target && entity.target in dtdlObjectModel) {
       graph.push(this.createEdgeString(entity.ChildOf, entity.target, entity.name))
     }
     return graph
   }
 
-  interfaceToMarkdown(dtdlModelWithMetadata: DtdlModelWithMetadata, entity: InterfaceType): string[] {
+  interfaceToMarkdown(entity: InterfaceType): string[] {
     const graph: string[] = []
     graph.push(this.createNodeString(entity))
     entity.extends.map((parent) => {
       graph.push(this.createEdgeString(parent, entity.Id))
     })
 
-    graph.push(`class ${dtdlIdReplaceSemicolon(entity.Id)} ${getOutlineClass(dtdlModelWithMetadata, entity.Id)}`)
+    graph.push(`class ${dtdlIdReplaceSemicolon(entity.Id)} ${getVisualisationState(entity)}`)
 
     return graph
   }
 
   generateMarkdown(
-    dtdlModelWithMetadata: DtdlModelWithMetadata,
+    dtdlObjectModel: DtdlObjectModel,
     direction: Direction = ' TD',
     highlightNodeId?: MermaidId
   ): string | null {
-    const { model } = dtdlModelWithMetadata
     const graph: string[] = []
-    for (const entity in model) {
-      const entityObject: EntityType = model[entity]
+    for (const entity in dtdlObjectModel) {
+      const entityObject: EntityType = dtdlObjectModel[entity]
       const markdown = (this.entityKindToMarkdown[entityObject.EntityKind] || defaultMarkdownFn) as NarrowMappingFn<
         (typeof entityObject)['EntityKind']
       >
-      graph.push(...markdown(dtdlModelWithMetadata, entityObject))
+      graph.push(...markdown(dtdlObjectModel, entityObject))
     }
-    if (highlightNodeId && dtdlIdReinstateSemicolon(highlightNodeId) in model) {
+    if (highlightNodeId && dtdlIdReinstateSemicolon(highlightNodeId) in dtdlObjectModel) {
       graph.push(`\nclass ${highlightNodeId} highlighted`)
     }
 

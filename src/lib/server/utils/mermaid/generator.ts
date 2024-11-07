@@ -1,9 +1,9 @@
+import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { renderMermaid, type ParseMDDOptions } from '@mermaid-js/mermaid-cli'
 import puppeteer, { Browser } from 'puppeteer'
 import { singleton } from 'tsyringe'
 import { QueryParams } from '../../models/controllerTypes.js'
 import { DiagramType } from '../../models/mermaidDiagrams.js'
-import { DtdlModelWithMetadata } from '../dtdl/filter.js'
 import ClassDiagram from './classDiagram.js'
 import { IDiagram } from './diagramInterface.js'
 import Flowchart from './flowchart.js'
@@ -22,11 +22,7 @@ export class SvgGenerator {
     classDiagram: new ClassDiagram(),
   }
 
-  async run(
-    dtdlModelWithMetadata: DtdlModelWithMetadata,
-    params: QueryParams,
-    options: ParseMDDOptions = {}
-  ): Promise<string> {
+  async run(dtdlObject: DtdlObjectModel, params: QueryParams, options: ParseMDDOptions = {}): Promise<string> {
     //  Mermaid config
     const parseMDDOptions: ParseMDDOptions = {
       ...options,
@@ -44,7 +40,7 @@ export class SvgGenerator {
     }
 
     const graph = this.mermaidMarkdownByDiagramType[params.diagramType].generateMarkdown(
-      dtdlModelWithMetadata,
+      dtdlObject,
       ' TD',
       params.highlightNodeId
     )

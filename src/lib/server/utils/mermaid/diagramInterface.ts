@@ -1,4 +1,4 @@
-import { EntityType } from '@digicatapult/dtdl-parser'
+import { DtdlObjectModel, EntityType } from '@digicatapult/dtdl-parser'
 import { DiagramType } from '../../models/mermaidDiagrams'
 import { MermaidId } from '../../models/strings'
 import { DtdlModelWithMetadata } from '../dtdl/filter'
@@ -18,9 +18,5 @@ export type EntityTypeToMarkdownFn = {
 
 export interface IDiagram<D extends DiagramType> {
   get diagramType(): D
-  generateMarkdown(
-    dtdlModelWithMetadata: DtdlModelWithMetadata,
-    direction: Direction,
-    highlightNodeId?: MermaidId
-  ): string | null
+  generateMarkdown(dtdlObjectModel: DtdlObjectModel, direction: Direction, highlightNodeId?: MermaidId): string | null
 }

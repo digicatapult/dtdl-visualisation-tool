@@ -4,7 +4,7 @@ import { inject, injectable, singleton } from 'tsyringe'
 import { type ILogger, Logger } from '../logger.js'
 import { type QueryParams } from '../models/controllerTypes.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
-import { DtdlModelWithMetadata, filterModelByDisplayName } from '../utils/dtdl/filter.js'
+import { filterModelByDisplayName } from '../utils/dtdl/filter.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
 import { dtdlIdReinstateSemicolon } from '../utils/mermaid/helpers.js'
 import MermaidTemplates from '../views/components/mermaid.js'
@@ -50,19 +50,17 @@ export class RootController extends HTMLController {
 
     if (params.search !== params.lastSearch) params.expandedIds = []
 
-    params.expandedIds = [...new Set(params.expandedIds)] // remove duplicates
+    params.expandedIds = [...new Set(params.expandedIds?.map(dtdlIdReinstateSemicolon))] // remove duplicates
 
     const current = this.getCurrentPathQuery(req)
     if (current) {
       this.setReplaceUrl(current, params)
     }
 
-    let model: DtdlModelWithMetadata = {
-      metadata: { expanded: params.expandedIds.map(dtdlIdReinstateSemicolon) },
-      model: this.dtdlLoader.getDefaultDtdlModel(),
-    }
+    let model = this.dtdlLoader.getDefaultDtdlModel()
+
     if (params.search) {
-      model = filterModelByDisplayName(model, params.search)
+      model = filterModelByDisplayName(model, params.search, params.expandedIds)
     }
 
     return this.html(
@@ -107,8 +105,8 @@ export class RootController extends HTMLController {
     for (const param in params) {
       const value = params[param]
       if (Array.isArray(value)) {
-        query.delete(`${param}[]`)
-        value.forEach((item) => query.append(`${param}[]`, item))
+        query.delete(param)
+        value.forEach((item) => query.append(param, item))
       } else {
         query.set(param, value)
       }

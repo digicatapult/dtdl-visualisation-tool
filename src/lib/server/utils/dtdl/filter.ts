@@ -1,13 +1,35 @@
 import { DtdlObjectModel, EntityType, RelationshipType } from '@digicatapult/dtdl-parser'
 
+import { DtdlId } from '../../models/strings.js'
 import { getDisplayName } from './extract.js'
 
+export const stateSymbol = Symbol('visualisationState')
+type VisualisationState = 'unexpanded' | 'expanded' | 'search'
+
 export type DtdlModelWithMetadata = {
-  model: DtdlObjectModel
-  metadata: {
-    expanded: string[]
-    searchResults?: string[]
+  [key in string]: EntityType & { [stateSymbol]?: VisualisationState }
+}
+
+export const getVisualisationState = (entity: EntityType): string => {
+  return entity?.[stateSymbol]
+}
+
+export const setVisualisationState = (entity: EntityType, value: string) => {
+  entity[stateSymbol] = value
+}
+
+const determineVisualisationState = (
+  entityId: DtdlId,
+  searchIds: Set<DtdlId>,
+  expandedIds: DtdlId[]
+): VisualisationState => {
+  if (searchIds.size === 0 || searchIds.has(entityId)) {
+    return `search`
   }
+  if (expandedIds.includes(entityId)) {
+    return `expanded`
+  }
+  return `unexpanded`
 }
 
 const interfaceFilter = (name: string) => {
@@ -40,22 +62,22 @@ const relationshipFilter =
   }
 
 export const filterModelByDisplayName = (
-  dtdlModelWithMetadata: DtdlModelWithMetadata,
-  name: string
+  dtdlObjectModel: DtdlObjectModel,
+  name: string,
+  expanded: string[]
 ): DtdlModelWithMetadata => {
-  const { metadata, model } = dtdlModelWithMetadata
-  const entityPairs = Object.entries(model)
+  const entityPairs = Object.entries(dtdlObjectModel)
 
   const matchingIds = new Set(entityPairs.filter(interfaceFilter(name)).map(([, { Id }]) => Id))
 
-  if (matchingIds.size === 0 || !metadata.expanded.every((id) => id in model)) {
-    return { metadata, model: {} }
+  if (matchingIds.size === 0 || !expanded.every((id) => id in dtdlObjectModel)) {
+    return {}
   }
 
-  const allExpandedIds = new Set([...matchingIds, ...metadata.expanded])
+  const allExpandedIds = new Set([...matchingIds, ...expanded])
 
   const matchingRelationships = new Set(
-    entityPairs.filter(relationshipFilter(model, allExpandedIds)).flatMap(([, entity]) => {
+    entityPairs.filter(relationshipFilter(dtdlObjectModel, allExpandedIds)).flatMap(([, entity]) => {
       const relationship = entity as RelationshipType
       return [relationship.Id, relationship.ChildOf, relationship.target].filter((x) => x !== undefined)
     })
@@ -63,9 +85,11 @@ export const filterModelByDisplayName = (
 
   const idsAndRelationships = new Set([...allExpandedIds, ...matchingRelationships])
 
-  const filteredModel = [...idsAndRelationships].reduce((acc, id) => {
-    acc[id] = model[id]
+  return [...idsAndRelationships].reduce((acc, id) => {
+    const entity = dtdlObjectModel[id]
+    if (entity.EntityKind === 'Interface')
+      setVisualisationState(entity, determineVisualisationState(id, matchingIds, expanded))
+    acc[id] = entity
     return acc
   }, {} as DtdlObjectModel)
-  return { metadata: { ...metadata, searchResults: [...matchingIds] }, model: filteredModel }
 }
