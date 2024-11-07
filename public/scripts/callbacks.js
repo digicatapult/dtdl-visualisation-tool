@@ -9,17 +9,18 @@ globalThis.getEntity = function getEntity(id) {
   const layout = htmx.values(htmx.find('#layout-buttons'))
 
   const expandedIdsValue = layout['expandedIds'] ?? []
-  // htmx.values returns single items as a string rather than array
+  // if expandedIds is a single item, htmx.values returns a string rather than array
   let expandedIds = Array.isArray(expandedIdsValue) ? expandedIdsValue : [expandedIdsValue]
 
   // only expand if node is currently unexpanded
   const unexpandedNodes = document.getElementsByClassName('node clickable unexpanded')
-  for (const node of unexpandedNodes) {
+  const shouldExpand = Array.from(unexpandedNodes).some((node) => {
     const mermaidId = node.id.match(nodeIdPattern)
-    if (mermaidId && mermaidId[1] === id) {
-      expandedIds = [...expandedIds, id]
-      break
-    }
+    return mermaidId && mermaidId[1] === id
+  })
+
+  if (shouldExpand && !expandedIds.includes(id)) {
+    expandedIds.push(id)
   }
 
   htmx.ajax('GET', `/update-layout`, {
