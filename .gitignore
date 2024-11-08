@@ -5,5 +5,5 @@ src/lib/server/routes.ts
 
 bin
 obj
-.DS_Store
+**/.DS_Store
 .vscode/*

@@ -5,7 +5,7 @@ const zoomOutButton = document.getElementById('zoom-out')
 const nodeIdPattern = /^[^-]+\-(.+)\-\d+$/
 
 globalThis.getEntity = function getEntity(id) {
-  const layout = htmx.values(htmx.find('#layout-buttons'))
+  const layout = htmx.values(htmx.find('#search-panel'))
 
   const expandedIdsValue = layout['expandedIds'] ?? []
   // if expandedIds is a single item, htmx.values returns a string rather than array

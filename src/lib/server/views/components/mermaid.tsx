@@ -10,7 +10,7 @@ const commonUpdateAttrs = {
   'hx-target': '#mermaid-output',
   'hx-get': '/update-layout',
   'hx-swap': 'outerHTML',
-  'hx-include': '#layout-buttons',
+  'hx-include': '#search-panel',
 }
 
 @singleton()
@@ -34,8 +34,8 @@ export default class MermaidTemplates {
     expandedIds?: string[]
     lastSearch?: string
   }) => (
-    <Page title={'Mermaid Ontology visualiser'}>
-      <this.layoutForm
+    <Page title={'UKDTC'}>
+      <this.searchPanel
         layout={layout}
         search={search}
         highlightNodeId={highlightNodeId}
@@ -92,7 +92,7 @@ export default class MermaidTemplates {
     )
   }
 
-  public layoutForm = ({
+  public searchPanel = ({
     search,
     layout,
     swapOutOfBand,
@@ -110,12 +110,14 @@ export default class MermaidTemplates {
     lastSearch?: string
   }) => {
     return (
-      <form id="layout-buttons" class="button-group" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
+      <form id="search-panel" class="button-group" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
+        <h2>UKDTC</h2>
         <input
           id="search"
           name="search"
           type="search"
           value={escapeHtml(search || '')}
+          placeholder="Search"
           hx-trigger="input changed delay:500ms, search"
           hx-sync="this:replace"
           {...commonUpdateAttrs}
@@ -125,6 +127,15 @@ export default class MermaidTemplates {
         {expandedIds?.map((id, index) => (
           <input id={`expandedIds_${index}`} name="expandedIds" type="hidden" value={id} />
         ))}
+        <label for="diagramType">Diagram Type</label>
+        <select id="diagramType" name="diagramType" hx-trigger="input changed" {...commonUpdateAttrs}>
+          {diagramTypes.map((entry) => (
+            <option value={entry} selected={entry === diagramType}>
+              {escapeHtml(entry)}
+            </option>
+          ))}
+        </select>
+        <label for="layout">Layout</label>
         <select
           id="layout"
           name="layout"
@@ -134,13 +145,6 @@ export default class MermaidTemplates {
         >
           {layoutEntries.map((entry) => (
             <option value={entry} selected={entry === layout}>
-              {escapeHtml(entry)}
-            </option>
-          ))}
-        </select>
-        <select id="diagramType" name="diagramType" hx-trigger="input changed" {...commonUpdateAttrs}>
-          {diagramTypes.map((entry) => (
-            <option value={entry} selected={entry === diagramType}>
               {escapeHtml(entry)}
             </option>
           ))}
