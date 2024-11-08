@@ -17,8 +17,8 @@ export const templateMock = {
   MermaidRoot: ({ search, layout }: { search: string; layout: string }) => `root_${layout}_${search}_root`,
   mermaidTarget: ({ generatedOutput, target }: { generatedOutput?: JSX.Element; target: string }): JSX.Element =>
     `mermaidTarget_${generatedOutput}_${target}_mermaidTarget`,
-  layoutForm: ({ search, layout, swapOutOfBand }: { search?: string; layout: Layout; swapOutOfBand?: boolean }) =>
-    `layoutForm_${search}_${layout}_${swapOutOfBand || false}_layoutForm`,
+  searchPanel: ({ search, layout, swapOutOfBand }: { search?: string; layout: Layout; swapOutOfBand?: boolean }) =>
+    `searchPanel_${search}_${layout}_${swapOutOfBand || false}_searchPanel`,
 } as unknown as MermaidTemplates
 export const mockLogger = pino({ level: 'silent' })
 

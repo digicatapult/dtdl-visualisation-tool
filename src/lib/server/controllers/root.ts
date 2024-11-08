@@ -67,7 +67,7 @@ export class RootController extends HTMLController {
         generatedOutput: await this.generator.run(model, params),
         target: 'mermaid-output',
       }),
-      this.templates.layoutForm({
+      this.templates.searchPanel({
         layout: params.layout,
         swapOutOfBand: true,
         search: params.search,

@@ -6,7 +6,7 @@ const nodeIdPattern = /^[^-]+\-(.+)\-\d+$/
 
 globalThis.getEntity = function getEntity(id) {
   htmx.ajax('GET', `/entity/${id}`, '#navigationPanelContent')
-  const layout = htmx.values(htmx.find('#layout-buttons'))
+  const layout = htmx.values(htmx.find('#search-panel'))
 
   const expandedIdsValue = layout['expandedIds'] ?? []
   // if expandedIds is a single item, htmx.values returns a string rather than array
