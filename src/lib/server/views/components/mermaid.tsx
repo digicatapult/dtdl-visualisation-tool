@@ -105,9 +105,7 @@ export default class MermaidTemplates {
   }) => {
     return (
       <form id="search-panel" class="button-group" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
-        <h2>
-          UKDTC
-        </h2>
+        <h2>UKDTC</h2>
         <input
           id="search"
           name="search"
