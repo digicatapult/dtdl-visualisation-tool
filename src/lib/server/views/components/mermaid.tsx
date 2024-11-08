@@ -111,7 +111,7 @@ export default class MermaidTemplates {
           name="search"
           type="search"
           value={escapeHtml(search || '')}
-          placeholder="Search node"
+          placeholder="Search"
           hx-trigger="input changed delay:500ms, search"
           hx-sync="this:replace"
           {...commonUpdateAttrs}
