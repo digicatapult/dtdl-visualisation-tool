@@ -1,6 +1,7 @@
 import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 import { MermaidId } from '../../models/strings.js'
 import { getDisplayName } from '../dtdl/extract.js'
+import { getVisualisationState } from '../dtdl/filter.js'
 import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
 import { defaultMarkdownFn, dtdlIdReinstateSemicolon, dtdlIdReplaceSemicolon } from './helpers.js'
 
@@ -54,6 +55,9 @@ export default class Flowchart implements IDiagram<'flowchart'> {
     entity.extends.map((parent) => {
       graph.push(this.createEdgeString(parent, entity.Id))
     })
+
+    graph.push(`class ${dtdlIdReplaceSemicolon(entity.Id)} ${getVisualisationState(entity)}`)
+
     return graph
   }
 
@@ -73,6 +77,7 @@ export default class Flowchart implements IDiagram<'flowchart'> {
     if (highlightNodeId && dtdlIdReinstateSemicolon(highlightNodeId) in dtdlObjectModel) {
       graph.push(`\nclass ${highlightNodeId} highlighted`)
     }
+
     if (graph.length === 0) {
       return null
     }
