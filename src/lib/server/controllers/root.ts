@@ -75,6 +75,10 @@ export class RootController extends HTMLController {
         expandedIds: params.expandedIds,
         diagramType: params.diagramType,
         lastSearch: params.search,
+      }),
+      this.templates.navigationPanel({
+        swapOutOfBand: true,
+        content: this.getEntityJson(params.highlightNodeId)
       })
     )
   }
@@ -111,5 +115,12 @@ export class RootController extends HTMLController {
       }
     }
     this.setHeader('HX-Push-Url', `${path}?${query}`)
+  }
+
+  private getEntityJson(id?: string): string | undefined {
+    if (!id) return id
+    const entityId = dtdlIdReinstateSemicolon(id)
+    const entity = this.dtdlLoader.getDefaultDtdlModel()[entityId]
+    return JSON.stringify(entity, null, 4)
   }
 }

@@ -5,7 +5,6 @@ const zoomOutButton = document.getElementById('zoom-out')
 const nodeIdPattern = /^[^-]+\-(.+)\-\d+$/
 
 globalThis.getEntity = function getEntity(id) {
-  htmx.ajax('GET', `/entity/${id}`, '#navigationPanelContent')
   const layout = htmx.values(htmx.find('#layout-buttons'))
 
   const expandedIdsValue = layout['expandedIds'] ?? []
@@ -34,14 +33,6 @@ globalThis.getEntity = function getEntity(id) {
 }
 
 globalThis.setMermaidListeners = function setMermaidListeners() {
-  // let nodes = document.getElementsByClassName('node clickable')
-  // for (let node of nodes) {
-  //   let mermaidId = node.id.match(nodeIdPattern)
-  //   if (mermaidId === null) {
-  //     continue
-  //   }
-  //   node.setAttribute('onclick', `getEntity('${mermaidId[1]}')`)
-  // }
 
   const panZoom = svgPanZoom('#mermaid-svg', { maxZoom: 20 })
   resetButton.onclick = () => {

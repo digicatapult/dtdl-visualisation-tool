@@ -64,6 +64,6 @@ export class SvgGenerator {
       node.setAttribute('onclick', `getEntity('${mermaidId[1]}')`)
     }
 
-    return svgElement.outerHTML.toString()
+    return svgElement.outerHTML
   }
 }
