@@ -52,11 +52,16 @@ button.highlighted {
   grid-column: 1 / -1;
   grid-row: 1;
   display: flex;
-  justify-content: center;
   align-items: center;
   font-size: 1.2em;
-  gap: 1px;
+  font-weight: 200;
 }
+
+#search-panel > h2 {
+  padding-inline: 20px;
+  font-weight: 200;
+}
+
 #search-panel > input[type=search] {
   background-color: #f5f6fa;
   background-image: url('/public/images/magnifying-glass.png');
@@ -64,16 +69,22 @@ button.highlighted {
   background-size: 12px;
   background-position: 4px;
   padding-left: 20px;
-  font-weight: 200;
+  width: 50ch;
+  margin-right: 20px;
 }
-#search-panel > select, input {
+#search-panel > select, input[type=search] {
   border-color: #e3e3e4;
   border-style: solid;
   border-radius: 5px;
   border-width: 1px;
   font-size: 1em;
-  padding-block: 1px;
+  padding-block: 10px;
   padding-inline: 2px;
+}
+
+#search-panel > select{
+  margin-inline: 10px;
+  font-weight: 200;
 }
 
 #mermaid-wrapper {

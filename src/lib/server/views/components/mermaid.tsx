@@ -30,7 +30,7 @@ export default class MermaidTemplates {
     layout: Layout
     diagramType: DiagramType
   }) => (
-    <Page title={'Mermaid Ontology visualiser'}>
+    <Page title={'UKDTC'}>
       <this.searchPanel layout={layout} search={search} highlightNodeId={highlightNodeId} diagramType={diagramType} />
 
       <div id="mermaid-wrapper">
@@ -90,17 +90,29 @@ export default class MermaidTemplates {
   }) => {
     return (
       <form id="search-panel" class="button-group" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
+        <h2>
+          UKDTC
+        </h2>
         <input
           id="search"
           name="search"
           type="search"
           value={escapeHtml(search || '')}
-          placeholder="Search"
+          placeholder="Search node"
           hx-trigger="input changed delay:500ms, search"
           hx-sync="this:replace"
           {...commonUpdateAttrs}
         />
         <input id="highlightNodeId" name="highlightNodeId" type="hidden" value={escapeHtml(highlightNodeId || '')} />
+        <label for="diagramType">Diagram Type</label>
+        <select id="diagramType" name="diagramType" hx-trigger="input changed" {...commonUpdateAttrs}>
+          {diagramTypes.map((entry) => (
+            <option value={entry} selected={entry === diagramType}>
+              {escapeHtml(entry)}
+            </option>
+          ))}
+        </select>
+        <label for="layout">Layout</label>
         <select
           id="layout"
           name="layout"
@@ -110,13 +122,6 @@ export default class MermaidTemplates {
         >
           {layoutEntries.map((entry) => (
             <option value={entry} selected={entry === layout}>
-              {escapeHtml(entry)}
-            </option>
-          ))}
-        </select>
-        <select id="diagramType" name="diagramType" hx-trigger="input changed" {...commonUpdateAttrs}>
-          {diagramTypes.map((entry) => (
-            <option value={entry} selected={entry === diagramType}>
               {escapeHtml(entry)}
             </option>
           ))}
