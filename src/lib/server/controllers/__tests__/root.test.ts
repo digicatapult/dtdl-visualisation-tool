@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import sinon from 'sinon'
-import { QueryParams } from '../../models/contollerTypes.js'
+import { QueryParams } from '../../models/controllerTypes.js'
 import { generatedSVGFixture, mockDtdlObjectModel } from '../../utils/mermaid/__tests__/fixtures'
 import { RootController } from '../root'
 import { mockGenerator, mockLogger, mockReq, simpleMockDtdlLoader, templateMock, toHTMLString } from './helpers'
@@ -100,6 +100,34 @@ describe('RootController', async () => {
 
       expect(stub.callCount).to.equal(1)
       expect(stub.firstCall.args).to.deep.equal(['Content-Type', 'text/html'])
+    })
+
+    it('should remove duplicate expandedIds', async () => {
+      const stub = sinon.stub(controller, 'setHeader')
+
+      const req = mockReq({
+        'hx-current-url': 'http://localhost:3000/some/path',
+      })
+      await controller.updateLayout(req, { ...defaultParams, expandedIds: ['1', '1'] }).then(toHTMLString)
+
+      expect(stub.firstCall.args).to.deep.equal([
+        'HX-Push-Url',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&expandedIds=1',
+      ])
+    })
+
+    it('should append multiple expandedIds', async () => {
+      const stub = sinon.stub(controller, 'setHeader')
+
+      const req = mockReq({
+        'hx-current-url': 'http://localhost:3000/some/path',
+      })
+      await controller.updateLayout(req, { ...defaultParams, expandedIds: ['1', '2'] }).then(toHTMLString)
+
+      expect(stub.firstCall.args).to.deep.equal([
+        'HX-Push-Url',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&expandedIds=1&expandedIds=2',
+      ])
     })
   })
 })

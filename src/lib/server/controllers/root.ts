@@ -2,7 +2,7 @@ import express from 'express'
 import { Get, Produces, Queries, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
 import { type ILogger, Logger } from '../logger.js'
-import { type QueryParams } from '../models/contollerTypes.js'
+import { type QueryParams } from '../models/controllerTypes.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import { filterModelByDisplayName } from '../utils/dtdl/filter.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
@@ -35,7 +35,9 @@ export class RootController extends HTMLController {
         layout: params.layout,
         search: params.search,
         highlightNodeId: params.highlightNodeId,
+        expandedIds: params.expandedIds,
         diagramType: params.diagramType,
+        lastSearch: params.lastSearch,
       })
     )
   }
@@ -45,14 +47,19 @@ export class RootController extends HTMLController {
   public async updateLayout(@Request() req: express.Request, @Queries() params: QueryParams): Promise<HTML> {
     this.logger.debug('search: %o', { search: params.search, layout: params.layout })
 
+    if (params.search !== params.lastSearch) params.expandedIds = []
+
+    params.expandedIds = [...new Set(params.expandedIds?.map(dtdlIdReinstateSemicolon))] // remove duplicates
+
     const current = this.getCurrentPathQuery(req)
     if (current) {
       this.setReplaceUrl(current, params)
     }
 
     let model = this.dtdlLoader.getDefaultDtdlModel()
+
     if (params.search) {
-      model = filterModelByDisplayName(model, params.search)
+      model = filterModelByDisplayName(model, params.search, params.expandedIds)
     }
 
     return this.html(
@@ -65,7 +72,9 @@ export class RootController extends HTMLController {
         swapOutOfBand: true,
         search: params.search,
         highlightNodeId: params.highlightNodeId,
+        expandedIds: params.expandedIds,
         diagramType: params.diagramType,
+        lastSearch: params.search,
       })
     )
   }
@@ -93,7 +102,13 @@ export class RootController extends HTMLController {
   private setReplaceUrl(current: { path: string; query: URLSearchParams }, params: QueryParams): void {
     const { path, query } = current
     for (const param in params) {
-      query.set(param, params[param])
+      const value = params[param]
+      if (Array.isArray(value)) {
+        query.delete(param)
+        value.forEach((item) => query.append(param, item))
+      } else {
+        query.set(param, value)
+      }
     }
     this.setHeader('HX-Push-Url', `${path}?${query}`)
   }

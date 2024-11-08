@@ -20,18 +20,29 @@ export default class MermaidTemplates {
   public MermaidRoot = ({
     generatedOutput,
     search,
-    layout,
     highlightNodeId,
+    layout,
     diagramType,
+    expandedIds,
+    lastSearch,
   }: {
     generatedOutput?: JSX.Element | undefined
     search?: string
     highlightNodeId?: string
     layout: Layout
     diagramType: DiagramType
+    expandedIds?: string[]
+    lastSearch?: string
   }) => (
     <Page title={'UKDTC'}>
-      <this.searchPanel layout={layout} search={search} highlightNodeId={highlightNodeId} diagramType={diagramType} />
+      <this.searchPanel
+        layout={layout}
+        search={search}
+        highlightNodeId={highlightNodeId}
+        diagramType={diagramType}
+        expandedIds={expandedIds}
+        lastSearch={lastSearch}
+      />
 
       <div id="mermaid-wrapper">
         <this.mermaidTarget target="mermaid-output" generatedOutput={generatedOutput} />
@@ -81,12 +92,16 @@ export default class MermaidTemplates {
     swapOutOfBand,
     highlightNodeId,
     diagramType,
+    expandedIds,
+    lastSearch,
   }: {
     search?: string
     layout: Layout
     swapOutOfBand?: boolean
     highlightNodeId?: MermaidId
     diagramType: DiagramType
+    expandedIds?: string[]
+    lastSearch?: string
   }) => {
     return (
       <form id="search-panel" class="button-group" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
@@ -104,6 +119,10 @@ export default class MermaidTemplates {
           {...commonUpdateAttrs}
         />
         <input id="highlightNodeId" name="highlightNodeId" type="hidden" value={escapeHtml(highlightNodeId || '')} />
+        <input id="lastSearch" name="lastSearch" type="hidden" value={escapeHtml(lastSearch || '')} />
+        {expandedIds?.map((id, index) => (
+          <input id={`expandedIds_${index}`} name="expandedIds" type="hidden" value={id} />
+        ))}
         <label for="diagramType">Diagram Type</label>
         <select id="diagramType" name="diagramType" hx-trigger="input changed" {...commonUpdateAttrs}>
           {diagramTypes.map((entry) => (

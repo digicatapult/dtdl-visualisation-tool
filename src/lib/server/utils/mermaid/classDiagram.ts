@@ -1,6 +1,7 @@
 import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 import { DtdlId, MermaidId } from '../../models/strings.js'
 import { getDisplayName } from '../dtdl/extract.js'
+import { getVisualisationState } from '../dtdl/filter.js'
 import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
 import { defaultMarkdownFn, dtdlIdReinstateSemicolon, dtdlIdReplaceSemicolon } from './helpers.js'
 
@@ -28,7 +29,7 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
 
   constructor() {}
 
-  safeClassName = (className: DtdlId): string => `\`${dtdlIdReplaceSemicolon(className)}\``
+  safeClassName = (className: string): string => `\`${dtdlIdReplaceSemicolon(className)}\``
 
   generateMarkdown(
     dtdlObjectModel: DtdlObjectModel,
@@ -78,6 +79,9 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
     properties.flatMap(([name]) => {
       graph.push(`${this.safeClassName(entity.Id)} : ${name}`)
     })
+
+    graph.push(`class ${this.safeClassName(entity.Id)}:::${getVisualisationState(entity)}`)
+
     return graph
   }
 }

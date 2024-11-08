@@ -18,4 +18,6 @@ export interface QueryParams {
   diagramType: DiagramType
   highlightNodeId?: string
   search?: string
+  expandedIds?: string[]
+  lastSearch?: string
 }

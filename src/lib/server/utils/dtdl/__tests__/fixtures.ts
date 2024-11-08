@@ -34,3 +34,30 @@ export const multipleInterfacesAndRelationship: DtdlObjectModel = {
     target: 'invalid',
   },
 } as unknown as DtdlObjectModel
+
+export const expandedWithRelationships: DtdlObjectModel = {
+  first: {
+    EntityKind: 'Interface',
+    Id: 'first',
+  },
+  second: {
+    EntityKind: 'Interface',
+    Id: 'second',
+  },
+  third: {
+    EntityKind: 'Interface',
+    Id: 'third',
+  },
+  relFirstSecond: {
+    EntityKind: 'Relationship',
+    Id: 'relFirstSecond',
+    target: 'first',
+    ChildOf: 'second',
+  },
+  relSecondThird: {
+    EntityKind: 'Relationship',
+    Id: 'relSecondThird',
+    target: 'second',
+    ChildOf: 'third',
+  },
+} as unknown as DtdlObjectModel
