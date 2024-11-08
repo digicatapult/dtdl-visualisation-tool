@@ -48,6 +48,7 @@ export class SvgGenerator {
 
     const { data } = await renderMermaid(await this.browser, graph, params.output, parseMDDOptions)
     const decoder = new TextDecoder()
+
     const nodeIdPattern = /^[^-]+\-(.+)\-\d+$/
     const dom = new JSDOM(decoder.decode(data), { contentType: 'image/svg+xml' })
     const document = dom.window.document
@@ -63,6 +64,6 @@ export class SvgGenerator {
       node.setAttribute('onclick', `getEntity('${mermaidId[1]}')`)
     }
 
-    return decoder.decode(data)
+    return svgElement.outerHTML.toString()
   }
 }
