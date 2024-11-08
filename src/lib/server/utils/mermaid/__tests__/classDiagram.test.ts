@@ -22,22 +22,24 @@ describe('ClassDiagram', () => {
       const test = [
         'class `dtmi:com:example_extended:1`["example extended"] \nclick `dtmi:com:example_extended:1` call getEntity()',
         '`dtmi:com:example_extended:1` <|-- `dtmi:com:example:1`',
+        'class `dtmi:com:example_extended:1`:::search',
       ]
       expect(interfaceAsMarkdown).to.deep.equal(test)
     })
-    it('should return a list of mermaid markdown string that represents a relationship ', () => {
+    it('should return a list of mermaid markdown string that represents a relationship', () => {
       const propertyAsMarkdown = classDiagram.interfaceToMarkdown(
         mockDtdlModelWithProperty['dtmi:com:example;1'] as InterfaceType
       )
       const test = [
         'class `dtmi:com:example:1`["example 1"] \nclick `dtmi:com:example:1` call getEntity()',
         '`dtmi:com:example:1` : example_property',
+        'class `dtmi:com:example:1`:::search',
       ]
       expect(propertyAsMarkdown).to.deep.equal(test)
     })
   })
   describe('relationshipToMarkdown', () => {
-    it('should return a list of mermaid markdown string that represents a relationship ', () => {
+    it('should return a list of mermaid markdown string that represents a relationship', () => {
       const relationshipAsMarkdown = classDiagram.relationshipToMarkdown(
         mockDtdlObjectModel,
         mockDtdlObjectModel['dtmi:com:example_relationship;1'] as RelationshipType

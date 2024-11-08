@@ -17,7 +17,7 @@ export const Page = (props: PropsWithChildren<{ title: string }>): JSX.Element =
         <script src="/public/scripts/callbacks.js" type="module"></script>
         <link rel="icon" type="image/ico" sizes="48x48" href="/public/images/favicon.ico" />
         <link rel="stylesheet" type="text/css" href="/public/styles/main.css" />
-        <link rel="stylesheet" type="text/css" href="/public/styles/flowchart.css" />
+        <link rel="stylesheet" type="text/css" href="/public/styles/mermaid.css" />
         <title>{escapeHtml(props.title)}</title>
       </head>
       <body hx-ext="json-enc">

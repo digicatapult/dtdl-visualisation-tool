@@ -2,13 +2,37 @@ const resetButton = document.getElementById('reset-pan-zoom')
 const zoomInButton = document.getElementById('zoom-in')
 const zoomOutButton = document.getElementById('zoom-out')
 
+const nodeIdPattern = /^[^-]+\-(.+)\-\d+$/
+
 globalThis.getEntity = function getEntity(id) {
   htmx.ajax('GET', `/entity/${id}`, '#navigationPanelContent')
   const layout = htmx.values(htmx.find('#layout-buttons'))
-  htmx.ajax('GET', `/update-layout`, { target: '#mermaid-output', values: { ...layout, highlightNodeId: id } })
+
+  const expandedIdsValue = layout['expandedIds'] ?? []
+  // if expandedIds is a single item, htmx.values returns a string rather than array
+  let expandedIds = Array.isArray(expandedIdsValue) ? expandedIdsValue : [expandedIdsValue]
+
+  // only expand if node is currently unexpanded
+  const unexpandedNodes = document.getElementsByClassName('node clickable unexpanded')
+  const shouldExpand = Array.from(unexpandedNodes).some((node) => {
+    const mermaidId = node.id.match(nodeIdPattern)
+    return mermaidId && mermaidId[1] === id
+  })
+
+  if (shouldExpand && !expandedIds.includes(id)) {
+    expandedIds.push(id)
+  }
+
+  htmx.ajax('GET', `/update-layout`, {
+    target: '#mermaid-output',
+    values: {
+      ...layout,
+      highlightNodeId: id,
+      expandedIds: expandedIds,
+    },
+  })
 }
 
-const nodeIdPattern = /^[^-]+\-(.+)\-\d+$/
 globalThis.setMermaidListeners = function setMermaidListeners() {
   let nodes = document.getElementsByClassName('node clickable')
   for (let node of nodes) {

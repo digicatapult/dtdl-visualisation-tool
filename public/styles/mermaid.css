@@ -1,0 +1,42 @@
+/* Flowchart diagramType in mermaid use polygon where as ClassDiagram uses rect */
+g polygon,
+g rect {
+  transition: outline 10.1s ease-in-out;
+}
+
+g.highlighted polygon,
+g.highlighted rect {
+  outline: 4px solid #9370db;
+  outline-offset: -2px;
+}
+
+g.expanded.highlighted polygon,
+g.expanded.highlighted rect {
+  outline: 4px dashed #9370db;
+  outline-offset: -2px;
+}
+
+g.search polygon,
+g.search rect {
+  outline: 2px solid #9370db;
+  outline-offset: -2px;
+}
+
+g.search.highlighted polygon,
+g.search.highlighted rect {
+  outline: 4px solid #9370db;
+  outline-offset: -2px;
+}
+
+g.unexpanded polygon,
+g.unexpanded rect {
+  outline: 4px double #9370db;
+  outline-offset: -2px;
+}
+
+g.expanded polygon,
+g.expanded rect {
+  outline: 2px dashed #9370db;
+  outline-offset: -2px;
+}
+
