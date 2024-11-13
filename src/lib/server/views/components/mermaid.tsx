@@ -12,6 +12,7 @@ const commonUpdateAttrs = {
   'hx-swap': 'outerHTML',
   'hx-include': '#search-panel',
   'hx-indicator': '.htmx-indicator',
+  'hx-disabled-elt': 'select',
 }
 
 @singleton()

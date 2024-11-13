@@ -1,4 +1,5 @@
 import express from 'express'
+import { LRUCache } from 'lru-cache'
 import { Get, Produces, Queries, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
 import { type ILogger, Logger } from '../logger.js'
@@ -19,7 +20,8 @@ export class RootController extends HTMLController {
     private dtdlLoader: DtdlLoader,
     private generator: SvgGenerator,
     private templates: MermaidTemplates,
-    @inject(Logger) private logger: ILogger
+    @inject(Logger) private logger: ILogger,
+    @inject(LRUCache) private cache: LRUCache<string, string>
   ) {
     super()
     this.logger = logger.child({ controller: '/' })
@@ -56,15 +58,30 @@ export class RootController extends HTMLController {
       this.setReplaceUrl(current, params)
     }
 
-    let model = this.dtdlLoader.getDefaultDtdlModel()
+    const cacheKey = this.createCacheKey(req.query as Record<string, string>)
 
-    if (params.search) {
-      model = filterModelByDisplayName(model, params.search, params.expandedIds)
-    }
+    const generatedOutput = this.cache.get(cacheKey) ?? (await this.generateOutput(cacheKey, params))
+
+    // if (!this.cache.has(cacheKey)) {
+    //   let model = this.dtdlLoader.getDefaultDtdlModel()
+
+    // if (params.search) {
+    //   model = filterModelByDisplayName(model, params.search, params.expandedIds)
+    // }
+    // generatedOutput = await this.generator.run(model, params)
+    // this.cache.set(cacheKey, generatedOutput)
+    // } else {
+    //   generatedOutput = this.cache.get(cacheKey) ?? ''
+    // }
+
+    //const cacheKey = this.createCacheKey(req.query as Record<string, string>)
+    //const generatedOutput = this.cache.get(cacheKey) ?? (await this.generator.run(model, params))
+    //if (!this.cache.has(cacheKey)) this.cache.set(cacheKey, generatedOutput)
+    console.log(this.cache.dump())
 
     return this.html(
       this.templates.mermaidTarget({
-        generatedOutput: await this.generator.run(model, params),
+        generatedOutput,
         target: 'mermaid-output',
       }),
       this.templates.searchPanel({
@@ -111,5 +128,25 @@ export class RootController extends HTMLController {
       }
     }
     this.setHeader('HX-Push-Url', `${path}?${query}`)
+  }
+
+  private createCacheKey(queryParams: Record<string, string>): string {
+    const searchParams = new URLSearchParams(queryParams)
+    searchParams.delete('lastSearch')
+    searchParams.sort()
+    return searchParams.toString()
+  }
+
+  private async generateOutput(cacheKey: string, params: QueryParams): Promise<string> {
+    let model = this.dtdlLoader.getDefaultDtdlModel()
+
+    if (params.search) {
+      model = filterModelByDisplayName(model, params.search, params.expandedIds ?? [])
+    }
+
+    const output = await this.generator.run(model, params)
+    this.cache.set(cacheKey, output)
+
+    return output
   }
 }
