@@ -46,10 +46,7 @@ export class SvgGenerator {
     )
     if (!graph) return 'No graph'
 
-    console.time('all render')
-    console.time('load')
     const { data } = await renderMermaid(await this.browser, graph, params.output, parseMDDOptions)
-    console.timeEnd('all render')
 
     const decoder = new TextDecoder()
 
