@@ -6,8 +6,8 @@ export default defineConfig({
   webServer: {
     command: 'npm run dev -- parse -p ./test/e2e/dtdlFixture/',
     url: 'http://127.0.0.1:3000',
-    reuseExistingServer: true,
-    stdout: 'pipe',
+    reuseExistingServer: !process.env.CI,
+    stdout: 'ignore',
     stderr: 'pipe',
   },
   /* Run tests in files in parallel */
@@ -34,10 +34,10 @@ export default defineConfig({
     timeout: 10 * 1000,
   },
   projects: [
-    // {
-    //   name: 'chromium',
-    //   use: { ...devices['Desktop Chrome'] },
-    // },
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
