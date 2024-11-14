@@ -28,6 +28,7 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
     baseURL: 'http://127.0.0.1:3000',
+    headless: !!process.env.CI,
   },
   expect: {
     timeout: 10 * 1000,
