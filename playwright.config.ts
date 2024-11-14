@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: './test/e2e',
-  // Run your local dev server before starting the tests
+  // Run dev server before starting the tests
   webServer: {
     command: 'npm run dev -- parse -p ./test/e2e/dtdlFixture/',
     url: 'http://127.0.0.1:3000',
