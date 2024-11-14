@@ -14,7 +14,7 @@ import Flowchart from './flowchart.js'
 export class SvgGenerator {
   public browser: Promise<Browser>
   constructor() {
-    this.browser = puppeteer.launch({})
+    this.browser = puppeteer.launch({ headless: true })
   }
 
   mermaidMarkdownByDiagramType: {
