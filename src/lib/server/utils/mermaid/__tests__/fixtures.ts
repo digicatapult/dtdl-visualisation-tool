@@ -1,5 +1,4 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
-import { stateSymbol } from '../../dtdl/filter'
 
 const emptyEntityProperties = {
   SupplementalTypes: [],
@@ -32,21 +31,14 @@ const emptyPropertyProperties = {
   displayName: {},
 }
 
-const visualisationState = {
-  [stateSymbol]: 'search',
-}
-
 export const flowchartFixture = `flowchart TD
 dtmi:com:example:1@{ shape: subproc, label: "example 1"}
 click dtmi:com:example:1 getEntity
-class dtmi:com:example:1 search
 dtmi:com:example_extended:1@{ shape: subproc, label: "example extended"}
 click dtmi:com:example_extended:1 getEntity
 dtmi:com:example:1 ---  dtmi:com:example_extended:1
-class dtmi:com:example_extended:1 search
 dtmi:com:example_related:1@{ shape: subproc, label: "example related"}
 click dtmi:com:example_related:1 getEntity
-class dtmi:com:example_related:1 search
 dtmi:com:example:1 --- |A relationship| dtmi:com:example_related:1`
 
 export const flowchartFixtureFiltered = `flowchart TD
@@ -58,13 +50,11 @@ click dtmi:com:example_related:1 getEntity`
 
 export const flowchartFixtureSimple = `flowchart TD
 dtmi:com:example:1@{ shape: subproc, label: "example 1"}
-click dtmi:com:example:1 getEntity
-class dtmi:com:example:1 search`
+click dtmi:com:example:1 getEntity`
 
 export const flowchartFixtureSimpleHighlighted = `flowchart TD
 dtmi:com:example:1@{ shape: subproc, label: "example 1"}
 click dtmi:com:example:1 getEntity
-class dtmi:com:example:1 search
 
 class dtmi:com:example:1 highlighted`
 
@@ -72,14 +62,11 @@ export const classDiagramFixture = `classDiagram
  direction  TD
 class \`dtmi:com:example:1\`["example 1"] 
 click \`dtmi:com:example:1\` call getEntity()
-class \`dtmi:com:example:1\`:::search
 class \`dtmi:com:example_extended:1\`["example extended"] 
 click \`dtmi:com:example_extended:1\` call getEntity()
 \`dtmi:com:example_extended:1\` <|-- \`dtmi:com:example:1\`
-class \`dtmi:com:example_extended:1\`:::search
 class \`dtmi:com:example_related:1\`["example related"] 
 click \`dtmi:com:example_related:1\` call getEntity()
-class \`dtmi:com:example_related:1\`:::search
 \`dtmi:com:example:1\` --> \`dtmi:com:example_related:1\` : A relationship`
 
 export const classDiagramFixtureFiltered = `classDiagram
@@ -93,14 +80,12 @@ click dtmi:com:example_related:1 getEntity`
 export const classDiagramFixtureSimple = `classDiagram
  direction  TD
 class \`dtmi:com:example:1\`["example 1"] 
-click \`dtmi:com:example:1\` call getEntity()
-class \`dtmi:com:example:1\`:::search`
+click \`dtmi:com:example:1\` call getEntity()`
 
 export const classDiagramFixtureSimpleHighlighted = `classDiagram
  direction  TD
 class \`dtmi:com:example:1\`["example 1"] 
 click \`dtmi:com:example:1\` call getEntity()
-class \`dtmi:com:example:1\`:::search
 
 class \`dtmi:com:example:1\`:::highlighted`
 
@@ -112,7 +97,6 @@ export const mockDtdlObjectModel = {
     },
     EntityKind: 'Interface',
     extends: [],
-    ...visualisationState,
     ...emptyEntityProperties,
     ...emptyInterfaceProperties,
   },
@@ -123,7 +107,6 @@ export const mockDtdlObjectModel = {
     },
     EntityKind: 'Interface',
     extends: ['dtmi:com:example;1'],
-    ...visualisationState,
     ...emptyEntityProperties,
     ...emptyInterfaceProperties,
   },
@@ -134,7 +117,6 @@ export const mockDtdlObjectModel = {
     },
     EntityKind: 'Interface',
     extends: [],
-    ...visualisationState,
     ...emptyEntityProperties,
     ...emptyInterfaceProperties,
   },
@@ -169,7 +151,6 @@ export const mockDtdlModelWithProperty = {
     EntityKind: 'Interface',
     extends: [],
     properties: { example_property: 'dtmi:com:example_property;1' },
-    ...visualisationState,
   },
 } as DtdlObjectModel
 

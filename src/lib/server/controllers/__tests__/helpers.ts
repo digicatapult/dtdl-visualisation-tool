@@ -1,4 +1,5 @@
 import express from 'express'
+import { LRUCache } from 'lru-cache'
 import { Readable } from 'node:stream'
 import { pino } from 'pino'
 
@@ -21,13 +22,19 @@ export const templateMock = {
     `searchPanel_${search}_${layout}_${swapOutOfBand || false}_searchPanel`,
 } as unknown as MermaidTemplates
 export const mockLogger = pino({ level: 'silent' })
+export const mockCache = new LRUCache<string, string>({
+  max: 10,
+  ttl: 1000 * 60,
+  allowStale: true,
+})
 
 export const mockDtdlLoader: DtdlLoader = new DtdlLoader(mockDtdlObjectModel)
 
 export const simpleMockDtdlLoader: DtdlLoader = new DtdlLoader(simpleMockDtdlObjectModel)
 
+export const generatorRunStub = sinon.stub().resolves(generatedSVGFixture)
 export const mockGenerator: SvgGenerator = {
-  run: sinon.stub().resolves(generatedSVGFixture),
+  run: generatorRunStub,
 } as unknown as SvgGenerator
 
 export const toHTMLString = async (...streams: Readable[]) => {
