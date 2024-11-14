@@ -2,7 +2,7 @@
 
 import 'reflect-metadata'
 
-import { getInterop, parseDirectories, validateDirectories } from '@digicatapult/dtdl-parser'
+import { DtdlObjectModel, getInterop, parseDirectories, validateDirectories } from '@digicatapult/dtdl-parser'
 import chalk from 'chalk'
 import { Command } from 'commander'
 import { container } from 'tsyringe'
@@ -15,14 +15,23 @@ import version from './version.js'
 const { log } = console
 
 const program = new Command()
+
+const { red: r } = {
+  red: (txt: string) => chalk.redBright(txt),
+}
+
+const minimumDtdl = {
+  minimum: {
+    EntityKind: 'Interface',
+    Id: '0',
+    extends: [],
+  },
+} as unknown as DtdlObjectModel
+
 const defaultParams: QueryParams = {
   layout: 'elk',
   output: 'svg',
   diagramType: 'flowchart',
-}
-
-const { red: r } = {
-  red: (txt: string) => chalk.redBright(txt),
 }
 
 program
@@ -41,12 +50,16 @@ program
     const parsedDtdl = parseDirectories(options.path, parser)
 
     if (parsedDtdl) {
-      const dtdlLoader = new DtdlLoader(parsedDtdl)
-      container.register(DtdlLoader, { useValue: dtdlLoader })
+      container.register(DtdlLoader, { useValue: new DtdlLoader(parsedDtdl) })
+
+      log(`Loading SVG generator...`)
       const generator = new SvgGenerator()
-      generator.run(dtdlLoader.getDefaultDtdlModel(), defaultParams, {})
+      await generator.run(minimumDtdl, defaultParams, {})
       container.register(SvgGenerator, { useValue: generator })
+      log(`Complete`)
+
       httpServer(options.port)
+      log(`\nView DTDL model: http://localhost:${options.port}`)
     } else {
       process.exit(1)
     }
