@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.0.53",
+  "version": "0.0.55",
   "description": "CLI tool for dtdl visualisation",
   "main": "src/index.js",
   "bin": {
@@ -11,14 +11,13 @@
     "depcheck": "depcheck",
     "test:unit": "NODE_ENV=test ./node_modules/.bin/mocha --config ./test/mocharc.json ./src/**/*.test.ts",
     "test:e2e": "playwright test --ui",
-    "test:playwright": "playwright test --trace on --max-failures=1",
+    "test:playwright": "playwright test --trace on --max-failures=1 --debug",
     "build": "npm run tsoa:build && swc ./src ./package.json -d ./build --copy-files",
     "clean": "rimraf -rf ./build",
     "dev": "npm run tsoa:build && node --import '@swc-node/register/esm-register' ./src/index.ts",
     "tsoa:build": "tsoa spec-and-routes",
     "local": "npm i -g && dtdl-visualiser",
     "lint": "eslint .",
-    "lint:debug": "DEBUG=eslint:* eslint 'src/**/*.ts'",
     "check": "npm run tsoa:build && tsc --noEmit",
     "xss-scan": "xss-scan"
   },
