@@ -47,6 +47,7 @@ describe('RootController', async () => {
         [
           `mermaidTarget_${generatedSVGFixture}_mermaid-output_mermaidTarget`,
           `searchPanel_undefined_dagre-d3_true_searchPanel`,
+          `navigationPanel_true__navigationPanel`,
         ].join('')
       )
     })
@@ -58,6 +59,7 @@ describe('RootController', async () => {
         [
           `mermaidTarget_${generatedSVGFixture}_mermaid-output_mermaidTarget`,
           `searchPanel_example 1_dagre-d3_true_searchPanel`,
+          `navigationPanel_true__navigationPanel`,
         ].join('')
       )
     })

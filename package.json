@@ -10,6 +10,7 @@
   "scripts": {
     "depcheck": "depcheck",
     "test": "NODE_ENV=test ./node_modules/.bin/mocha --config ./test/mocharc.json ./src/**/*.test.ts",
+    "test:e2e": "playwright test --ui",
     "build": "npm run tsoa:build && swc ./src ./package.json -d ./build --copy-files",
     "clean": "rimraf -rf ./build",
     "dev": "npm run tsoa:build && node --import '@swc-node/register/esm-register' ./src/index.ts",
@@ -56,6 +57,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.1.0",
     "@eslint/js": "^9.14.0",
+    "@playwright/test": "^1.48.2",
     "@swc-node/register": "^1.10.9",
     "@swc/cli": "^0.5.0",
     "@swc/core": "^1.8.0",

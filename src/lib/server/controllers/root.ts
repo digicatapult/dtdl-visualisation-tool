@@ -49,17 +49,22 @@ export class RootController extends HTMLController {
 
     if (params.search !== params.lastSearch) params.expandedIds = []
 
-    params.expandedIds = [...new Set(params.expandedIds?.map(dtdlIdReinstateSemicolon))] // remove duplicates
+    if (params.highlightNodeId && params.shouldExpand) (params.expandedIds ||= []).push(params.highlightNodeId)
 
-    const current = this.getCurrentPathQuery(req)
-    if (current) {
-      this.setReplaceUrl(current, params)
-    }
+    params.expandedIds = [...new Set(params.expandedIds?.map(dtdlIdReinstateSemicolon))] // remove duplicates
 
     let model = this.dtdlLoader.getDefaultDtdlModel()
 
     if (params.search) {
       model = filterModelByDisplayName(model, params.search, params.expandedIds)
+    }
+
+    if (params.highlightNodeId && !(dtdlIdReinstateSemicolon(params.highlightNodeId) in model)) {
+      params.highlightNodeId = undefined
+    }
+    const current = this.getCurrentPathQuery(req)
+    if (current) {
+      this.setReplaceUrl(current, params)
     }
 
     return this.html(
@@ -78,7 +83,7 @@ export class RootController extends HTMLController {
       }),
       this.templates.navigationPanel({
         swapOutOfBand: true,
-        content: this.getEntityJson(params.highlightNodeId)
+        content: this.getEntityJson(params.highlightNodeId),
       })
     )
   }
