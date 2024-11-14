@@ -6,7 +6,7 @@ export default defineConfig({
   webServer: {
     command: 'npm run dev -- parse -p ./test/e2e/dtdlFixture/',
     url: 'http://127.0.0.1:3000',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
     stdout: 'ignore',
     stderr: 'pipe',
   },
