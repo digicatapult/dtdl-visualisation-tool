@@ -11,7 +11,7 @@
     "depcheck": "depcheck",
     "test:unit": "NODE_ENV=test ./node_modules/.bin/mocha --config ./test/mocharc.json ./src/**/*.test.ts",
     "test:e2e": "playwright test --ui",
-    "test:playwright": "playwright test --trace on --max-failures=1 --debug",
+    "test:playwright": "playwright test --trace on --max-failures=1",
     "build": "npm run tsoa:build && swc ./src ./package.json -d ./build --copy-files",
     "clean": "rimraf -rf ./build",
     "dev": "npm run tsoa:build && node --import '@swc-node/register/esm-register' ./src/index.ts",
