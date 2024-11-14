@@ -7,7 +7,7 @@ export default defineConfig({
     command: 'npm run dev -- parse -p ./test/e2e/dtdlFixture/',
     url: 'http://127.0.0.1:3000',
     reuseExistingServer: true,
-    stdout: 'ignore',
+    stdout: 'pipe',
     stderr: 'pipe',
   },
   /* Run tests in files in parallel */
