@@ -47,6 +47,6 @@ export default [
     },
   },
   {
-    ignores: ['build/', 'public/scripts/', 'node_modules/', 'interop/'],
+    ignores: ['build/', 'public/scripts/', 'node_modules/', 'interop/', 'playwright-report/', 'test-results/'],
   },
 ]

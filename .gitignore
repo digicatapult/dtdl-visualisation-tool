@@ -7,3 +7,6 @@ bin
 obj
 **/.DS_Store
 .vscode/*
+/test-results/
+/playwright-report/
+/playwright/.cache/

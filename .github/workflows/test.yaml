@@ -53,7 +53,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        command: ['test']
+        command: ['test:unit', 'test:playwright']
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
