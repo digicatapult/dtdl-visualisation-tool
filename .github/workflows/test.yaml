@@ -101,7 +101,7 @@ jobs:
       - name: Build
         run: npm run build
       - name: Run tests
-        run: xvfb-run -a npx playwright test --trace on --max-failures=1
+        run: DEBUG=pw:browser* npx playwright test
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
