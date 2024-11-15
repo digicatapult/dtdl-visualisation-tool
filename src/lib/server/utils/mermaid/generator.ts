@@ -9,6 +9,7 @@ import { MermaidId } from '../../models/strings.js'
 import ClassDiagram from './classDiagram.js'
 import { IDiagram } from './diagramInterface.js'
 import Flowchart from './flowchart.js'
+import { InternalError } from '../../errors.js'
 
 @singleton()
 export class SvgGenerator {
@@ -45,8 +46,8 @@ export class SvgGenerator {
   setSVGAttributes = (svg: string): string => {
     const dom = new JSDOM(svg, { contentType: 'image/svg+xml' })
     const document = dom.window.document
-    const svgElement = document.querySelector('svg')
-    if (!svgElement) return 'No svg element found'
+    const svgElement = document.querySelector('#mermaid-svg')
+    if (!svgElement) throw new InternalError('Error in finding mermaid-svg Element in generated output')
 
     svgElement.setAttribute('hx-include', '#search-panel')
     const nodes = svgElement.getElementsByClassName('node clickable')
@@ -66,6 +67,7 @@ export class SvgGenerator {
           htmlLabels: false,
         },
         maxTextSize: 99999999,
+        securityLevel: 'strict',
         maxEdges: 99999999,
         layout: params.layout,
       },
@@ -80,6 +82,8 @@ export class SvgGenerator {
 
     const { data } = await renderMermaid(await this.browser, graph, params.output, parseMDDOptions)
     const decoder = new TextDecoder()
+
+    if (!decoder.decode(data)) return 'No SVG generated'
 
     return this.setSVGAttributes(decoder.decode(data))
   }

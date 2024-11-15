@@ -49,7 +49,10 @@ export class RootController extends HTMLController {
 
     if (params.search !== params.lastSearch) params.expandedIds = []
 
-    if (params.highlightNodeId && params.shouldExpand) (params.expandedIds ||= []).push(params.highlightNodeId)
+    if (params.highlightNodeId && params.shouldExpand) {
+      params.expandedIds = params.expandedIds || []
+      params.expandedIds.push(params.highlightNodeId)
+    }
 
     params.expandedIds = [...new Set(params.expandedIds?.map(dtdlIdReinstateSemicolon))] // remove duplicates
 

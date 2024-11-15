@@ -135,4 +135,19 @@ describe('Generator', () => {
       expect(hxVals.highlightNodeId).to.equal(null)
     })
   })
+
+  describe('setSVGAttributes', () => {
+    it('should return a html string with added attributes', () => {
+      const controlStringElement = '<div id="mermaid-svg"/>'
+      const testElement = '<div id="mermaid-svg" hx-include="#search-panel"/>'
+      expect(generator.setSVGAttributes(controlStringElement)).to.equal(testElement)
+    })
+
+    it('should throw an internal error if given svg string does not have id mermaid-svg', () => {
+      const controlStringElement = '<div id="not-mermaid-svg"/>'
+      expect(() => { generator.setSVGAttributes(controlStringElement) }).to
+        .throw('Error in finding mermaid-svg Element in generated output')
+        .with.property('code', 501)
+    })
+  })
 })
