@@ -19,6 +19,8 @@ export const templateMock = {
     `mermaidTarget_${generatedOutput}_${target}_mermaidTarget`,
   searchPanel: ({ search, layout, swapOutOfBand }: { search?: string; layout: Layout; swapOutOfBand?: boolean }) =>
     `searchPanel_${search}_${layout}_${swapOutOfBand || false}_searchPanel`,
+  navigationPanel: ({ swapOutOfBand, content }: { swapOutOfBand?: boolean; content?: string }) =>
+    `navigationPanel_${swapOutOfBand || false}_${content || ''}_navigationPanel`,
 } as unknown as MermaidTemplates
 export const mockLogger = pino({ level: 'silent' })
 

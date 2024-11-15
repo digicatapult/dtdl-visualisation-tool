@@ -49,17 +49,25 @@ export class RootController extends HTMLController {
 
     if (params.search !== params.lastSearch) params.expandedIds = []
 
-    params.expandedIds = [...new Set(params.expandedIds?.map(dtdlIdReinstateSemicolon))] // remove duplicates
-
-    const current = this.getCurrentPathQuery(req)
-    if (current) {
-      this.setReplaceUrl(current, params)
+    if (params.highlightNodeId && params.shouldExpand) {
+      params.expandedIds = params.expandedIds || []
+      params.expandedIds.push(params.highlightNodeId)
     }
+
+    params.expandedIds = [...new Set(params.expandedIds?.map(dtdlIdReinstateSemicolon))] // remove duplicates
 
     let model = this.dtdlLoader.getDefaultDtdlModel()
 
     if (params.search) {
       model = filterModelByDisplayName(model, params.search, params.expandedIds)
+    }
+
+    if (params.highlightNodeId && !(dtdlIdReinstateSemicolon(params.highlightNodeId) in model)) {
+      params.highlightNodeId = undefined
+    }
+    const current = this.getCurrentPathQuery(req)
+    if (current) {
+      this.setReplaceUrl(current, params)
     }
 
     return this.html(
@@ -75,6 +83,10 @@ export class RootController extends HTMLController {
         expandedIds: params.expandedIds,
         diagramType: params.diagramType,
         lastSearch: params.search,
+      }),
+      this.templates.navigationPanel({
+        swapOutOfBand: true,
+        content: this.getEntityJson(params.highlightNodeId),
       })
     )
   }
@@ -111,5 +123,12 @@ export class RootController extends HTMLController {
       }
     }
     this.setHeader('HX-Push-Url', `${path}?${query}`)
+  }
+
+  private getEntityJson(id?: string): string | undefined {
+    if (!id) return id
+    const entityId = dtdlIdReinstateSemicolon(id)
+    const entity = this.dtdlLoader.getDefaultDtdlModel()[entityId]
+    return JSON.stringify(entity, null, 4)
   }
 }

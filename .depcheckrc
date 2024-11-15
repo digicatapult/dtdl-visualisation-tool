@@ -5,5 +5,6 @@ ignores: [
     '@kitajs/ts-html-plugin',
     'htmx-ext-json-enc',
     'htmx.org',
-    'svg-pan-zoom'
+    'svg-pan-zoom',
+    'playwright-ctrf-json-reporter'
 ]
