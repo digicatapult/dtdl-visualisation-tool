@@ -38,6 +38,7 @@ export class SvgGenerator {
       'hx-vals': `${JSON.stringify({
         highlightNodeId: this.getMermaidIdFromNodeId(element.id),
         shouldExpand: element.classList.contains('unexpanded'),
+        shouldTruncate: element.classList.contains('expanded')
       })}`,
     }
     Object.keys(attributes).forEach((key) => element.setAttribute(key, attributes[key]))

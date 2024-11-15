@@ -4,7 +4,7 @@ import { inject, injectable, singleton } from 'tsyringe'
 import { type ILogger, Logger } from '../logger.js'
 import { type QueryParams } from '../models/controllerTypes.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
-import { filterModelByDisplayName } from '../utils/dtdl/filter.js'
+import { filterModelByDisplayName, getRelatedIdsById } from '../utils/dtdl/filter.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
 import { dtdlIdReinstateSemicolon } from '../utils/mermaid/helpers.js'
 import MermaidTemplates from '../views/components/mermaid.js'
@@ -54,9 +54,21 @@ export class RootController extends HTMLController {
       params.expandedIds.push(params.highlightNodeId)
     }
 
-    params.expandedIds = [...new Set(params.expandedIds?.map(dtdlIdReinstateSemicolon))] // remove duplicates
-
     let model = this.dtdlLoader.getDefaultDtdlModel()
+
+    if (params.highlightNodeId && params.shouldTruncate && params.expandedIds) {
+      const truncateId = dtdlIdReinstateSemicolon(params.highlightNodeId)
+      // Gets Ids that are child relatives of a truncating Id
+      const relatedIds = getRelatedIdsById(model, truncateId)
+
+      params.expandedIds = params.expandedIds.filter((id) => {
+        // remove truncatedId and its children
+        return !(id === truncateId || relatedIds.has(id))
+      })
+
+    }
+
+    params.expandedIds = [...new Set(params.expandedIds?.map(dtdlIdReinstateSemicolon))] // remove duplicates
 
     if (params.search) {
       model = filterModelByDisplayName(model, params.search, params.expandedIds)

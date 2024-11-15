@@ -20,5 +20,6 @@ export interface QueryParams {
   search?: string
   expandedIds?: string[]
   shouldExpand?: boolean
+  shouldTruncate?: boolean
   lastSearch?: string
 }
