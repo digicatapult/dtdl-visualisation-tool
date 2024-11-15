@@ -145,8 +145,10 @@ describe('Generator', () => {
 
     it('should throw an internal error if given svg string does not have id mermaid-svg', () => {
       const controlStringElement = '<div id="not-mermaid-svg"/>'
-      expect(() => { generator.setSVGAttributes(controlStringElement) }).to
-        .throw('Error in finding mermaid-svg Element in generated output')
+      expect(() => {
+        generator.setSVGAttributes(controlStringElement)
+      })
+        .to.throw('Error in finding mermaid-svg Element in generated output')
         .with.property('code', 501)
     })
   })

@@ -3,13 +3,13 @@ import { renderMermaid, type ParseMDDOptions } from '@mermaid-js/mermaid-cli'
 import { JSDOM } from 'jsdom'
 import puppeteer, { Browser } from 'puppeteer'
 import { singleton } from 'tsyringe'
+import { InternalError } from '../../errors.js'
 import { QueryParams } from '../../models/controllerTypes.js'
 import { DiagramType } from '../../models/mermaidDiagrams.js'
 import { MermaidId } from '../../models/strings.js'
 import ClassDiagram from './classDiagram.js'
 import { IDiagram } from './diagramInterface.js'
 import Flowchart from './flowchart.js'
-import { InternalError } from '../../errors.js'
 
 @singleton()
 export class SvgGenerator {

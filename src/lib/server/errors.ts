@@ -1,13 +1,13 @@
 export abstract class HttpError extends Error {
-    public abstract get code(): number
+  public abstract get code(): number
 }
 
 export class InternalError extends HttpError {
-    constructor(message?: string) {
-        super(message)
-    }
+  constructor(message?: string) {
+    super(message)
+  }
 
-    public get code(): number {
-        return 501
-    }
+  public get code(): number {
+    return 501
+  }
 }
