@@ -25,4 +25,7 @@ export class LRUCache implements ICache {
   clear(): void {
     this.cache.clear()
   }
+  size(): number {
+    return this.cache.size
+  }
 }

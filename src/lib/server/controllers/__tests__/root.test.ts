@@ -156,7 +156,7 @@ describe('RootController', async () => {
       const req = mockReq({})
       await controller.updateLayout(req, { ...defaultParams, lastSearch: 'someSearch' })
       await controller.updateLayout(req, { ...defaultParams, lastSearch: 'someOtherSearch' })
-      expect(mockCache.size).to.equal(1)
+      expect(mockCache.size()).to.equal(1)
       expect(mockCache.get('diagramType=flowchart&expandedIds=&layout=dagre-d3&output=svg')).to.equal(
         generatedSVGFixture
       )

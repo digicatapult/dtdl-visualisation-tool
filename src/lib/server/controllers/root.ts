@@ -121,6 +121,7 @@ export class RootController extends HTMLController {
         searchParams.delete(key)
       }
     }
+    searchParams.sort()
     return searchParams.toString()
   }
 

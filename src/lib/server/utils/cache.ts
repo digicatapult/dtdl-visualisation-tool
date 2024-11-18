@@ -5,4 +5,5 @@ export interface ICache {
   set(key: string, value: string): void
   has(key: string): boolean
   clear(): void
+  size(): number
 }

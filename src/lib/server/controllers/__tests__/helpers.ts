@@ -1,11 +1,11 @@
 import express from 'express'
-import { LRUCache } from 'lru-cache'
 import { Readable } from 'node:stream'
 import { pino } from 'pino'
 
 import sinon from 'sinon'
 import { Layout } from '../../models/mermaidLayouts.js'
 import { DtdlLoader } from '../../utils/dtdl/dtdlLoader'
+import { LRUCache } from '../../utils/lruCache.js'
 import {
   generatedSVGFixture,
   mockDtdlObjectModel,
@@ -22,11 +22,7 @@ export const templateMock = {
     `searchPanel_${search}_${layout}_${swapOutOfBand || false}_searchPanel`,
 } as unknown as MermaidTemplates
 export const mockLogger = pino({ level: 'silent' })
-export const mockCache = new LRUCache<string, string>({
-  max: 10,
-  ttl: 1000 * 60,
-  allowStale: true,
-})
+export const mockCache = new LRUCache(10, 1000 * 60)
 
 export const mockDtdlLoader: DtdlLoader = new DtdlLoader(mockDtdlObjectModel)
 
