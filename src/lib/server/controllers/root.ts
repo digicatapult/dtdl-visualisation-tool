@@ -11,6 +11,8 @@ import { dtdlIdReinstateSemicolon } from '../utils/mermaid/helpers.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
+const relevantParams = ['search', 'highlightNodeId', 'diagramType', 'layout', 'output', 'expandedIds']
+
 @singleton()
 @injectable()
 @Route()
@@ -114,8 +116,11 @@ export class RootController extends HTMLController {
 
   private createCacheKey(queryParams: QueryParams): string {
     const searchParams = new URLSearchParams(queryParams as unknown as Record<string, string>)
-    searchParams.delete('lastSearch') // irrelevant to output
-    searchParams.sort()
+    for (const key of Array.from(searchParams.keys())) {
+      if (!relevantParams.includes(key)) {
+        searchParams.delete(key)
+      }
+    }
     return searchParams.toString()
   }
 
