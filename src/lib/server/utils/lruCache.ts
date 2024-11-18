@@ -13,19 +13,15 @@ export class LRUCache implements ICache {
     })
   }
 
-  get = (key: string): string | undefined => {
-    return this.cache.get(key)
-  }
-  set(key: string, value: string): void {
+  get = (key: string): string | undefined => this.cache.get(key)
+
+  set = (key: string, value: string): void => {
     this.cache.set(key, value)
   }
-  has(key: string): boolean {
-    return this.cache.has(key)
-  }
-  clear(): void {
-    this.cache.clear()
-  }
-  size(): number {
-    return this.cache.size
-  }
+
+  has = (key: string): boolean => this.cache.has(key)
+
+  clear = (): void => this.cache.clear()
+
+  size = (): number => this.cache.size
 }

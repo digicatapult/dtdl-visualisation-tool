@@ -140,8 +140,7 @@ export class RootController extends HTMLController {
       model = filterModelByDisplayName(model, params.search, params.expandedIds ?? [])
     }
 
-    const highlightId = params.highlightNodeId ? dtdlIdReinstateSemicolon(params.highlightNodeId) : undefined
-    if (highlightId && !(highlightId in model)) {
+    if (params.highlightNodeId && !(dtdlIdReinstateSemicolon(params.highlightNodeId) in model)) {
       params.highlightNodeId = undefined
     }
 

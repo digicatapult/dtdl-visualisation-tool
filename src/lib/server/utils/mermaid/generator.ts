@@ -81,7 +81,6 @@ export class SvgGenerator {
     if (!graph) return 'No graph'
 
     const { data } = await renderMermaid(await this.browser, graph, params.output, parseMDDOptions)
-
     const decoder = new TextDecoder()
 
     if (!decoder.decode(data)) return 'No SVG generated'
