@@ -23,7 +23,7 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
     return 'classDiagram'
   }
   entityKindToMarkdown: Partial<EntityTypeToMarkdownFn> = {
-    Interface: (_, entity) => this.interfaceToMarkdown(entity),
+    Interface: (dtdlObjectModel, entity) => this.interfaceToMarkdown(dtdlObjectModel, entity),
     Relationship: (dtdlObjectModel, entity) => this.relationshipToMarkdown(dtdlObjectModel, entity),
   }
 
@@ -69,18 +69,15 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
     }
     return graph
   }
-  interfaceToMarkdown(entity: InterfaceType): string[] {
-    const graph: string[] = []
-    graph.push(this.createNodeString(entity))
-    entity.extends.map((parent) => {
-      graph.push(this.createEdgeString(entity.Id, parent, arrowTypes.Inheritance))
-    })
-    const properties = Object.entries(entity.properties)
-    properties.flatMap(([name]) => {
-      graph.push(`${this.safeClassName(entity.Id)} : ${name}`)
-    })
-
-    graph.push(`class ${this.safeClassName(entity.Id)}:::${getVisualisationState(entity)}`)
+  interfaceToMarkdown(dtdlObjectModel: DtdlObjectModel, entity: InterfaceType): string[] {
+    const graph: string[] = [
+      this.createNodeString(entity),
+      ...entity.extends
+        .filter((parent) => !!dtdlObjectModel[parent])
+        .map((parent) => this.createEdgeString(entity.Id, parent, arrowTypes.Inheritance)),
+      ...Object.entries(entity.properties).flatMap(([name]) => `${this.safeClassName(entity.Id)} : ${name}`),
+      `class ${this.safeClassName(entity.Id)}:::${getVisualisationState(entity)}`,
+    ]
 
     return graph
   }

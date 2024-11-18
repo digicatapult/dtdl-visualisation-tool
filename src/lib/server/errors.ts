@@ -11,3 +11,13 @@ export class InternalError extends HttpError {
     return 501
   }
 }
+
+export class InvalidQueryError extends HttpError {
+  constructor(message?: string) {
+    super(message)
+  }
+
+  public get code(): number {
+    return 422
+  }
+}

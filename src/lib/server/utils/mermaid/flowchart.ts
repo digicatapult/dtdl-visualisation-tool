@@ -16,7 +16,7 @@ export default class Flowchart implements IDiagram<'flowchart'> {
   }
 
   entityKindToMarkdown: Partial<EntityTypeToMarkdownFn> = {
-    Interface: (_, entity) => this.interfaceToMarkdown(entity),
+    Interface: (dtdlObjectModel, entity) => this.interfaceToMarkdown(dtdlObjectModel, entity),
     Relationship: (dtdlObjectModel, entity) => this.relationshipToMarkdown(dtdlObjectModel, entity),
   }
 
@@ -41,24 +41,22 @@ export default class Flowchart implements IDiagram<'flowchart'> {
     return `${dtdlIdReplaceSemicolon(nodeFrom)} --- ${label ? '|' + label + '|' : ``} ${dtdlIdReplaceSemicolon(nodeTo)}`
   }
 
-  relationshipToMarkdown(dtdlObjectModel: DtdlObjectModel, entity: RelationshipType): string[] {
-    const graph: string[] = []
-    if (entity.ChildOf && entity.target && entity.target in dtdlObjectModel) {
-      graph.push(this.createEdgeString(entity.ChildOf, entity.target, entity.name))
+  relationshipToMarkdown(dtdlObjectModel: DtdlObjectModel, entity: RelationshipType) {
+    // if we don't have both sides of the relationship don't render it
+    if (!entity.ChildOf || !entity.target || !(entity.target in dtdlObjectModel)) {
+      return []
     }
-    return graph
+    return [this.createEdgeString(entity.ChildOf, entity.target, entity.name)]
   }
 
-  interfaceToMarkdown(entity: InterfaceType): string[] {
-    const graph: string[] = []
-    graph.push(this.createNodeString(entity))
-    entity.extends.map((parent) => {
-      graph.push(this.createEdgeString(parent, entity.Id))
-    })
-
-    graph.push(`class ${dtdlIdReplaceSemicolon(entity.Id)} ${getVisualisationState(entity)}`)
-
-    return graph
+  interfaceToMarkdown(dtdlObjectModel: DtdlObjectModel, entity: InterfaceType) {
+    return [
+      this.createNodeString(entity),
+      ...entity.extends
+        .filter((parent) => !!dtdlObjectModel[parent])
+        .map((parent) => this.createEdgeString(parent, entity.Id, 'extends')),
+      `class ${dtdlIdReplaceSemicolon(entity.Id)} ${getVisualisationState(entity)}`,
+    ]
   }
 
   generateMarkdown(
