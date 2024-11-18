@@ -3,12 +3,15 @@ import { Get, Produces, Queries, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
 import { type ILogger, Logger } from '../logger.js'
 import { type QueryParams } from '../models/controllerTypes.js'
+import { Cache, type ICache } from '../utils/cache.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import { filterModelByDisplayName } from '../utils/dtdl/filter.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
 import { dtdlIdReinstateSemicolon } from '../utils/mermaid/helpers.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
+
+const relevantParams = ['search', 'highlightNodeId', 'diagramType', 'layout', 'output', 'expandedIds']
 
 @singleton()
 @injectable()
@@ -19,7 +22,8 @@ export class RootController extends HTMLController {
     private dtdlLoader: DtdlLoader,
     private generator: SvgGenerator,
     private templates: MermaidTemplates,
-    @inject(Logger) private logger: ILogger
+    @inject(Logger) private logger: ILogger,
+    @inject(Cache) private cache: ICache
   ) {
     super()
     this.logger = logger.child({ controller: '/' })
@@ -53,18 +57,11 @@ export class RootController extends HTMLController {
       params.expandedIds = params.expandedIds || []
       params.expandedIds.push(params.highlightNodeId)
     }
-
     params.expandedIds = [...new Set(params.expandedIds?.map(dtdlIdReinstateSemicolon))] // remove duplicates
 
-    let model = this.dtdlLoader.getDefaultDtdlModel()
+    const cacheKey = this.createCacheKey(params)
+    const generatedOutput = this.cache.get(cacheKey) ?? (await this.generateOutput(params, cacheKey))
 
-    if (params.search) {
-      model = filterModelByDisplayName(model, params.search, params.expandedIds)
-    }
-
-    if (params.highlightNodeId && !(dtdlIdReinstateSemicolon(params.highlightNodeId) in model)) {
-      params.highlightNodeId = undefined
-    }
     const current = this.getCurrentPathQuery(req)
     if (current) {
       this.setReplaceUrl(current, params)
@@ -72,7 +69,7 @@ export class RootController extends HTMLController {
 
     return this.html(
       this.templates.mermaidTarget({
-        generatedOutput: await this.generator.run(model, params),
+        generatedOutput,
         target: 'mermaid-output',
       }),
       this.templates.searchPanel({
@@ -123,6 +120,33 @@ export class RootController extends HTMLController {
       }
     }
     this.setHeader('HX-Push-Url', `${path}?${query}`)
+  }
+
+  private createCacheKey(queryParams: QueryParams): string {
+    const searchParams = new URLSearchParams(queryParams as unknown as Record<string, string>)
+    for (const key of Array.from(searchParams.keys())) {
+      if (!relevantParams.includes(key)) {
+        searchParams.delete(key)
+      }
+    }
+    searchParams.sort()
+    return searchParams.toString()
+  }
+
+  private async generateOutput(params: QueryParams, cacheKey: string): Promise<string> {
+    let model = this.dtdlLoader.getDefaultDtdlModel()
+
+    if (params.search) {
+      model = filterModelByDisplayName(model, params.search, params.expandedIds ?? [])
+    }
+
+    if (params.highlightNodeId && !(dtdlIdReinstateSemicolon(params.highlightNodeId) in model)) {
+      params.highlightNodeId = undefined
+    }
+
+    const output = await this.generator.run(model, params)
+    this.cache.set(cacheKey, output)
+    return output
   }
 
   private getEntityJson(id?: string): string | undefined {

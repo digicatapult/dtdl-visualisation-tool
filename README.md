@@ -74,3 +74,11 @@ By default, validation ignores `ResolutionException`s that occur when parsing a 
 ```sh
 dtdl-visualiser validate -p dtdl -r
 ```
+
+## Environment variables
+
+| variable name | required | default         | description                                                                     |
+| ------------- | -------- | --------------- | ------------------------------------------------------------------------------- |
+| LOG_LEVEL     | n        | info            | Logging level. Valid values are [ trace , debug , info , warn , error , fatal ] |
+| CACHE_TTL     | n        | `1000 * 60 * 5` | Time to live (in seconds) for cached diagrams                                   |
+| CACHE_SIZE    | n        | `100`           | Maximum number of diagrams to cache                                             |

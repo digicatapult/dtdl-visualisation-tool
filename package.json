@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.0.56",
+  "version": "0.0.57",
   "description": "CLI tool for dtdl visualisation",
   "main": "src/index.js",
   "bin": {
@@ -46,6 +46,7 @@
     "htmx-ext-json-enc": "^2.0.1",
     "htmx.org": "^1.9.12",
     "jsdom": "^25.0.1",
+    "lru-cache": "^11.0.2",
     "pino": "^9.5.0",
     "pino-http": "^10.3.0",
     "puppeteer": "^23.7.1",

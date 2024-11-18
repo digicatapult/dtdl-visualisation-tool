@@ -92,6 +92,9 @@ button.highlighted {
   grid-column: 1;
   grid-row: 2;
   position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 #mermaid-svg {
@@ -102,6 +105,12 @@ button.highlighted {
 #mermaid-output {
   height: 100%;
   width: 100%;
+  display: block;
+  opacity: 1;
+}
+
+#mermaid-output.htmx-request{
+  display: none;
 }
 
 #navigation-panel {
@@ -131,4 +140,23 @@ pre {
   height: 25px;
   cursor: pointer;
   font-size: 0.7rem;
+}
+
+#spinner.htmx-request{
+  display: inline-block;
+  opacity: 1;
+}
+
+#spinner {
+  display: none;
+  width: 80px;
+  height: 80px;
+  border: 3px solid #e3e3e4;
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg) }
 }
