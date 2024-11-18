@@ -29,7 +29,8 @@
   },
   "include": [
     "src/",
-    "src/swagger.json"
+    "src/swagger.json",
+    "test/"
   ],
   "exclude": [
     "node_modules"

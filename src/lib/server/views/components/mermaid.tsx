@@ -55,11 +55,7 @@ export default class MermaidTemplates {
           <button id="zoom-out">-</button>
         </div>
       </div>
-      <div id="navigation-panel">
-        <pre>
-          <code id="navigationPanelContent">Click on a node to view attributes</code>
-        </pre>
-      </div>
+      <this.navigationPanel content="Click on a node to view attributes" />
     </Page>
   )
 
@@ -80,6 +76,18 @@ export default class MermaidTemplates {
     return (
       <div id={target} class="mermaid htmx-indicator" {...attributes}>
         {output}
+      </div>
+    )
+  }
+
+  public navigationPanel = ({ swapOutOfBand, content }: { swapOutOfBand?: boolean; content?: string }): JSX.Element => {
+    return (
+      <div id="navigation-panel" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
+        <pre>
+          <code id="navigationPanelContent">
+            {escapeHtml(content ? content : 'Click on a node to view attributes')}
+          </code>
+        </pre>
       </div>
     )
   }

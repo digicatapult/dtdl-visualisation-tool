@@ -59,7 +59,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        command: ['test']
+        command: ['test:unit', 'test:playwright']
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -76,10 +76,22 @@ jobs:
             ${{ runner.OS }}-
       - name: Install Packages
         run: npm ci
+      - if: matrix.command == 'test:playwright'
+        name: Install Playwright browsers
+        run: npx playwright install --with-deps
       - name: Build
         run: npm run build
       - name: Run tests
         run: npm run ${{ matrix.command }}
+      - uses: actions/upload-artifact@v4
+        if: ${{ matrix.command == 'test:playwright' }}
+        with:
+          name: playwright-report
+          path: ${{ runner.temp }}/playwright-report/
+          retention-days: 90
+      - name: Publish CTRF Test Summary Results
+        run: npx github-actions-ctrf ${{ runner.temp }}/playwright-report/ctrf-report.json
+        if: ${{ matrix.command == 'test:playwright' }}
 
   check-version:
     name: 'Check version'

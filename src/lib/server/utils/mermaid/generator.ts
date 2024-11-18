@@ -1,9 +1,12 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { renderMermaid, type ParseMDDOptions } from '@mermaid-js/mermaid-cli'
+import { JSDOM } from 'jsdom'
 import puppeteer, { Browser } from 'puppeteer'
 import { singleton } from 'tsyringe'
+import { InternalError } from '../../errors.js'
 import { QueryParams } from '../../models/controllerTypes.js'
 import { DiagramType } from '../../models/mermaidDiagrams.js'
+import { MermaidId } from '../../models/strings.js'
 import ClassDiagram from './classDiagram.js'
 import { IDiagram } from './diagramInterface.js'
 import Flowchart from './flowchart.js'
@@ -22,6 +25,37 @@ export class SvgGenerator {
     classDiagram: new ClassDiagram(),
   }
 
+  getMermaidIdFromNodeId = (nodeId: string): MermaidId | null => {
+    const nodeIdPattern = /^[^-]+-(.+)-\d+$/
+    const mermaidId = nodeId.match(nodeIdPattern)
+    return mermaidId === null ? mermaidId : mermaidId[1]
+  }
+
+  setNodeAttributes = (element: Element) => {
+    const attributes = {
+      'hx-get': '/update-layout',
+      'hx-target': '#mermaid-output',
+      'hx-vals': `${JSON.stringify({
+        highlightNodeId: this.getMermaidIdFromNodeId(element.id),
+        shouldExpand: element.classList.contains('unexpanded'),
+      })}`,
+    }
+    Object.keys(attributes).forEach((key) => element.setAttribute(key, attributes[key]))
+  }
+
+  setSVGAttributes = (svg: string): string => {
+    const dom = new JSDOM(svg, { contentType: 'image/svg+xml' })
+    const document = dom.window.document
+    const svgElement = document.querySelector('#mermaid-svg')
+    if (!svgElement) throw new InternalError('Error in finding mermaid-svg Element in generated output')
+
+    svgElement.setAttribute('hx-include', '#search-panel')
+    const nodes = svgElement.getElementsByClassName('node clickable')
+    Array.from(nodes).forEach((node) => this.setNodeAttributes(node))
+
+    return svgElement.outerHTML
+  }
+
   async run(dtdlObject: DtdlObjectModel, params: QueryParams, options: ParseMDDOptions = {}): Promise<string> {
     //  Mermaid config
     const parseMDDOptions: ParseMDDOptions = {
@@ -33,7 +67,7 @@ export class SvgGenerator {
           htmlLabels: false,
         },
         maxTextSize: 99999999,
-        securityLevel: 'loose',
+        securityLevel: 'strict',
         maxEdges: 99999999,
         layout: params.layout,
       },
@@ -50,6 +84,8 @@ export class SvgGenerator {
 
     const decoder = new TextDecoder()
 
-    return decoder.decode(data)
+    if (!decoder.decode(data)) return 'No SVG generated'
+
+    return this.setSVGAttributes(decoder.decode(data))
   }
 }

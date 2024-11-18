@@ -53,15 +53,19 @@ export class RootController extends HTMLController {
 
     if (params.search !== params.lastSearch) params.expandedIds = []
 
+    if (params.highlightNodeId && params.shouldExpand) {
+      params.expandedIds = params.expandedIds || []
+      params.expandedIds.push(params.highlightNodeId)
+    }
     params.expandedIds = [...new Set(params.expandedIds?.map(dtdlIdReinstateSemicolon))] // remove duplicates
+
+    const cacheKey = this.createCacheKey(params)
+    const generatedOutput = this.cache.get(cacheKey) ?? (await this.generateOutput(params, cacheKey))
 
     const current = this.getCurrentPathQuery(req)
     if (current) {
       this.setReplaceUrl(current, params)
     }
-
-    const cacheKey = this.createCacheKey(params)
-    const generatedOutput = this.cache.get(cacheKey) ?? (await this.generateOutput(cacheKey, params))
 
     return this.html(
       this.templates.mermaidTarget({
@@ -76,6 +80,10 @@ export class RootController extends HTMLController {
         expandedIds: params.expandedIds,
         diagramType: params.diagramType,
         lastSearch: params.search,
+      }),
+      this.templates.navigationPanel({
+        swapOutOfBand: true,
+        content: this.getEntityJson(params.highlightNodeId),
       })
     )
   }
@@ -125,16 +133,27 @@ export class RootController extends HTMLController {
     return searchParams.toString()
   }
 
-  private async generateOutput(cacheKey: string, params: QueryParams): Promise<string> {
+  private async generateOutput(params: QueryParams, cacheKey: string): Promise<string> {
     let model = this.dtdlLoader.getDefaultDtdlModel()
 
     if (params.search) {
       model = filterModelByDisplayName(model, params.search, params.expandedIds ?? [])
     }
 
+    const highlightId = params.highlightNodeId ? dtdlIdReinstateSemicolon(params.highlightNodeId) : undefined
+    if (highlightId && !(highlightId in model)) {
+      params.highlightNodeId = undefined
+    }
+
     const output = await this.generator.run(model, params)
     this.cache.set(cacheKey, output)
-
     return output
+  }
+
+  private getEntityJson(id?: string): string | undefined {
+    if (!id) return id
+    const entityId = dtdlIdReinstateSemicolon(id)
+    const entity = this.dtdlLoader.getDefaultDtdlModel()[entityId]
+    return JSON.stringify(entity, null, 4)
   }
 }
