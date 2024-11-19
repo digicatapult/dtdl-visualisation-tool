@@ -174,19 +174,12 @@ export class RootController extends HTMLController {
 
   private truncateExpandedIds(id: string, model: DtdlObjectModel, expandedIds: string[]): string[] {
     const truncateId = dtdlIdReinstateSemicolon(id)
-    // Gets Ids that are child relatives of a truncating Id
     const relatedIds = getRelatedIdsById(model, truncateId)
-
-    // get index of truncated id in expandedIds
     const truncateIdIndex = expandedIds.findIndex((id) => { return id === truncateId })
 
-    // truncate all relatedIds
     return expandedIds.filter((id, index) => {
-      // remove truncatedId and its children
       if (id === truncateId) return false
-      // remove if id is related and was expanded after it
       if (relatedIds.has(id) && index >= truncateIdIndex) {
-        // add any relatedIds 
         getRelatedIdsById(model, id).forEach(value => relatedIds.add(value))
         return false
       }
