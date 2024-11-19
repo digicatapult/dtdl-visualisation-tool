@@ -96,16 +96,15 @@ export const filterModelByDisplayName = (
 
 export const getRelatedIdsById = (
   dtdlObjectModel: DtdlObjectModel,
-  findMyRelatives: string
+  id: string
 ): Set<string> => {
   const entityPairs = Object.entries(dtdlObjectModel)
-  const matchingIds = new Set([findMyRelatives])
-  const myRelatives = new Set(
+  const matchingIds = new Set([id])
+  const relatedIds = new Set(
     entityPairs.filter(relationshipFilter(dtdlObjectModel, matchingIds)).flatMap(([, entity]) => {
       const relationship = entity as RelationshipType
-      return relationship.Id
+      return [relationship.target].filter((x) => x !== undefined)
     })
   )
-
-  return myRelatives
+  return relatedIds
 }
