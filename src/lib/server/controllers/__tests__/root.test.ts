@@ -4,7 +4,16 @@ import sinon from 'sinon'
 import { QueryParams } from '../../models/controllerTypes.js'
 import { generatedSVGFixture, mockDtdlObjectModel } from '../../utils/mermaid/__tests__/fixtures'
 import { RootController } from '../root'
-import { mockGenerator, mockLogger, mockReq, simpleMockDtdlLoader, templateMock, toHTMLString } from './helpers'
+import {
+  generatorRunStub,
+  mockCache,
+  mockGenerator,
+  mockLogger,
+  mockReq,
+  simpleMockDtdlLoader,
+  templateMock,
+  toHTMLString,
+} from './helpers'
 
 export const defaultParams: QueryParams = {
   layout: 'dagre-d3',
@@ -15,9 +24,10 @@ export const defaultParams: QueryParams = {
 describe('RootController', async () => {
   afterEach(() => {
     sinon.restore()
+    mockCache.clear()
   })
 
-  const controller = new RootController(simpleMockDtdlLoader, mockGenerator, templateMock, mockLogger)
+  const controller = new RootController(simpleMockDtdlLoader, mockGenerator, templateMock, mockLogger, mockCache)
 
   describe('get', () => {
     it('should return rendered root template', async () => {
@@ -130,6 +140,28 @@ describe('RootController', async () => {
         'HX-Push-Url',
         '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&expandedIds=1&expandedIds=2',
       ])
+    })
+
+    it('should cache generated output - keyed by params', async () => {
+      const req = mockReq({})
+      const generatorRunCount = generatorRunStub.callCount
+      await controller.updateLayout(req, defaultParams)
+      expect(mockCache.get('diagramType=flowchart&expandedIds=&layout=dagre-d3&output=svg')).to.equal(
+        generatedSVGFixture
+      )
+
+      await controller.updateLayout(req, defaultParams)
+      expect(generatorRunStub.callCount).to.equal(generatorRunCount + 1)
+    })
+
+    it('should ignore lastSearch param when caching', async () => {
+      const req = mockReq({})
+      await controller.updateLayout(req, { ...defaultParams, lastSearch: 'someSearch' })
+      await controller.updateLayout(req, { ...defaultParams, lastSearch: 'someOtherSearch' })
+      expect(mockCache.size()).to.equal(1)
+      expect(mockCache.get('diagramType=flowchart&expandedIds=&layout=dagre-d3&output=svg')).to.equal(
+        generatedSVGFixture
+      )
     })
   })
 })

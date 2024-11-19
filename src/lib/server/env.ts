@@ -3,6 +3,8 @@ import { singleton } from 'tsyringe'
 
 const envConfig = {
   LOG_LEVEL: envalid.str({ default: 'warn', devDefault: 'debug' }),
+  CACHE_TTL: envalid.num({ default: 1000 * 60 * 5 }),
+  CACHE_SIZE: envalid.num({ default: 100 }),
 }
 
 export type ENV_CONFIG = typeof envConfig

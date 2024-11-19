@@ -11,6 +11,8 @@ const commonUpdateAttrs = {
   'hx-get': '/update-layout',
   'hx-swap': 'outerHTML',
   'hx-include': '#search-panel',
+  'hx-indicator': '.htmx-indicator',
+  'hx-disabled-elt': 'select',
 }
 
 @singleton()
@@ -46,6 +48,7 @@ export default class MermaidTemplates {
 
       <div id="mermaid-wrapper">
         <this.mermaidTarget target="mermaid-output" generatedOutput={generatedOutput} />
+        <div id="spinner" class="htmx-indicator" />
         <div id="svg-controls">
           <button id="zoom-in">+</button>
           <button id="reset-pan-zoom">◯</button>
@@ -55,10 +58,6 @@ export default class MermaidTemplates {
       <this.navigationPanel content="Click on a node to view attributes" />
     </Page>
   )
-
-  public output = ({ generatedOutput }: { generatedOutput: JSX.Element }): JSX.Element => {
-    return generatedOutput
-  }
 
   public mermaidTarget = ({
     generatedOutput,
@@ -70,14 +69,13 @@ export default class MermaidTemplates {
     const attributes = generatedOutput
       ? { 'hx-on::after-settle': `globalThis.setMermaidListeners()` }
       : {
-          'hx-on::after-settle': `globalThis.setMermaidListeners()`,
           'hx-trigger': 'load',
           ...commonUpdateAttrs,
         }
     const output = generatedOutput ?? ''
     return (
-      <div id={target} class="mermaid" {...attributes}>
-        <this.output generatedOutput={output} />
+      <div id={target} class="mermaid htmx-indicator" {...attributes}>
+        {output}
       </div>
     )
   }
