@@ -11,7 +11,7 @@
 body {
   display: grid;
   justify-items: center;
-  font-family: system-ui, sans-serif;
+  font-family: 'Nunito Sans', system-ui, sans-serif;
   font-weight: 500;
   font-size: 1rem;
   height: 100vh;
@@ -88,7 +88,6 @@ button.highlighted {
 }
 
 #mermaid-wrapper {
-  background-color: #f5f6fa;
   grid-column: 1;
   grid-row: 2;
   position: relative;
@@ -114,17 +113,38 @@ button.highlighted {
 }
 
 #navigation-panel {
-  background-color: #fff;
+  background-color: #F5F6FA;
   grid-column: 2;
   grid-row: 2;
-  font-size: 0.6rem;
-  padding: 10px;
-  word-wrap: break-word;
   overflow-y: auto;
+  border: 1px solid #e8e8e8;
+  border-bottom: 0;
 }
 
-pre {
+#navigation-panel h3 {
+  font-size: 1.2rem;
+  margin: 10px 0;
+}
+
+#navigation-panel section {
+  padding: 15px;
+  border-bottom: 1px solid #e8e8e8;
+  word-wrap: break-word;
+}
+
+#navigation-panel section:last-child {
+  border-bottom: none;
+}
+
+#navigation-panel p {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+#navigation-panel pre {
   white-space: pre-wrap;
+  background: white;
+  font-size: 0.6rem;
 }
 
 #svg-controls {

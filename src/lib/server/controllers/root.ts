@@ -83,7 +83,8 @@ export class RootController extends HTMLController {
       }),
       this.templates.navigationPanel({
         swapOutOfBand: true,
-        content: this.getEntityJson(params.highlightNodeId),
+        entityId: dtdlIdReinstateSemicolon(params.highlightNodeId ?? ''),
+        model: this.dtdlLoader.getDefaultDtdlModel(),
       })
     )
   }
@@ -147,12 +148,5 @@ export class RootController extends HTMLController {
     const output = await this.generator.run(model, params)
     this.cache.set(cacheKey, output)
     return output
-  }
-
-  private getEntityJson(id?: string): string | undefined {
-    if (!id) return id
-    const entityId = dtdlIdReinstateSemicolon(id)
-    const entity = this.dtdlLoader.getDefaultDtdlModel()[entityId]
-    return JSON.stringify(entity, null, 4)
   }
 }
