@@ -12,3 +12,7 @@ export const dtdlIdReplaceSemicolon = (idWithSemicolon: DtdlId): MermaidId => {
 export const dtdlIdReinstateSemicolon = (idWithColon: MermaidId): DtdlId => {
   return idWithColon.replace(/:(?=\d+$)/, ';') // replace final : with ;
 }
+
+export const setElementAttributes = (element: Element, attributes: object) => {
+  Object.keys(attributes).forEach((key) => element.setAttribute(key, attributes[key]))
+}

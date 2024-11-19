@@ -10,6 +10,7 @@ import { SvgGenerator } from '../utils/mermaid/generator.js'
 import { dtdlIdReinstateSemicolon } from '../utils/mermaid/helpers.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
+import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 
 const relevantParams = ['search', 'highlightNodeId', 'diagramType', 'layout', 'output', 'expandedIds']
 
@@ -61,15 +62,7 @@ export class RootController extends HTMLController {
     let model = this.dtdlLoader.getDefaultDtdlModel()
 
     if (params.highlightNodeId && params.shouldTruncate && params.expandedIds) {
-      const truncateId = dtdlIdReinstateSemicolon(params.highlightNodeId)
-      // Gets Ids that are child relatives of a truncating Id
-      const relatedIds = getRelatedIdsById(model, truncateId)
-
-      params.expandedIds = params.expandedIds.filter((id) => {
-        // remove truncatedId and its children
-        return !(id === truncateId || relatedIds.has(id))
-      })
-
+      params.expandedIds = this.truncateExpandedIds(params.highlightNodeId, model, params.expandedIds)
     }
 
     params.expandedIds = [...new Set(params.expandedIds?.map(dtdlIdReinstateSemicolon))] // remove duplicates
@@ -81,7 +74,6 @@ export class RootController extends HTMLController {
     if (params.highlightNodeId && !(dtdlIdReinstateSemicolon(params.highlightNodeId) in model)) {
       params.highlightNodeId = undefined
     }
-    params.expandedIds = [...new Set(params.expandedIds?.map(dtdlIdReinstateSemicolon))] // remove duplicates
 
     const cacheKey = this.createCacheKey(params)
     const generatedOutput = this.cache.get(cacheKey) ?? (await this.generateOutput(params, cacheKey))
@@ -178,5 +170,27 @@ export class RootController extends HTMLController {
     const entityId = dtdlIdReinstateSemicolon(id)
     const entity = this.dtdlLoader.getDefaultDtdlModel()[entityId]
     return JSON.stringify(entity, null, 4)
+  }
+
+  private truncateExpandedIds(id: string, model: DtdlObjectModel, expandedIds: string[]): string[] {
+    const truncateId = dtdlIdReinstateSemicolon(id)
+    // Gets Ids that are child relatives of a truncating Id
+    const relatedIds = getRelatedIdsById(model, truncateId)
+
+    // get index of truncated id in expandedIds
+    const truncateIdIndex = expandedIds.findIndex((id) => { return id === truncateId })
+
+    // truncate all relatedIds
+    return expandedIds.filter((id, index) => {
+      // remove truncatedId and its children
+      if (id === truncateId) return false
+      // remove if id is related and was expanded after it
+      if (relatedIds.has(id) && index >= truncateIdIndex) {
+        // add any relatedIds 
+        getRelatedIdsById(model, id).forEach(value => relatedIds.add(value))
+        return false
+      }
+      return true
+    })
   }
 }

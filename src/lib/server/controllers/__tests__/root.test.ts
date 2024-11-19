@@ -163,5 +163,17 @@ describe('RootController', async () => {
         generatedSVGFixture
       )
     })
+
+    it('should truncate highlightNodeId from expandedIds', async () => {
+      const stub = sinon.stub(controller, 'setHeader')
+      const req = mockReq({
+        'hx-current-url': 'http://localhost:3000/some/path',
+      })
+      await controller.updateLayout(req, { ...defaultParams, shouldTruncate: true, highlightNodeId: '3', expandedIds: ['1', '2', '3'] })
+      expect(stub.firstCall.args).to.deep.equal([
+        'HX-Push-Url',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&expandedIds=1&expandedIds=2&shouldTruncate=true&highlightNodeId=undefined',
+      ])
+    })
   })
 })

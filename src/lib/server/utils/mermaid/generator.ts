@@ -10,6 +10,7 @@ import { MermaidId } from '../../models/strings.js'
 import ClassDiagram from './classDiagram.js'
 import { IDiagram } from './diagramInterface.js'
 import Flowchart from './flowchart.js'
+import { setElementAttributes } from './helpers.js'
 
 @singleton()
 export class SvgGenerator {
@@ -31,28 +32,32 @@ export class SvgGenerator {
     return mermaidId === null ? mermaidId : mermaidId[1]
   }
 
-  setNodeAttributes = (element: Element) => {
-    const attributes = {
-      'hx-get': '/update-layout',
-      'hx-target': '#mermaid-output',
-      'hx-vals': `${JSON.stringify({
-        highlightNodeId: this.getMermaidIdFromNodeId(element.id),
-        shouldExpand: element.classList.contains('unexpanded'),
-        shouldTruncate: element.classList.contains('expanded')
-      })}`,
-    }
-    Object.keys(attributes).forEach((key) => element.setAttribute(key, attributes[key]))
-  }
-
   setSVGAttributes = (svg: string): string => {
     const dom = new JSDOM(svg, { contentType: 'image/svg+xml' })
     const document = dom.window.document
     const svgElement = document.querySelector('#mermaid-svg')
     if (!svgElement) throw new InternalError('Error in finding mermaid-svg Element in generated output')
 
-    svgElement.setAttribute('hx-include', '#search-panel')
+    setElementAttributes(svgElement, {
+      'hx-include': '#search-panel',
+      'hx-indicator': '.htmx-indicator'
+    })
+
     const nodes = svgElement.getElementsByClassName('node clickable')
-    Array.from(nodes).forEach((node) => this.setNodeAttributes(node))
+    Array.from(nodes).forEach((node) => {
+
+      const attributes = {
+        'hx-get': '/update-layout',
+        'hx-target': '#mermaid-output',
+        'hx-indicator': '.htmx-indicator',
+        'hx-vals': `${JSON.stringify({
+          highlightNodeId: this.getMermaidIdFromNodeId(node.id),
+          shouldExpand: node.classList.contains('unexpanded'),
+          shouldTruncate: node.classList.contains('expanded')
+        })}`,
+      }
+      setElementAttributes(node, attributes)
+    })
 
     return svgElement.outerHTML
   }

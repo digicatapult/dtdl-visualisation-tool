@@ -103,7 +103,7 @@ export const getRelatedIdsById = (
   const relatedIds = new Set(
     entityPairs.filter(relationshipFilter(dtdlObjectModel, matchingIds)).flatMap(([, entity]) => {
       const relationship = entity as RelationshipType
-      return [relationship.target].filter((x) => x !== undefined)
+      return [relationship.ChildOf, relationship.target].filter((x) => x !== undefined)
     })
   )
   return relatedIds
