@@ -1,9 +1,11 @@
 import { expect } from 'chai'
 import { describe, test } from 'mocha'
 
+import { InvalidQueryError } from '../../../errors.js'
 import { filterModelByDisplayName, getVisualisationState } from '../filter.js'
 import {
   expandedWithRelationships,
+  extendedInterface,
   multipleInterfaces,
   multipleInterfacesAndRelationship,
   singleInterfaceFirst,
@@ -20,9 +22,10 @@ describe('filterModelByDisplayName', function () {
     expect(result).to.deep.equal({})
   })
 
-  test('should return empty model if expanded ID not present in model', function () {
-    const result = filterModelByDisplayName(singleInterfaceFirst, 'test', ['badId'])
-    expect(result).to.deep.equal({})
+  test('should throw if expanded ID not present in model', function () {
+    expect(() => {
+      filterModelByDisplayName(singleInterfaceFirst, 'test', ['badId'])
+    }).to.throw(InvalidQueryError)
   })
 
   test('should include single interface if matches whole string', function () {
@@ -93,5 +96,10 @@ describe('filterModelByDisplayName', function () {
     expect(result).to.deep.equal({
       third: multipleInterfacesAndRelationship.third,
     })
+  })
+
+  test('should include entities extended by a searched interface', function () {
+    const result = filterModelByDisplayName(extendedInterface, 'parent', [])
+    expect(result).to.deep.equal(extendedInterface)
   })
 })
