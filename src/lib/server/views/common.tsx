@@ -19,6 +19,7 @@ export const Page = (props: PropsWithChildren<{ title: string }>): JSX.Element =
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700&display=swap" />
         <link rel="stylesheet" type="text/css" href="/public/styles/main.css" />
         <link rel="stylesheet" type="text/css" href="/public/styles/mermaid.css" />
+        <link rel="stylesheet" type="text/css" href="/public/styles/accordion.css" />
         <title>{escapeHtml(props.title)}</title>
       </head>
       <body hx-ext="json-enc">

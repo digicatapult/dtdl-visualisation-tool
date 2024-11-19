@@ -180,38 +180,3 @@ button.highlighted {
 @keyframes spin {
   to { transform: rotate(360deg) }
 }
-
-.accordion-content {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 800ms;
-}
-
-.accordion-content[aria-hidden="false"] {
-  grid-template-rows: 1fr;
-}
-
-.accordion-content > div {
-  overflow: hidden;
-}
-
-.accordion-button {
-  background: transparent;
-  border: 0;
-  position: relative;
-  margin-left: 20px;
-}
-
-.accordion-button::before,
-.accordion-button::after {
-  position: absolute;
-  left: -20px;
-  content: "⌃";
-  transition: transform 800ms;
-}
-
-
-.accordion-button[aria-expanded="false"]::before,
-.accordion-button[aria-expanded="false"]::after {
-  transform: rotate(180deg);
-}
