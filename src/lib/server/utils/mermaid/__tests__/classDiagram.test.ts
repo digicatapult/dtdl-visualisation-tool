@@ -17,6 +17,7 @@ describe('ClassDiagram', () => {
   describe('interfaceToMarkdown', () => {
     it('should return a list of mermaid markdown string that represents an interface ', () => {
       const interfaceAsMarkdown = classDiagram.interfaceToMarkdown(
+        mockDtdlObjectModel,
         mockDtdlObjectModel['dtmi:com:example_extended;1'] as InterfaceType
       )
       const test = [
@@ -28,6 +29,7 @@ describe('ClassDiagram', () => {
     })
     it('should return a list of mermaid markdown string that represents a relationship', () => {
       const propertyAsMarkdown = classDiagram.interfaceToMarkdown(
+        mockDtdlObjectModel,
         mockDtdlModelWithProperty['dtmi:com:example;1'] as InterfaceType
       )
       const test = [

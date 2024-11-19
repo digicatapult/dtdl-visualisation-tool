@@ -61,3 +61,15 @@ export const expandedWithRelationships: DtdlObjectModel = {
     ChildOf: 'third',
   },
 } as unknown as DtdlObjectModel
+
+export const extendedInterface: DtdlObjectModel = {
+  parent: {
+    EntityKind: 'Interface',
+    Id: 'parent',
+    extendedBy: ['child'],
+  },
+  child: {
+    EntityKind: 'Interface',
+    Id: 'child',
+  },
+} as unknown as DtdlObjectModel
