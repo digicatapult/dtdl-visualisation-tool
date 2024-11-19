@@ -4,7 +4,7 @@
     transition: grid-template-rows 800ms;
   }
   
-  .accordion-content[aria-hidden="false"] {
+  .accordion-content:not([aria-hidden]) {
     grid-template-rows: 1fr;
   }
   
@@ -28,7 +28,7 @@
   }
   
   
-  .accordion-button[aria-expanded="false"]::before,
-  .accordion-button[aria-expanded="false"]::after {
+  .accordion-button:not([aria-expanded])::before,
+  .accordion-button:not([aria-expanded])::after {
     transform: rotate(180deg);
   }

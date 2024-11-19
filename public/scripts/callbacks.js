@@ -3,19 +3,10 @@ const zoomInButton = document.getElementById('zoom-in')
 const zoomOutButton = document.getElementById('zoom-out')
 
 globalThis.toggleAccordion = (event) => {
-  const section = event.target.closest('section')
-  if (!section) return
+  const content = event.target.closest('section')?.querySelector('.accordion-content')
 
-  const button = section.querySelector('button')
-  const content = section.querySelector('.accordion-content')
-
-  if (button?.getAttribute('aria-expanded') === 'true') {
-    button?.setAttribute('aria-expanded', 'false')
-    content?.setAttribute('aria-hidden', 'true')
-  } else {
-    button?.setAttribute('aria-expanded', 'true')
-    content?.setAttribute('aria-hidden', 'false')
-  }
+  event.target.toggleAttribute('aria-expanded')
+  content?.toggleAttribute('aria-hidden')
 }
 
 globalThis.setMermaidListeners = function setMermaidListeners() {

@@ -36,13 +36,13 @@ export const AccordionSection = (props: PropsWithChildren<{ heading: string; col
     <h3>
       <button
         class="accordion-button"
-        aria-expanded={(!props.collapsed).toString()}
-        hx-on="click: globalThis.toggleAccordion(event)"
+        {...(!props.collapsed && { 'aria-expanded': '' })}
+        onclick="globalThis.toggleAccordion(event)"
       >
         {escapeHtml(props.heading)}
       </button>
     </h3>
-    <div class="accordion-content" aria-hidden={props.collapsed.toString()}>
+    <div class="accordion-content" {...(props.collapsed && { 'aria-hidden': '' })}>
       <div>{props.children}</div>
     </div>
   </section>
