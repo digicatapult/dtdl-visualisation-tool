@@ -1,5 +1,6 @@
 import { DtdlObjectModel, EntityType, RelationshipType } from '@digicatapult/dtdl-parser'
 
+import { InvalidQueryError } from '../../errors.js'
 import { DtdlId } from '../../models/strings.js'
 import { getDisplayName } from './extract.js'
 
@@ -64,31 +65,49 @@ const relationshipFilter =
 export const filterModelByDisplayName = (
   dtdlObjectModel: DtdlObjectModel,
   name: string,
-  expanded: string[]
+  expandedIds: string[]
 ): DtdlModelWithMetadata => {
+  // make sure all expanded Ids are valid
+  for (const expandedId of expandedIds) {
+    if (!(expandedId in dtdlObjectModel)) {
+      throw new InvalidQueryError(`Invalid "expandedId" ${expandedId}`)
+    }
+  }
+
   const entityPairs = Object.entries(dtdlObjectModel)
 
-  const matchingIds = new Set(entityPairs.filter(interfaceFilter(name)).map(([, { Id }]) => Id))
+  const searchedIds = new Set(entityPairs.filter(interfaceFilter(name)).map(([, { Id }]) => Id))
 
-  if (matchingIds.size === 0 || !expanded.every((id) => id in dtdlObjectModel)) {
+  // if the search matches no nodes and no expanded nodes are valid we have an empty set
+  if (searchedIds.size === 0 && expandedIds.length === 0) {
     return {}
   }
 
-  const allExpandedIds = new Set([...matchingIds, ...expanded])
+  const matchingIds = new Set([...searchedIds, ...expandedIds])
 
+  // for all search matches include nodes that extend them. Note this only works one way
+  const matchingExtends = [...matchingIds].flatMap((id) => {
+    const entity = dtdlObjectModel[id]
+    if (entity.EntityKind !== 'Interface' || !('extendedBy' in entity)) {
+      return []
+    }
+    return entity.extendedBy
+  })
+
+  // get all relationships of search matches
   const matchingRelationships = new Set(
-    entityPairs.filter(relationshipFilter(dtdlObjectModel, allExpandedIds)).flatMap(([, entity]) => {
+    entityPairs.filter(relationshipFilter(dtdlObjectModel, matchingIds)).flatMap(([, entity]) => {
       const relationship = entity as RelationshipType
       return [relationship.Id, relationship.ChildOf, relationship.target].filter((x) => x !== undefined)
     })
   )
 
-  const idsAndRelationships = new Set([...allExpandedIds, ...matchingRelationships])
+  const idsAndRelationships = new Set([...matchingIds, ...matchingExtends, ...matchingRelationships])
 
   return [...idsAndRelationships].reduce((acc, id) => {
     const entity = dtdlObjectModel[id]
     if (entity.EntityKind === 'Interface')
-      setVisualisationState(entity, determineVisualisationState(id, matchingIds, expanded))
+      setVisualisationState(entity, determineVisualisationState(id, searchedIds, expandedIds))
     acc[id] = entity
     return acc
   }, {} as DtdlObjectModel)
