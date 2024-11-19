@@ -1,14 +1,24 @@
 import { InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
-import { expect } from 'chai'
+import { assert, expect } from 'chai'
 import { describe, it } from 'mocha'
+
 import ClassDiagram, { arrowTypes } from '../classDiagram'
 import { classDiagramFixture, mockDtdlModelWithProperty, mockDtdlObjectModel } from './fixtures'
+import { parseMermaid } from './helpers'
 
 describe('ClassDiagram', () => {
   const classDiagram = new ClassDiagram()
   describe('generateMarkdown', () => {
     it('should return a flowchart in markdown', () => {
       expect(classDiagram.generateMarkdown(mockDtdlObjectModel)).to.equal(classDiagramFixture)
+    })
+    it('should return valid markdown', async () => {
+      const markdown = classDiagram.generateMarkdown(mockDtdlObjectModel)
+      if (markdown === null) assert.fail()
+
+      const parsedMermaid = await parseMermaid(markdown)
+
+      expect(parsedMermaid).to.deep.equal({ diagramType: 'class', config: {} })
     })
     it('should return null for a empty Dtdl model', () => {
       expect(classDiagram.generateMarkdown({})).to.equal(null)
