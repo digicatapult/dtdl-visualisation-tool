@@ -16,6 +16,7 @@ export const Page = (props: PropsWithChildren<{ title: string }>): JSX.Element =
         <script src="/lib/svg-pan-zoom/svg-pan-zoom.min.js"></script>
         <script src="/public/scripts/callbacks.js" type="module"></script>
         <link rel="icon" type="image/ico" sizes="48x48" href="/public/images/favicon.ico" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700&display=swap" />
         <link rel="stylesheet" type="text/css" href="/public/styles/main.css" />
         <link rel="stylesheet" type="text/css" href="/public/styles/mermaid.css" />
         <title>{escapeHtml(props.title)}</title>
@@ -27,4 +28,21 @@ export const Page = (props: PropsWithChildren<{ title: string }>): JSX.Element =
       </body>
     </html>
   </>
+)
+
+export const AccordionSection = (props: PropsWithChildren<{ heading: string; collapsed: boolean }>): JSX.Element => (
+  <section>
+    <h3>
+      <button
+        class="accordion-button"
+        aria-expanded={(!props.collapsed).toString()}
+        hx-on="click: globalThis.toggleAccordion(event)"
+      >
+        {props.heading}
+      </button>
+    </h3>
+    <div class="accordion-content" aria-hidden={props.collapsed.toString()}>
+      <div>{props.children}</div>
+    </div>
+  </section>
 )

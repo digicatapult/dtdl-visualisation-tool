@@ -1,3 +1,4 @@
+import { EntityType } from '@digicatapult/dtdl-parser'
 import express from 'express'
 import { Get, Produces, Queries, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
@@ -83,7 +84,8 @@ export class RootController extends HTMLController {
       }),
       this.templates.navigationPanel({
         swapOutOfBand: true,
-        content: this.getEntityJson(params.highlightNodeId),
+        entityId: dtdlIdReinstateSemicolon(params.highlightNodeId ?? ''),
+        model: this.dtdlLoader.getDefaultDtdlModel(),
       })
     )
   }
@@ -149,10 +151,9 @@ export class RootController extends HTMLController {
     return output
   }
 
-  private getEntityJson(id?: string): string | undefined {
-    if (!id) return id
+  private getEntity(id?: string): EntityType | undefined {
+    if (!id) return undefined
     const entityId = dtdlIdReinstateSemicolon(id)
-    const entity = this.dtdlLoader.getDefaultDtdlModel()[entityId]
-    return JSON.stringify(entity, null, 4)
+    return this.dtdlLoader.getDefaultDtdlModel()[entityId]
   }
 }
