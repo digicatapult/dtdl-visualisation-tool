@@ -128,11 +128,11 @@ export default class MermaidTemplates {
               </p>
             </AccordionSection>
             <AccordionSection heading={'Properties'} collapsed={false}>
-              {isInterface(entity)
+              {isInterface(entity) && Object.keys(entity.properties).length > 0
                 ? Object.entries(entity.properties).map(([name, id]) => (
                     <p>
                       <b>{escapeHtml(name)}: </b>
-                      {escapeHtml(model[id].comment) ?? '-'}
+                      {escapeHtml(model[id].comment ?? '-')}
                     </p>
                   ))
                 : 'None'}
@@ -145,7 +145,7 @@ export default class MermaidTemplates {
                       <>
                         <p>
                           <b>{escapeHtml(name)}: </b>
-                          {escapeHtml(relationship?.comment) ?? '-'}
+                          {escapeHtml(relationship?.comment ?? '-')}
                         </p>
                         <p>
                           <b>Target: </b>
