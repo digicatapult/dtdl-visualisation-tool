@@ -100,7 +100,7 @@ export default class MermaidTemplates {
               <h3>Basic Information</h3>
               <p>
                 <b>Display Name: </b>
-                {getDisplayName(entity)}
+                {escapeHtml(getDisplayName(entity))}
               </p>
               <p>
                 <b>Description: </b>
@@ -131,8 +131,8 @@ export default class MermaidTemplates {
               {isInterface(entity)
                 ? Object.entries(entity.properties).map(([name, id]) => (
                     <p>
-                      <b>{name}: </b>
-                      {model[id].comment ?? '-'}
+                      <b>{escapeHtml(name)}: </b>
+                      {escapeHtml(model[id].comment) ?? '-'}
                     </p>
                   ))
                 : 'None'}
@@ -144,8 +144,8 @@ export default class MermaidTemplates {
                     return (
                       <>
                         <p>
-                          <b>{name}: </b>
-                          {relationship?.comment ?? '-'}
+                          <b>{escapeHtml(name)}: </b>
+                          {escapeHtml(relationship?.comment) ?? '-'}
                         </p>
                         <p>
                           <b>Target: </b>
@@ -161,7 +161,7 @@ export default class MermaidTemplates {
             </AccordionSection>
             <AccordionSection heading={'See Full JSON'} collapsed={true}>
               <pre>
-                <code>{JSON.stringify(entity, null, 4)}</code>
+                <code>{escapeHtml(JSON.stringify(entity, null, 4))}</code>
               </pre>
             </AccordionSection>
           </>

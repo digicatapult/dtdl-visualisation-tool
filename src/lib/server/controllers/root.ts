@@ -1,4 +1,3 @@
-import { EntityType } from '@digicatapult/dtdl-parser'
 import express from 'express'
 import { Get, Produces, Queries, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
@@ -149,11 +148,5 @@ export class RootController extends HTMLController {
     const output = await this.generator.run(model, params)
     this.cache.set(cacheKey, output)
     return output
-  }
-
-  private getEntity(id?: string): EntityType | undefined {
-    if (!id) return undefined
-    const entityId = dtdlIdReinstateSemicolon(id)
-    return this.dtdlLoader.getDefaultDtdlModel()[entityId]
   }
 }
