@@ -21,6 +21,48 @@ const commonUpdateAttrs = {
 export default class MermaidTemplates {
   constructor() {}
 
+  public Legend = ({ withContent }: { withContent: boolean }) => {
+    return (
+      <>
+        <button hx-swap="innerHtml" hx-target="#legend" hx-get={`/legend?withContent=${!withContent}`}>
+          Legend
+        </button>
+        {withContent && (
+          <div id="legend-content" className="legend-content">
+            <div className="legend-item">
+              <div className="legend-icon active"></div>
+              <div>
+                <strong>Currently Active (Clicked) Node</strong>
+                <p>Indicates the currently active selection.</p>
+              </div>
+            </div>
+            <div className="legend-item">
+              <div className="legend-icon search"></div>
+              <div>
+                <strong>Search Result Node</strong>
+                <p>Nodes matching the current search criteria.</p>
+              </div>
+            </div>
+            <div className="legend-item">
+              <div className="legend-icon expanded"></div>
+              <div>
+                <strong>Expanded Node</strong>
+                <p>Node is expanded, connections visible.</p>
+              </div>
+            </div>
+            <div className="legend-item">
+              <div className="legend-icon unexpanded"></div>
+              <div>
+                <strong>Unexpanded Node</strong>
+                <p>Node is unexpanded, no connections shown.</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    )
+  }
+
   public MermaidRoot = ({
     generatedOutput,
     search,
@@ -62,6 +104,9 @@ export default class MermaidTemplates {
           <button id="reset-pan-zoom">◯</button>
           <button id="zoom-out">-</button>
         </div>
+        <section id="legend">
+          <this.Legend withContent={false} />
+        </section>
       </div>
       <this.navigationPanel />
     </Page>

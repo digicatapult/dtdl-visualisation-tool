@@ -9,6 +9,13 @@ globalThis.toggleAccordion = (event) => {
   content?.toggleAttribute('aria-hidden')
 }
 
+globalThis.toggleAccordion2 = (event) => {
+  const content = event.target.closest('section')?.querySelector('.legend-content')
+
+  event.target.closest('section').toggleAttribute('aria-expanded')
+  content?.toggleAttribute('aria-hidden')
+}
+
 globalThis.setMermaidListeners = function setMermaidListeners() {
   const element = document.getElementById('mermaid-svg')
   if (!element) {
