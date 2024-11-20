@@ -61,8 +61,6 @@ export class SvgGenerator {
     svgElement.setAttribute('viewBox', `0 0 ${params.svgWidth} ${params.svgHeight}`)
 
     svgElement.setAttribute('hx-include', '#search-panel')
-    svgElement.setAttribute('hx-indicator', '.htmx-indicator')
-
     const nodes = svgElement.getElementsByClassName('node clickable')
     Array.from(nodes).forEach((node) => {
       this.setNodeAttributes(node)

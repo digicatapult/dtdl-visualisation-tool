@@ -31,6 +31,7 @@ export const urlQueryKeys = [
   'search',
   'expandedIds',
   'shouldExpand',
+  'shouldTruncate',
   'lastSearch',
 ] as const satisfies (keyof RootParams)[]
 export type UrlQueryKeys = (typeof urlQueryKeys)[number]

@@ -163,8 +163,8 @@ describe('Generator', () => {
       </svg>
       `
       const testElement = `<svg id="mermaid-svg" viewBox="0 0 300 100" hx-include="#search-panel">
-        <g id="foo" class="node clickable" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null,&quot;shouldExpand&quot;:false}"/>
-        <g id="bar" class="node clickable" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null,&quot;shouldExpand&quot;:false}"/>
+        <g id="foo" class="node clickable" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null,&quot;shouldExpand&quot;:false,&quot;shouldTruncate&quot;:false}"/>
+        <g id="bar" class="node clickable" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null,&quot;shouldExpand&quot;:false,&quot;shouldTruncate&quot;:false}"/>
       </svg>`
       expect(generator.setSVGAttributes(controlStringElement, defaultParams)).to.equal(testElement)
     })

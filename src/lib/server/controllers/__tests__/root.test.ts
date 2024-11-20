@@ -190,7 +190,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&expandedIds=2&expandedIds=3&search=example&lastSearch=example&shouldTruncate=true&highlightNodeId=5',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=5&search=example&expandedIds=2&expandedIds=3&shouldTruncate=true&lastSearch=example',
       ])
     })
 
@@ -210,7 +210,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&expandedIds=2&expandedIds=3&expandedIds=5&search=example&lastSearch=example&shouldTruncate=true&highlightNodeId=1',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=1&search=example&expandedIds=2&expandedIds=3&expandedIds=5&shouldTruncate=true&lastSearch=example',
       ])
     })
 
@@ -230,7 +230,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&expandedIds=3&search=example&lastSearch=example&shouldTruncate=true&highlightNodeId=2',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=2&search=example&expandedIds=3&shouldTruncate=true&lastSearch=example',
       ])
     })
 
@@ -250,7 +250,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&expandedIds=3&search=example&lastSearch=example&shouldTruncate=true&highlightNodeId=2',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=2&search=example&expandedIds=3&shouldTruncate=true&lastSearch=example',
       ])
     })
 
@@ -270,7 +270,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&expandedIds=2&expandedIds=5&search=example&lastSearch=example&shouldTruncate=true&highlightNodeId=3',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=3&search=example&expandedIds=2&expandedIds=5&shouldTruncate=true&lastSearch=example',
       ])
     })
 
@@ -290,7 +290,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&expandedIds=7&expandedIds=9&search=example&lastSearch=example&shouldTruncate=true&highlightNodeId=5',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=5&search=example&expandedIds=7&expandedIds=9&shouldTruncate=true&lastSearch=example',
       ])
     })
 
@@ -310,7 +310,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&search=example&lastSearch=example&shouldTruncate=true&highlightNodeId=9',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=9&search=example&shouldTruncate=true&lastSearch=example',
       ])
     })
   })
