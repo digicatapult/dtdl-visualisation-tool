@@ -13,7 +13,7 @@ const commonUpdateAttrs = {
   'hx-get': '/update-layout',
   'hx-swap': 'outerHTML',
   'hx-include': '#search-panel',
-  'hx-indicator': '.htmx-indicator',
+  'hx-indicator': '#spinner',
   'hx-disabled-elt': 'select',
 }
 
@@ -29,6 +29,8 @@ export default class MermaidTemplates {
     diagramType,
     expandedIds,
     lastSearch,
+    svgWidth,
+    svgHeight,
   }: {
     generatedOutput?: JSX.Element | undefined
     search?: string
@@ -37,6 +39,8 @@ export default class MermaidTemplates {
     diagramType: DiagramType
     expandedIds?: string[]
     lastSearch?: string
+    svgWidth?: number
+    svgHeight?: number
   }) => (
     <Page title={'UKDTC'}>
       <this.searchPanel
@@ -46,11 +50,13 @@ export default class MermaidTemplates {
         diagramType={diagramType}
         expandedIds={expandedIds}
         lastSearch={lastSearch}
+        svgWidth={svgWidth}
+        svgHeight={svgHeight}
       />
 
       <div id="mermaid-wrapper">
         <this.mermaidTarget target="mermaid-output" generatedOutput={generatedOutput} />
-        <div id="spinner" class="htmx-indicator" />
+        <div id="spinner" />
         <div id="svg-controls">
           <button id="zoom-in">+</button>
           <button id="reset-pan-zoom">◯</button>
@@ -76,7 +82,7 @@ export default class MermaidTemplates {
         }
     const output = generatedOutput ?? ''
     return (
-      <div id={target} class="mermaid htmx-indicator" {...attributes}>
+      <div id={target} class="mermaid" {...attributes}>
         {output}
       </div>
     )
@@ -180,6 +186,8 @@ export default class MermaidTemplates {
     diagramType,
     expandedIds,
     lastSearch,
+    svgWidth,
+    svgHeight,
   }: {
     search?: string
     layout: Layout
@@ -188,9 +196,17 @@ export default class MermaidTemplates {
     diagramType: DiagramType
     expandedIds?: string[]
     lastSearch?: string
+    svgWidth?: number
+    svgHeight?: number
   }) => {
     return (
-      <form id="search-panel" class="button-group" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
+      <form
+        id="search-panel"
+        class="button-group"
+        hx-swap-oob={swapOutOfBand ? 'true' : undefined}
+        hx-sync="this:replace"
+        {...commonUpdateAttrs}
+      >
         <h2>UKDTC</h2>
         <input
           id="search"
@@ -199,11 +215,13 @@ export default class MermaidTemplates {
           value={escapeHtml(search || '')}
           placeholder="Search"
           hx-trigger="input changed delay:500ms, search"
-          hx-sync="this:replace"
           {...commonUpdateAttrs}
         />
         <input id="highlightNodeId" name="highlightNodeId" type="hidden" value={escapeHtml(highlightNodeId || '')} />
         <input id="lastSearch" name="lastSearch" type="hidden" value={escapeHtml(lastSearch || '')} />
+        <input id="svgWidth" name="svgWidth" type="hidden" value={`${svgWidth}` || ''} />
+        <input id="svgHeight" name="svgHeight" type="hidden" value={`${svgHeight}` || ''} />
+
         {expandedIds?.map((id, index) => (
           <input id={`expandedIds_${index}`} name="expandedIds" type="hidden" value={id} />
         ))}

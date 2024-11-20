@@ -1,8 +1,8 @@
 import express from 'express'
 import { Get, Produces, Queries, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
-import { type ILogger, Logger } from '../logger.js'
-import { type QueryParams } from '../models/controllerTypes.js'
+import { Logger, type ILogger } from '../logger.js'
+import { urlQueryKeys, UrlQueryKeys, type RootParams, type UpdateParams } from '../models/controllerTypes.js'
 import { Cache, type ICache } from '../utils/cache.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import { filterModelByDisplayName } from '../utils/dtdl/filter.js'
@@ -31,7 +31,7 @@ export class RootController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('/')
-  public async get(@Queries() params: QueryParams): Promise<HTML> {
+  public async get(@Queries() params: RootParams): Promise<HTML> {
     this.logger.debug('root page requested with search: %o', { search: params.search, layout: params.layout })
 
     return this.html(
@@ -48,7 +48,7 @@ export class RootController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('/update-layout')
-  public async updateLayout(@Request() req: express.Request, @Queries() params: QueryParams): Promise<HTML> {
+  public async updateLayout(@Request() req: express.Request, @Queries() params: UpdateParams): Promise<HTML> {
     this.logger.debug('search: %o', { search: params.search, layout: params.layout })
 
     if (params.search !== params.lastSearch) params.expandedIds = []
@@ -80,6 +80,8 @@ export class RootController extends HTMLController {
         expandedIds: params.expandedIds,
         diagramType: params.diagramType,
         lastSearch: params.search,
+        svgWidth: params.svgWidth,
+        svgHeight: params.svgHeight,
       }),
       this.templates.navigationPanel({
         swapOutOfBand: true,
@@ -109,21 +111,27 @@ export class RootController extends HTMLController {
     }
   }
 
-  private setReplaceUrl(current: { path: string; query: URLSearchParams }, params: QueryParams): void {
+  private setReplaceUrl(
+    current: { path: string; query: URLSearchParams },
+    params: { [key in UrlQueryKeys]?: string | string[] | boolean }
+  ): void {
     const { path, query } = current
-    for (const param in params) {
+    for (const param of urlQueryKeys) {
       const value = params[param]
       if (Array.isArray(value)) {
         query.delete(param)
         value.forEach((item) => query.append(param, item))
-      } else {
-        query.set(param, value)
+        continue
+      }
+
+      if (value !== undefined) {
+        query.set(param, `${value}`)
       }
     }
     this.setHeader('HX-Push-Url', `${path}?${query}`)
   }
 
-  private createCacheKey(queryParams: QueryParams): string {
+  private createCacheKey(queryParams: UpdateParams): string {
     const searchParams = new URLSearchParams(queryParams as unknown as Record<string, string>)
     for (const key of Array.from(searchParams.keys())) {
       if (!relevantParams.includes(key)) {
@@ -134,7 +142,7 @@ export class RootController extends HTMLController {
     return searchParams.toString()
   }
 
-  private async generateOutput(params: QueryParams, cacheKey: string): Promise<string> {
+  private async generateOutput(params: UpdateParams, cacheKey: string): Promise<string> {
     let model = this.dtdlLoader.getDefaultDtdlModel()
 
     if (params.search) {
