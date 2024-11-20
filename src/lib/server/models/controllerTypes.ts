@@ -3,7 +3,7 @@ import { DiagramType } from './mermaidDiagrams.js'
 
 export type output = 'svg' | 'png' | 'pdf'
 
-export interface QueryParams {
+export interface RootParams {
   /**
    * @default 'elk'
    */
@@ -21,4 +21,20 @@ export interface QueryParams {
   expandedIds?: string[]
   shouldExpand?: boolean
   lastSearch?: string
+}
+export const urlQueryKeys = [
+  'layout',
+  'output',
+  'diagramType',
+  'highlightNodeId',
+  'search',
+  'expandedIds',
+  'shouldExpand',
+  'lastSearch',
+] as const satisfies (keyof RootParams)[]
+export type UrlQueryKeys = (typeof urlQueryKeys)[number]
+
+export interface UpdateParams extends RootParams {
+  svgWidth: number
+  svgHeight: number
 }

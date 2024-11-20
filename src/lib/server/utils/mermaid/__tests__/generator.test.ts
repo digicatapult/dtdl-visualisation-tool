@@ -2,6 +2,7 @@ import { ParseMDDOptions } from '@mermaid-js/mermaid-cli'
 import { expect } from 'chai'
 import { JSDOM } from 'jsdom'
 import { describe, it } from 'mocha'
+import sinon from 'sinon'
 import { defaultParams } from '../../../controllers/__tests__/root.test'
 import { SvgGenerator } from '../generator'
 import {
@@ -79,6 +80,17 @@ describe('Generator', () => {
       const generatedOutput = await generator.run(simpleMockDtdlObjectModel, defaultParams, options)
       expect(checkIfStringIsSVG(generatedOutput)).to.equal(true)
     })
+
+    it('should retry if an error occurs', async () => {
+      const generator = new SvgGenerator()
+      const browser = await generator.browser
+      const stub = sinon.stub(browser, 'newPage').onFirstCall().rejects('Error').callThrough()
+
+      const generatedOutput = await generator.run(simpleMockDtdlObjectModel, defaultParams, options)
+
+      expect(checkIfStringIsSVG(generatedOutput)).to.equal(true)
+      expect(stub.callCount).to.equal(1)
+    })
   })
 
   describe('getMermaidIdFromNodeId', () => {
@@ -138,15 +150,29 @@ describe('Generator', () => {
 
   describe('setSVGAttributes', () => {
     it('should return a html string with added attributes', () => {
-      const controlStringElement = '<div id="mermaid-svg"/>'
-      const testElement = '<div id="mermaid-svg" hx-include="#search-panel"/>'
-      expect(generator.setSVGAttributes(controlStringElement)).to.equal(testElement)
+      const controlStringElement = '<svg id="mermaid-svg" width="1024" height="768"/>'
+      const testElement = '<svg id="mermaid-svg" viewBox="0 0 300 100" hx-include="#search-panel"/>'
+      expect(generator.setSVGAttributes(controlStringElement, defaultParams)).to.equal(testElement)
+    })
+
+    it('should set clickable node elements to have htmx attributes', () => {
+      const controlStringElement = `
+      <svg id="mermaid-svg" width="1024" height="768">
+        <g id="foo" class="node clickable"/>
+        <g id="bar" class="node clickable"/>
+      </svg>
+      `
+      const testElement = `<svg id="mermaid-svg" viewBox="0 0 300 100" hx-include="#search-panel">
+        <g id="foo" class="node clickable" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null,&quot;shouldExpand&quot;:false}"/>
+        <g id="bar" class="node clickable" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null,&quot;shouldExpand&quot;:false}"/>
+      </svg>`
+      expect(generator.setSVGAttributes(controlStringElement, defaultParams)).to.equal(testElement)
     })
 
     it('should throw an internal error if given svg string does not have id mermaid-svg', () => {
-      const controlStringElement = '<div id="not-mermaid-svg"/>'
+      const controlStringElement = '<svg id="not-mermaid-svg"/>'
       expect(() => {
-        generator.setSVGAttributes(controlStringElement)
+        generator.setSVGAttributes(controlStringElement, defaultParams)
       })
         .to.throw('Error in finding mermaid-svg Element in generated output')
         .with.property('code', 501)
