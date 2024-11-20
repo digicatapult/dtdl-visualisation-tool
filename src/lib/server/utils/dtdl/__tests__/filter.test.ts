@@ -102,7 +102,9 @@ describe('filterModelByDisplayName', function () {
     const result = filterModelByDisplayName(extendedInterface, 'parent', [])
     expect(result).to.deep.equal(extendedInterface)
   })
+})
 
+describe('getRelatedIdsById', function () {
   test('should return an empty set for an ID not present in the model', function () {
     const result = getRelatedIdsById(multipleInterfacesAndRelationship, 'nonExistentId')
     expect(result).to.deep.equal(new Set())
@@ -114,12 +116,19 @@ describe('filterModelByDisplayName', function () {
   })
 
   test('should return related IDs for a given ID with direct relationships', function () {
-    const result = getRelatedIdsById(multipleInterfacesAndRelationship, 'first')
-    expect(result).to.deep.equal(new Set(['first', 'second']))
+    const result = getRelatedIdsById(expandedWithRelationships, 'first')
+    expect(result).to.deep.equal(new Set(['second']))
   })
 
   test('should handle multiple entities with overlapping relationships', function () {
     const result = getRelatedIdsById(expandedWithRelationships, 'second')
-    expect(result).to.deep.equal(new Set(['first', 'second', 'third']))
+    expect(result).to.deep.equal(new Set(['first', 'third']))
+  })
+
+  test('should return extendedBy or extends relations', function () {
+    const resultExtends = getRelatedIdsById(extendedInterface, 'parent')
+    expect(resultExtends).to.deep.equal(new Set(['child']))
+    const resultExtendedBy = getRelatedIdsById(extendedInterface, 'child')
+    expect(resultExtendedBy).to.deep.equal(new Set(['parent']))
   })
 })

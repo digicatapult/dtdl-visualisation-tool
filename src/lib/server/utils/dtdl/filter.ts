@@ -116,6 +116,9 @@ export const filterModelByDisplayName = (
 export const getRelatedIdsById = (dtdlObjectModel: DtdlObjectModel, id: string): Set<string> => {
   const entityPairs = Object.entries(dtdlObjectModel)
   const matchingIds = new Set([id])
+  if (!(id in dtdlObjectModel)) {
+    return new Set()
+  }
   const matchingEntity = dtdlObjectModel[id]
   if (matchingEntity.EntityKind !== 'Interface' || !('extendedBy' in matchingEntity)) {
     return new Set()
@@ -126,7 +129,8 @@ export const getRelatedIdsById = (dtdlObjectModel: DtdlObjectModel, id: string):
       return [relationship.ChildOf, relationship.target].filter((x) => x !== undefined)
     }),
     ...matchingEntity.extendedBy,
-    ...matchingEntity.extends
+    ...matchingEntity.extends,
   ])
+  relatedIds.delete(id)
   return relatedIds
 }

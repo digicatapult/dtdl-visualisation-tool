@@ -291,5 +291,25 @@ describe('RootController', async () => {
         '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&expandedIds=7&expandedIds=9&search=example&lastSearch=example&shouldTruncate=true&highlightNodeId=5',
       ])
     })
+
+    it('should truncate extended relationships', async () => {
+      const stub = sinon.stub(complexController, 'setHeader')
+      const req = mockReq({
+        'hx-current-url': 'http://localhost:3000/some/path',
+      })
+      await complexController.updateLayout(req, {
+        ...defaultParams,
+        search: 'example',
+        lastSearch: 'example',
+        shouldTruncate: true,
+        highlightNodeId: '9',
+        expandedIds: ['9', '10'],
+      })
+
+      expect(stub.firstCall.args).to.deep.equal([
+        'HX-Push-Url',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&search=example&lastSearch=example&shouldTruncate=true&highlightNodeId=9',
+      ])
+    })
   })
 })

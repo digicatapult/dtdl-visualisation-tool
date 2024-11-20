@@ -113,9 +113,21 @@ export const complexMockDtdlModel = {
       en: 'example9',
     },
     EntityKind: 'Interface',
-    extends: [],
     ...emptyEntityProperties,
     ...emptyInterfaceProperties,
+    extendedBy: [],
+    extends: ['10'],
+  },
+  '10': {
+    Id: '10',
+    displayName: {
+      en: 'example10',
+    },
+    EntityKind: 'Interface',
+    ...emptyEntityProperties,
+    ...emptyInterfaceProperties,
+    extendedBy: ['9'],
+    extends: [],
   },
   'relationship:1:2': {
     Id: 'relationship:1:2',
