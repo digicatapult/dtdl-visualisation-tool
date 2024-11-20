@@ -170,13 +170,6 @@ export class RootController extends HTMLController {
     return output
   }
 
-  private getEntityJson(id?: string): string | undefined {
-    if (!id) return id
-    const entityId = dtdlIdReinstateSemicolon(id)
-    const entity = this.dtdlLoader.getDefaultDtdlModel()[entityId]
-    return JSON.stringify(entity, null, 4)
-  }
-
   private truncateExpandedIds(truncateId: string, model: DtdlObjectModel, expandedIds: string[]): string[] {
     const relatedIds = getRelatedIdsById(model, truncateId)
     const truncateIdIndex = expandedIds.findIndex((id) => id === truncateId)
