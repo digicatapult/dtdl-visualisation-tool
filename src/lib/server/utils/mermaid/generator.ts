@@ -11,6 +11,8 @@ import ClassDiagram from './classDiagram.js'
 import { IDiagram } from './diagramInterface.js'
 import Flowchart from './flowchart.js'
 
+const { log } = console
+
 @singleton()
 export class SvgGenerator {
   public browser: Promise<Browser>
@@ -102,9 +104,9 @@ export class SvgGenerator {
 
       return this.setSVGAttributes(decoder.decode(data), params)
     } catch (err) {
-      console.log('Something went wrong rendering mermaid layout', err)
+      log('Something went wrong rendering mermaid layout', err)
       if (!isRetry) {
-        console.log('Attempting to relaunch puppeteer')
+        log('Attempting to relaunch puppeteer')
 
         const oldBrowser = await this.browser
         await oldBrowser.close()
