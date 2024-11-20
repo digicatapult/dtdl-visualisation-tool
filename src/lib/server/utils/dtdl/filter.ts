@@ -113,10 +113,7 @@ export const filterModelByDisplayName = (
   }, {} as DtdlObjectModel)
 }
 
-export const getRelatedIdsById = (
-  dtdlObjectModel: DtdlObjectModel,
-  id: string
-): Set<string> => {
+export const getRelatedIdsById = (dtdlObjectModel: DtdlObjectModel, id: string): Set<string> => {
   const entityPairs = Object.entries(dtdlObjectModel)
   const matchingIds = new Set([id])
   const relatedIds = new Set(

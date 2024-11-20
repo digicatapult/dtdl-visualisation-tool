@@ -2,7 +2,7 @@ import { expect } from 'chai'
 import { describe, test } from 'mocha'
 
 import { InvalidQueryError } from '../../../errors.js'
-import { filterModelByDisplayName, getVisualisationState } from '../filter.js'
+import { filterModelByDisplayName, getRelatedIdsById, getVisualisationState } from '../filter.js'
 import {
   expandedWithRelationships,
   extendedInterface,
@@ -101,5 +101,25 @@ describe('filterModelByDisplayName', function () {
   test('should include entities extended by a searched interface', function () {
     const result = filterModelByDisplayName(extendedInterface, 'parent', [])
     expect(result).to.deep.equal(extendedInterface)
+  })
+
+  test('should return an empty set for an ID not present in the model', function () {
+    const result = getRelatedIdsById(multipleInterfacesAndRelationship, 'nonExistentId')
+    expect(result).to.deep.equal(new Set())
+  })
+
+  test('should return an empty set for an ID without relationships', function () {
+    const result = getRelatedIdsById(multipleInterfacesAndRelationship, 'third')
+    expect(result).to.deep.equal(new Set())
+  })
+
+  test('should return related IDs for a given ID with direct relationships', function () {
+    const result = getRelatedIdsById(multipleInterfacesAndRelationship, 'first')
+    expect(result).to.deep.equal(new Set(['first', 'second']))
+  })
+
+  test('should handle multiple entities with overlapping relationships', function () {
+    const result = getRelatedIdsById(expandedWithRelationships, 'second')
+    expect(result).to.deep.equal(new Set(['first', 'second', 'third']))
   })
 })

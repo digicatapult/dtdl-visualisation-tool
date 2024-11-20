@@ -1,5 +1,6 @@
 import { ParseMDDOptions } from '@mermaid-js/mermaid-cli'
 import { expect } from 'chai'
+import { JSDOM } from 'jsdom'
 import { describe, it } from 'mocha'
 import { defaultParams } from '../../../controllers/__tests__/root.test'
 import { SvgGenerator } from '../generator'
@@ -90,11 +91,55 @@ describe('Generator', () => {
       expect(generator.getMermaidIdFromNodeId(nonMatchingString)).to.equal(null)
     })
   })
+  describe('setNodeAttributes', () => {
+    let dom: JSDOM, document: Document
+
+    beforeEach(() => {
+      dom = new JSDOM()
+      document = dom.window.document
+    })
+
+    it('should return an element with htmx attributes', () => {
+      const element = document.createElement('div')
+      element.id = 'flowchart-dtmi:com:example:1-1'
+      element.classList.add('unexpanded')
+
+      generator.setNodeAttributes(element)
+
+      expect(element.getAttribute('hx-get')).to.equal('/update-layout')
+      expect(element.getAttribute('hx-target')).to.equal('#mermaid-output')
+
+      const hxVals = JSON.parse(element.getAttribute('hx-vals') ?? '')
+
+      expect(hxVals.highlightNodeId).to.equal('dtmi:com:example:1')
+      expect(hxVals.shouldExpand).to.equal(true)
+    })
+
+    it('should set shouldExpand to false', () => {
+      const element = document.createElement('div')
+      element.id = 'flowchart-dtmi:com:example:1-1'
+
+      generator.setNodeAttributes(element)
+
+      const hxVals = JSON.parse(element.getAttribute('hx-vals') ?? '')
+      expect(hxVals.shouldExpand).to.equal(false)
+    })
+
+    it('should set highlighNodeId to be null', () => {
+      const element = document.createElement('div')
+      element.id = 'invalidId'
+
+      generator.setNodeAttributes(element)
+
+      const hxVals = JSON.parse(element.getAttribute('hx-vals') ?? '')
+      expect(hxVals.highlightNodeId).to.equal(null)
+    })
+  })
 
   describe('setSVGAttributes', () => {
     it('should return a html string with added attributes', () => {
       const controlStringElement = '<div id="mermaid-svg"/>'
-      const testElement = '<div id="mermaid-svg" hx-include="#search-panel"/>'
+      const testElement = '<div id="mermaid-svg" hx-include="#search-panel" hx-indicator=".htmx-indicator"/>'
       expect(generator.setSVGAttributes(controlStringElement)).to.equal(testElement)
     })
 
