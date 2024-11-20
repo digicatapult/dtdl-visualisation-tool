@@ -1,14 +1,24 @@
 import { InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
-import { expect } from 'chai'
+import { assert, expect } from 'chai'
+
 import { describe, it } from 'mocha'
 import Flowchart from '../flowchart'
 import { flowchartFixture, mockDtdlObjectModel } from './fixtures'
+import { parseMermaid } from './helpers'
 
 describe('Mermaid', () => {
   describe('Flowchart', () => {
     const flowchart = new Flowchart()
     it('should return a flowchart in markdown', () => {
       expect(flowchart.generateMarkdown(mockDtdlObjectModel)).to.equal(flowchartFixture)
+    })
+    it('should return valid markdown', async () => {
+      const markdown = flowchart.generateMarkdown(mockDtdlObjectModel)
+      if (markdown === null) assert.fail()
+
+      const parsedMermaid = await parseMermaid(markdown)
+
+      expect(parsedMermaid).to.deep.equal({ diagramType: 'flowchart-v2', config: {} })
     })
     it('should return a list of mermaid markdown string that represent an interface ', () => {
       const interfaceAsMarkdown = flowchart.interfaceToMarkdown(
