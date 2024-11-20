@@ -1,10 +1,12 @@
 /// <reference types="@kitajs/html/htmx.d.ts" />
+import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
 import { singleton } from 'tsyringe'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { Layout, layoutEntries } from '../../models/mermaidLayouts.js'
-import { MermaidId } from '../../models/strings.js'
-import { Page } from '../common.js'
+import { DtdlId, MermaidId } from '../../models/strings.js'
+import { getDisplayName, isInterface, isRelationship } from '../../utils/dtdl/extract.js'
+import { AccordionSection, Page } from '../common.js'
 
 const commonUpdateAttrs = {
   'hx-target': '#mermaid-output',
@@ -55,7 +57,7 @@ export default class MermaidTemplates {
           <button id="zoom-out">-</button>
         </div>
       </div>
-      <this.navigationPanel content="Click on a node to view attributes" />
+      <this.navigationPanel />
     </Page>
   )
 
@@ -80,15 +82,93 @@ export default class MermaidTemplates {
     )
   }
 
-  public navigationPanel = ({ swapOutOfBand, content }: { swapOutOfBand?: boolean; content?: string }): JSX.Element => {
+  public navigationPanel = ({
+    swapOutOfBand,
+    entityId,
+    model,
+  }: {
+    swapOutOfBand?: boolean
+    entityId?: DtdlId
+    model?: DtdlObjectModel
+  }): JSX.Element => {
+    const entity = entityId && model ? model[entityId] : undefined
     return (
-      <div id="navigation-panel" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
-        <pre>
-          <code id="navigationPanelContent">
-            {escapeHtml(content ? content : 'Click on a node to view attributes')}
-          </code>
-        </pre>
-      </div>
+      <aside id="navigation-panel" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
+        {entity && model ? (
+          <>
+            <section>
+              <h3>Basic Information</h3>
+              <p>
+                <b>Display Name: </b>
+                {escapeHtml(getDisplayName(entity))}
+              </p>
+              <p>
+                <b>Description: </b>
+                {entity.description.en ?? 'None'}
+              </p>
+              <p>
+                <b>Comments: </b>
+                {entity.comment ?? 'None'}
+              </p>
+            </section>
+            <AccordionSection heading={'Entity Identifiers'} collapsed={false}>
+              <p>
+                <b>ID: </b>
+                {entity.Id}
+              </p>
+              <p>
+                <b>Entity Kind: </b>
+                {entity.EntityKind}
+              </p>
+              <p>
+                <b>Extends: </b>
+                {isInterface(entity) && entity.extends.length > 0
+                  ? entity.extends.map((entityId) => getDisplayName(model[entityId]))
+                  : 'None'}
+              </p>
+            </AccordionSection>
+            <AccordionSection heading={'Properties'} collapsed={false}>
+              {isInterface(entity) && Object.keys(entity.properties).length > 0
+                ? Object.entries(entity.properties).map(([name, id]) => (
+                    <p>
+                      <b>{escapeHtml(name)}: </b>
+                      {escapeHtml(model[id].comment ?? '-')}
+                    </p>
+                  ))
+                : 'None'}
+            </AccordionSection>
+            <AccordionSection heading={'Relationships'} collapsed={false}>
+              {isInterface(entity) && Object.keys(entity.relationships).length > 0
+                ? Object.entries(entity.relationships).map(([name, id]) => {
+                    const relationship = model[id]
+                    return (
+                      <>
+                        <p>
+                          <b>{escapeHtml(name)}: </b>
+                          {escapeHtml(relationship?.comment ?? '-')}
+                        </p>
+                        <p>
+                          <b>Target: </b>
+                          {isRelationship(relationship) && relationship.target
+                            ? getDisplayName(model[relationship.target])
+                            : '-'}
+                        </p>
+                        <br />
+                      </>
+                    )
+                  })
+                : 'None'}
+            </AccordionSection>
+            <AccordionSection heading={'See Full JSON'} collapsed={true}>
+              <pre>
+                <code>{escapeHtml(JSON.stringify(entity, null, 4))}</code>
+              </pre>
+            </AccordionSection>
+          </>
+        ) : (
+          <section>Click on a node to view attributes</section>
+        )}
+      </aside>
     )
   }
 

@@ -1,0 +1,34 @@
+.accordion-content {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 800ms;
+  }
+  
+  .accordion-content:not([aria-hidden]) {
+    grid-template-rows: 1fr;
+  }
+  
+  .accordion-content > div {
+    overflow: hidden;
+  }
+  
+  .accordion-button {
+    background: transparent;
+    border: 0;
+    position: relative;
+    margin-left: 20px;
+  }
+  
+  .accordion-button::before,
+  .accordion-button::after {
+    position: absolute;
+    left: -20px;
+    content: "⌃";
+    transition: transform 800ms;
+  }
+  
+  
+  .accordion-button:not([aria-expanded])::before,
+  .accordion-button:not([aria-expanded])::after {
+    transform: rotate(180deg);
+  }

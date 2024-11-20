@@ -103,7 +103,8 @@ export class RootController extends HTMLController {
       }),
       this.templates.navigationPanel({
         swapOutOfBand: true,
-        content: this.getEntityJson(params.highlightNodeId),
+        entityId: dtdlIdReinstateSemicolon(params.highlightNodeId ?? ''),
+        model: this.dtdlLoader.getDefaultDtdlModel(),
       })
     )
   }
