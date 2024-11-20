@@ -7,7 +7,6 @@ import chalk from 'chalk'
 import { Command } from 'commander'
 import { container } from 'tsyringe'
 import { httpServer } from './lib/server/index.js'
-import { QueryParams } from './lib/server/models/controllerTypes.js'
 import { DtdlLoader } from './lib/server/utils/dtdl/dtdlLoader.js'
 import { SvgGenerator } from './lib/server/utils/mermaid/generator.js'
 import version from './version.js'
@@ -27,12 +26,6 @@ const minimumDtdl = {
     extends: [],
   },
 } as unknown as DtdlObjectModel
-
-const defaultParams: QueryParams = {
-  layout: 'elk',
-  output: 'svg',
-  diagramType: 'flowchart',
-}
 
 program
   .name('dtdl-visualiser')
@@ -54,7 +47,17 @@ program
 
       log(`Loading SVG generator...`)
       const generator = new SvgGenerator()
-      await generator.run(minimumDtdl, defaultParams, {})
+      await generator.run(
+        minimumDtdl,
+        {
+          layout: 'elk',
+          output: 'svg',
+          diagramType: 'flowchart',
+          svgHeight: 100,
+          svgWidth: 300,
+        },
+        {}
+      )
       container.register(SvgGenerator, { useValue: generator })
       log(`Complete`)
 

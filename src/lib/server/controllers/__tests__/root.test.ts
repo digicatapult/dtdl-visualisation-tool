@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import sinon from 'sinon'
-import { QueryParams } from '../../models/controllerTypes.js'
+import { UpdateParams } from '../../models/controllerTypes.js'
 import { generatedSVGFixture, mockDtdlObjectModel } from '../../utils/mermaid/__tests__/fixtures'
 import { RootController } from '../root'
 import {
@@ -16,10 +16,12 @@ import {
   toHTMLString,
 } from './helpers'
 
-export const defaultParams: QueryParams = {
+export const defaultParams: UpdateParams = {
   layout: 'dagre-d3',
   output: 'svg',
   diagramType: 'flowchart',
+  svgWidth: 300,
+  svgHeight: 100,
 }
 
 describe('RootController', async () => {
