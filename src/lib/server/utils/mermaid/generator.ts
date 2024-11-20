@@ -56,9 +56,8 @@ export class SvgGenerator {
     // remove width and height as these will be done in css
     svgElement.removeAttribute('width')
     svgElement.removeAttribute('height')
+    // modify the viewbox to match the available container
     svgElement.setAttribute('viewBox', `0 0 ${params.svgWidth} ${params.svgHeight}`)
-
-    // modify the viewbox to match the
 
     svgElement.setAttribute('hx-include', '#search-panel')
     const nodes = svgElement.getElementsByClassName('node clickable')
