@@ -190,14 +190,21 @@ input[type='search'] {
   position: absolute;
   left: 0;
   top: calc(100% - 21rem);
-  background: white;
-  border: 1px solid #e8e8e8;
-  transition: 500ms ease;
 }
 
+#legend-content {
+  transform: translateX(-100%);
+  display: grid;
+  padding: 3rem 1rem 1rem 1rem;
+  gap: 1.5rem;
+  grid-template-columns: auto 1fr; 
+  background: #f5f6fa;
+  transition: transform 300ms;
+}
 
-#legend[aria-expanded]{
-  grid-template-rows: auto 1fr;
+#legend-content.show-content {
+  transform: translateX(0);
+  border: 1px solid #e8e8e8;
 }
 
 #legend p {
@@ -206,12 +213,20 @@ input[type='search'] {
 }
 
 #legend button {
+  position: absolute;
+  top: 0;
   font-size: 1rem;
   font-weight: 700;
-  background: transparent;
-  border: 0;
-  position: relative;
+  width: 7rem;
   padding: 0.6rem 1.5rem 0.6rem 2.5rem;
+  text-align: left;
+  background: #f5f6fa;
+  border: 1px solid #e8e8e8;
+}
+
+#legend button.show-content {
+  border: none;
+  border-top: 1px solid #e8e8e8;
 }
 
 #legend button::before,
@@ -219,21 +234,13 @@ input[type='search'] {
   position: absolute;
   left: 1rem;
   content: "❯";
-  transition: transform 500ms;
   color: #a6a6a6;
-  transform: none;
+  transform: scaleX(1);
 }
 
-#legend button[aria-expanded]::before,
-#legend button[aria-expanded]::after {
-  transform: scale(-1, 1);
-}
-
-.legend-content {
-  gap: 1.5rem;
-  display: grid;
-  grid-template-columns: auto 1fr; 
-  padding: 1rem;
+#legend button.show-content::before,
+#legend button.show-content::after {
+  transform: scaleX(-1);
 }
 
 .legend-item {
@@ -244,10 +251,9 @@ input[type='search'] {
   width: 65px;
   height: 32px;
   border: 2px solid black;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  align-self: center
+  align-self: center;
+  background-color: white;
+  position: relative;
 }
 
 .legend-icon.active {
@@ -272,7 +278,4 @@ input[type='search'] {
   right: 2px;
 }
 
-.legend-icon {
-  position: relative;
-}
 

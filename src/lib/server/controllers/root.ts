@@ -93,8 +93,8 @@ export class RootController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('/legend')
-  public async getLegend(@Query() withContent: boolean): Promise<HTML> {
-    return this.html(this.templates.Legend({ withContent }))
+  public async getLegend(@Query() showContent: boolean): Promise<HTML> {
+    return this.html(this.templates.Legend({ showContent }))
   }
 
   @SuccessResponse(200)

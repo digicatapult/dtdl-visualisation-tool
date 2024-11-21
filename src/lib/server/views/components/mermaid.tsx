@@ -21,45 +21,60 @@ const commonUpdateAttrs = {
 export default class MermaidTemplates {
   constructor() {}
 
-  public Legend = ({ withContent }: { withContent: boolean }) => {
+  private LegendItem = ({
+    iconClass,
+    title,
+    description,
+  }: {
+    iconClass: string
+    title: string
+    description: string
+  }) => {
     return (
-      <>
-        <button hx-swap="innerHtml" hx-target="#legend" hx-get={`/legend?withContent=${!withContent}`}>
+      <div class="legend-item">
+        <div className={`legend-icon ${iconClass}`}></div>
+        <div>
+          <b>{title}</b>
+          <p>{description}</p>
+        </div>
+      </div>
+    )
+  }
+
+  public Legend = ({ showContent }: { showContent: boolean }) => {
+    return (
+      <section id="legend">
+        <div id="legend-content" class={showContent ? 'show-content' : ''}>
+          <this.LegendItem
+            iconClass="active"
+            title="Currently Active (Clicked) Node"
+            description="Indicates the currently active selection."
+          />
+          <this.LegendItem
+            iconClass="search"
+            title="Search Result Node"
+            description="Nodes matching the current search criteria."
+          />
+          <this.LegendItem
+            iconClass="expanded"
+            title="Expanded Node"
+            description="Node is expanded, connections visible."
+          />
+          <this.LegendItem
+            iconClass="unexpanded"
+            title="Unexpanded Node"
+            description="Node is unexpanded, no connections shown."
+          />
+        </div>
+        <button
+          hx-swap="outerHTML"
+          hx-target="#legend"
+          hx-get={`/legend?showContent=${!showContent}`}
+          class={showContent ? 'show-content' : ''}
+        >
           Legend
         </button>
-        {withContent && (
-          <div id="legend-content" className="legend-content">
-            <div className="legend-item">
-              <div className="legend-icon active"></div>
-              <div>
-                <strong>Currently Active (Clicked) Node</strong>
-                <p>Indicates the currently active selection.</p>
-              </div>
-            </div>
-            <div className="legend-item">
-              <div className="legend-icon search"></div>
-              <div>
-                <strong>Search Result Node</strong>
-                <p>Nodes matching the current search criteria.</p>
-              </div>
-            </div>
-            <div className="legend-item">
-              <div className="legend-icon expanded"></div>
-              <div>
-                <strong>Expanded Node</strong>
-                <p>Node is expanded, connections visible.</p>
-              </div>
-            </div>
-            <div className="legend-item">
-              <div className="legend-icon unexpanded"></div>
-              <div>
-                <strong>Unexpanded Node</strong>
-                <p>Node is unexpanded, no connections shown.</p>
-              </div>
-            </div>
-          </div>
-        )}
-      </>
+      </section>
     )
   }
 
@@ -104,9 +119,7 @@ export default class MermaidTemplates {
           <button id="reset-pan-zoom">◯</button>
           <button id="zoom-out">-</button>
         </div>
-        <section id="legend">
-          <this.Legend withContent={false} />
-        </section>
+        <this.Legend showContent={false} />
       </div>
       <this.navigationPanel />
     </Page>
