@@ -33,18 +33,94 @@ export class SvgGenerator {
     return mermaidId === null ? mermaidId : mermaidId[1]
   }
 
-  setNodeAttributes = (element: Element) => {
-    const attributes = {
+  generateHxAttributes(element: Element): Record<string, string> {
+    return {
       'hx-get': '/update-layout',
       'hx-target': '#mermaid-output',
       'hx-swap': 'outerHTML',
       'hx-indicator': '#spinner',
-      'hx-vals': `${JSON.stringify({
+      'hx-vals': JSON.stringify({
         highlightNodeId: this.getMermaidIdFromNodeId(element.id),
-        shouldExpand: element.classList.contains('unexpanded'),
-      })}`,
+      }),
     }
-    Object.keys(attributes).forEach((key) => element.setAttribute(key, attributes[key]))
+  }
+
+  calculateCornerSignPosition(element: Element): { x: number; y: number } {
+    const child = element.firstElementChild
+    let x = 0,
+      y = 0
+
+    if (child?.nodeName === 'rect') {
+      // Position based on <rect> dimensions
+      x = parseFloat(child.getAttribute('x') || '0') + parseFloat(child.getAttribute('width') || '0') - 10
+      y = parseFloat(child.getAttribute('y') || '0') + 20
+    } else if (child?.nodeName === 'g') {
+      // Position based on <g> transform attributes
+      const transformData = this.extractTransformData(element)
+      if (transformData) {
+        ; ({ x, y } = transformData)
+      }
+    }
+    return { x, y }
+  }
+
+  extractTransformData(element: Element): { x: number; y: number } | null {
+    const labelGroup = element.querySelector('.label-group.text')
+    const membersGroup = element.querySelector('.members-group.text')
+
+    const labelTransform = labelGroup?.getAttribute('transform')
+    const membersTransform = membersGroup?.getAttribute('transform')
+
+    if (labelTransform && membersTransform) {
+
+      const extractCoordRegex = /translate\(\s*([-\d.]+)[ ,\s]*([-\d.]+)\s*\)/
+
+      const translateMatch = labelTransform.match(extractCoordRegex)
+      if (translateMatch) {
+        const [, x, y] = translateMatch.map(parseFloat)
+        return { x: x - 10, y: y + 20 }
+      }
+    }
+    return null
+  }
+
+  addCornerSign(
+    element: Element,
+    position: { x: number; y: number },
+    document: Document,
+    hxAttributes: Record<string, string>
+  ): void {
+    const { x, y } = position
+
+    const text = document.createElement('text')
+    text.setAttribute('x', x.toString())
+    text.setAttribute('y', y.toString())
+    text.classList.add('corner-sign')
+    text.textContent = element.classList.contains('unexpanded') ? '+' : '-'
+
+    const cornerSignAttributes = {
+      ...hxAttributes,
+      'hx-vals': JSON.stringify({
+        shouldExpand: element.classList.contains('unexpanded'),
+        shouldTruncate: element.classList.contains('expanded'),
+      }),
+    }
+
+    text.setAttribute('onclick', 'event.stopPropagation()')
+    Object.entries(cornerSignAttributes).forEach(([key, value]) => text.setAttribute(key, value))
+
+    element.appendChild(text)
+  }
+
+  setNodeAttributes(element: Element, document: Document) {
+    const hxAttributes = this.generateHxAttributes(element)
+
+    Object.entries(hxAttributes).forEach(([key, value]) => element.setAttribute(key, value))
+
+    if (element.classList.contains('unexpanded') || element.classList.contains('expanded')) {
+      const position = this.calculateCornerSignPosition(element)
+      this.addCornerSign(element, position, document, hxAttributes)
+    }
   }
 
   setSVGAttributes = (svg: string, params: UpdateParams): string => {
@@ -61,7 +137,9 @@ export class SvgGenerator {
 
     svgElement.setAttribute('hx-include', '#search-panel')
     const nodes = svgElement.getElementsByClassName('node clickable')
-    Array.from(nodes).forEach((node) => this.setNodeAttributes(node))
+    Array.from(nodes).forEach((node) => {
+      this.setNodeAttributes(node, document)
+    })
 
     return svgElement.outerHTML
   }

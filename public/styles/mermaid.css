@@ -1,42 +1,49 @@
-/* Flowchart diagramType in mermaid use polygon where as ClassDiagram uses rect */
-g polygon,
-g rect {
+/* Flowchart diagramType in mermaid use rect where as ClassDiagram uses path */
+g.node path {
+  fill: #ffffff !important;
+  stroke: #000000 !important;
+  stroke-width:unset !important;
+}
+g.node rect {
   transition: outline 10.1s ease-in-out;
+  stroke: none !important;
+  fill: #ffffff !important;
 }
 
-g.highlighted polygon,
-g.highlighted rect {
-  outline: 4px solid #9370db;
-  outline-offset: -2px;
+g.node.highlighted path,
+g.node.highlighted rect {
+  fill: #fbf291 !important;
 }
 
-g.expanded.highlighted polygon,
-g.expanded.highlighted rect {
-  outline: 4px dashed #9370db;
-  outline-offset: -2px;
+g.node path,
+g.node.search path {
+  stroke-dasharray: 5,5;
+}
+g.node rect,
+g.node.search rect {
+  outline: 2px dashed #000000;
 }
 
-g.search polygon,
-g.search rect {
-  outline: 2px solid #9370db;
-  outline-offset: -2px;
+g.node.unexpanded path {
+  stroke:#000000
+}
+g.node.unexpanded rect {
+  outline: 3px solid #000000;
 }
 
-g.search.highlighted polygon,
-g.search.highlighted rect {
-  outline: 4px solid #9370db;
-  outline-offset: -2px;
+g.node.expanded path {
+  stroke:#000000
+}
+g.node.expanded rect {
+  outline: 3px solid #000000;
 }
 
-g.unexpanded polygon,
-g.unexpanded rect {
-  outline: 4px double #9370db;
-  outline-offset: -2px;
+.corner-sign {
+  text-anchor: end;
+  font-size: 1.7rem;
 }
 
-g.expanded polygon,
-g.expanded rect {
-  outline: 2px dashed #9370db;
-  outline-offset: -2px;
+text.corner-sign:hover {
+  transition: 0.25s;
+  fill: red;
 }
-

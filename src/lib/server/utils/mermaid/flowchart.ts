@@ -6,7 +6,7 @@ import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './
 import { defaultMarkdownFn, dtdlIdReinstateSemicolon, dtdlIdReplaceSemicolon } from './helpers.js'
 
 const entityKindToShape = {
-  Interface: 'subproc',
+  Interface: 'rect',
   Default: 'rect',
 }
 
