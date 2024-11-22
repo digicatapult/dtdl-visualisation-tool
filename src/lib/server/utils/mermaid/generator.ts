@@ -58,7 +58,7 @@ export class SvgGenerator {
       // Position based on <g> transform attributes
       const transformData = this.extractTransformData(element)
       if (transformData) {
-        ({ x, y } = transformData)
+        ;({ x, y } = transformData)
       }
     }
     return { x, y }
