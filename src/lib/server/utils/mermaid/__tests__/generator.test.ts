@@ -126,13 +126,12 @@ describe('Generator', () => {
 
       const hxVals = {
         ...JSON.parse(element.getAttribute('hx-vals') ?? ''),
-        ...JSON.parse(element.querySelector('text')?.getAttribute('hx-vals') ?? '')
+        ...JSON.parse(element.querySelector('text')?.getAttribute('hx-vals') ?? ''),
       }
 
       expect(hxVals.highlightNodeId).to.equal('dtmi:com:example:1')
       expect(hxVals.shouldExpand).to.equal(true)
       expect(hxVals.shouldTruncate).to.equal(false)
-
     })
 
     it('should set shouldExpand to false', () => {
@@ -227,7 +226,7 @@ describe('Generator', () => {
 
       const textElement = element.querySelector('text.corner-sign')
 
-      expect(textElement).to.not.be.null
+      expect(textElement).to.not.equal(null)
       if (!textElement) {
         throw new Error('Text element was not created.')
       }
@@ -250,7 +249,7 @@ describe('Generator', () => {
 
       const textElement = element.querySelector('text.corner-sign')
 
-      expect(textElement).to.not.be.null
+      expect(textElement).to.not.equal(null)
       if (!textElement) {
         throw new Error('Text element was not created.')
       }
@@ -262,9 +261,9 @@ describe('Generator', () => {
     })
   })
   describe('extractTransformData', () => {
-    it('should ', () => { })
+    it('should ', () => {})
   })
   describe('calculateCornerSignPosition', () => {
-    it('should ', () => { })
+    it('should ', () => {})
   })
 })

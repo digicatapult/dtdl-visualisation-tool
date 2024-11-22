@@ -58,7 +58,7 @@ export class SvgGenerator {
       // Position based on <g> transform attributes
       const transformData = this.extractTransformData(element)
       if (transformData) {
-        ; ({ x, y } = transformData)
+        ({ x, y } = transformData)
       }
     }
     return { x, y }
@@ -72,7 +72,6 @@ export class SvgGenerator {
     const membersTransform = membersGroup?.getAttribute('transform')
 
     if (labelTransform && membersTransform) {
-
       const extractCoordRegex = /translate\(\s*([-\d.]+)[ ,\s]*([-\d.]+)\s*\)/
 
       const translateMatch = labelTransform.match(extractCoordRegex)
