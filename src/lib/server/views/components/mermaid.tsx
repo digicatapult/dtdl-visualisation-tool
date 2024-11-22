@@ -62,6 +62,7 @@ export default class MermaidTemplates {
           <button id="reset-pan-zoom">◯</button>
           <button id="zoom-out">-</button>
         </div>
+        <this.Legend showContent={false} />
       </div>
       <this.navigationPanel />
     </Page>
@@ -248,6 +249,63 @@ export default class MermaidTemplates {
           ))}
         </select>
       </form>
+    )
+  }
+
+  public Legend = ({ showContent }: { showContent: boolean }) => {
+    return (
+      <section id="legend">
+        <div id="legend-content" class={showContent ? 'show-content' : ''}>
+          <this.LegendItem
+            iconClass="active"
+            title="Currently Active (Clicked) Node"
+            description="Indicates the currently active selection."
+          />
+          <this.LegendItem
+            iconClass="search"
+            title="Search Result Node"
+            description="Nodes matching the current search criteria."
+          />
+          <this.LegendItem
+            iconClass="expanded"
+            title="Expanded Node"
+            description="Node is expanded, connections visible."
+          />
+          <this.LegendItem
+            iconClass="unexpanded"
+            title="Unexpanded Node"
+            description="Node is unexpanded, no connections shown."
+          />
+        </div>
+        <button
+          hx-swap="outerHTML"
+          hx-target="#legend"
+          hx-get={`/legend?showContent=${!showContent}`}
+          class={showContent ? 'show-content' : ''}
+        >
+          Legend
+        </button>
+      </section>
+    )
+  }
+
+  private LegendItem = ({
+    iconClass,
+    title,
+    description,
+  }: {
+    iconClass: string
+    title: string
+    description: string
+  }) => {
+    return (
+      <div class="legend-item">
+        <div class={`legend-icon ${iconClass}`}></div>
+        <div>
+          <b safe>{title}</b>
+          <p safe>{description}</p>
+        </div>
+      </div>
     )
   }
 }
