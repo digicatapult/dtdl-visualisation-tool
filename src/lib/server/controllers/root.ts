@@ -1,3 +1,4 @@
+import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import express from 'express'
 import { Get, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
@@ -5,7 +6,7 @@ import { Logger, type ILogger } from '../logger.js'
 import { urlQueryKeys, UrlQueryKeys, type RootParams, type UpdateParams } from '../models/controllerTypes.js'
 import { Cache, type ICache } from '../utils/cache.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
-import { filterModelByDisplayName } from '../utils/dtdl/filter.js'
+import { filterModelByDisplayName, getRelatedIdsById } from '../utils/dtdl/filter.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
 import { dtdlIdReinstateSemicolon } from '../utils/mermaid/helpers.js'
 import MermaidTemplates from '../views/components/mermaid.js'
@@ -57,6 +58,17 @@ export class RootController extends HTMLController {
       params.expandedIds = params.expandedIds || []
       params.expandedIds.push(params.highlightNodeId)
     }
+
+    let model = this.dtdlLoader.getDefaultDtdlModel()
+
+    if (params.highlightNodeId && params.shouldTruncate && params.expandedIds) {
+      const truncateId = dtdlIdReinstateSemicolon(params.highlightNodeId)
+      if (params.expandedIds.includes(truncateId)) {
+        const currentModel = params.search ? filterModelByDisplayName(model, params.search, params.expandedIds) : model
+        params.expandedIds = this.truncateExpandedIds(truncateId, currentModel, params.expandedIds)
+      }
+    }
+
     params.expandedIds = [...new Set(params.expandedIds?.map(dtdlIdReinstateSemicolon))] // remove duplicates
 
     const cacheKey = this.createCacheKey(params)
@@ -162,5 +174,38 @@ export class RootController extends HTMLController {
     const output = await this.generator.run(model, params)
     this.cache.set(cacheKey, output)
     return output
+  }
+
+  private truncateExpandedIds(truncateId: string, model: DtdlObjectModel, expandedIds: string[]): string[] {
+    const relatedIds = getRelatedIdsById(model, truncateId)
+    const truncateIdIndex = expandedIds.findIndex((id) => id === truncateId)
+
+    // Create a set of expandedIds before truncateIdIndex for quick lookup
+    const expandedIdsBeforeTruncate = new Set(expandedIds.slice(0, truncateIdIndex))
+
+    return expandedIds.filter((expandedId, index) => {
+      // Remove the truncating ID itself
+      if (expandedId === truncateId) return false
+
+      // Check if the expandedId is related and appears after the truncating ID
+      if (relatedIds.has(expandedId) && index >= truncateIdIndex) {
+        /* 
+          Check if any related ID exists before the truncating expandedId, 
+          This will keep this expandedId in, as it was brought into scope by another node before the truncated node
+        */
+        const hasMatchBeforeTruncate = [...getRelatedIdsById(model, expandedId)].some((value) =>
+          expandedIdsBeforeTruncate.has(value)
+        )
+        if (hasMatchBeforeTruncate) return true
+
+        // Add additional related IDs to the set
+        getRelatedIdsById(model, expandedId).forEach((value) => relatedIds.add(value))
+
+        return false
+      }
+
+      // Keep unrelated or earlier IDs
+      return true
+    })
   }
 }
