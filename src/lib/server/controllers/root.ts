@@ -1,6 +1,6 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import express from 'express'
-import { Get, Produces, Queries, Request, Route, SuccessResponse } from 'tsoa'
+import { Get, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
 import { Logger, type ILogger } from '../logger.js'
 import { urlQueryKeys, UrlQueryKeys, type RootParams, type UpdateParams } from '../models/controllerTypes.js'
@@ -101,6 +101,12 @@ export class RootController extends HTMLController {
         model: this.dtdlLoader.getDefaultDtdlModel(),
       })
     )
+  }
+
+  @SuccessResponse(200)
+  @Get('/legend')
+  public async getLegend(@Query() showContent: boolean): Promise<HTML> {
+    return this.html(this.templates.Legend({ showContent }))
   }
 
   @SuccessResponse(200)

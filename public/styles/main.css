@@ -185,3 +185,97 @@ input[type='search'] {
     transform: rotate(360deg);
   }
 }
+
+#legend {
+  position: absolute;
+  left: 0;
+  top: calc(100% - 21rem);
+}
+
+#legend-content {
+  transform: translateX(-100%);
+  display: grid;
+  padding: 3rem 1rem 1rem 1rem;
+  gap: 1.5rem;
+  grid-template-columns: auto 1fr; 
+  background: #f5f6fa;
+  transition: transform 300ms;
+}
+
+#legend-content.show-content {
+  transform: translateX(0);
+  border: 1px solid #e8e8e8;
+}
+
+#legend p {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+#legend button {
+  position: absolute;
+  top: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  width: 7rem;
+  padding: 0.6rem 1.5rem 0.6rem 2.5rem;
+  text-align: left;
+  background: #f5f6fa;
+  border: 1px solid #e8e8e8;
+}
+
+#legend button.show-content {
+  border: none;
+  border-top: 1px solid #e8e8e8;
+}
+
+#legend button::before,
+#legend button::after {
+  position: absolute;
+  left: 1rem;
+  content: "❯";
+  color: #a6a6a6;
+  transform: scaleX(1);
+}
+
+#legend button.show-content::before,
+#legend button.show-content::after {
+  transform: scaleX(-1);
+}
+
+.legend-item {
+  display: contents;
+}
+
+.legend-icon {
+  width: 65px;
+  height: 32px;
+  border: 2px solid black;
+  align-self: center;
+  background-color: white;
+  position: relative;
+}
+
+.legend-icon.active {
+  background-color: #faf290;
+}
+
+.legend-icon.search {
+  border-style: dashed;
+}
+
+.legend-icon.expanded::after {
+  content: '-';
+  position: absolute;
+  top: -5px;
+  right: 2px;
+}
+
+.legend-icon.unexpanded::after {
+  content: '+';
+  position: absolute;
+  top: -5px;
+  right: 2px;
+}
+
+
