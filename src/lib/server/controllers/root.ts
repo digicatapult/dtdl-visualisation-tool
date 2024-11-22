@@ -59,7 +59,7 @@ export class RootController extends HTMLController {
       params.expandedIds.push(params.highlightNodeId)
     }
 
-    let model = this.dtdlLoader.getDefaultDtdlModel()
+    const model = this.dtdlLoader.getDefaultDtdlModel()
 
     if (params.highlightNodeId && params.shouldTruncate && params.expandedIds) {
       const truncateId = dtdlIdReinstateSemicolon(params.highlightNodeId)
