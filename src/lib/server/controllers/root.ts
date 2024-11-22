@@ -71,14 +71,6 @@ export class RootController extends HTMLController {
 
     params.expandedIds = [...new Set(params.expandedIds?.map(dtdlIdReinstateSemicolon))] // remove duplicates
 
-    if (params.search) {
-      model = filterModelByDisplayName(model, params.search, params.expandedIds)
-    }
-
-    if (params.highlightNodeId && !(dtdlIdReinstateSemicolon(params.highlightNodeId) in model)) {
-      params.highlightNodeId = undefined
-    }
-
     const cacheKey = this.createCacheKey(params)
     const generatedOutput = this.cache.get(cacheKey) ?? (await this.generateOutput(params, cacheKey))
 
