@@ -26,7 +26,7 @@ describe('Mermaid', () => {
         mockDtdlObjectModel['dtmi:com:example_extended;1'] as InterfaceType
       )
       const test = [
-        `dtmi:com:example_extended:1@{ shape: subproc, label: "example extended"}\nclick dtmi:com:example_extended:1 getEntity`,
+        `dtmi:com:example_extended:1@{ shape: rect, label: "example extended"}\nclick dtmi:com:example_extended:1 getEntity`,
         `dtmi:com:example:1 --- |extends| dtmi:com:example_extended:1`,
         `class dtmi:com:example_extended:1 search`,
       ]
@@ -50,7 +50,7 @@ describe('Mermaid', () => {
     })
     it('should return node string without a callback defined', () => {
       const interfaceAsMarkdown = flowchart.createNodeString(mockDtdlObjectModel['dtmi:com:example_extended;1'], false)
-      const test = 'dtmi:com:example_extended:1@{ shape: subproc, label: "example extended"}'
+      const test = 'dtmi:com:example_extended:1@{ shape: rect, label: "example extended"}'
       expect(interfaceAsMarkdown).to.deep.equal(test)
     })
   })

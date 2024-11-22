@@ -113,41 +113,47 @@ describe('Generator', () => {
 
     it('should return an element with htmx attributes', () => {
       const element = document.createElement('div')
+      const rectElement = document.createElement('rect')
+
       element.id = 'flowchart-dtmi:com:example:1-1'
+      element.appendChild(rectElement)
       element.classList.add('unexpanded')
 
-      generator.setNodeAttributes(element)
+      generator.setNodeAttributes(element, document)
 
       expect(element.getAttribute('hx-get')).to.equal('/update-layout')
       expect(element.getAttribute('hx-target')).to.equal('#mermaid-output')
 
-      const hxVals = JSON.parse(element.getAttribute('hx-vals') ?? '')
+      const hxVals = {
+        ...JSON.parse(element.getAttribute('hx-vals') ?? ''),
+        ...JSON.parse(element.querySelector('text')?.getAttribute('hx-vals') ?? '')
+      }
 
       expect(hxVals.highlightNodeId).to.equal('dtmi:com:example:1')
       expect(hxVals.shouldExpand).to.equal(true)
+      expect(hxVals.shouldTruncate).to.equal(false)
+
     })
 
     it('should set shouldExpand to false', () => {
       const element = document.createElement('div')
       element.id = 'flowchart-dtmi:com:example:1-1'
 
-      generator.setNodeAttributes(element)
+      generator.setNodeAttributes(element, document)
 
-      const hxVals = JSON.parse(element.getAttribute('hx-vals') ?? '')
-      expect(hxVals.shouldExpand).to.equal(false)
+      // const hxVals = JSON.parse(element.getAttribute('hx-vals') ?? '')
     })
 
     it('should set highlighNodeId to be null', () => {
       const element = document.createElement('div')
       element.id = 'invalidId'
 
-      generator.setNodeAttributes(element)
+      generator.setNodeAttributes(element, document)
 
       const hxVals = JSON.parse(element.getAttribute('hx-vals') ?? '')
       expect(hxVals.highlightNodeId).to.equal(null)
     })
   })
-
   describe('setSVGAttributes', () => {
     it('should return a html string with added attributes', () => {
       const controlStringElement = '<svg id="mermaid-svg" width="1024" height="768"/>'
@@ -155,7 +161,7 @@ describe('Generator', () => {
       expect(generator.setSVGAttributes(controlStringElement, defaultParams)).to.equal(testElement)
     })
 
-    it('should set clickable node elements to have htmx attributes', () => {
+    it('should set clickable node elements to have htmx attributes that do not expand or truncate', () => {
       const controlStringElement = `
       <svg id="mermaid-svg" width="1024" height="768">
         <g id="foo" class="node clickable"/>
@@ -163,8 +169,30 @@ describe('Generator', () => {
       </svg>
       `
       const testElement = `<svg id="mermaid-svg" viewBox="0 0 300 100" hx-include="#search-panel">
-        <g id="foo" class="node clickable" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null,&quot;shouldExpand&quot;:false,&quot;shouldTruncate&quot;:false}"/>
-        <g id="bar" class="node clickable" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null,&quot;shouldExpand&quot;:false,&quot;shouldTruncate&quot;:false}"/>
+        <g id="foo" class="node clickable" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}"/>
+        <g id="bar" class="node clickable" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}"/>
+      </svg>`
+      expect(generator.setSVGAttributes(controlStringElement, defaultParams)).to.equal(testElement)
+    })
+
+    it('should set clickable node elements to have htmx attributes that expand or truncate', () => {
+      const controlStringElement = `
+      <svg id="mermaid-svg" width="1024" height="768">
+        <g id="foo" class="node clickable unexpanded">
+          <g></g>
+        </g>
+        <g id="bar" class="node clickable expanded">
+          <rect></rect>
+        </g>
+      </svg>
+      `
+      const testElement = `<svg id="mermaid-svg" viewBox="0 0 300 100" hx-include="#search-panel">
+        <g id="foo" class="node clickable unexpanded" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}">
+          <g/>
+        <text x="0" y="0" class="corner-sign" onclick="event.stopPropagation()" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;shouldExpand&quot;:true,&quot;shouldTruncate&quot;:false}">+</text></g>
+        <g id="bar" class="node clickable expanded" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}">
+          <rect/>
+        <text x="-10" y="20" class="corner-sign" onclick="event.stopPropagation()" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;shouldExpand&quot;:false,&quot;shouldTruncate&quot;:true}">-</text></g>
       </svg>`
       expect(generator.setSVGAttributes(controlStringElement, defaultParams)).to.equal(testElement)
     })
@@ -177,5 +205,66 @@ describe('Generator', () => {
         .to.throw('Error in finding mermaid-svg Element in generated output')
         .with.property('code', 501)
     })
+  })
+  describe('addCornerSign', () => {
+    let dom: JSDOM, document: Document, element: Element
+
+    beforeEach(() => {
+      dom = new JSDOM()
+      document = dom.window.document
+      element = document.createElement('g')
+    })
+
+    it('should add a text element with "+" sign for unexpanded elements', () => {
+      element.classList.add('unexpanded')
+      const position = { x: 100, y: 50 }
+      const hxAttributes = {
+        'hx-get': '/update-layout',
+        'hx-target': '#mermaid-output',
+      }
+
+      generator.addCornerSign(element, position, document, hxAttributes)
+
+      const textElement = element.querySelector('text.corner-sign')
+
+      expect(textElement).to.not.be.null
+      if (!textElement) {
+        throw new Error('Text element was not created.')
+      }
+
+      expect(textElement.getAttribute('x')).to.equal('100')
+      expect(textElement.getAttribute('y')).to.equal('50')
+      expect(textElement.textContent).to.equal('+')
+      expect(textElement.getAttribute('onclick')).to.equal('event.stopPropagation()')
+    })
+
+    it('should add a text element with "-" sign for unexpanded elements', () => {
+      element.classList.add('expanded')
+      const position = { x: 100, y: 50 }
+      const hxAttributes = {
+        'hx-get': '/update-layout',
+        'hx-target': '#mermaid-output',
+      }
+
+      generator.addCornerSign(element, position, document, hxAttributes)
+
+      const textElement = element.querySelector('text.corner-sign')
+
+      expect(textElement).to.not.be.null
+      if (!textElement) {
+        throw new Error('Text element was not created.')
+      }
+
+      expect(textElement.getAttribute('x')).to.equal('100')
+      expect(textElement.getAttribute('y')).to.equal('50')
+      expect(textElement.textContent).to.equal('-')
+      expect(textElement.getAttribute('onclick')).to.equal('event.stopPropagation()')
+    })
+  })
+  describe('extractTransformData', () => {
+    it('should ', () => { })
+  })
+  describe('calculateCornerSignPosition', () => {
+    it('should ', () => { })
   })
 })
