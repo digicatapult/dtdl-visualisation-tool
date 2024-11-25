@@ -50,11 +50,11 @@ export class SvgGenerator {
     let x = 0,
       y = 0
 
-    if (child?.nodeName === 'rect') {
+    if (child?.nodeName === 'rect' || child?.nodeName === 'RECT') {
       // Position based on flowchart diagram
       x = parseFloat(child.getAttribute('x') || '0') + parseFloat(child.getAttribute('width') || '0') - 10
       y = parseFloat(child.getAttribute('y') || '0') + 20
-    } else if (child?.nodeName === 'g') {
+    } else if (child?.nodeName === 'g' || child?.nodeName === 'G') {
       // Position based on class diagram
       const transformData = this.extractTransformData(element)
       if (transformData) {
@@ -74,10 +74,14 @@ export class SvgGenerator {
     if (labelTransform && membersTransform) {
       const extractCoordRegex = /translate\(\s*([-\d.]+)[ ,\s]*([-\d.]+)\s*\)/
 
-      const translateMatch = labelTransform.match(extractCoordRegex)
-      if (translateMatch) {
-        const [, x, y] = translateMatch.map(parseFloat)
-        return { x: x - 10, y: y + 20 }
+      const translateY = labelTransform.match(extractCoordRegex)
+      const translateX = membersTransform.match(extractCoordRegex)
+
+      if (translateY && translateX) {
+        return {
+          x: translateX.map(parseFloat)[1],
+          y: translateY.map(parseFloat)[2]
+        }
       }
     }
     return null

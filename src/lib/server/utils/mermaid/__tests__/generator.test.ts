@@ -261,9 +261,79 @@ describe('Generator', () => {
     })
   })
   describe('extractTransformData', () => {
-    it('should ', () => {})
+    let dom: JSDOM, document: Document, element: Element, labelElement: Element, membersElement: Element
+
+    beforeEach(() => {
+      dom = new JSDOM()
+      document = dom.window.document
+      element = document.createElement('g')
+      labelElement = document.createElement('g')
+      membersElement = document.createElement('g')
+    })
+
+    it('should extract the x and y coordinate from the transform attribute', () => {
+
+      labelElement.setAttribute('transform', 'translate(0,20)')
+      membersElement.setAttribute('transform', 'translate(10,0)')
+
+      labelElement.classList.add('label-group')
+      labelElement.classList.add('text')
+
+      membersElement.classList.add('members-group')
+      membersElement.classList.add('text')
+
+
+      element.appendChild(labelElement)
+      element.appendChild(membersElement)
+
+      const coordinates = generator.extractTransformData(element)
+      expect(coordinates).to.deep.equal({ x: 10, y: 20 })
+    })
+    it('should return null if the x and y coordinates do not exist in children element attributes of a given element', () => {
+
+      expect(generator.extractTransformData(element)).to.equal(null)
+
+      labelElement.classList.add('label-group')
+      labelElement.classList.add('text')
+
+      membersElement.classList.add('members-group')
+      membersElement.classList.add('text')
+
+      element.appendChild(labelElement)
+      element.appendChild(membersElement)
+
+      expect(generator.extractTransformData(element)).to.equal(null)
+
+      labelElement.setAttribute('transform', 'translate(x,y)')
+      membersElement.setAttribute('transform', 'translate(x,y)')
+
+      expect(generator.extractTransformData(element)).to.equal(null)
+    })
   })
   describe('calculateCornerSignPosition', () => {
-    it('should ', () => {})
+    let dom: JSDOM, document: Document, element: Element
+
+    beforeEach(() => {
+      dom = new JSDOM()
+      document = dom.window.document
+      element = document.createElement('g')
+    })
+    it('should return { x:0, y:0 } if no rect or g element is found as the first child element', () => {
+
+      expect(generator.calculateCornerSignPosition(element)).to.deep.equal({ x: 0, y: 0 })
+    })
+    it('should return { x:0, y:0 } if width, x and y attribute not found in rect child element', () => {
+      const rect = document.createElement('rect')
+      element.appendChild(rect)
+      expect(generator.calculateCornerSignPosition(element)).to.deep.equal({ x: 0, y: 0 })
+    })
+    it.only('should return { x:190, y:120 } if width, x and y attribute not found in rect child element', () => {
+      const rect = document.createElement('rect')
+      rect.setAttribute('width', '100')
+      rect.setAttribute('x', '100')
+      rect.setAttribute('y', '100')
+      element.appendChild(rect)
+      expect(generator.calculateCornerSignPosition(element)).to.deep.equal({ x: 190, y: 120 })
+    })
   })
 })
