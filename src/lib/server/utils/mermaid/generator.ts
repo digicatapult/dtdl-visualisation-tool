@@ -79,8 +79,8 @@ export class SvgGenerator {
 
       if (translateY && translateX) {
         return {
-          x: translateX.map(parseFloat)[1],
-          y: translateY.map(parseFloat)[2]
+          x: translateX.map(parseFloat)[1] * -1,
+          y: translateY.map(parseFloat)[2],
         }
       }
     }
