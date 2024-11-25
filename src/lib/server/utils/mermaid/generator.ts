@@ -42,6 +42,7 @@ export class SvgGenerator {
       'hx-vals': `${JSON.stringify({
         highlightNodeId: this.getMermaidIdFromNodeId(element.id),
         shouldExpand: element.classList.contains('unexpanded'),
+        shouldTruncate: element.classList.contains('expanded'),
       })}`,
     }
     Object.keys(attributes).forEach((key) => element.setAttribute(key, attributes[key]))
@@ -61,7 +62,9 @@ export class SvgGenerator {
 
     svgElement.setAttribute('hx-include', '#search-panel')
     const nodes = svgElement.getElementsByClassName('node clickable')
-    Array.from(nodes).forEach((node) => this.setNodeAttributes(node))
+    Array.from(nodes).forEach((node) => {
+      this.setNodeAttributes(node)
+    })
 
     return svgElement.outerHTML
   }

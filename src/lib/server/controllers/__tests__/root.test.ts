@@ -5,6 +5,7 @@ import { UpdateParams } from '../../models/controllerTypes.js'
 import { generatedSVGFixture, mockDtdlObjectModel } from '../../utils/mermaid/__tests__/fixtures'
 import { RootController } from '../root'
 import {
+  complexMockDtdlLoader,
   generatorRunStub,
   mockCache,
   mockGenerator,
@@ -30,6 +31,13 @@ describe('RootController', async () => {
   })
 
   const controller = new RootController(simpleMockDtdlLoader, mockGenerator, templateMock, mockLogger, mockCache)
+  const complexController = new RootController(
+    complexMockDtdlLoader,
+    mockGenerator,
+    templateMock,
+    mockLogger,
+    mockCache
+  )
 
   describe('get', () => {
     it('should return rendered root template', async () => {
@@ -164,6 +172,146 @@ describe('RootController', async () => {
       expect(mockCache.get('diagramType=flowchart&expandedIds=&layout=dagre-d3&output=svg')).to.equal(
         generatedSVGFixture
       )
+    })
+
+    it('should truncate the last expandedId', async () => {
+      const stub = sinon.stub(complexController, 'setHeader')
+      const req = mockReq({
+        'hx-current-url': 'http://localhost:3000/some/path',
+      })
+      await complexController.updateLayout(req, {
+        ...defaultParams,
+        search: 'example',
+        lastSearch: 'example',
+        shouldTruncate: true,
+        highlightNodeId: '5',
+        expandedIds: ['2', '3', '5'],
+      })
+
+      expect(stub.firstCall.args).to.deep.equal([
+        'HX-Push-Url',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=5&search=example&expandedIds=2&expandedIds=3&shouldTruncate=true&lastSearch=example',
+      ])
+    })
+
+    it('should truncate no expanded Id', async () => {
+      const stub = sinon.stub(complexController, 'setHeader')
+      const req = mockReq({
+        'hx-current-url': 'http://localhost:3000/some/path',
+      })
+      await complexController.updateLayout(req, {
+        ...defaultParams,
+        search: 'example',
+        lastSearch: 'example',
+        shouldTruncate: true,
+        highlightNodeId: '1',
+        expandedIds: ['2', '3', '5'],
+      })
+
+      expect(stub.firstCall.args).to.deep.equal([
+        'HX-Push-Url',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=1&search=example&expandedIds=2&expandedIds=3&expandedIds=5&shouldTruncate=true&lastSearch=example',
+      ])
+    })
+
+    it('should truncate id 2 and 5', async () => {
+      const stub = sinon.stub(complexController, 'setHeader')
+      const req = mockReq({
+        'hx-current-url': 'http://localhost:3000/some/path',
+      })
+      await complexController.updateLayout(req, {
+        ...defaultParams,
+        search: 'example',
+        lastSearch: 'example',
+        shouldTruncate: true,
+        highlightNodeId: '2',
+        expandedIds: ['2', '3', '5'],
+      })
+
+      expect(stub.firstCall.args).to.deep.equal([
+        'HX-Push-Url',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=2&search=example&expandedIds=3&shouldTruncate=true&lastSearch=example',
+      ])
+    })
+
+    it('should truncate id 2 and 5 and leave 3 expanded', async () => {
+      const stub = sinon.stub(complexController, 'setHeader')
+      const req = mockReq({
+        'hx-current-url': 'http://localhost:3000/some/path',
+      })
+      await complexController.updateLayout(req, {
+        ...defaultParams,
+        search: 'example',
+        lastSearch: 'example',
+        shouldTruncate: true,
+        highlightNodeId: '2',
+        expandedIds: ['2', '3', '5'],
+      })
+
+      expect(stub.firstCall.args).to.deep.equal([
+        'HX-Push-Url',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=2&search=example&expandedIds=3&shouldTruncate=true&lastSearch=example',
+      ])
+    })
+
+    it('should truncate id 3 and 7', async () => {
+      const stub = sinon.stub(complexController, 'setHeader')
+      const req = mockReq({
+        'hx-current-url': 'http://localhost:3000/some/path',
+      })
+      await complexController.updateLayout(req, {
+        ...defaultParams,
+        search: 'example',
+        lastSearch: 'example',
+        shouldTruncate: true,
+        highlightNodeId: '3',
+        expandedIds: ['2', '3', '5', '7'],
+      })
+
+      expect(stub.firstCall.args).to.deep.equal([
+        'HX-Push-Url',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=3&search=example&expandedIds=2&expandedIds=5&shouldTruncate=true&lastSearch=example',
+      ])
+    })
+
+    it('should only truncate nodes that were brought into scope by expansion of highlightNodeId', async () => {
+      const stub = sinon.stub(complexController, 'setHeader')
+      const req = mockReq({
+        'hx-current-url': 'http://localhost:3000/some/path',
+      })
+      await complexController.updateLayout(req, {
+        ...defaultParams,
+        search: 'example',
+        lastSearch: 'example',
+        shouldTruncate: true,
+        highlightNodeId: '5',
+        expandedIds: ['7', '5', '9'],
+      })
+
+      expect(stub.firstCall.args).to.deep.equal([
+        'HX-Push-Url',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=5&search=example&expandedIds=7&expandedIds=9&shouldTruncate=true&lastSearch=example',
+      ])
+    })
+
+    it('should truncate extended relationships', async () => {
+      const stub = sinon.stub(complexController, 'setHeader')
+      const req = mockReq({
+        'hx-current-url': 'http://localhost:3000/some/path',
+      })
+      await complexController.updateLayout(req, {
+        ...defaultParams,
+        search: 'example',
+        lastSearch: 'example',
+        shouldTruncate: true,
+        highlightNodeId: '9',
+        expandedIds: ['9', '10'],
+      })
+
+      expect(stub.firstCall.args).to.deep.equal([
+        'HX-Push-Url',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=9&search=example&shouldTruncate=true&lastSearch=example',
+      ])
     })
   })
 })

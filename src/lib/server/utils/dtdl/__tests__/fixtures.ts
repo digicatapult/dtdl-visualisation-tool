@@ -39,14 +39,20 @@ export const expandedWithRelationships: DtdlObjectModel = {
   first: {
     EntityKind: 'Interface',
     Id: 'first',
+    extendedBy: [],
+    extends: [],
   },
   second: {
     EntityKind: 'Interface',
     Id: 'second',
+    extendedBy: [],
+    extends: [],
   },
   third: {
     EntityKind: 'Interface',
     Id: 'third',
+    extendedBy: [],
+    extends: [],
   },
   relFirstSecond: {
     EntityKind: 'Relationship',
@@ -67,9 +73,12 @@ export const extendedInterface: DtdlObjectModel = {
     EntityKind: 'Interface',
     Id: 'parent',
     extendedBy: ['child'],
+    extends: [],
   },
   child: {
     EntityKind: 'Interface',
     Id: 'child',
+    extendedBy: [],
+    extends: ['parent'],
   },
 } as unknown as DtdlObjectModel

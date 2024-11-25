@@ -13,6 +13,7 @@ import {
 } from '../../utils/mermaid/__tests__/fixtures'
 import { SvgGenerator } from '../../utils/mermaid/generator.js'
 import MermaidTemplates from '../../views/components/mermaid'
+import { complexMockDtdlModel } from './complexDtdlfixture.js'
 
 export const templateMock = {
   MermaidRoot: ({ search, layout }: { search: string; layout: string }) => `root_${layout}_${search}_root`,
@@ -29,6 +30,7 @@ export const mockCache = new LRUCache(10, 1000 * 60)
 export const mockDtdlLoader: DtdlLoader = new DtdlLoader(mockDtdlObjectModel)
 
 export const simpleMockDtdlLoader: DtdlLoader = new DtdlLoader(simpleMockDtdlObjectModel)
+export const complexMockDtdlLoader: DtdlLoader = new DtdlLoader(complexMockDtdlModel)
 
 export const generatorRunStub = sinon.stub().resolves(generatedSVGFixture)
 export const mockGenerator: SvgGenerator = {
