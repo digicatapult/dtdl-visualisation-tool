@@ -51,11 +51,11 @@ export class SvgGenerator {
       y = 0
 
     if (child?.nodeName === 'rect') {
-      // Position based on <rect> dimensions
+      // Position based on flowchart diagram
       x = parseFloat(child.getAttribute('x') || '0') + parseFloat(child.getAttribute('width') || '0') - 10
       y = parseFloat(child.getAttribute('y') || '0') + 20
     } else if (child?.nodeName === 'g') {
-      // Position based on <g> transform attributes
+      // Position based on class diagram
       const transformData = this.extractTransformData(element)
       if (transformData) {
         ;({ x, y } = transformData)
