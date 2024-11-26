@@ -2,7 +2,8 @@ import { DtdlObjectModel, EntityType, RelationshipType } from '@digicatapult/dtd
 
 import { InvalidQueryError } from '../../errors.js'
 import { DtdlId } from '../../models/strings.js'
-import { getDisplayName } from './extract.js'
+import { ISearch } from '../search.js'
+import { DtdlLoader } from './dtdlLoader.js'
 
 export const stateSymbol = Symbol('visualisationState')
 type VisualisationState = 'unexpanded' | 'expanded' | 'search'
@@ -33,12 +34,6 @@ const determineVisualisationState = (
   return `unexpanded`
 }
 
-const interfaceFilter = (name: string) => {
-  const nameLower = name.toLowerCase()
-  return ([, entity]: [unknown, EntityType]) =>
-    entity.EntityKind === 'Interface' && getDisplayName(entity).toLowerCase().includes(nameLower)
-}
-
 const relationshipFilter =
   (dtdlObjectModel: DtdlObjectModel, matchingIds: Set<string>) =>
   ([, entity]: [id: unknown, entity: EntityType]) => {
@@ -62,11 +57,24 @@ const relationshipFilter =
     return false
   }
 
+export const searchInterfaces = (search: ISearch<EntityType>, searchQuery: string): Set<string> => {
+  const quotedStringRegex = /(['"])(.*?)\1/g
+  const quotedTerms = Array.from(searchQuery.matchAll(quotedStringRegex)).map((match) => match[2])
+
+  const remainingQuery = searchQuery.replace(quotedStringRegex, '')
+  const searchTerms = [...remainingQuery.split(' ').filter((term) => term !== ''), ...quotedTerms]
+  const matches = searchTerms.flatMap((term) => search.filter(term).map(({ Id }) => Id))
+  return new Set(matches)
+}
+
 export const filterModelByDisplayName = (
-  dtdlObjectModel: DtdlObjectModel,
-  name: string,
+  dtdlLoader: DtdlLoader,
+  searchQuery: string,
   expandedIds: string[]
 ): DtdlModelWithMetadata => {
+  const dtdlObjectModel = dtdlLoader.getDefaultDtdlModel()
+  const entityPairs = dtdlLoader.getEntityPairs()
+
   // make sure all expanded Ids are valid
   for (const expandedId of expandedIds) {
     if (!(expandedId in dtdlObjectModel)) {
@@ -74,9 +82,7 @@ export const filterModelByDisplayName = (
     }
   }
 
-  const entityPairs = Object.entries(dtdlObjectModel)
-
-  const searchedIds = new Set(entityPairs.filter(interfaceFilter(name)).map(([, { Id }]) => Id))
+  const searchedIds = searchInterfaces(dtdlLoader.getSearch(), searchQuery)
 
   // if the search matches no nodes and no expanded nodes are valid we have an empty set
   if (searchedIds.size === 0 && expandedIds.length === 0) {

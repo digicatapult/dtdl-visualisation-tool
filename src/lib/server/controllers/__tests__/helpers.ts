@@ -5,6 +5,7 @@ import { pino } from 'pino'
 import sinon from 'sinon'
 import { Layout } from '../../models/mermaidLayouts.js'
 import { DtdlLoader } from '../../utils/dtdl/dtdlLoader'
+import { FuseSearch } from '../../utils/fuseSearch.js'
 import { LRUCache } from '../../utils/lruCache.js'
 import {
   generatedSVGFixture,
@@ -27,10 +28,10 @@ export const templateMock = {
 export const mockLogger = pino({ level: 'silent' })
 export const mockCache = new LRUCache(10, 1000 * 60)
 
-export const mockDtdlLoader: DtdlLoader = new DtdlLoader(mockDtdlObjectModel)
+export const mockDtdlLoader: DtdlLoader = new DtdlLoader(mockDtdlObjectModel, new FuseSearch())
 
-export const simpleMockDtdlLoader: DtdlLoader = new DtdlLoader(simpleMockDtdlObjectModel)
-export const complexMockDtdlLoader: DtdlLoader = new DtdlLoader(complexMockDtdlModel)
+export const simpleMockDtdlLoader: DtdlLoader = new DtdlLoader(simpleMockDtdlObjectModel, new FuseSearch())
+export const complexMockDtdlLoader: DtdlLoader = new DtdlLoader(complexMockDtdlModel, new FuseSearch())
 
 export const generatorRunStub = sinon.stub().resolves(generatedSVGFixture)
 export const mockGenerator: SvgGenerator = {

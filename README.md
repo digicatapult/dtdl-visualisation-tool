@@ -77,8 +77,9 @@ dtdl-visualiser validate -p dtdl -r
 
 ## Environment variables
 
-| variable name | required | default         | description                                                                     |
-| ------------- | -------- | --------------- | ------------------------------------------------------------------------------- |
-| LOG_LEVEL     | n        | info            | Logging level. Valid values are [ trace , debug , info , warn , error , fatal ] |
-| CACHE_TTL     | n        | `1000 * 60 * 5` | Time to live (in seconds) for cached diagrams                                   |
-| CACHE_SIZE    | n        | `100`           | Maximum number of diagrams to cache                                             |
+| variable name    | required | default         | description                                                                       |
+| ---------------- | -------- | --------------- | --------------------------------------------------------------------------------- |
+| LOG_LEVEL        | n        | info            | Logging level. Valid values are [ trace , debug , info , warn , error , fatal ]   |
+| CACHE_TTL        | n        | `1000 * 60 * 5` | Time to live (in seconds) for cached diagrams                                     |
+| CACHE_SIZE       | n        | `100`           | Maximum number of diagrams to cache                                               |
+| SEARCH_THRESHOLD | n        | `0.6`           | Threshold for a fuzzy search match. 0.0 is a perfect match, 1.0 matches anything. |

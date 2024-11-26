@@ -60,9 +60,9 @@ export const expandedWithRelationships: DtdlObjectModel = {
     target: 'first',
     ChildOf: 'second',
   },
-  relSecondThird: {
+  ['rel second third']: {
     EntityKind: 'Relationship',
-    Id: 'relSecondThird',
+    Id: 'rel second third',
     target: 'second',
     ChildOf: 'third',
   },

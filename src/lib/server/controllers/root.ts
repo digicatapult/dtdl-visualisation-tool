@@ -58,13 +58,12 @@ export class RootController extends HTMLController {
       params.expandedIds = params.expandedIds || []
       params.expandedIds.push(params.highlightNodeId)
     }
-
-    const model = this.dtdlLoader.getDefaultDtdlModel()
-
     if (params.highlightNodeId && params.shouldTruncate && params.expandedIds) {
       const truncateId = dtdlIdReinstateSemicolon(params.highlightNodeId)
       if (params.expandedIds.includes(truncateId)) {
-        const currentModel = params.search ? filterModelByDisplayName(model, params.search, params.expandedIds) : model
+        const currentModel = params.search
+          ? filterModelByDisplayName(this.dtdlLoader, params.search, params.expandedIds)
+          : this.dtdlLoader.getDefaultDtdlModel()
         params.expandedIds = this.truncateExpandedIds(truncateId, currentModel, params.expandedIds)
       }
     }
@@ -161,11 +160,9 @@ export class RootController extends HTMLController {
   }
 
   private async generateOutput(params: UpdateParams, cacheKey: string): Promise<string> {
-    let model = this.dtdlLoader.getDefaultDtdlModel()
-
-    if (params.search) {
-      model = filterModelByDisplayName(model, params.search, params.expandedIds ?? [])
-    }
+    const model = params.search
+      ? filterModelByDisplayName(this.dtdlLoader, params.search, params.expandedIds ?? [])
+      : this.dtdlLoader.getDefaultDtdlModel()
 
     if (params.highlightNodeId && !(dtdlIdReinstateSemicolon(params.highlightNodeId) in model)) {
       params.highlightNodeId = undefined
