@@ -60,17 +60,15 @@ export class RootController extends HTMLController {
       params.expandedIds = params.expandedIds || []
       params.expandedIds.push(params.highlightNodeId)
     }
+
+    const model = this.dtdlLoader.getDefaultDtdlModel()
+
     if (params.highlightNodeId && params.shouldTruncate && params.expandedIds) {
       const truncateId = dtdlIdReinstateSemicolon(params.highlightNodeId)
       if (params.expandedIds.includes(truncateId)) {
         const currentModel = params.search
-          ? filterModelByDisplayName(
-              this.dtdlLoader.getDefaultDtdlModel(),
-              this.search,
-              params.search,
-              params.expandedIds
-            )
-          : this.dtdlLoader.getDefaultDtdlModel()
+          ? filterModelByDisplayName(model, this.search, params.search, params.expandedIds)
+          : model
         params.expandedIds = this.truncateExpandedIds(truncateId, currentModel, params.expandedIds)
       }
     }
