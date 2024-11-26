@@ -1,5 +1,5 @@
-import Fuse, { IFuseOptions } from 'fuse.js'
-import { container } from 'tsyringe'
+import Fuse, { type IFuseOptions } from 'fuse.js'
+import { container, singleton } from 'tsyringe'
 import { Env } from '../../../lib/server/env.js'
 import { ISearch } from './search.js'
 
@@ -10,7 +10,7 @@ const defaultOptions: IFuseOptions<object> = {
   keys: ['Id', 'displayName.en'],
   threshold: env.get('SEARCH_THRESHOLD'),
 }
-
+@singleton()
 export class FuseSearch<T extends object> implements ISearch<T> {
   private fuse: Fuse<T>
 

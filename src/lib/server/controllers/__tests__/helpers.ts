@@ -2,6 +2,7 @@ import express from 'express'
 import { Readable } from 'node:stream'
 import { pino } from 'pino'
 
+import { EntityType } from '@digicatapult/dtdl-parser'
 import sinon from 'sinon'
 import { Layout } from '../../models/mermaidLayouts.js'
 import { DtdlLoader } from '../../utils/dtdl/dtdlLoader'
@@ -28,10 +29,11 @@ export const templateMock = {
 export const mockLogger = pino({ level: 'silent' })
 export const mockCache = new LRUCache(10, 1000 * 60)
 
-export const mockDtdlLoader: DtdlLoader = new DtdlLoader(mockDtdlObjectModel, new FuseSearch())
+export const mockDtdlLoader: DtdlLoader = new DtdlLoader(mockDtdlObjectModel)
+export const mockSearch = new FuseSearch<EntityType>()
 
-export const simpleMockDtdlLoader: DtdlLoader = new DtdlLoader(simpleMockDtdlObjectModel, new FuseSearch())
-export const complexMockDtdlLoader: DtdlLoader = new DtdlLoader(complexMockDtdlModel, new FuseSearch())
+export const simpleMockDtdlLoader: DtdlLoader = new DtdlLoader(simpleMockDtdlObjectModel)
+export const complexMockDtdlLoader: DtdlLoader = new DtdlLoader(complexMockDtdlModel)
 
 export const generatorRunStub = sinon.stub().resolves(generatedSVGFixture)
 export const mockGenerator: SvgGenerator = {

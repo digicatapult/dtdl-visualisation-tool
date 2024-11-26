@@ -3,7 +3,6 @@ import { DtdlObjectModel, EntityType, RelationshipType } from '@digicatapult/dtd
 import { InvalidQueryError } from '../../errors.js'
 import { DtdlId } from '../../models/strings.js'
 import { ISearch } from '../search.js'
-import { DtdlLoader } from './dtdlLoader.js'
 
 export const stateSymbol = Symbol('visualisationState')
 type VisualisationState = 'unexpanded' | 'expanded' | 'search'
@@ -69,13 +68,11 @@ export const searchInterfaces = (search: ISearch<EntityType>, searchQuery: strin
 }
 
 export const filterModelByDisplayName = (
-  dtdlLoader: DtdlLoader,
+  dtdlObjectModel: DtdlObjectModel,
+  search: ISearch<EntityType>,
   searchQuery: string,
   expandedIds: string[]
 ): DtdlModelWithMetadata => {
-  const dtdlObjectModel = dtdlLoader.getDefaultDtdlModel()
-  const entityPairs = dtdlLoader.getEntityPairs()
-
   // make sure all expanded Ids are valid
   for (const expandedId of expandedIds) {
     if (!(expandedId in dtdlObjectModel)) {
@@ -83,7 +80,9 @@ export const filterModelByDisplayName = (
     }
   }
 
-  const searchedIds = searchInterfaces(dtdlLoader.getSearch(), searchQuery)
+  const entityPairs = Object.entries(dtdlObjectModel)
+
+  const searchedIds = searchInterfaces(search, searchQuery)
 
   // if the search matches no nodes and no expanded nodes are valid we have an empty set
   if (searchedIds.size === 0 && expandedIds.length === 0) {

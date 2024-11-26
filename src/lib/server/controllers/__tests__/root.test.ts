@@ -11,6 +11,7 @@ import {
   mockGenerator,
   mockLogger,
   mockReq,
+  mockSearch,
   simpleMockDtdlLoader,
   templateMock,
   toHTMLString,
@@ -30,11 +31,19 @@ describe('RootController', async () => {
     mockCache.clear()
   })
 
-  const controller = new RootController(simpleMockDtdlLoader, mockGenerator, templateMock, mockLogger, mockCache)
+  const controller = new RootController(
+    simpleMockDtdlLoader,
+    mockGenerator,
+    templateMock,
+    mockSearch,
+    mockLogger,
+    mockCache
+  )
   const complexController = new RootController(
     complexMockDtdlLoader,
     mockGenerator,
     templateMock,
+    mockSearch,
     mockLogger,
     mockCache
   )
@@ -181,8 +190,6 @@ describe('RootController', async () => {
       })
       await complexController.updateLayout(req, {
         ...defaultParams,
-        search: 'example',
-        lastSearch: 'example',
         shouldTruncate: true,
         highlightNodeId: '5',
         expandedIds: ['2', '3', '5'],
@@ -190,7 +197,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=5&search=example&expandedIds=2&expandedIds=3&shouldTruncate=true&lastSearch=example',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=5&expandedIds=2&expandedIds=3&shouldTruncate=true',
       ])
     })
 
@@ -201,8 +208,6 @@ describe('RootController', async () => {
       })
       await complexController.updateLayout(req, {
         ...defaultParams,
-        search: 'example',
-        lastSearch: 'example',
         shouldTruncate: true,
         highlightNodeId: '1',
         expandedIds: ['2', '3', '5'],
@@ -210,7 +215,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=1&search=example&expandedIds=2&expandedIds=3&expandedIds=5&shouldTruncate=true&lastSearch=example',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=1&expandedIds=2&expandedIds=3&expandedIds=5&shouldTruncate=true',
       ])
     })
 
