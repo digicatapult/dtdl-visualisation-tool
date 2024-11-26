@@ -58,11 +58,12 @@ const relationshipFilter =
   }
 
 export const searchInterfaces = (search: ISearch<EntityType>, searchQuery: string): Set<string> => {
-  const quotedStringRegex = /(['"])(.*?)\1/g
+  const quotedStringRegex = /(['"])(.*?)\1/g // capture groups inside "" or ''
   const quotedTerms = Array.from(searchQuery.matchAll(quotedStringRegex)).map((match) => match[2])
 
   const remainingQuery = searchQuery.replace(quotedStringRegex, '')
-  const searchTerms = [...remainingQuery.split(' ').filter((term) => term !== ''), ...quotedTerms]
+  const remainingTerms = remainingQuery.split(' ').filter((term) => term !== '')
+  const searchTerms = [...remainingTerms, ...quotedTerms]
   const matches = searchTerms.flatMap((term) => search.filter(term).map(({ Id }) => Id))
   return new Set(matches)
 }
