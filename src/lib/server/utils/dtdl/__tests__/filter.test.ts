@@ -24,7 +24,7 @@ describe('filterModelByDisplayName', function () {
   })
 
   test('should return empty model if no interfaces match display name', function () {
-    const result = filterModelByDisplayName(mockDtdlLoader(singleInterfaceFirst), 'bla', [])
+    const result = filterModelByDisplayName(mockDtdlLoader(singleInterfaceFirst), 'nomatch', [])
     expect(result).to.deep.equal({})
   })
 
@@ -134,6 +134,11 @@ describe('searchInterfaces', function () {
   test('should perform OR for spaces rather than AND', function () {
     const result = searchInterfaces(mockSearch(multipleInterfacesAndRelationship), 'first second')
     expect(result).to.deep.equal(new Set(['first', 'second', 'relFirstSecond']))
+  })
+
+  test('should search display name', function () {
+    const result = searchInterfaces(mockSearch(multipleInterfacesAndRelationship), '"display name"')
+    expect(result).to.deep.equal(new Set(['first']))
   })
 
   test('should be case insensitive', function () {

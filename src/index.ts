@@ -6,14 +6,12 @@ import { DtdlObjectModel, getInterop, parseDirectories, validateDirectories } fr
 import chalk from 'chalk'
 import { Command } from 'commander'
 import { container } from 'tsyringe'
-import { Env } from './lib/server/env.js'
 import { httpServer } from './lib/server/index.js'
 import { DtdlLoader } from './lib/server/utils/dtdl/dtdlLoader.js'
 import { FuseSearch } from './lib/server/utils/fuseSearch.js'
 import { SvgGenerator } from './lib/server/utils/mermaid/generator.js'
 import version from './version.js'
 
-const env = container.resolve(Env)
 const { log } = console
 
 const program = new Command()
@@ -47,7 +45,7 @@ program
 
     if (parsedDtdl) {
       container.register(DtdlLoader, {
-        useValue: new DtdlLoader(parsedDtdl, new FuseSearch([], { threshold: env.get('SEARCH_THRESHOLD') })),
+        useValue: new DtdlLoader(parsedDtdl, new FuseSearch()),
       })
 
       log(`Loading SVG generator...`)

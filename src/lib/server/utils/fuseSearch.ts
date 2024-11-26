@@ -1,9 +1,14 @@
 import Fuse, { IFuseOptions } from 'fuse.js'
+import { container } from 'tsyringe'
+import { Env } from '../../../lib/server/env.js'
 import { ISearch } from './search.js'
+
+const env = container.resolve(Env)
 
 const defaultOptions: IFuseOptions<object> = {
   includeScore: true,
-  keys: ['Id'],
+  keys: ['Id', 'displayName.en'],
+  threshold: env.get('SEARCH_THRESHOLD'),
 }
 
 export class FuseSearch<T extends object> implements ISearch<T> {
@@ -13,9 +18,9 @@ export class FuseSearch<T extends object> implements ISearch<T> {
     this.fuse = new Fuse(collection ?? [], { ...defaultOptions, ...options })
   }
 
+  // results are ordered from closest to least closest match
   filter(term: string): T[] {
-    const res = this.fuse.search(term)
-    return res.map((r) => r.item)
+    return this.fuse.search(term).map((r) => r.item)
   }
 
   setCollection(collection: T[]): void {

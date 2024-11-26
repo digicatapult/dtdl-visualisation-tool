@@ -4,6 +4,7 @@ export const singleInterfaceFirst: DtdlObjectModel = {
   first: {
     EntityKind: 'Interface',
     Id: 'first',
+    displayName: { en: 'display name' },
   },
 } as unknown as DtdlObjectModel
 
