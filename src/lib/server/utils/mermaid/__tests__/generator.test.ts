@@ -143,6 +143,45 @@ describe('Generator', () => {
       const hxVals = JSON.parse(element.getAttribute('hx-vals') ?? '')
       expect(hxVals.highlightNodeId).to.equal(null)
     })
+    it('should set correct coordinates for node control on a flowchart node', () => {
+      const element = document.createElement('g')
+      element.id = 'flowchart-dtmi:com:example:1-1'
+      element.classList.add('unexpanded')
+      const rect = document.createElement('rect')
+      rect.setAttribute('x', '100')
+      rect.setAttribute('y', '100')
+      rect.setAttribute('width', '100')
+      element.appendChild(rect)
+
+      generator.setNodeAttributes(element, document, 'flowchart')
+      const text = element.querySelector('text.corner-sign')
+
+      expect(text?.getAttribute('x')).to.equal('195')
+      expect(text?.getAttribute('y')).to.equal('120')
+      expect(text?.innerHTML).to.equal('+')
+    })
+    it('should set correct coordinates for node control on a classDiagram node', () => {
+      const element = document.createElement('g')
+      element.id = 'class-dtmi:com:example:1-1'
+      element.classList.add('expanded')
+      const labelElement = document.createElement('g')
+      const membersElement = document.createElement('g')
+      labelElement.setAttribute('transform', 'translate(0,20)')
+      membersElement.setAttribute('transform', 'translate(10,0)')
+
+      labelElement.classList.add('label-group', 'text')
+      membersElement.classList.add('members-group', 'text')
+
+      element.appendChild(labelElement)
+      element.appendChild(membersElement)
+
+      generator.setNodeAttributes(element, document, 'classDiagram')
+      const text = element.querySelector('text.corner-sign')
+
+      expect(text?.getAttribute('x')).to.equal('-10')
+      expect(text?.getAttribute('y')).to.equal('20')
+      expect(text?.innerHTML).to.equal('-')
+    })
   })
   describe('setSVGAttributes', () => {
     it('should return a html string with added attributes', () => {
@@ -179,10 +218,10 @@ describe('Generator', () => {
       const testElement = `<svg id="mermaid-svg" viewBox="0 0 300 100" hx-include="#search-panel">
         <g id="foo" class="node clickable unexpanded" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}">
           <g/>
-        <text x="-10" y="20" class="corner-sign" onclick="event.stopPropagation()" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;shouldExpand&quot;:true,&quot;shouldTruncate&quot;:false}">+</text></g>
+        <text x="0" y="0" class="corner-sign" onclick="event.stopPropagation()" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;shouldExpand&quot;:true,&quot;shouldTruncate&quot;:false}">+</text></g>
         <g id="bar" class="node clickable expanded" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}">
           <rect/>
-        <text x="-10" y="20" class="corner-sign" onclick="event.stopPropagation()" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;shouldExpand&quot;:false,&quot;shouldTruncate&quot;:true}">-</text></g>
+        <text x="-5" y="20" class="corner-sign" onclick="event.stopPropagation()" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;shouldExpand&quot;:false,&quot;shouldTruncate&quot;:true}">-</text></g>
       </svg>`
       expect(generator.setSVGAttributes(controlStringElement, defaultParams)).to.equal(testElement)
     })
@@ -249,78 +288,6 @@ describe('Generator', () => {
       expect(textElement.getAttribute('y')).to.equal('50')
       expect(textElement.textContent).to.equal('-')
       expect(textElement.getAttribute('onclick')).to.equal('event.stopPropagation()')
-    })
-  })
-  describe('extractTransformData', () => {
-    let dom: JSDOM, document: Document, element: Element, labelElement: Element, membersElement: Element
-
-    beforeEach(() => {
-      dom = new JSDOM()
-      document = dom.window.document
-      element = document.createElement('g')
-      labelElement = document.createElement('g')
-      membersElement = document.createElement('g')
-    })
-
-    it('should extract the x and y coordinate from the transform attribute', () => {
-      labelElement.setAttribute('transform', 'translate(0,20)')
-      membersElement.setAttribute('transform', 'translate(10,0)')
-
-      labelElement.classList.add('label-group')
-      labelElement.classList.add('text')
-
-      membersElement.classList.add('members-group')
-      membersElement.classList.add('text')
-
-      element.appendChild(labelElement)
-      element.appendChild(membersElement)
-
-      const coordinates = generator.extractTransformData(element)
-      expect(coordinates).to.deep.equal({ x: -10, y: 20 })
-    })
-    it('should return null if the x and y coordinates do not exist in children element attributes of a given element', () => {
-      expect(generator.extractTransformData(element)).to.equal(null)
-
-      labelElement.classList.add('label-group')
-      labelElement.classList.add('text')
-
-      membersElement.classList.add('members-group')
-      membersElement.classList.add('text')
-
-      element.appendChild(labelElement)
-      element.appendChild(membersElement)
-
-      expect(generator.extractTransformData(element)).to.equal(null)
-
-      labelElement.setAttribute('transform', 'translate(x,y)')
-      membersElement.setAttribute('transform', 'translate(x,y)')
-
-      expect(generator.extractTransformData(element)).to.equal(null)
-    })
-  })
-  describe('calculateCornerSignPosition', () => {
-    let dom: JSDOM, document: Document, element: Element
-
-    beforeEach(() => {
-      dom = new JSDOM()
-      document = dom.window.document
-      element = document.createElement('g')
-    })
-    it('should return { x:0, y:0 } if no rect or g element is found as the first child element', () => {
-      expect(generator.calculateCornerSignPosition(element, 'classDiagram')).to.deep.equal({ x: 0, y: 0 })
-    })
-    it('should return { x:0, y:0 } if width, x and y attribute not found in rect child element', () => {
-      const rect = document.createElement('rect')
-      element.appendChild(rect)
-      expect(generator.calculateCornerSignPosition(element, 'flowchart')).to.deep.equal({ x: -10, y: 20 })
-    })
-    it('should return { x:190, y:120 } if width, x and y attribute not found in rect child element', () => {
-      const rect = document.createElement('rect')
-      rect.setAttribute('width', '100')
-      rect.setAttribute('x', '100')
-      rect.setAttribute('y', '100')
-      element.appendChild(rect)
-      expect(generator.calculateCornerSignPosition(element, 'flowchart')).to.deep.equal({ x: 190, y: 120 })
     })
   })
 })

@@ -7,9 +7,9 @@ import { InternalError } from '../../errors.js'
 import { UpdateParams } from '../../models/controllerTypes.js'
 import { DiagramType } from '../../models/mermaidDiagrams.js'
 import { MermaidId } from '../../models/strings.js'
-import ClassDiagram from './classDiagram.js'
+import ClassDiagram, { extractClassNodeCoordinate } from './classDiagram.js'
 import { IDiagram } from './diagramInterface.js'
-import Flowchart from './flowchart.js'
+import Flowchart, { extractFlowchartNodeCoordinates } from './flowchart.js'
 
 const { log } = console
 
@@ -25,6 +25,10 @@ export class SvgGenerator {
   } = {
     flowchart: new Flowchart(),
     classDiagram: new ClassDiagram(),
+  }
+  coordinateExtractors: Record<DiagramType, (el: Element) => { x: number; y: number }> = {
+    flowchart: extractFlowchartNodeCoordinates,
+    classDiagram: extractClassNodeCoordinate
   }
 
   getMermaidIdFromNodeId = (nodeId: string): MermaidId | null => {
@@ -43,48 +47,6 @@ export class SvgGenerator {
         highlightNodeId: this.getMermaidIdFromNodeId(element.id),
       }),
     }
-  }
-
-  calculateCornerSignPosition(element: Element, diagramType: DiagramType): { x: number; y: number } {
-    const child = element.firstElementChild
-    let x = 0,
-      y = 0
-
-    if (child && diagramType === 'flowchart') {
-      // Position based on flowchart diagram
-      x = parseFloat(child.getAttribute('x') || '0') + parseFloat(child.getAttribute('width') || '0') - 10
-      y = parseFloat(child.getAttribute('y') || '0') + 20
-    } else if (diagramType === 'classDiagram') {
-      // Position based on class diagram
-      const transformData = this.extractTransformData(element)
-      if (transformData) {
-        ;({ x, y } = transformData)
-      }
-    }
-    return { x, y }
-  }
-
-  extractTransformData(element: Element): { x: number; y: number } | null {
-    const labelGroup = element.querySelector('.label-group.text')
-    const membersGroup = element.querySelector('.members-group.text')
-
-    const labelTransform = labelGroup?.getAttribute('transform')
-    const membersTransform = membersGroup?.getAttribute('transform')
-
-    if (labelTransform && membersTransform) {
-      const extractCoordRegex = /translate\(\s*([-\d.]+)[ ,\s]*([-\d.]+)\s*\)/
-
-      const translateY = labelTransform.match(extractCoordRegex)
-      const translateX = membersTransform.match(extractCoordRegex)
-
-      if (translateY && translateX) {
-        return {
-          x: translateX.map(parseFloat)[1] * -1,
-          y: translateY.map(parseFloat)[2],
-        }
-      }
-    }
-    return null
   }
 
   addCornerSign(
@@ -121,12 +83,12 @@ export class SvgGenerator {
     Object.entries(hxAttributes).forEach(([key, value]) => element.setAttribute(key, value))
 
     if (element.classList.contains('unexpanded') || element.classList.contains('expanded')) {
-      const position = this.calculateCornerSignPosition(element, diagramType)
+      const position = this.coordinateExtractors[diagramType](element)
       this.addCornerSign(element, position, document, hxAttributes)
     }
   }
 
-  setSVGAttributes = (svg: string, params: UpdateParams): string => {
+  setSVGAttributes(svg: string, params: UpdateParams): string {
     const dom = new JSDOM(svg, { contentType: 'image/svg+xml' })
     const document = dom.window.document
     const svgElement = document.querySelector('#mermaid-svg')

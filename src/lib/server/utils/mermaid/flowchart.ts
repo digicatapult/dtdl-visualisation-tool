@@ -10,6 +10,21 @@ const entityKindToShape = {
   Default: 'rect',
 }
 
+export const extractFlowchartNodeCoordinates = (element: Element): { x: number; y: number } => {
+  const rect = element.querySelector('rect')
+
+  if (!rect) return { x: 0, y: 0 }
+
+  const x = parseFloat(rect.getAttribute('x') || '0')
+  const y = parseFloat(rect.getAttribute('y') || '0')
+  const width = parseFloat(rect.getAttribute('width') || '0')
+
+  return {
+    x: x + width - 5,
+    y: y + 20,
+  }
+}
+
 export default class Flowchart implements IDiagram<'flowchart'> {
   get diagramType(): 'flowchart' {
     return 'flowchart'
