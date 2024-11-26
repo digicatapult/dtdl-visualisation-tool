@@ -1,18 +1,18 @@
 /* Flowchart diagramType in mermaid use rect where as ClassDiagram uses path */
 #mermaid-svg g.node path {
-  fill: #ffffff !important;
-  stroke: #000000 !important;
-  stroke-width:unset !important;
+  fill: #ffffff;
+  stroke: #000000;
+  stroke-width:unset;
 }
 #mermaid-svg g.node rect {
   transition: outline 10.1s ease-in-out;
-  stroke: none !important;
-  fill: #ffffff !important;
+  stroke: none;
+  fill: #ffffff;
 }
 
 #mermaid-svg g.node.highlighted path,
 #mermaid-svg g.node.highlighted rect {
-  fill: #fbf291 !important;
+  fill: #fbf291;
 }
 
 g.node path,
