@@ -45,16 +45,16 @@ export class SvgGenerator {
     }
   }
 
-  calculateCornerSignPosition(element: Element): { x: number; y: number } {
+  calculateCornerSignPosition(element: Element, diagramType: DiagramType): { x: number; y: number } {
     const child = element.firstElementChild
     let x = 0,
       y = 0
 
-    if (child?.nodeName === 'rect' || child?.nodeName === 'RECT') {
+    if (child && diagramType === 'flowchart') {
       // Position based on flowchart diagram
       x = parseFloat(child.getAttribute('x') || '0') + parseFloat(child.getAttribute('width') || '0') - 10
       y = parseFloat(child.getAttribute('y') || '0') + 20
-    } else if (child?.nodeName === 'g' || child?.nodeName === 'G') {
+    } else if (diagramType === 'classDiagram') {
       // Position based on class diagram
       const transformData = this.extractTransformData(element)
       if (transformData) {
@@ -115,13 +115,13 @@ export class SvgGenerator {
     element.appendChild(text)
   }
 
-  setNodeAttributes(element: Element, document: Document) {
+  setNodeAttributes(element: Element, document: Document, diagramType: DiagramType) {
     const hxAttributes = this.generateHxAttributes(element)
 
     Object.entries(hxAttributes).forEach(([key, value]) => element.setAttribute(key, value))
 
     if (element.classList.contains('unexpanded') || element.classList.contains('expanded')) {
-      const position = this.calculateCornerSignPosition(element)
+      const position = this.calculateCornerSignPosition(element, diagramType)
       this.addCornerSign(element, position, document, hxAttributes)
     }
   }
@@ -141,7 +141,7 @@ export class SvgGenerator {
     svgElement.setAttribute('hx-include', '#search-panel')
     const nodes = svgElement.getElementsByClassName('node clickable')
     Array.from(nodes).forEach((node) => {
-      this.setNodeAttributes(node, document)
+      this.setNodeAttributes(node, document, params.diagramType)
     })
 
     return svgElement.outerHTML

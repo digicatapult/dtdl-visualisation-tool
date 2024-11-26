@@ -1,17 +1,17 @@
 /* Flowchart diagramType in mermaid use rect where as ClassDiagram uses path */
-g.node path {
+#mermaid-svg g.node path {
   fill: #ffffff !important;
   stroke: #000000 !important;
   stroke-width:unset !important;
 }
-g.node rect {
+#mermaid-svg g.node rect {
   transition: outline 10.1s ease-in-out;
   stroke: none !important;
   fill: #ffffff !important;
 }
 
-g.node.highlighted path,
-g.node.highlighted rect {
+#mermaid-svg g.node.highlighted path,
+#mermaid-svg g.node.highlighted rect {
   fill: #fbf291 !important;
 }
 
@@ -24,16 +24,13 @@ g.node.search rect {
   outline: 2px dashed #000000;
 }
 
-g.node.unexpanded path {
-  stroke:#000000
+g.node.unexpanded path, 
+g.node.expanded path{
+  stroke:#000000;
+  stroke-dasharray: none;
+  stroke-width: 3px;
 }
-g.node.unexpanded rect {
-  outline: 3px solid #000000;
-}
-
-g.node.expanded path {
-  stroke:#000000
-}
+g.node.unexpanded rect,
 g.node.expanded rect {
   outline: 3px solid #000000;
 }
@@ -45,5 +42,9 @@ g.node.expanded rect {
 
 text.corner-sign:hover {
   transition: 0.25s;
+  fill: red;
+}
+text.corner-sign::after {
+  transform: translate();
   fill: red;
 }

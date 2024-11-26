@@ -119,7 +119,7 @@ describe('Generator', () => {
       element.appendChild(rectElement)
       element.classList.add('unexpanded')
 
-      generator.setNodeAttributes(element, document)
+      generator.setNodeAttributes(element, document, 'flowchart')
 
       expect(element.getAttribute('hx-get')).to.equal('/update-layout')
       expect(element.getAttribute('hx-target')).to.equal('#mermaid-output')
@@ -134,20 +134,11 @@ describe('Generator', () => {
       expect(hxVals.shouldTruncate).to.equal(false)
     })
 
-    it('should set shouldExpand to false', () => {
-      const element = document.createElement('div')
-      element.id = 'flowchart-dtmi:com:example:1-1'
-
-      generator.setNodeAttributes(element, document)
-
-      // const hxVals = JSON.parse(element.getAttribute('hx-vals') ?? '')
-    })
-
     it('should set highlighNodeId to be null', () => {
       const element = document.createElement('div')
       element.id = 'invalidId'
 
-      generator.setNodeAttributes(element, document)
+      generator.setNodeAttributes(element, document, 'classDiagram')
 
       const hxVals = JSON.parse(element.getAttribute('hx-vals') ?? '')
       expect(hxVals.highlightNodeId).to.equal(null)
@@ -188,7 +179,7 @@ describe('Generator', () => {
       const testElement = `<svg id="mermaid-svg" viewBox="0 0 300 100" hx-include="#search-panel">
         <g id="foo" class="node clickable unexpanded" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}">
           <g/>
-        <text x="0" y="0" class="corner-sign" onclick="event.stopPropagation()" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;shouldExpand&quot;:true,&quot;shouldTruncate&quot;:false}">+</text></g>
+        <text x="-10" y="20" class="corner-sign" onclick="event.stopPropagation()" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;shouldExpand&quot;:true,&quot;shouldTruncate&quot;:false}">+</text></g>
         <g id="bar" class="node clickable expanded" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}">
           <rect/>
         <text x="-10" y="20" class="corner-sign" onclick="event.stopPropagation()" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;shouldExpand&quot;:false,&quot;shouldTruncate&quot;:true}">-</text></g>
@@ -316,12 +307,12 @@ describe('Generator', () => {
       element = document.createElement('g')
     })
     it('should return { x:0, y:0 } if no rect or g element is found as the first child element', () => {
-      expect(generator.calculateCornerSignPosition(element)).to.deep.equal({ x: 0, y: 0 })
+      expect(generator.calculateCornerSignPosition(element, 'classDiagram')).to.deep.equal({ x: 0, y: 0 })
     })
     it('should return { x:0, y:0 } if width, x and y attribute not found in rect child element', () => {
       const rect = document.createElement('rect')
       element.appendChild(rect)
-      expect(generator.calculateCornerSignPosition(element)).to.deep.equal({ x: -10, y: 20 })
+      expect(generator.calculateCornerSignPosition(element, 'flowchart')).to.deep.equal({ x: -10, y: 20 })
     })
     it('should return { x:190, y:120 } if width, x and y attribute not found in rect child element', () => {
       const rect = document.createElement('rect')
@@ -329,7 +320,7 @@ describe('Generator', () => {
       rect.setAttribute('x', '100')
       rect.setAttribute('y', '100')
       element.appendChild(rect)
-      expect(generator.calculateCornerSignPosition(element)).to.deep.equal({ x: 190, y: 120 })
+      expect(generator.calculateCornerSignPosition(element, 'flowchart')).to.deep.equal({ x: 190, y: 120 })
     })
   })
 })
