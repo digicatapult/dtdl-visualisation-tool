@@ -1,7 +1,6 @@
 import { EntityType, type DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { singleton } from 'tsyringe'
 import { type ISearch } from '../search.js'
-import { getDisplayName } from './extract.js'
 
 @singleton()
 export class DtdlLoader {
@@ -31,7 +30,6 @@ export class DtdlLoader {
   }
 
   private allInterfaceFilter = () => {
-    return ([, entity]: [unknown, EntityType]) =>
-      entity.EntityKind === 'Interface' && getDisplayName(entity).toLowerCase()
+    return ([, entity]: [unknown, EntityType]) => entity.EntityKind === 'Interface'
   }
 }
