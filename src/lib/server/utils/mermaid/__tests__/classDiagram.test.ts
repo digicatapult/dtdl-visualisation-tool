@@ -1,7 +1,7 @@
 import { InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 import { assert, expect } from 'chai'
-import { describe, it } from 'mocha'
 import { JSDOM } from 'jsdom'
+import { describe, it } from 'mocha'
 import ClassDiagram, { arrowTypes, extractClassNodeCoordinate } from '../classDiagram'
 import { classDiagramFixture, mockDtdlModelWithProperty, mockDtdlObjectModel } from './fixtures'
 import { parseMermaid } from './helpers'

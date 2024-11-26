@@ -28,7 +28,7 @@ export class SvgGenerator {
   }
   coordinateExtractors: Record<DiagramType, (el: Element) => { x: number; y: number }> = {
     flowchart: extractFlowchartNodeCoordinates,
-    classDiagram: extractClassNodeCoordinate
+    classDiagram: extractClassNodeCoordinate,
   }
 
   getMermaidIdFromNodeId = (nodeId: string): MermaidId | null => {

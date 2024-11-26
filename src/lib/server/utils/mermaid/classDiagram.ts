@@ -18,7 +18,9 @@ export const arrowTypes = {
 
 export type ArrowType = (typeof arrowTypes)[keyof typeof arrowTypes]
 
-const extractCoordinatesFromTranslateString = (translate: string | null | undefined): { x: number; y: number } | null => {
+const extractCoordinatesFromTranslateString = (
+  translate: string | null | undefined
+): { x: number; y: number } | null => {
   if (!translate) return null
   const match = translate.match(/translate\(\s*([-\d.]+)[ ,\s]*([-\d.]+)\s*\)/)
   return match ? { x: parseFloat(match[1]), y: parseFloat(match[2]) } : null
