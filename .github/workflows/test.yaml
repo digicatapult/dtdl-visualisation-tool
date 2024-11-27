@@ -22,7 +22,7 @@ jobs:
     with:
       docker_compose_file: ''
       pre_test_command: 'npm ci && npx playwright install-deps'
-      test_command: 'npm run test:playwright'
+      test_command: 'npm run test:playwright  || exit 1'
     permissions:
       contents: write
 
@@ -32,5 +32,3 @@ jobs:
       packages: write
       contents: write
 
-  check-version:
-    uses: digicatapult/shared-workflows/.github/workflows/check-version.yml@main
