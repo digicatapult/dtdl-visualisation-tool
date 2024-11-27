@@ -8,7 +8,10 @@ import { Command } from 'commander'
 import { container } from 'tsyringe'
 import { httpServer } from './lib/server/index.js'
 import { DtdlLoader } from './lib/server/utils/dtdl/dtdlLoader.js'
+import { allInterfaceFilter } from './lib/server/utils/dtdl/extract.js'
+import { FuseSearch } from './lib/server/utils/fuseSearch.js'
 import { SvgGenerator } from './lib/server/utils/mermaid/generator.js'
+import { Search } from './lib/server/utils/search.js'
 import version from './version.js'
 
 const { log } = console
@@ -43,7 +46,18 @@ program
     const parsedDtdl = parseDirectories(options.path, parser)
 
     if (parsedDtdl) {
-      container.register(DtdlLoader, { useValue: new DtdlLoader(parsedDtdl) })
+      const dtdlLoader = new DtdlLoader(parsedDtdl)
+      container.register(DtdlLoader, {
+        useValue: dtdlLoader,
+      })
+
+      const interfaces = Object.entries(parsedDtdl)
+        .filter(allInterfaceFilter)
+        .map(([, entity]) => entity)
+
+      container.register(Search, {
+        useValue: new FuseSearch(interfaces),
+      })
 
       log(`Loading SVG generator...`)
       const generator = new SvgGenerator()

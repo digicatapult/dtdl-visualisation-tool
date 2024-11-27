@@ -1,4 +1,4 @@
-import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
+import { DtdlObjectModel, EntityType } from '@digicatapult/dtdl-parser'
 import express from 'express'
 import { Get, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
@@ -9,6 +9,7 @@ import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import { filterModelByDisplayName, getRelatedIdsById } from '../utils/dtdl/filter.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
 import { dtdlIdReinstateSemicolon } from '../utils/mermaid/helpers.js'
+import { Search, type ISearch } from '../utils/search.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
@@ -23,6 +24,7 @@ export class RootController extends HTMLController {
     private dtdlLoader: DtdlLoader,
     private generator: SvgGenerator,
     private templates: MermaidTemplates,
+    @inject(Search) private search: ISearch<EntityType>,
     @inject(Logger) private logger: ILogger,
     @inject(Cache) private cache: ICache
   ) {
@@ -64,7 +66,9 @@ export class RootController extends HTMLController {
     if (params.highlightNodeId && params.shouldTruncate && params.expandedIds) {
       const truncateId = dtdlIdReinstateSemicolon(params.highlightNodeId)
       if (params.expandedIds.includes(truncateId)) {
-        const currentModel = params.search ? filterModelByDisplayName(model, params.search, params.expandedIds) : model
+        const currentModel = params.search
+          ? filterModelByDisplayName(model, this.search, params.search, params.expandedIds)
+          : model
         params.expandedIds = this.truncateExpandedIds(truncateId, currentModel, params.expandedIds)
       }
     }
@@ -161,11 +165,14 @@ export class RootController extends HTMLController {
   }
 
   private async generateOutput(params: UpdateParams, cacheKey: string): Promise<string> {
-    let model = this.dtdlLoader.getDefaultDtdlModel()
-
-    if (params.search) {
-      model = filterModelByDisplayName(model, params.search, params.expandedIds ?? [])
-    }
+    const model = params.search
+      ? filterModelByDisplayName(
+          this.dtdlLoader.getDefaultDtdlModel(),
+          this.search,
+          params.search,
+          params.expandedIds ?? []
+        )
+      : this.dtdlLoader.getDefaultDtdlModel()
 
     if (params.highlightNodeId && !(dtdlIdReinstateSemicolon(params.highlightNodeId) in model)) {
       params.highlightNodeId = undefined

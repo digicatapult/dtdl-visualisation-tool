@@ -183,6 +183,7 @@ export const simpleMockDtdlObjectModel = {
     extends: [],
     ...emptyEntityProperties,
     ...emptyInterfaceProperties,
+    ...visualisationState,
   },
 } as DtdlObjectModel
 

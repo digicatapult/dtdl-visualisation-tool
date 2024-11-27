@@ -11,6 +11,7 @@ import {
   mockGenerator,
   mockLogger,
   mockReq,
+  mockSearch,
   simpleMockDtdlLoader,
   templateMock,
   toHTMLString,
@@ -30,11 +31,19 @@ describe('RootController', async () => {
     mockCache.clear()
   })
 
-  const controller = new RootController(simpleMockDtdlLoader, mockGenerator, templateMock, mockLogger, mockCache)
+  const controller = new RootController(
+    simpleMockDtdlLoader,
+    mockGenerator,
+    templateMock,
+    mockSearch,
+    mockLogger,
+    mockCache
+  )
   const complexController = new RootController(
     complexMockDtdlLoader,
     mockGenerator,
     templateMock,
+    mockSearch,
     mockLogger,
     mockCache
   )
@@ -181,8 +190,6 @@ describe('RootController', async () => {
       })
       await complexController.updateLayout(req, {
         ...defaultParams,
-        search: 'example',
-        lastSearch: 'example',
         shouldTruncate: true,
         highlightNodeId: '5',
         expandedIds: ['2', '3', '5'],
@@ -190,7 +197,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=5&search=example&expandedIds=2&expandedIds=3&shouldTruncate=true&lastSearch=example',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=5&expandedIds=2&expandedIds=3&shouldTruncate=true',
       ])
     })
 
@@ -201,8 +208,6 @@ describe('RootController', async () => {
       })
       await complexController.updateLayout(req, {
         ...defaultParams,
-        search: 'example',
-        lastSearch: 'example',
         shouldTruncate: true,
         highlightNodeId: '1',
         expandedIds: ['2', '3', '5'],
@@ -210,7 +215,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=1&search=example&expandedIds=2&expandedIds=3&expandedIds=5&shouldTruncate=true&lastSearch=example',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=1&expandedIds=2&expandedIds=3&expandedIds=5&shouldTruncate=true',
       ])
     })
 
@@ -221,8 +226,6 @@ describe('RootController', async () => {
       })
       await complexController.updateLayout(req, {
         ...defaultParams,
-        search: 'example',
-        lastSearch: 'example',
         shouldTruncate: true,
         highlightNodeId: '2',
         expandedIds: ['2', '3', '5'],
@@ -230,7 +233,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=2&search=example&expandedIds=3&shouldTruncate=true&lastSearch=example',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=2&expandedIds=3&shouldTruncate=true',
       ])
     })
 
@@ -241,8 +244,6 @@ describe('RootController', async () => {
       })
       await complexController.updateLayout(req, {
         ...defaultParams,
-        search: 'example',
-        lastSearch: 'example',
         shouldTruncate: true,
         highlightNodeId: '2',
         expandedIds: ['2', '3', '5'],
@@ -250,7 +251,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=2&search=example&expandedIds=3&shouldTruncate=true&lastSearch=example',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=2&expandedIds=3&shouldTruncate=true',
       ])
     })
 
@@ -261,8 +262,6 @@ describe('RootController', async () => {
       })
       await complexController.updateLayout(req, {
         ...defaultParams,
-        search: 'example',
-        lastSearch: 'example',
         shouldTruncate: true,
         highlightNodeId: '3',
         expandedIds: ['2', '3', '5', '7'],
@@ -270,7 +269,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=3&search=example&expandedIds=2&expandedIds=5&shouldTruncate=true&lastSearch=example',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=3&expandedIds=2&expandedIds=5&shouldTruncate=true',
       ])
     })
 
@@ -281,8 +280,6 @@ describe('RootController', async () => {
       })
       await complexController.updateLayout(req, {
         ...defaultParams,
-        search: 'example',
-        lastSearch: 'example',
         shouldTruncate: true,
         highlightNodeId: '5',
         expandedIds: ['7', '5', '9'],
@@ -290,7 +287,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=5&search=example&expandedIds=7&expandedIds=9&shouldTruncate=true&lastSearch=example',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=5&expandedIds=7&expandedIds=9&shouldTruncate=true',
       ])
     })
 
@@ -301,8 +298,6 @@ describe('RootController', async () => {
       })
       await complexController.updateLayout(req, {
         ...defaultParams,
-        search: 'example',
-        lastSearch: 'example',
         shouldTruncate: true,
         highlightNodeId: '9',
         expandedIds: ['9', '10'],
@@ -310,7 +305,7 @@ describe('RootController', async () => {
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
-        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=9&search=example&shouldTruncate=true&lastSearch=example',
+        '/some/path?layout=dagre-d3&output=svg&diagramType=flowchart&highlightNodeId=9&shouldTruncate=true',
       ])
     })
   })
