@@ -5,95 +5,32 @@ on:
     branches-ignore: ['main']
 
 jobs:
-  repo_ids:
-    runs-on: ubuntu-latest
-    outputs:
-      repo_name: ${{ steps.repo_ids.outputs.REPO_NAME }}
-      org_name: ${{ steps.repo_ids.outputs.ORG_NAME }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Get repository identifiers
-        id: repo_ids
-        run: |
-          REPO_NAME=$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')
-          ORG_NAME=$(echo "${{ github.event.repository.owner.name }}" | tr '[:upper:]' '[:lower:]')
-          echo "REPO_NAME=$REPO_NAME" >> $GITHUB_OUTPUT
-          echo "ORG_NAME=$ORG_NAME" >> $GITHUB_OUTPUT
+  static-checks-npm:
+    uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@main
+    with:
+      matrix_commands: '["lint", "depcheck", "check", "xss-scan"]'
+  
+  tests-npm:
+    uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
+    with:
+      docker_compose_file: ''
+      npm_build_command: 'npm run build'
+      tests:  '["test:unit"]'
+  
+  e2e-tests-npm:
+    uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
+    with:
+      docker_compose_file: ''
+      pre_test_command: 'npm ci && npx playwright install-deps'
+      test_command: 'npm run test:playwright'
+    permissions:
+      contents: write
 
-  static-checks:
-    name: Run Static Analysis Checks
-    strategy:
-      fail-fast: false
-      matrix:
-        command: [lint, depcheck, check, xss-scan]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-      - name: Cache Node.js modules
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm # npm cache files are stored in `~/.npm` on Linux/macOS
-          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.OS }}-node-
-            ${{ runner.OS }}-
-      - name: Install Packages
-        run: npm ci
-      - name: Lint
-        run: npm run ${{ matrix.command }}
-
-  tests:
-    name: Run tests
-    strategy:
-      fail-fast: false
-      matrix:
-        command: ['test:unit', 'test:playwright']
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-      - name: Cache Node.js modules
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm # npm cache files are stored in `~/.npm` on Linux/macOS
-          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.OS }}-node-
-            ${{ runner.OS }}-
-      - name: Install Packages
-        run: npm ci
-      - if: matrix.command == 'test:playwright'
-        name: Install Playwright browsers
-        run: npx playwright install --with-deps
-      - name: Build
-        run: npm run build
-      - name: Run tests
-        run: npm run ${{ matrix.command }}
-      - uses: actions/upload-artifact@v4
-        if: ${{ matrix.command == 'test:playwright' }}
-        with:
-          name: playwright-report
-          path: ${{ runner.temp }}/playwright-report/
-          retention-days: 90
-      - name: Publish CTRF Test Summary Results
-        run: npx github-actions-ctrf ${{ runner.temp }}/playwright-report/ctrf-report.json
-        if: ${{ matrix.command == 'test:playwright' }}
+  build-docker:
+    uses: digicatapult/shared-workflows/.github/workflows/build-docker.yml@main
+    permissions:
+      packages: write
+      contents: write
 
   check-version:
-    name: 'Check version'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Check version
-        id: get_version
-        uses: digicatapult/check-version@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+    uses: digicatapult/shared-workflows/.github/workflows/check-version.yml@main
