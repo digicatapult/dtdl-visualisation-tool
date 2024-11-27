@@ -7,9 +7,9 @@ import { InternalError } from '../../errors.js'
 import { UpdateParams } from '../../models/controllerTypes.js'
 import { DiagramType } from '../../models/mermaidDiagrams.js'
 import { MermaidId } from '../../models/strings.js'
-import ClassDiagram from './classDiagram.js'
+import ClassDiagram, { extractClassNodeCoordinate } from './classDiagram.js'
 import { IDiagram } from './diagramInterface.js'
-import Flowchart from './flowchart.js'
+import Flowchart, { extractFlowchartNodeCoordinates } from './flowchart.js'
 
 const { log } = console
 
@@ -26,6 +26,10 @@ export class SvgGenerator {
     flowchart: new Flowchart(),
     classDiagram: new ClassDiagram(),
   }
+  coordinateExtractors: Record<DiagramType, (el: Element) => { x: number; y: number }> = {
+    flowchart: extractFlowchartNodeCoordinates,
+    classDiagram: extractClassNodeCoordinate,
+  }
 
   getMermaidIdFromNodeId = (nodeId: string): MermaidId | null => {
     const nodeIdPattern = /^[^-]+-(.+)-\d+$/
@@ -33,22 +37,58 @@ export class SvgGenerator {
     return mermaidId === null ? mermaidId : mermaidId[1]
   }
 
-  setNodeAttributes = (element: Element) => {
-    const attributes = {
+  generateHxAttributes(element: Element): Record<string, string> {
+    return {
       'hx-get': '/update-layout',
       'hx-target': '#mermaid-output',
       'hx-swap': 'outerHTML',
       'hx-indicator': '#spinner',
-      'hx-vals': `${JSON.stringify({
+      'hx-vals': JSON.stringify({
         highlightNodeId: this.getMermaidIdFromNodeId(element.id),
-        shouldExpand: element.classList.contains('unexpanded'),
-        shouldTruncate: element.classList.contains('expanded'),
-      })}`,
+      }),
     }
-    Object.keys(attributes).forEach((key) => element.setAttribute(key, attributes[key]))
   }
 
-  setSVGAttributes = (svg: string, params: UpdateParams): string => {
+  addCornerSign(
+    element: Element,
+    position: { x: number; y: number },
+    document: Document,
+    hxAttributes: Record<string, string>
+  ): void {
+    const { x, y } = position
+
+    const text = document.createElement('text')
+    text.setAttribute('x', x.toString())
+    text.setAttribute('y', y.toString())
+    text.classList.add('corner-sign')
+    text.textContent = element.classList.contains('unexpanded') ? '+' : '-'
+
+    const cornerSignAttributes = {
+      ...hxAttributes,
+      'hx-vals': JSON.stringify({
+        shouldExpand: element.classList.contains('unexpanded'),
+        shouldTruncate: element.classList.contains('expanded'),
+      }),
+    }
+
+    text.setAttribute('onclick', 'event.stopPropagation()')
+    Object.entries(cornerSignAttributes).forEach(([key, value]) => text.setAttribute(key, value))
+
+    element.appendChild(text)
+  }
+
+  setNodeAttributes(element: Element, document: Document, diagramType: DiagramType) {
+    const hxAttributes = this.generateHxAttributes(element)
+
+    Object.entries(hxAttributes).forEach(([key, value]) => element.setAttribute(key, value))
+
+    if (element.classList.contains('unexpanded') || element.classList.contains('expanded')) {
+      const position = this.coordinateExtractors[diagramType](element)
+      this.addCornerSign(element, position, document, hxAttributes)
+    }
+  }
+
+  setSVGAttributes(svg: string, params: UpdateParams): string {
     const dom = new JSDOM(svg, { contentType: 'image/svg+xml' })
     const document = dom.window.document
     const svgElement = document.querySelector('#mermaid-svg')
@@ -63,7 +103,7 @@ export class SvgGenerator {
     svgElement.setAttribute('hx-include', '#search-panel')
     const nodes = svgElement.getElementsByClassName('node clickable')
     Array.from(nodes).forEach((node) => {
-      this.setNodeAttributes(node)
+      this.setNodeAttributes(node, document, params.diagramType)
     })
 
     return svgElement.outerHTML
