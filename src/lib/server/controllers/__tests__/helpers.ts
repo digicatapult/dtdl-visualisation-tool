@@ -2,9 +2,11 @@ import express from 'express'
 import { Readable } from 'node:stream'
 import { pino } from 'pino'
 
+import { EntityType } from '@digicatapult/dtdl-parser'
 import sinon from 'sinon'
 import { Layout } from '../../models/mermaidLayouts.js'
 import { DtdlLoader } from '../../utils/dtdl/dtdlLoader'
+import { FuseSearch } from '../../utils/fuseSearch.js'
 import { LRUCache } from '../../utils/lruCache.js'
 import {
   generatedSVGFixture,
@@ -28,6 +30,7 @@ export const mockLogger = pino({ level: 'silent' })
 export const mockCache = new LRUCache(10, 1000 * 60)
 
 export const mockDtdlLoader: DtdlLoader = new DtdlLoader(mockDtdlObjectModel)
+export const mockSearch = new FuseSearch<EntityType>()
 
 export const simpleMockDtdlLoader: DtdlLoader = new DtdlLoader(simpleMockDtdlObjectModel)
 export const complexMockDtdlLoader: DtdlLoader = new DtdlLoader(complexMockDtdlModel)

@@ -43,6 +43,7 @@
     "cors": "^2.8.5",
     "envalid": "^8.0.0",
     "express": "^4.21.1",
+    "fuse.js": "^7.0.0",
     "htmx-ext-json-enc": "^2.0.1",
     "htmx.org": "^1.9.12",
     "jsdom": "^25.0.1",

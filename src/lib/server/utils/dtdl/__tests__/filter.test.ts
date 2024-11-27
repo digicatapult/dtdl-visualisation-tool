@@ -1,8 +1,10 @@
 import { expect } from 'chai'
 import { describe, test } from 'mocha'
 
+import { DtdlObjectModel, EntityType } from '@digicatapult/dtdl-parser'
 import { InvalidQueryError } from '../../../errors.js'
-import { filterModelByDisplayName, getRelatedIdsById, getVisualisationState } from '../filter.js'
+import { FuseSearch } from '../../fuseSearch.js'
+import { filterModelByDisplayName, getRelatedIdsById, getVisualisationState, searchInterfaces } from '../filter.js'
 import {
   expandedWithRelationships,
   extendedInterface,
@@ -11,45 +13,56 @@ import {
   singleInterfaceFirst,
 } from './fixtures.js'
 
+const mockSearch = new FuseSearch<EntityType>()
+const setCollection = (model: DtdlObjectModel) =>
+  mockSearch.setCollection(Object.entries(model).map(([, entity]) => entity))
+
 describe('filterModelByDisplayName', function () {
   test('should return empty object for empty model', function () {
-    const result = filterModelByDisplayName({}, 'test', [])
+    const result = filterModelByDisplayName({}, mockSearch, 'test', [])
     expect(result).to.deep.equal({})
   })
 
   test('should return empty model if no interfaces match display name', function () {
-    const result = filterModelByDisplayName(singleInterfaceFirst, 'test', [])
+    setCollection(singleInterfaceFirst)
+    const result = filterModelByDisplayName(singleInterfaceFirst, mockSearch, 'nomatch', [])
     expect(result).to.deep.equal({})
   })
 
   test('should throw if expanded ID not present in model', function () {
+    setCollection(singleInterfaceFirst)
     expect(() => {
-      filterModelByDisplayName(singleInterfaceFirst, 'test', ['badId'])
+      filterModelByDisplayName(singleInterfaceFirst, mockSearch, 'test', ['badId'])
     }).to.throw(InvalidQueryError)
   })
 
   test('should include single interface if matches whole string', function () {
-    const result = filterModelByDisplayName(singleInterfaceFirst, 'first', [])
+    setCollection(singleInterfaceFirst)
+    const result = filterModelByDisplayName(singleInterfaceFirst, mockSearch, 'first', [])
     expect(result).to.deep.equal(singleInterfaceFirst)
   })
 
   test('should include single interface if matches partial string', function () {
-    const result = filterModelByDisplayName(singleInterfaceFirst, 'fir', [])
+    setCollection(singleInterfaceFirst)
+    const result = filterModelByDisplayName(singleInterfaceFirst, mockSearch, 'fir', [])
     expect(result).to.deep.equal(singleInterfaceFirst)
   })
 
   test('should include single interface if matches partial string incorrect case', function () {
-    const result = filterModelByDisplayName(singleInterfaceFirst, 'FIR', [])
+    setCollection(singleInterfaceFirst)
+    const result = filterModelByDisplayName(singleInterfaceFirst, mockSearch, 'FIR', [])
     expect(result).to.deep.equal(singleInterfaceFirst)
   })
 
   test('should exclude non-matching interfaces', function () {
-    const result = filterModelByDisplayName(multipleInterfaces, 'first', [])
+    setCollection(multipleInterfaces)
+    const result = filterModelByDisplayName(multipleInterfaces, mockSearch, 'first', [])
     expect(result).to.deep.equal(singleInterfaceFirst)
   })
 
   test('should include all matching interfaces if they exist', function () {
-    const result = filterModelByDisplayName(multipleInterfaces, 'r', [])
+    setCollection(multipleInterfaces)
+    const result = filterModelByDisplayName(multipleInterfaces, mockSearch, 'r', [])
     expect(result).to.deep.equal({
       first: multipleInterfaces.first,
       third: multipleInterfaces.third,
@@ -57,7 +70,8 @@ describe('filterModelByDisplayName', function () {
   })
 
   test('should include relationships connected to matches', function () {
-    const result = filterModelByDisplayName(multipleInterfacesAndRelationship, 'first', [])
+    setCollection(multipleInterfacesAndRelationship)
+    const result = filterModelByDisplayName(multipleInterfacesAndRelationship, mockSearch, 'first', [])
     expect(result).to.deep.equal({
       first: multipleInterfacesAndRelationship.first,
       second: multipleInterfacesAndRelationship.second,
@@ -66,24 +80,17 @@ describe('filterModelByDisplayName', function () {
   })
 
   test('should include relationships connected to expanded nodes and assign correct visualisation states', function () {
-    const result = filterModelByDisplayName(expandedWithRelationships, 'first', ['second'])
+    setCollection(expandedWithRelationships)
+    const result = filterModelByDisplayName(expandedWithRelationships, mockSearch, 'first', ['second'])
     expect(result).to.deep.equal(expandedWithRelationships)
     expect(getVisualisationState(result['first'])).to.equal('search')
     expect(getVisualisationState(result['second'])).to.equal('expanded')
     expect(getVisualisationState(result['third'])).to.equal('unexpanded')
   })
 
-  test('should return all with empty search and all interfaces have `search` visualisation state', function () {
-    const result = filterModelByDisplayName(expandedWithRelationships, '', [])
-    expect(result).to.deep.equal(expandedWithRelationships)
-    expect(getVisualisationState(result['first'])).to.equal('search')
-    expect(getVisualisationState(result['second'])).to.equal('search')
-    expect(getVisualisationState(result['third'])).to.equal('search')
-    expect(getVisualisationState(result['relFirstSecond'])).to.equal(undefined)
-  })
-
   test('should include entities only once', function () {
-    const result = filterModelByDisplayName(multipleInterfacesAndRelationship, 's', [])
+    setCollection(multipleInterfacesAndRelationship)
+    const result = filterModelByDisplayName(multipleInterfacesAndRelationship, mockSearch, 's', [])
     expect(result).to.deep.equal({
       first: multipleInterfacesAndRelationship.first,
       second: multipleInterfacesAndRelationship.second,
@@ -92,14 +99,16 @@ describe('filterModelByDisplayName', function () {
   })
 
   test('should not include relationships with missing target', function () {
-    const result = filterModelByDisplayName(multipleInterfacesAndRelationship, 'third', [])
+    setCollection(multipleInterfacesAndRelationship)
+    const result = filterModelByDisplayName(multipleInterfacesAndRelationship, mockSearch, 'third', [])
     expect(result).to.deep.equal({
       third: multipleInterfacesAndRelationship.third,
     })
   })
 
   test('should include entities extended by a searched interface', function () {
-    const result = filterModelByDisplayName(extendedInterface, 'parent', [])
+    setCollection(extendedInterface)
+    const result = filterModelByDisplayName(extendedInterface, mockSearch, 'parent', [])
     expect(result).to.deep.equal(extendedInterface)
   })
 })
@@ -130,5 +139,55 @@ describe('getRelatedIdsById', function () {
     expect(resultExtends).to.deep.equal(new Set(['child']))
     const resultExtendedBy = getRelatedIdsById(extendedInterface, 'child')
     expect(resultExtendedBy).to.deep.equal(new Set(['parent']))
+  })
+})
+
+describe('searchInterfaces', function () {
+  test('should perform OR for spaces rather than AND', function () {
+    setCollection(multipleInterfacesAndRelationship)
+    const result = searchInterfaces(mockSearch, 'first second')
+    expect(result).to.deep.equal(new Set(['first', 'second', 'relFirstSecond']))
+  })
+
+  test('should search display name', function () {
+    setCollection(multipleInterfacesAndRelationship)
+    const result = searchInterfaces(mockSearch, '"display name"')
+    expect(result).to.deep.equal(new Set(['first']))
+  })
+
+  test('should be case insensitive', function () {
+    setCollection(multipleInterfacesAndRelationship)
+    const result = searchInterfaces(mockSearch, 'fIrST')
+    expect(result).to.deep.equal(new Set(['first', 'relFirstSecond']))
+  })
+
+  test('should group terms if single quoted', function () {
+    setCollection(expandedWithRelationships)
+    const result = searchInterfaces(mockSearch, `'rel second third'`)
+    expect(result).to.deep.equal(new Set(['rel second third']))
+  })
+
+  test('should group terms if double quoted', function () {
+    setCollection(expandedWithRelationships)
+    const result = searchInterfaces(mockSearch, `"rel second third"`)
+    expect(result).to.deep.equal(new Set(['rel second third']))
+  })
+
+  test('should be fuzzy with typos', function () {
+    setCollection(multipleInterfacesAndRelationship)
+    const result = searchInterfaces(mockSearch, `fisrt`)
+    expect(result).to.deep.equal(new Set(['first']))
+  })
+
+  test('should be fuzzy with partial searches', function () {
+    setCollection(multipleInterfacesAndRelationship)
+    const result = searchInterfaces(mockSearch, `firs seco`)
+    expect(result).to.deep.equal(new Set(['first', 'relFirstSecond', 'second']))
+  })
+
+  test('should handled grouped and separate terms', function () {
+    setCollection(expandedWithRelationships)
+    const result = searchInterfaces(mockSearch, `"rel second third" first`)
+    expect(result).to.deep.equal(new Set(['first', 'relFirstSecond', 'rel second third']))
   })
 })
