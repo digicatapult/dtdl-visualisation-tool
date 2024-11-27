@@ -21,8 +21,8 @@ jobs:
     uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
     with:
       docker_compose_file: ''
-      pre_test_command: 'npm ci && npx playwright install-deps'
-      test_command: 'npm run test:playwright  || exit 1'
+      pre_test_command: 'npm ci && npx playwright install-deps && npx playwright install'
+      test_command: 'npm run test:playwright || exit 1'
     permissions:
       contents: write
 
@@ -31,4 +31,3 @@ jobs:
     permissions:
       packages: write
       contents: write
-
