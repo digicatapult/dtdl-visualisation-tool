@@ -1,4 +1,4 @@
-import { DtdlObjectModel, EntityType, RelationshipType } from '@digicatapult/dtdl-parser'
+import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 
 import { InvalidQueryError } from '../../errors.js'
 import { DtdlId } from '../../models/strings.js'
@@ -53,42 +53,38 @@ const relationshipFilter =
       return true
     }
 
+    if (matchingIds.has(relationship.Id)) {
+      return true
+    }
+
     return false
   }
 
-export const searchInterfacesAndRelationships = (search: ISearch<EntityType>, searchQuery: string): {
-  matchedInterfaces: Set<string>,
-  matchedRelationships: Set<{ childOf: string, target: string, relationship: string }>
-} => {
+export const searchInterfacesAndRelationships = (search: ISearch<EntityType>, searchQuery: string): Set<string> => {
   const quotedStringRegex = /(['"])(.*?)\1/g // capture groups inside "" or ''
   const quotedTerms = Array.from(searchQuery.matchAll(quotedStringRegex)).map((match) => match[2])
 
   const remainingQuery = searchQuery.replace(quotedStringRegex, '')
   const remainingTerms = remainingQuery.split(' ').filter((term) => term !== '')
   const searchTerms = [...remainingTerms, ...quotedTerms]
-  const matchedInterfaces = new Set<string>()
-  const matchedRelationships = new Set<{ childOf: string, target: string, relationship: string }>()
-  searchTerms.flatMap((term) => search.filter(term).forEach((entity) => {
-    entity['matches'].forEach((match) => {
-      if (match.key === 'relationships') {
-        matchedRelationships.add({ childOf: entity.Id, target: entity['relationships'][match.value], relationship: match.value })
-      }
-      else {
-        matchedInterfaces.add(entity.Id)
-      }
-    })
-    return entity.Id
-  }))
-  return { matchedInterfaces: matchedInterfaces, matchedRelationships: matchedRelationships }
-}
+  const matchedEntityIds = searchTerms.flatMap((term) =>
+    search.filterWithMatches(term).flatMap((result) => {
+      const entity = result.item as InterfaceType
 
-const relationshipIdByName = (name: string, entityPairs: [string, EntityType][]): string | undefined => {
-  entityPairs.forEach(([, entity]) => {
-    if (entity.EntityKind === 'Relationship') {
-      if (name === entity.displayName.en) { entity.Id }
-    }
-  })
-  return undefined
+      const matches = result.matches
+        ?.map((match) => {
+          if (match.key === 'relationships' && entity.EntityKind === 'Interface') {
+            const relationshipKey = match.value
+            return relationshipKey ? entity.relationships[relationshipKey] : undefined
+          }
+          return entity.Id
+        })
+        .filter((x): x is string => x !== undefined)
+
+      return matches ?? []
+    })
+  )
+  return new Set(matchedEntityIds)
 }
 
 export const filterModelByDisplayName = (
@@ -106,14 +102,14 @@ export const filterModelByDisplayName = (
 
   const entityPairs = Object.entries(dtdlObjectModel)
 
-  const { matchedInterfaces, matchedRelationships } = searchInterfacesAndRelationships(search, searchQuery)
+  const searchedEntityIds = searchInterfacesAndRelationships(search, searchQuery)
 
   // if the search matches no nodes and no expanded nodes are valid we have an empty set
-  if (matchedInterfaces.size === 0 && expandedIds.length === 0) {
+  if (searchedEntityIds.size === 0 && expandedIds.length === 0) {
     return {}
   }
 
-  const matchingIds = new Set([...matchedInterfaces, ...expandedIds])
+  const matchingIds = new Set([...searchedEntityIds, ...expandedIds])
 
   // for all search matches include nodes that extend them. Note this only works one way
   const matchingExtends = [...matchingIds].flatMap((id) => {
@@ -132,24 +128,12 @@ export const filterModelByDisplayName = (
     })
   )
 
-  const interfacesFromSearchedRelationships = new Set(
-    [...matchedRelationships].flatMap((relationship) => {
-      return [
-        relationship.childOf,
-        relationship.target,
-        relationshipIdByName(relationship.relationship, entityPairs)
-      ].filter((x) => x !== undefined)
-    })
-  )
-
-  // const searchedRelationships = new Set()
-
-  const idsAndRelationships = new Set([...matchingIds, ...matchingExtends, ...matchingRelationships, ...interfacesFromSearchedRelationships])
+  const idsAndRelationships = new Set([...matchingIds, ...matchingExtends, ...matchingRelationships])
 
   return [...idsAndRelationships].reduce((acc, id) => {
     const entity = dtdlObjectModel[id]
     if (entity.EntityKind === 'Interface')
-      setVisualisationState(entity, determineVisualisationState(id, matchedInterfaces, expandedIds))
+      setVisualisationState(entity, determineVisualisationState(id, searchedEntityIds, expandedIds))
     acc[id] = entity
     return acc
   }, {} as DtdlObjectModel)

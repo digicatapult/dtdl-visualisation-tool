@@ -1,8 +1,8 @@
-import Fuse, { type IFuseOptions } from 'fuse.js'
+import { InterfaceType } from '@digicatapult/dtdl-parser'
+import Fuse, { type FuseResultMatch, type IFuseOptions } from 'fuse.js'
 import { container, singleton } from 'tsyringe'
 import { Env } from '../../../lib/server/env.js'
 import { ISearch } from './search.js'
-import { InterfaceType } from '@digicatapult/dtdl-parser'
 
 const env = container.resolve(Env)
 
@@ -19,7 +19,7 @@ const defaultOptions: IFuseOptions<object> = {
       }
     }
     return Fuse.config.getFn(obj, path)
-  }
+  },
 }
 @singleton()
 export class FuseSearch<T extends object> implements ISearch<T> {
@@ -31,10 +31,14 @@ export class FuseSearch<T extends object> implements ISearch<T> {
 
   // results are ordered from closest to least closest match
   filter(term: string): T[] {
-    return this.fuse.search(term).map((r) => {
-      r.item['matches'] = r.matches
-      return r.item
-    })
+    return this.fuse.search(term).map((r) => r.item)
+  }
+  // Additional method for enriched results
+  filterWithMatches(term: string): Array<{ item: T; matches: readonly FuseResultMatch[] | undefined }> {
+    return this.fuse.search(term).map((result) => ({
+      item: result.item,
+      matches: result.matches,
+    }))
   }
 
   setCollection(collection: T[]): void {
