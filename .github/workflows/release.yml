@@ -5,129 +5,40 @@ on:
     branches: ['main']
 
 jobs:
-  preconditions:
-    runs-on: ubuntu-latest
-    outputs:
-      repo_name: ${{ steps.repo_ids.outputs.REPO_NAME }}
-      org_name: ${{ steps.repo_ids.outputs.ORG_NAME }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Check Github token
-        run: |
-          if [ -z "${{ secrets.GITHUB_TOKEN }}"]; then
-            echo "Must provide a GITHUB_TOKEN secret in order to run release workflow"
-            exit 1
-          fi
-      - name: Get repository identifiers
-        id: repo_ids
-        run: |
-          REPO_NAME=$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')
-          ORG_NAME=$(echo "${{ github.event.repository.owner.name }}" | tr '[:upper:]' '[:lower:]')
-          echo "REPO_NAME=$REPO_NAME" >> $GITHUB_OUTPUT
-          echo "ORG_NAME=$ORG_NAME" >> $GITHUB_OUTPUT
+  static-checks-npm:
+    uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@main
+    with:
+      matrix_commands: '["lint", "depcheck", "check", "xss-scan"]'
 
-  static-checks:
-    name: Run Static Analysis Checks
-    strategy:
-      fail-fast: false
-      matrix:
-        command: [lint, depcheck, check]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-      - name: Cache Node.js modules
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm # npm cache files are stored in `~/.npm` on Linux/macOS
-          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.OS }}-node-
-            ${{ runner.OS }}-
-      - name: Install Packages
-        run: npm ci
-      - name: Lint
-        run: npm run ${{ matrix.command }}
+  tests-npm:
+    uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
+    with:
+      docker_compose_file: ''
+      npm_build_command: 'npm run build'
+      tests:  '["test:unit"]'
 
-  tests:
-    name: Run tests
-    strategy:
-      fail-fast: false
-      matrix:
-        command: ['test:unit', 'test:playwright']
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-      - name: Cache Node.js modules
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm # npm cache files are stored in `~/.npm` on Linux/macOS
-          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.OS }}-node-
-            ${{ runner.OS }}-
-      - name: Install Packages
-        run: npm ci
-      - if: matrix.command == 'test:playwright'
-        name: Install Playwright browsers
-        run: npx playwright install --with-deps
-      - name: Build
-        run: npm run build
-      - name: Run tests
-        run: npm run ${{ matrix.command }}
-      - uses: actions/upload-artifact@v4
-        if: ${{ matrix.command == 'test:playwright' }}
-        with:
-          name: playwright-report
-          path: ${{ runner.temp }}/playwright-report/
-          retention-days: 90
-      - name: Publish CTRF Test Summary Results
-        run: npx github-actions-ctrf ${{ runner.temp }}/playwright-report/ctrf-report.json
-        if: ${{ matrix.command == 'test:playwright' }}
+  e2e-tests-npm:
+    uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
+    with:
+      docker_compose_file: ''
+      pre_test_command: 'npm ci && npx playwright install-deps && npx playwright install'
+      test_command: 'npm run test:playwright || exit 1'
+    permissions:
+      contents: write
 
-  check-version:
-    name: 'Check version'
-    runs-on: ubuntu-latest
-    outputs:
-      is_new_version: ${{ steps.get_version.outputs.IS_NEW_VERSION }}
-      version: ${{ steps.get_version.outputs.VERSION }}
+  build-docker:
+    needs: [e2e-tests-npm, tests-npm, static-checks-npm]
+    uses: digicatapult/shared-workflows/.github/workflows/build-docker.yml@main
+    with:
+      push_dockerhub: false
+      push_ghcr: false
+    permissions:
+      packages: write
+      contents: write
 
-    steps:
-      - uses: actions/checkout@v4
-      - name: Check version
-        id: get_version
-        uses: digicatapult/check-version@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-  publish:
-    name: 'Publish release'
-    needs: [preconditions, static-checks, tests, check-version]
-    runs-on: ubuntu-latest
-    if: ${{ needs.check-version.outputs.is_new_version == 'true' }}
-
-    steps:
-      - uses: actions/checkout@v4
-      # Build github release
-      - name: Build release version
-        uses: 'marvinpinto/action-automatic-releases@latest'
-        with:
-          repo_token: '${{ secrets.GITHUB_TOKEN }}'
-          automatic_release_tag: ${{ needs.check-version.outputs.version }}
-          prerelease: false
-          title: Release ${{ needs.check-version.outputs.version }}
-      - name: Build release latest
-        uses: 'marvinpinto/action-automatic-releases@latest'
-        with:
-          repo_token: '${{ secrets.GITHUB_TOKEN }}'
-          automatic_release_tag: latest
-          prerelease: false
-          title: Latest Release ${{ needs.check-version.outputs.version }}
+  release-github:
+    needs: [build-docker]
+    uses: digicatapult/shared-workflows/.github/workflows/release-github.yml@main
+    permissions:
+      contents: write
+    secrets: inherit

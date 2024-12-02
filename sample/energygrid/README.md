@@ -1,0 +1,1 @@
+This sample is copied from `Digital Twins Definition Language (DTDL) ontology for Energy Grid`, licensed under an [MIT License](./LICENSE). You can find the original project [here](https://github.com/Azure/opendigitaltwins-energygrid).

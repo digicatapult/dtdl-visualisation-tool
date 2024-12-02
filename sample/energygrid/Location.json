@@ -1,0 +1,38 @@
+{
+    "@id": "dtmi:digitaltwins:ngsi_ld:cim:energy:Location;1",
+    "@type": "Interface",
+    "displayName": "Location",
+    "description": "Location is used to deifne the absolute position of an assets",
+    "comment": "Adapted from CIM and https://github.com/smart-data-models/dataModel.EnergyCIM/ data models",
+    "contents": [
+        {
+            "@type": "Property",
+            "name": "locationName",
+            "description": "location Name",
+            "writable": true,
+            "schema": "string"
+        },
+        {
+            "@type": "Property",
+            "name": "xPosition",
+            "description": "X axis position.",
+            "writable": true,
+            "schema": "double"
+        },
+        {
+            "@type": "Property",
+            "name": "yPosition",
+            "description": "Y axis position.",
+            "writable": true,
+            "schema": "double"
+        },
+        {
+            "@type": "Property",
+            "name": "zPosition",
+            "description": "(if applicable) Z axis position.",
+            "writable": true,
+            "schema": "double"
+        }
+    ],
+    "@context": "dtmi:dtdl:context;2"
+}

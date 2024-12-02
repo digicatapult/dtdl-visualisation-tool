@@ -31,3 +31,46 @@ jobs:
     permissions:
       packages: write
       contents: write
+
+
+name: Release (NPM)
+on:
+  push:
+    branches: ['main']
+jobs:
+  static-checks-npm:
+    uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@main
+    with:
+      matrix_commands: '["lint", "depcheck", "check", "xss-scan"]'
+  tests-npm:
+    uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
+    with:
+      docker_compose_file: ''
+      npm_build_command: 'npm run tsoa:build'
+  e2e-tests-npm:
+    uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
+    with:
+      docker_compose_file: ''
+      pre_test_command: 'npm ci && npx playwright install-deps && npx playwright install'
+      test_command: 'npm run test:playwright || exit 1'
+    permissions:
+      contents: write
+    secrets: inherit
+  build-docker:
+    needs: [e2e-tests-npm, tests-npm, static-checks-npm]
+    uses: digicatapult/shared-workflows/.github/workflows/build-docker.yml@main
+    with:
+      push_dockerhub: true
+      push_ghcr: true
+    permissions:
+      packages: write
+      contents: write
+    secrets:
+      DOCKERHUB_TOKEN: ${{ secrets.SQNC_DOCKERHUB_TOKEN }}
+      DOCKERHUB_USERNAME: ${{ secrets.SQNC_DOCKERHUB_USERNAME }}
+  release-github:
+    needs: [build-docker]
+    uses: digicatapult/shared-workflows/.github/workflows/release-github.yml@main
+    permissions:
+      contents: write
+    secrets: inherit
