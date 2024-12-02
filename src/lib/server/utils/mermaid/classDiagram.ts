@@ -18,6 +18,31 @@ export const arrowTypes = {
 
 export type ArrowType = (typeof arrowTypes)[keyof typeof arrowTypes]
 
+const extractCoordinatesFromTranslateString = (
+  translate: string | null | undefined
+): { x: number; y: number } | null => {
+  if (!translate) return null
+  const match = translate.match(/translate\(\s*([-\d.]+)[ ,\s]*([-\d.]+)\s*\)/)
+  return match ? { x: parseFloat(match[1]), y: parseFloat(match[2]) } : null
+}
+
+export const extractClassNodeCoordinate = (element: Element): { x: number; y: number } => {
+  const labelGroup = element.querySelector('.label-group.text')
+  const membersGroup = element.querySelector('.members-group.text')
+
+  const labelCoordinate = extractCoordinatesFromTranslateString(labelGroup?.getAttribute('transform'))
+  const membersCoordinate = extractCoordinatesFromTranslateString(membersGroup?.getAttribute('transform'))
+
+  if (labelCoordinate && membersCoordinate) {
+    return {
+      x: membersCoordinate.x * -1,
+      y: labelCoordinate.y,
+    }
+  }
+
+  return { x: 0, y: 0 }
+}
+
 export default class ClassDiagram implements IDiagram<'classDiagram'> {
   get diagramType(): 'classDiagram' {
     return 'classDiagram'
