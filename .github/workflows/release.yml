@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    # branches: ['main']
+    branches: ['main']
 
 jobs:
   static-checks-npm:
@@ -37,7 +37,7 @@ jobs:
       contents: write
 
   release-github:
-    # needs: [build-docker]
+    needs: [build-docker]
     uses: digicatapult/shared-workflows/.github/workflows/release-github.yml@main
     permissions:
       contents: write
