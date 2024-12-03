@@ -14,8 +14,19 @@ globalThis.setMermaidListeners = function setMermaidListeners() {
   if (!element) {
     return
   }
+  setSizes()
 
-  const panZoom = svgPanZoom('#mermaid-svg', { maxZoom: 10, minZoom: -100 })
+  const panZoom = svgPanZoom('#mermaid-svg', {
+    maxZoom: 10,
+    minZoom: -100,
+    onZoom: (newZoom) => {
+      document.getElementById('currentZoom')?.setAttribute('value', newZoom)
+    },
+    onPan: ({ x, y }) => {
+      document.getElementById('currentPanX')?.setAttribute('value', x)
+      document.getElementById('currentPanY')?.setAttribute('value', y)
+    },
+  })
   resetButton.onclick = () => {
     panZoom.resetZoom()
     panZoom.resetPan()
@@ -31,13 +42,16 @@ globalThis.setMermaidListeners = function setMermaidListeners() {
 function setSizes() {
   const wrapper = document.getElementById('mermaid-wrapper')
   if (!wrapper) {
-    throw new Error('Could not find wrapper element')
+    throw new Error('Could not find mermaid-wrapper element')
   }
   const boundingRec = wrapper.getBoundingClientRect()
-
-  document.getElementById('mermaid-svg')?.setAttribute('viewBox', `0 0 ${boundingRec.width} ${boundingRec.height}`)
   document.getElementById('svgWidth')?.setAttribute('value', `${boundingRec.width}`)
   document.getElementById('svgHeight')?.setAttribute('value', `${boundingRec.height}`)
+
+  const svg = document.getElementById('mermaid-svg')
+  svg?.setAttribute('viewBox', `0 0 ${boundingRec.width} ${boundingRec.height}`)
+  svg?.setAttribute('width', `${boundingRec.width}`)
+  svg?.setAttribute('height', `${boundingRec.height}`)
 }
 
 setSizes()

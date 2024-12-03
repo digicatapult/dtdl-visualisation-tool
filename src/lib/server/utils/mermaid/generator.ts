@@ -6,6 +6,7 @@ import { singleton } from 'tsyringe'
 import { InternalError } from '../../errors.js'
 import { UpdateParams } from '../../models/controllerTypes.js'
 import { DiagramType } from '../../models/mermaidDiagrams.js'
+import { Layout } from '../../models/mermaidLayouts.js'
 import { MermaidId } from '../../models/strings.js'
 import ClassDiagram, { extractClassNodeCoordinate } from './classDiagram.js'
 import { IDiagram } from './diagramInterface.js'
@@ -31,9 +32,9 @@ export class SvgGenerator {
     classDiagram: extractClassNodeCoordinate,
   }
 
+  private nodeIdPattern = /^[^-]+-(.+)-\d+$/
   getMermaidIdFromNodeId = (nodeId: string): MermaidId | null => {
-    const nodeIdPattern = /^[^-]+-(.+)-\d+$/
-    const mermaidId = nodeId.match(nodeIdPattern)
+    const mermaidId = nodeId.match(this.nodeIdPattern)
     return mermaidId === null ? mermaidId : mermaidId[1]
   }
 
@@ -77,7 +78,7 @@ export class SvgGenerator {
     element.appendChild(text)
   }
 
-  setNodeAttributes(element: Element, document: Document, diagramType: DiagramType) {
+  setNodeAttributes(element: Element, document: Document, diagramType: DiagramType, highlightNodeId?: string) {
     const hxAttributes = this.generateHxAttributes(element)
 
     Object.entries(hxAttributes).forEach(([key, value]) => element.setAttribute(key, value))
@@ -85,6 +86,10 @@ export class SvgGenerator {
     if (element.classList.contains('unexpanded') || element.classList.contains('expanded')) {
       const position = this.coordinateExtractors[diagramType](element)
       this.addCornerSign(element, position, document, hxAttributes)
+    }
+
+    if (highlightNodeId && this.getMermaidIdFromNodeId(element.id) === highlightNodeId) {
+      element.setAttribute('highlighted', '')
     }
   }
 
@@ -94,16 +99,18 @@ export class SvgGenerator {
     const svgElement = document.querySelector('#mermaid-svg')
     if (!svgElement) throw new InternalError('Error in finding mermaid-svg Element in generated output')
 
-    // remove width and height as these will be done in css
-    svgElement.removeAttribute('width')
-    svgElement.removeAttribute('height')
+    // set height and width explicitly so the element is sized correctly
+    svgElement.setAttribute('width', `${params.svgWidth}`)
+    svgElement.setAttribute('height', `${params.svgHeight}`)
+
     // modify the viewbox to match the available container
     svgElement.setAttribute('viewBox', `0 0 ${params.svgWidth} ${params.svgHeight}`)
 
     svgElement.setAttribute('hx-include', '#search-panel')
-    const nodes = svgElement.getElementsByClassName('node clickable')
+    const nodes = svgElement.getElementsByClassName('node')
+
     Array.from(nodes).forEach((node) => {
-      this.setNodeAttributes(node, document, params.diagramType)
+      this.setNodeAttributes(node, document, params.diagramType, params.highlightNodeId)
     })
 
     return svgElement.outerHTML
@@ -111,7 +118,8 @@ export class SvgGenerator {
 
   async run(
     dtdlObject: DtdlObjectModel,
-    params: UpdateParams,
+    diagramType: DiagramType,
+    layout: Layout,
     options: ParseMDDOptions = {},
     isRetry: boolean = false
   ): Promise<string> {
@@ -128,23 +136,19 @@ export class SvgGenerator {
           maxTextSize: 99999999,
           securityLevel: 'strict',
           maxEdges: 99999999,
-          layout: params.layout,
+          layout,
         },
       }
 
-      const graph = this.mermaidMarkdownByDiagramType[params.diagramType].generateMarkdown(
-        dtdlObject,
-        ' TD',
-        params.highlightNodeId
-      )
+      const graph = this.mermaidMarkdownByDiagramType[diagramType].generateMarkdown(dtdlObject, ' TD')
       if (!graph) return 'No graph'
 
-      const { data } = await renderMermaid(await this.browser, graph, params.output, parseMDDOptions)
+      const { data } = await renderMermaid(await this.browser, graph, 'svg', parseMDDOptions)
       const decoder = new TextDecoder()
 
       if (!decoder.decode(data)) return 'No SVG generated'
 
-      return this.setSVGAttributes(decoder.decode(data), params)
+      return decoder.decode(data)
     } catch (err) {
       log('Something went wrong rendering mermaid layout', err)
       if (!isRetry) {
@@ -154,7 +158,7 @@ export class SvgGenerator {
         await oldBrowser.close()
 
         this.browser = puppeteer.launch({})
-        return this.run(dtdlObject, params, options, true)
+        return this.run(dtdlObject, diagramType, layout, options, true)
       }
       throw err
     }

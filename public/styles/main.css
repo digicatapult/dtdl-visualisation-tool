@@ -95,6 +95,8 @@ input[type='search'] {
   display: flex;
   justify-content: center;
   align-items: center;
+  /* hide the overflow to prevent the svg even momentarily extending beyond the viewport */
+  overflow: hidden;
 }
 
 #mermaid-svg {
@@ -103,8 +105,6 @@ input[type='search'] {
 }
 
 #mermaid-output {
-  height: 100%;
-  width: 100%;
   display: block;
   opacity: 1;
 }
@@ -197,7 +197,7 @@ input[type='search'] {
   display: grid;
   padding: 3rem 1rem 1rem 1rem;
   gap: 1.5rem;
-  grid-template-columns: auto 1fr; 
+  grid-template-columns: auto 1fr;
   background: #f5f6fa;
   transition: transform 300ms;
 }
@@ -229,10 +229,10 @@ input[type='search'] {
   border-top: 1px solid #e8e8e8;
 }
 
-#legend button::before{
+#legend button::before {
   position: absolute;
   left: 1rem;
-  content: "❯";
+  content: '❯';
   color: #a6a6a6;
   transform: scaleX(1);
 }
@@ -276,5 +276,3 @@ input[type='search'] {
   top: -5px;
   right: 2px;
 }
-
-
