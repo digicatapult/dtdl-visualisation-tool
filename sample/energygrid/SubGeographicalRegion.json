@@ -1,0 +1,21 @@
+{
+    "@id": "dtmi:digitaltwins:ngsi_ld:cim:energy:SubGeographicalRegion;1",
+    "@type": "Interface",
+    "displayName": "SubGeographicalRegion",
+    "comment": "A subset of a geographical region of a power system network model.",
+    "description": "Adapted from CIM and https://github.com/smart-data-models/dataModel.EnergyCIM/ data models",
+    "contents": [
+        {
+            "@type": "Relationship",
+            "name": "withIn",
+            "target": "dtmi:digitaltwins:ngsi_ld:cim:energy:GeographicalRegion;1",
+            "comment": "The geographical region which this sub-geographical region is within.",
+            "displayName": "Region"
+        }
+    ],
+    "@context": "dtmi:dtdl:context;2",
+    "extends": [
+        "dtmi:digitaltwins:ngsi_ld:cim:energy:IdentifiedObject;1",
+        "dtmi:digitaltwins:ngsi_ld:cim:energy:Location;1"
+    ]
+}

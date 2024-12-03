@@ -1,4 +1,4 @@
-#!/usr/bin/env node --no-warnings
+#!/usr/bin/env node
 
 import 'reflect-metadata'
 
@@ -61,23 +61,14 @@ program
 
       log(`Loading SVG generator...`)
       const generator = new SvgGenerator()
-      await generator.run(
-        minimumDtdl,
-        {
-          layout: 'elk',
-          output: 'svg',
-          diagramType: 'flowchart',
-          svgHeight: 100,
-          svgWidth: 300,
-        },
-        {}
-      )
+      await generator.run(minimumDtdl, 'flowchart', 'elk', {})
       container.register(SvgGenerator, { useValue: generator })
       log(`Complete`)
 
       httpServer(options.port)
       log(`\nView DTDL model: http://localhost:${options.port}`)
     } else {
+      log(`Error parsing DTDL`)
       process.exit(1)
     }
   })

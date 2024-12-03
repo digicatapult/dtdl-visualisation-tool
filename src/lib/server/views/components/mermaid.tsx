@@ -222,6 +222,9 @@ export default class MermaidTemplates {
         <input id="lastSearch" name="lastSearch" type="hidden" value={escapeHtml(lastSearch || '')} />
         <input id="svgWidth" name="svgWidth" type="hidden" value={`${svgWidth}` || ''} />
         <input id="svgHeight" name="svgHeight" type="hidden" value={`${svgHeight}` || ''} />
+        <input id="currentZoom" name="currentZoom" type="hidden" value="1" />
+        <input id="currentPanX" name="currentPanX" type="hidden" value="0" />
+        <input id="currentPanY" name="currentPanY" type="hidden" value="0" />
 
         {expandedIds?.map((id, index) => (
           <input id={`expandedIds_${index}`} name="expandedIds" type="hidden" value={id} />

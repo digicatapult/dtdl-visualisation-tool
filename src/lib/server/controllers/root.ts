@@ -13,7 +13,7 @@ import { Search, type ISearch } from '../utils/search.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
-const relevantParams = ['search', 'highlightNodeId', 'diagramType', 'layout', 'output', 'expandedIds']
+const relevantParams = ['search', 'diagramType', 'layout', 'expandedIds']
 
 @singleton()
 @injectable()
@@ -76,7 +76,7 @@ export class RootController extends HTMLController {
     params.expandedIds = [...new Set(params.expandedIds?.map(dtdlIdReinstateSemicolon))] // remove duplicates
 
     const cacheKey = this.createCacheKey(params)
-    const generatedOutput = this.cache.get(cacheKey) ?? (await this.generateOutput(params, cacheKey))
+    const generatedOutput = await this.generateOutput(params, cacheKey)
 
     const current = this.getCurrentPathQuery(req)
     if (current) {
@@ -165,6 +165,11 @@ export class RootController extends HTMLController {
   }
 
   private async generateOutput(params: UpdateParams, cacheKey: string): Promise<string> {
+    const fromCache = this.cache.get(cacheKey)
+    if (fromCache) {
+      return this.generator.setSVGAttributes(fromCache, params)
+    }
+
     const model = params.search
       ? filterModelByDisplayName(
           this.dtdlLoader.getDefaultDtdlModel(),
@@ -178,9 +183,9 @@ export class RootController extends HTMLController {
       params.highlightNodeId = undefined
     }
 
-    const output = await this.generator.run(model, params)
+    const output = await this.generator.run(model, params.diagramType, params.layout)
     this.cache.set(cacheKey, output)
-    return output
+    return this.generator.setSVGAttributes(output, params)
   }
 
   private truncateExpandedIds(truncateId: string, model: DtdlObjectModel, expandedIds: string[]): string[] {

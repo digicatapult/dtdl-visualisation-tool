@@ -5,13 +5,7 @@ import { describe, it } from 'mocha'
 import sinon from 'sinon'
 import { defaultParams } from '../../../controllers/__tests__/root.test'
 import { SvgGenerator } from '../generator'
-import {
-  classDiagramFixtureSimple,
-  classDiagramFixtureSimpleHighlighted,
-  flowchartFixtureSimple,
-  flowchartFixtureSimpleHighlighted,
-  simpleMockDtdlObjectModel,
-} from './fixtures'
+import { classDiagramFixtureSimple, flowchartFixtureSimple, simpleMockDtdlObjectModel } from './fixtures'
 import { checkIfStringIsSVG } from './helpers'
 
 describe('Generator', () => {
@@ -26,15 +20,6 @@ describe('Generator', () => {
       expect(markdown).to.equal(flowchartFixtureSimple)
     })
 
-    it('should return a flowchart graph for a simple dtdl model with highlighted node', () => {
-      const markdown = generator.mermaidMarkdownByDiagramType['flowchart'].generateMarkdown(
-        simpleMockDtdlObjectModel,
-        ' TD',
-        'dtmi:com:example:1'
-      )
-      expect(markdown).to.equal(flowchartFixtureSimpleHighlighted)
-    })
-
     it('should return a classDiagram graph for a simple dtdl model', () => {
       const markdown = generator.mermaidMarkdownByDiagramType['classDiagram'].generateMarkdown(
         simpleMockDtdlObjectModel,
@@ -43,21 +28,8 @@ describe('Generator', () => {
       expect(markdown).to.equal(classDiagramFixtureSimple)
     })
 
-    it('should return a classDiagram graph for a simple dtdl model with highlighted node', () => {
-      const markdown = generator.mermaidMarkdownByDiagramType['classDiagram'].generateMarkdown(
-        simpleMockDtdlObjectModel,
-        ' TD',
-        'dtmi:com:example:1'
-      )
-      expect(markdown).to.equal(classDiagramFixtureSimpleHighlighted)
-    })
-
     it('should return null for empty object model', () => {
-      const markdown = generator.mermaidMarkdownByDiagramType['flowchart'].generateMarkdown(
-        {},
-        ' TD',
-        'dtmi:com:example:1'
-      )
+      const markdown = generator.mermaidMarkdownByDiagramType['flowchart'].generateMarkdown({}, ' TD')
       expect(markdown).to.equal(null)
     })
   })
@@ -72,12 +44,17 @@ describe('Generator', () => {
     }
 
     it('should return no graph for empty object model', async () => {
-      const generatedOutput = await generator.run({}, defaultParams, options)
+      const generatedOutput = await generator.run({}, defaultParams.diagramType, defaultParams.layout, options)
       expect(generatedOutput).to.equal(`No graph`)
     })
 
     it('should return a simple svg', async () => {
-      const generatedOutput = await generator.run(simpleMockDtdlObjectModel, defaultParams, options)
+      const generatedOutput = await generator.run(
+        simpleMockDtdlObjectModel,
+        defaultParams.diagramType,
+        defaultParams.layout,
+        options
+      )
       expect(checkIfStringIsSVG(generatedOutput)).to.equal(true)
     })
 
@@ -86,7 +63,12 @@ describe('Generator', () => {
       const browser = await generator.browser
       const stub = sinon.stub(browser, 'newPage').onFirstCall().rejects('Error').callThrough()
 
-      const generatedOutput = await generator.run(simpleMockDtdlObjectModel, defaultParams, options)
+      const generatedOutput = await generator.run(
+        simpleMockDtdlObjectModel,
+        defaultParams.diagramType,
+        defaultParams.layout,
+        options
+      )
 
       expect(checkIfStringIsSVG(generatedOutput)).to.equal(true)
       expect(stub.callCount).to.equal(1)
@@ -182,11 +164,36 @@ describe('Generator', () => {
       expect(text?.getAttribute('y')).to.equal('20')
       expect(text?.innerHTML).to.equal('-')
     })
+    it('should return an element with highlighted if matches', () => {
+      const element = document.createElement('div')
+      const rectElement = document.createElement('rect')
+
+      element.id = 'flowchart-dtmi:com:example:1-1'
+      element.appendChild(rectElement)
+      element.classList.add('unexpanded')
+
+      generator.setNodeAttributes(element, document, 'flowchart', 'dtmi:com:example:1')
+
+      expect(element.getAttribute('highlighted')).to.equal('')
+    })
+    it("should not return an element with highlighted if doesn't match", () => {
+      const element = document.createElement('div')
+      const rectElement = document.createElement('rect')
+
+      element.id = 'flowchart-dtmi:com:example:1-1'
+      element.appendChild(rectElement)
+      element.classList.add('unexpanded')
+
+      generator.setNodeAttributes(element, document, 'flowchart', 'dtmi:com:example:2')
+
+      expect(element.getAttribute('highlighted')).to.equal(null)
+    })
   })
   describe('setSVGAttributes', () => {
     it('should return a html string with added attributes', () => {
       const controlStringElement = '<svg id="mermaid-svg" width="1024" height="768"/>'
-      const testElement = '<svg id="mermaid-svg" viewBox="0 0 300 100" hx-include="#search-panel"/>'
+      const testElement =
+        '<svg id="mermaid-svg" width="300" height="100" viewBox="0 0 300 100" hx-include="#search-panel"/>'
       expect(generator.setSVGAttributes(controlStringElement, defaultParams)).to.equal(testElement)
     })
 
@@ -197,7 +204,7 @@ describe('Generator', () => {
         <g id="bar" class="node clickable"/>
       </svg>
       `
-      const testElement = `<svg id="mermaid-svg" viewBox="0 0 300 100" hx-include="#search-panel">
+      const testElement = `<svg id="mermaid-svg" width="300" height="100" viewBox="0 0 300 100" hx-include="#search-panel">
         <g id="foo" class="node clickable" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}"/>
         <g id="bar" class="node clickable" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}"/>
       </svg>`
@@ -215,7 +222,7 @@ describe('Generator', () => {
         </g>
       </svg>
       `
-      const testElement = `<svg id="mermaid-svg" viewBox="0 0 300 100" hx-include="#search-panel">
+      const testElement = `<svg id="mermaid-svg" width="300" height="100" viewBox="0 0 300 100" hx-include="#search-panel">
         <g id="foo" class="node clickable unexpanded" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}">
           <g/>
         <text x="0" y="0" class="corner-sign" onclick="event.stopPropagation()" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;shouldExpand&quot;:true,&quot;shouldTruncate&quot;:false}">+</text></g>
@@ -233,6 +240,33 @@ describe('Generator', () => {
       })
         .to.throw('Error in finding mermaid-svg Element in generated output')
         .with.property('code', 501)
+    })
+
+    it('should set highlighted node with highlighted attr', () => {
+      const controlStringElement = `
+      <svg id="mermaid-svg" width="1024" height="768">
+        <g id="foo-foo-1" class="node">
+          <g></g>
+        </g>
+        <g id="bar-bar-1" class="node">
+          <rect></rect>
+        </g>
+      </svg>
+      `
+      const testElement = `<svg id="mermaid-svg" width="300" height="100" viewBox="0 0 300 100" hx-include="#search-panel">
+        <g id="foo-foo-1" class="node" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:&quot;foo&quot;}" highlighted="">
+          <g/>
+        </g>
+        <g id="bar-bar-1" class="node" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:&quot;bar&quot;}">
+          <rect/>
+        </g>
+      </svg>`
+      expect(
+        generator.setSVGAttributes(controlStringElement, {
+          ...defaultParams,
+          highlightNodeId: 'foo',
+        })
+      ).to.equal(testElement)
     })
   })
   describe('addCornerSign', () => {
