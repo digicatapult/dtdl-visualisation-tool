@@ -41,6 +41,5 @@ jobs:
   release-github:
     # needs: [build-docker]
     uses: digicatapult/shared-workflows/.github/workflows/release-github.yml@main
-    permissions:
-      contents: write
+    permissions: write-all
     secrets: inherit
