@@ -41,6 +41,7 @@ jobs:
   release:
     permissions:
       contents: write
+      pull-requests: read
     name: 'Release'
     runs-on: ubuntu-latest
     steps:
