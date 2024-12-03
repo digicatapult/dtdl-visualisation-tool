@@ -1,0 +1,61 @@
+{
+	"@id": "dtmi:digitaltwins:ngsi_ld:cim:energy:Substation;1",
+	"@type": "Interface",
+	"displayName": "Substation",
+	"description": "A collection of equipment for purposes other than generation or utilization, through which electric energy in bulk is passed for the purposes of switching or modifying its characteristics.",
+	"comment": "Adapted from CIM and https://github.com/smart-data-models/dataModel.EnergyCIM/ data models",
+	"contents": [
+		{
+			"@type": "Property",
+			"name": "substationName",
+			"description": "The name of the substation.",
+			"writable": true,
+			"schema": "string"
+		},
+		{
+			"@type": "Property",
+			"name": "substationType",
+			"description": "The type of substations.",
+			"writable": true,
+			"schema": {
+				"@type": "Enum",
+				"valueSchema": "string",
+				"enumValues": [
+					{
+						"name": "MV_MV_substation",
+						"displayName": "MV/MV substation",
+						"enumValue": "MVMV"
+					},
+					{
+						"name": "MV_LV_substation",
+						"displayName": "MV/LV substation",
+						"enumValue": "MVLV"
+					},
+					{
+						"name": "LV_LV_substation",
+						"displayName": "LV/LV substation",
+						"enumValue": "LVLV"
+					}
+				]
+			}
+		},
+		{
+			"@type": "Relationship",
+			"name": "dcConverterUnit",
+			"target": "dtmi:digitaltwins:ngsi_ld:cim:energy:DCConverterUnit;1",
+			"comment": "The DC converter unit belonging of the substation.",
+			"displayName": "DCConverterUnit"
+		},
+		{
+			"@type": "Relationship",
+			"name": "locatedAt",
+			"target": "dtmi:digitaltwins:ngsi_ld:cim:energy:SubGeographicalRegion;1",
+			"comment": "The SubGeographicalRegion containing the substation.",
+			"displayName": "Region"
+		}
+	],
+	"@context": "dtmi:dtdl:context;2",
+	"extends": [
+		"dtmi:digitaltwins:ngsi_ld:cim:energy:EquipmentContainer;1"
+	]
+}

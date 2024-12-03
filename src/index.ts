@@ -1,4 +1,4 @@
-#!/usr/bin/env node --no-warnings
+#!/usr/bin/env node
 
 import 'reflect-metadata'
 
@@ -68,6 +68,7 @@ program
       httpServer(options.port)
       log(`\nView DTDL model: http://localhost:${options.port}`)
     } else {
+      log(`Error parsing DTDL`)
       process.exit(1)
     }
   })
