@@ -38,8 +38,33 @@ jobs:
   #     packages: write
   #     contents: write
 
-  release-github:
-    # needs: [build-docker]
-    uses: digicatapult/shared-workflows/.github/workflows/release-github.yml@main
+  release:
     permissions: write-all
-    secrets: inherit
+    name: 'Release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set environment variables from JSON
+        env:
+          ENV_VARS_JSON: "${{ inputs.env_vars }}"
+        run: |
+          echo "Parsing JSON environment variables..."
+          echo "$ENV_VARS_JSON" | jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' >> $GITHUB_ENV
+      - id: get_version
+        uses: digicatapult/check-version@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build release version
+        uses: 'marvinpinto/action-automatic-releases@latest'
+        with:
+          repo_token: '${{ secrets.GITHUB_TOKEN }}'
+          automatic_release_tag: ${{ steps.get_version.outputs.version }}
+          prerelease: false
+          title: Release ${{ steps.get-version.outputs.version }}
+      - name: Build release latest
+        uses: 'marvinpinto/action-automatic-releases@latest'
+        with:
+          repo_token: '${{ secrets.GITHUB_TOKEN }}'
+          automatic_release_tag: latest
+          prerelease: false
+          title: Latest Release ${{ steps.get-version.outputs.version }}
