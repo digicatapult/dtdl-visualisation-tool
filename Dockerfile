@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.11
-FROM node:lts-alpine AS builder
+FROM node:lts-bookworm-slim AS builder
 
 WORKDIR /dtdl-visualisation-tool
 
