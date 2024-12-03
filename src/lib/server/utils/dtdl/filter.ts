@@ -102,14 +102,14 @@ export const filterModelByDisplayName = (
 
   const entityPairs = Object.entries(dtdlObjectModel)
 
-  const searchedEntityIds = searchInterfacesAndRelationships(search, searchQuery)
+  const searchedIds = searchInterfacesAndRelationships(search, searchQuery)
 
   // if the search matches no nodes and no expanded nodes are valid we have an empty set
-  if (searchedEntityIds.size === 0 && expandedIds.length === 0) {
+  if (searchedIds.size === 0 && expandedIds.length === 0) {
     return {}
   }
 
-  const matchingIds = new Set([...searchedEntityIds, ...expandedIds])
+  const matchingIds = new Set([...searchedIds, ...expandedIds])
 
   // for all search matches include nodes that extend them. Note this only works one way
   const matchingExtends = [...matchingIds].flatMap((id) => {
@@ -133,7 +133,7 @@ export const filterModelByDisplayName = (
   return [...idsAndRelationships].reduce((acc, id) => {
     const entity = dtdlObjectModel[id]
     if (entity.EntityKind === 'Interface')
-      setVisualisationState(entity, determineVisualisationState(id, searchedEntityIds, expandedIds))
+      setVisualisationState(entity, determineVisualisationState(id, searchedIds, expandedIds))
     acc[id] = entity
     return acc
   }, {} as DtdlObjectModel)

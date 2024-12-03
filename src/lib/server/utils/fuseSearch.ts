@@ -15,7 +15,7 @@ const defaultOptions: IFuseOptions<object> = {
     if (path[0] === 'relationships') {
       if (obj['EntityKind'] === 'Interface') {
         const interfaceEntity = obj as InterfaceType
-        return Object.keys(interfaceEntity.relationships)
+        if (interfaceEntity.relationships) return Object.keys(interfaceEntity.relationships)
       }
     }
     return Fuse.config.getFn(obj, path)
