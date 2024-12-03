@@ -41,4 +41,5 @@ jobs:
     uses: digicatapult/shared-workflows/.github/workflows/release-github.yml@main
     permissions:
       contents: write
+      pull-requests: read
     secrets: inherit
