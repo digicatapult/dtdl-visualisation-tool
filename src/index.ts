@@ -61,17 +61,7 @@ program
 
       log(`Loading SVG generator...`)
       const generator = new SvgGenerator()
-      await generator.run(
-        minimumDtdl,
-        {
-          layout: 'elk',
-          output: 'svg',
-          diagramType: 'flowchart',
-          svgHeight: 100,
-          svgWidth: 300,
-        },
-        {}
-      )
+      await generator.run(minimumDtdl, 'flowchart', 'elk', {})
       container.register(SvgGenerator, { useValue: generator })
       log(`Complete`)
 

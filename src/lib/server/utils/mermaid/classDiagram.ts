@@ -1,9 +1,9 @@
 import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
-import { DtdlId, MermaidId } from '../../models/strings.js'
+import { DtdlId } from '../../models/strings.js'
 import { getDisplayName } from '../dtdl/extract.js'
 import { getVisualisationState } from '../dtdl/filter.js'
 import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
-import { defaultMarkdownFn, dtdlIdReinstateSemicolon, dtdlIdReplaceSemicolon } from './helpers.js'
+import { defaultMarkdownFn, dtdlIdReplaceSemicolon } from './helpers.js'
 
 export const arrowTypes = {
   Inheritance: '<|--',
@@ -56,11 +56,7 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
 
   safeClassName = (className: string): string => `\`${dtdlIdReplaceSemicolon(className)}\``
 
-  generateMarkdown(
-    dtdlObjectModel: DtdlObjectModel,
-    direction: Direction = ' TD',
-    highlightNodeId?: MermaidId
-  ): string | null {
+  generateMarkdown(dtdlObjectModel: DtdlObjectModel, direction: Direction = ' TD'): string | null {
     const graph: string[] = []
     for (const entity in dtdlObjectModel) {
       const entityObject: EntityType = dtdlObjectModel[entity]
@@ -68,9 +64,6 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
         (typeof entityObject)['EntityKind']
       >
       graph.push(...markdown(dtdlObjectModel, entityObject))
-    }
-    if (highlightNodeId && dtdlIdReinstateSemicolon(highlightNodeId) in dtdlObjectModel) {
-      graph.push(`\nclass ${this.safeClassName(highlightNodeId)}:::highlighted`)
     }
     if (graph.length === 0) {
       return null

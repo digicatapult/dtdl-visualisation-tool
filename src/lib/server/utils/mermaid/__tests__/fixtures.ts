@@ -61,13 +61,6 @@ dtmi:com:example:1@{ shape: rect, label: "example 1"}
 click dtmi:com:example:1 getEntity
 class dtmi:com:example:1 search`
 
-export const flowchartFixtureSimpleHighlighted = `flowchart TD
-dtmi:com:example:1@{ shape: rect, label: "example 1"}
-click dtmi:com:example:1 getEntity
-class dtmi:com:example:1 search
-
-class dtmi:com:example:1 highlighted`
-
 export const classDiagramFixture = `classDiagram
  direction  TD
 class \`dtmi:com:example:1\`["example 1"] 
@@ -95,14 +88,6 @@ export const classDiagramFixtureSimple = `classDiagram
 class \`dtmi:com:example:1\`["example 1"] 
 click \`dtmi:com:example:1\` call getEntity()
 class \`dtmi:com:example:1\`:::search`
-
-export const classDiagramFixtureSimpleHighlighted = `classDiagram
- direction  TD
-class \`dtmi:com:example:1\`["example 1"] 
-click \`dtmi:com:example:1\` call getEntity()
-class \`dtmi:com:example:1\`:::search
-
-class \`dtmi:com:example:1\`:::highlighted`
 
 export const mockDtdlObjectModel = {
   'dtmi:com:example;1': {

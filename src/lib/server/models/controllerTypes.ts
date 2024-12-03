@@ -1,17 +1,11 @@
 import { Layout } from '../models/mermaidLayouts.js'
 import { DiagramType } from './mermaidDiagrams.js'
 
-export type output = 'svg' | 'png' | 'pdf'
-
 export interface RootParams {
   /**
    * @default 'elk'
    */
   layout: Layout
-  /**
-   * @default 'svg'
-   */
-  output: output
   /**
    * @default 'flowchart'
    */
@@ -25,7 +19,6 @@ export interface RootParams {
 }
 export const urlQueryKeys = [
   'layout',
-  'output',
   'diagramType',
   'highlightNodeId',
   'search',
@@ -39,4 +32,7 @@ export type UrlQueryKeys = (typeof urlQueryKeys)[number]
 export interface UpdateParams extends RootParams {
   svgWidth: number
   svgHeight: number
+  currentZoom: number
+  currentPanX: number
+  currentPanY: number
 }
