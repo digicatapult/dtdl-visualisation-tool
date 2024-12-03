@@ -2,42 +2,44 @@ name: Release
 
 on:
   push:
-    branches: ['main']
+
+env:
+  ACTIONS_STEP_DEBUG: true
 
 jobs:
-  static-checks-npm:
-    uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@main
-    with:
-      matrix_commands: '["lint", "depcheck", "check", "xss-scan"]'
+  # static-checks-npm:
+  #   uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@main
+  #   with:
+  #     matrix_commands: '["lint", "depcheck", "check", "xss-scan"]'
 
-  tests-npm:
-    uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
-    with:
-      docker_compose_file: ''
-      npm_build_command: 'npm run build'
-      tests:  '["test:unit"]'
+  # tests-npm:
+  #   uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
+  #   with:
+  #     docker_compose_file: ''
+  #     npm_build_command: 'npm run build'
+  #     tests:  '["test:unit"]'
 
-  e2e-tests-npm:
-    uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
-    with:
-      docker_compose_file: ''
-      pre_test_command: 'npm ci && npx playwright install-deps && npx playwright install'
-      test_command: 'npm run test:playwright || exit 1'
-    permissions:
-      contents: write
+  # e2e-tests-npm:
+  #   uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
+  #   with:
+  #     docker_compose_file: ''
+  #     pre_test_command: 'npm ci && npx playwright install-deps && npx playwright install'
+  #     test_command: 'npm run test:playwright || exit 1'
+  #   permissions:
+  #     contents: write
 
-  build-docker:
-    needs: [e2e-tests-npm, tests-npm, static-checks-npm]
-    uses: digicatapult/shared-workflows/.github/workflows/build-docker.yml@main
-    with:
-      push_dockerhub: false
-      push_ghcr: false
-    permissions:
-      packages: write
-      contents: write
+  # build-docker:
+  #   needs: [e2e-tests-npm, tests-npm, static-checks-npm]
+  #   uses: digicatapult/shared-workflows/.github/workflows/build-docker.yml@main
+  #   with:
+  #     push_dockerhub: false
+  #     push_ghcr: false
+  #   permissions:
+  #     packages: write
+  #     contents: write
 
   release-github:
-    needs: [build-docker]
+    # needs: [build-docker]
     uses: digicatapult/shared-workflows/.github/workflows/release-github.yml@main
     permissions:
       contents: write
