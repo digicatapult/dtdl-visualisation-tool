@@ -1,4 +1,4 @@
-import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
+import { DtdlObjectModel, EntityType, RelationshipType } from '@digicatapult/dtdl-parser'
 
 import { InvalidQueryError } from '../../errors.js'
 import { DtdlId } from '../../models/strings.js'
@@ -60,31 +60,15 @@ const relationshipFilter =
     return false
   }
 
-export const searchInterfacesAndRelationships = (search: ISearch<EntityType>, searchQuery: string): Set<string> => {
+export const searchInterfaces = (search: ISearch<EntityType>, searchQuery: string): Set<string> => {
   const quotedStringRegex = /(['"])(.*?)\1/g // capture groups inside "" or ''
   const quotedTerms = Array.from(searchQuery.matchAll(quotedStringRegex)).map((match) => match[2])
 
   const remainingQuery = searchQuery.replace(quotedStringRegex, '')
   const remainingTerms = remainingQuery.split(' ').filter((term) => term !== '')
   const searchTerms = [...remainingTerms, ...quotedTerms]
-  const matchedEntityIds = searchTerms.flatMap((term) =>
-    search.filterWithMatches(term).flatMap((result) => {
-      const entity = result.item as InterfaceType
-
-      const matches = result.matches
-        ?.map((match) => {
-          if (match.key === 'relationships' && entity.EntityKind === 'Interface') {
-            const relationshipKey = match.value
-            return relationshipKey ? entity.relationships[relationshipKey] : undefined
-          }
-          return entity.Id
-        })
-        .filter((x): x is string => x !== undefined)
-
-      return matches ?? []
-    })
-  )
-  return new Set(matchedEntityIds)
+  const matches = searchTerms.flatMap((term) => search.filter(term).map(({ Id }) => Id))
+  return new Set(matches)
 }
 
 export const filterModelByDisplayName = (
@@ -102,7 +86,7 @@ export const filterModelByDisplayName = (
 
   const entityPairs = Object.entries(dtdlObjectModel)
 
-  const searchedIds = searchInterfacesAndRelationships(search, searchQuery)
+  const searchedIds = searchInterfaces(search, searchQuery)
 
   // if the search matches no nodes and no expanded nodes are valid we have an empty set
   if (searchedIds.size === 0 && expandedIds.length === 0) {

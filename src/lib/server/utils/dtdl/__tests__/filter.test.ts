@@ -4,12 +4,7 @@ import { describe, test } from 'mocha'
 import { DtdlObjectModel, EntityType } from '@digicatapult/dtdl-parser'
 import { InvalidQueryError } from '../../../errors.js'
 import { FuseSearch } from '../../fuseSearch.js'
-import {
-  filterModelByDisplayName,
-  getRelatedIdsById,
-  getVisualisationState,
-  searchInterfacesAndRelationships,
-} from '../filter.js'
+import { filterModelByDisplayName, getRelatedIdsById, getVisualisationState, searchInterfaces } from '../filter.js'
 import {
   expandedWithRelationships,
   extendedInterface,
@@ -150,49 +145,49 @@ describe('getRelatedIdsById', function () {
 describe('searchInterfaces', function () {
   test('should perform OR for spaces rather than AND', function () {
     setCollection(multipleInterfacesAndRelationship)
-    const result = searchInterfacesAndRelationships(mockSearch, 'first second')
+    const result = searchInterfaces(mockSearch, 'first second')
     expect(result).to.deep.equal(new Set(['first', 'second', 'relFirstSecond']))
   })
 
   test('should search display name', function () {
     setCollection(multipleInterfacesAndRelationship)
-    const result = searchInterfacesAndRelationships(mockSearch, '"display name"')
+    const result = searchInterfaces(mockSearch, '"display name"')
     expect(result).to.deep.equal(new Set(['first']))
   })
 
   test('should be case insensitive', function () {
     setCollection(multipleInterfacesAndRelationship)
-    const result = searchInterfacesAndRelationships(mockSearch, 'fIrST')
+    const result = searchInterfaces(mockSearch, 'fIrST')
     expect(result).to.deep.equal(new Set(['first', 'relFirstSecond']))
   })
 
   test('should group terms if single quoted', function () {
     setCollection(expandedWithRelationships)
-    const result = searchInterfacesAndRelationships(mockSearch, `'rel second third'`)
+    const result = searchInterfaces(mockSearch, `'rel second third'`)
     expect(result).to.deep.equal(new Set(['rel second third']))
   })
 
   test('should group terms if double quoted', function () {
     setCollection(expandedWithRelationships)
-    const result = searchInterfacesAndRelationships(mockSearch, `"rel second third"`)
+    const result = searchInterfaces(mockSearch, `"rel second third"`)
     expect(result).to.deep.equal(new Set(['rel second third']))
   })
 
   test('should be fuzzy with typos', function () {
     setCollection(multipleInterfacesAndRelationship)
-    const result = searchInterfacesAndRelationships(mockSearch, `fisrt`)
+    const result = searchInterfaces(mockSearch, `fisrt`)
     expect(result).to.deep.equal(new Set(['first']))
   })
 
   test('should be fuzzy with partial searches', function () {
     setCollection(multipleInterfacesAndRelationship)
-    const result = searchInterfacesAndRelationships(mockSearch, `firs seco`)
+    const result = searchInterfaces(mockSearch, `firs seco`)
     expect(result).to.deep.equal(new Set(['first', 'relFirstSecond', 'second']))
   })
 
   test('should handled grouped and separate terms', function () {
     setCollection(expandedWithRelationships)
-    const result = searchInterfacesAndRelationships(mockSearch, `"rel second third" first`)
+    const result = searchInterfaces(mockSearch, `"rel second third" first`)
     expect(result).to.deep.equal(new Set(['first', 'relFirstSecond', 'rel second third']))
   })
 })
