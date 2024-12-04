@@ -12,12 +12,26 @@ import {
   mockLogger,
   mockReq,
   mockSearch,
+  mockSession,
+  sessionSetStub,
   simpleMockDtdlLoader,
   templateMock,
   toHTMLString,
 } from './helpers'
+import {
+  validSessionExpanded11Id,
+  validSessionExpanded12Id,
+  validSessionExpanded2357Id,
+  validSessionExpanded235Id,
+  validSessionExpanded759Id,
+  validSessionExpanded9XId,
+  validSessionId,
+  validSessionSomeOtherSearchId,
+  validSessionSomeSearchId,
+} from './sessionFixtures.js'
 
 export const defaultParams: UpdateParams = {
+  sessionId: validSessionId,
   layout: 'dagre-d3',
   diagramType: 'flowchart',
   svgWidth: 300,
@@ -39,7 +53,8 @@ describe('RootController', async () => {
     templateMock,
     mockSearch,
     mockLogger,
-    mockCache
+    mockCache,
+    mockSession
   )
   const complexController = new RootController(
     complexMockDtdlLoader,
@@ -47,7 +62,8 @@ describe('RootController', async () => {
     templateMock,
     mockSearch,
     mockLogger,
-    mockCache
+    mockCache,
+    mockSession
   )
 
   describe('get', () => {
@@ -135,18 +151,35 @@ describe('RootController', async () => {
       expect(stub.firstCall.args).to.deep.equal(['Content-Type', 'text/html'])
     })
 
+    it('should update the stored session', async () => {
+      const stub = sessionSetStub
+      const initCallCount = stub.callCount
+
+      const req = mockReq({})
+      await controller
+        .updateLayout(req, { ...defaultParams, search: '"example 1"', highlightNodeId: 'dtmi:com:example;1' })
+        .then(toHTMLString)
+
+      expect(stub.callCount).lessThanOrEqual(initCallCount + 1)
+      expect(stub.lastCall.args[0]).to.equal(validSessionId)
+      expect(stub.lastCall.args[1]).to.deep.equal({
+        diagramType: 'flowchart',
+        expandedIds: [],
+        layout: 'dagre-d3',
+        search: '"example 1"',
+        highlightNodeId: 'dtmi:com:example;1',
+      })
+    })
+
     it('should remove duplicate expandedIds', async () => {
       const stub = sinon.stub(controller, 'setHeader')
 
       const req = mockReq({
         'hx-current-url': 'http://localhost:3000/some/path',
       })
-      await controller.updateLayout(req, { ...defaultParams, expandedIds: ['1', '1'] }).then(toHTMLString)
+      await controller.updateLayout(req, { ...defaultParams, sessionId: validSessionExpanded11Id }).then(toHTMLString)
 
-      expect(stub.firstCall.args).to.deep.equal([
-        'HX-Push-Url',
-        '/some/path?layout=dagre-d3&diagramType=flowchart&expandedIds=1',
-      ])
+      expect(stub.firstCall.args).to.deep.equal(['HX-Push-Url', '/some/path?layout=dagre-d3&diagramType=flowchart'])
     })
 
     it('should append multiple expandedIds', async () => {
@@ -155,19 +188,16 @@ describe('RootController', async () => {
       const req = mockReq({
         'hx-current-url': 'http://localhost:3000/some/path',
       })
-      await controller.updateLayout(req, { ...defaultParams, expandedIds: ['1', '2'] }).then(toHTMLString)
+      await controller.updateLayout(req, { ...defaultParams, sessionId: validSessionExpanded12Id }).then(toHTMLString)
 
-      expect(stub.firstCall.args).to.deep.equal([
-        'HX-Push-Url',
-        '/some/path?layout=dagre-d3&diagramType=flowchart&expandedIds=1&expandedIds=2',
-      ])
+      expect(stub.firstCall.args).to.deep.equal(['HX-Push-Url', '/some/path?layout=dagre-d3&diagramType=flowchart'])
     })
 
     it('should cache generated output - keyed by params', async () => {
       const req = mockReq({})
       const generatorRunCount = generatorRunStub.callCount
       await controller.updateLayout(req, defaultParams)
-      expect(mockCache.get('diagramType=flowchart&expandedIds=&layout=dagre-d3')).to.equal(generatedSVGFixture)
+      expect(mockCache.get('diagramType=flowchart&layout=dagre-d3')).to.equal(generatedSVGFixture)
 
       await controller.updateLayout(req, defaultParams)
       expect(generatorRunStub.callCount).to.equal(generatorRunCount + 1)
@@ -175,14 +205,13 @@ describe('RootController', async () => {
 
     it('should ignore lastSearch param when caching', async () => {
       const req = mockReq({})
-      await controller.updateLayout(req, { ...defaultParams, lastSearch: 'someSearch' })
-      await controller.updateLayout(req, { ...defaultParams, lastSearch: 'someOtherSearch' })
+      await controller.updateLayout(req, { ...defaultParams, sessionId: validSessionSomeSearchId })
+      await controller.updateLayout(req, { ...defaultParams, sessionId: validSessionSomeOtherSearchId })
       expect(mockCache.size()).to.equal(1)
-      expect(mockCache.get('diagramType=flowchart&expandedIds=&layout=dagre-d3')).to.equal(generatedSVGFixture)
+      expect(mockCache.get('diagramType=flowchart&layout=dagre-d3')).to.equal(generatedSVGFixture)
     })
 
     it('should truncate the last expandedId', async () => {
-      const stub = sinon.stub(complexController, 'setHeader')
       const req = mockReq({
         'hx-current-url': 'http://localhost:3000/some/path',
       })
@@ -190,17 +219,13 @@ describe('RootController', async () => {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '5',
-        expandedIds: ['2', '3', '5'],
+        sessionId: validSessionExpanded235Id,
       })
-
-      expect(stub.firstCall.args).to.deep.equal([
-        'HX-Push-Url',
-        '/some/path?layout=dagre-d3&diagramType=flowchart&highlightNodeId=5&expandedIds=2&expandedIds=3&shouldTruncate=true',
-      ])
+      const session = sessionSetStub.lastCall.args[1]
+      expect(session.expandedIds).to.deep.equal(['2', '3'])
     })
 
     it('should truncate no expanded Id', async () => {
-      const stub = sinon.stub(complexController, 'setHeader')
       const req = mockReq({
         'hx-current-url': 'http://localhost:3000/some/path',
       })
@@ -208,35 +233,14 @@ describe('RootController', async () => {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '1',
-        expandedIds: ['2', '3', '5'],
+        sessionId: validSessionExpanded235Id,
       })
 
-      expect(stub.firstCall.args).to.deep.equal([
-        'HX-Push-Url',
-        '/some/path?layout=dagre-d3&diagramType=flowchart&highlightNodeId=1&expandedIds=2&expandedIds=3&expandedIds=5&shouldTruncate=true',
-      ])
-    })
-
-    it('should truncate id 2 and 5', async () => {
-      const stub = sinon.stub(complexController, 'setHeader')
-      const req = mockReq({
-        'hx-current-url': 'http://localhost:3000/some/path',
-      })
-      await complexController.updateLayout(req, {
-        ...defaultParams,
-        shouldTruncate: true,
-        highlightNodeId: '2',
-        expandedIds: ['2', '3', '5'],
-      })
-
-      expect(stub.firstCall.args).to.deep.equal([
-        'HX-Push-Url',
-        '/some/path?layout=dagre-d3&diagramType=flowchart&highlightNodeId=2&expandedIds=3&shouldTruncate=true',
-      ])
+      const session = sessionSetStub.lastCall.args[1]
+      expect(session.expandedIds).to.deep.equal(['2', '3', '5'])
     })
 
     it('should truncate id 2 and 5 and leave 3 expanded', async () => {
-      const stub = sinon.stub(complexController, 'setHeader')
       const req = mockReq({
         'hx-current-url': 'http://localhost:3000/some/path',
       })
@@ -244,17 +248,14 @@ describe('RootController', async () => {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '2',
-        expandedIds: ['2', '3', '5'],
+        sessionId: validSessionExpanded235Id,
       })
 
-      expect(stub.firstCall.args).to.deep.equal([
-        'HX-Push-Url',
-        '/some/path?layout=dagre-d3&diagramType=flowchart&highlightNodeId=2&expandedIds=3&shouldTruncate=true',
-      ])
+      const session = sessionSetStub.lastCall.args[1]
+      expect(session.expandedIds).to.deep.equal(['3'])
     })
 
     it('should truncate id 3 and 7', async () => {
-      const stub = sinon.stub(complexController, 'setHeader')
       const req = mockReq({
         'hx-current-url': 'http://localhost:3000/some/path',
       })
@@ -262,17 +263,13 @@ describe('RootController', async () => {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '3',
-        expandedIds: ['2', '3', '5', '7'],
+        sessionId: validSessionExpanded2357Id,
       })
-
-      expect(stub.firstCall.args).to.deep.equal([
-        'HX-Push-Url',
-        '/some/path?layout=dagre-d3&diagramType=flowchart&highlightNodeId=3&expandedIds=2&expandedIds=5&shouldTruncate=true',
-      ])
+      const session = sessionSetStub.lastCall.args[1]
+      expect(session.expandedIds).to.deep.equal(['2', '5'])
     })
 
     it('should only truncate nodes that were brought into scope by expansion of highlightNodeId', async () => {
-      const stub = sinon.stub(complexController, 'setHeader')
       const req = mockReq({
         'hx-current-url': 'http://localhost:3000/some/path',
       })
@@ -280,17 +277,14 @@ describe('RootController', async () => {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '5',
-        expandedIds: ['7', '5', '9'],
+        sessionId: validSessionExpanded759Id,
       })
 
-      expect(stub.firstCall.args).to.deep.equal([
-        'HX-Push-Url',
-        '/some/path?layout=dagre-d3&diagramType=flowchart&highlightNodeId=5&expandedIds=7&expandedIds=9&shouldTruncate=true',
-      ])
+      const session = sessionSetStub.lastCall.args[1]
+      expect(session.expandedIds).to.deep.equal(['7', '9'])
     })
 
     it('should truncate extended relationships', async () => {
-      const stub = sinon.stub(complexController, 'setHeader')
       const req = mockReq({
         'hx-current-url': 'http://localhost:3000/some/path',
       })
@@ -298,13 +292,11 @@ describe('RootController', async () => {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '9',
-        expandedIds: ['9', '10'],
+        sessionId: validSessionExpanded9XId,
       })
 
-      expect(stub.firstCall.args).to.deep.equal([
-        'HX-Push-Url',
-        '/some/path?layout=dagre-d3&diagramType=flowchart&highlightNodeId=9&shouldTruncate=true',
-      ])
+      const session = sessionSetStub.lastCall.args[1]
+      expect(session.expandedIds).to.deep.equal([])
     })
   })
 })

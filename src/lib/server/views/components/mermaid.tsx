@@ -1,20 +1,26 @@
 /// <reference types="@kitajs/html/htmx.d.ts" />
+
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
+import { randomUUID } from 'crypto'
 import { singleton } from 'tsyringe'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { Layout, layoutEntries } from '../../models/mermaidLayouts.js'
-import { DtdlId, MermaidId } from '../../models/strings.js'
+import { DtdlId, UUID } from '../../models/strings.js'
 import { getDisplayName, isInterface, isRelationship } from '../../utils/dtdl/extract.js'
 import { AccordionSection, Page } from '../common.js'
 
 const commonUpdateAttrs = {
   'hx-target': '#mermaid-output',
   'hx-get': '/update-layout',
-  'hx-swap': 'outerHTML',
+  'hx-swap': 'outerHTML  transition:true',
   'hx-include': '#search-panel',
   'hx-indicator': '#spinner',
   'hx-disabled-elt': 'select',
+}
+
+function maybeNumberToAttr(value: number | undefined, defaultValue: number) {
+  return `${value === undefined ? defaultValue : value}`
 }
 
 @singleton()
@@ -24,21 +30,17 @@ export default class MermaidTemplates {
   public MermaidRoot = ({
     generatedOutput,
     search,
-    highlightNodeId,
     layout,
+    sessionId,
     diagramType,
-    expandedIds,
-    lastSearch,
     svgWidth,
     svgHeight,
   }: {
     generatedOutput?: JSX.Element | undefined
     search?: string
-    highlightNodeId?: string
     layout: Layout
+    sessionId: UUID
     diagramType: DiagramType
-    expandedIds?: string[]
-    lastSearch?: string
     svgWidth?: number
     svgHeight?: number
   }) => (
@@ -46,10 +48,8 @@ export default class MermaidTemplates {
       <this.searchPanel
         layout={layout}
         search={search}
-        highlightNodeId={highlightNodeId}
+        sessionId={sessionId}
         diagramType={diagramType}
-        expandedIds={expandedIds}
-        lastSearch={lastSearch}
         svgWidth={svgWidth}
         svgHeight={svgHeight}
       />
@@ -76,7 +76,7 @@ export default class MermaidTemplates {
     target: string
   }): JSX.Element => {
     const attributes = generatedOutput
-      ? { 'hx-on::after-settle': `globalThis.setMermaidListeners()` }
+      ? { 'hx-on::after-settle': `globalThis.setMermaidListeners()`, 'pending-listeners': '' }
       : {
           'hx-trigger': 'load',
           ...commonUpdateAttrs,
@@ -183,26 +183,32 @@ export default class MermaidTemplates {
     search,
     layout,
     swapOutOfBand,
-    highlightNodeId,
+    sessionId,
     diagramType,
-    expandedIds,
-    lastSearch,
     svgWidth,
     svgHeight,
+    currentZoom,
+    currentPanX,
+    currentPanY,
   }: {
+    // inputs with current state
     search?: string
     layout: Layout
-    swapOutOfBand?: boolean
-    highlightNodeId?: MermaidId
     diagramType: DiagramType
-    expandedIds?: string[]
-    lastSearch?: string
+    // hidden inputs not set by input controls
+    sessionId: UUID
     svgWidth?: number
     svgHeight?: number
+    currentZoom?: number
+    currentPanX?: number
+    currentPanY?: number
+    // is this swap being done out of band?
+    swapOutOfBand?: boolean
   }) => {
     return (
       <form
         id="search-panel"
+        name={`search-panel-${randomUUID()}`} // avoid a firefox annoyance where it reverts the form state on refresh by making each form distinct
         class="button-group"
         hx-swap-oob={swapOutOfBand ? 'true' : undefined}
         hx-sync="this:replace"
@@ -218,17 +224,14 @@ export default class MermaidTemplates {
           hx-trigger="input changed delay:500ms, search"
           {...commonUpdateAttrs}
         />
-        <input id="highlightNodeId" name="highlightNodeId" type="hidden" value={escapeHtml(highlightNodeId || '')} />
-        <input id="lastSearch" name="lastSearch" type="hidden" value={escapeHtml(lastSearch || '')} />
-        <input id="svgWidth" name="svgWidth" type="hidden" value={`${svgWidth}` || ''} />
-        <input id="svgHeight" name="svgHeight" type="hidden" value={`${svgHeight}` || ''} />
-        <input id="currentZoom" name="currentZoom" type="hidden" value="1" />
-        <input id="currentPanX" name="currentPanX" type="hidden" value="0" />
-        <input id="currentPanY" name="currentPanY" type="hidden" value="0" />
+        <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
 
-        {expandedIds?.map((id, index) => (
-          <input id={`expandedIds_${index}`} name="expandedIds" type="hidden" value={id} />
-        ))}
+        <input id="svgWidth" name="svgWidth" type="hidden" value={maybeNumberToAttr(svgWidth, 300)} />
+        <input id="svgHeight" name="svgHeight" type="hidden" value={maybeNumberToAttr(svgHeight, 100)} />
+        <input id="currentZoom" name="currentZoom" type="hidden" value={maybeNumberToAttr(currentZoom, 1)} />
+        <input id="currentPanX" name="currentPanX" type="hidden" value={maybeNumberToAttr(currentPanX, 0)} />
+        <input id="currentPanY" name="currentPanY" type="hidden" value={maybeNumberToAttr(currentPanY, 0)} />
+
         <label for="diagramType">Diagram Type</label>
         <select id="diagramType" name="diagramType" hx-trigger="input changed" {...commonUpdateAttrs}>
           {diagramTypes.map((entry) => (

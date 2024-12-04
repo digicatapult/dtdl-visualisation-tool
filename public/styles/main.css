@@ -99,18 +99,14 @@ input[type='search'] {
   overflow: hidden;
 }
 
-#mermaid-svg {
-  height: 100%;
-  width: 100%;
-}
-
 #mermaid-output {
   display: block;
+  transition: opacity 200ms;
   opacity: 1;
 }
 
-#mermaid-output.htmx-request {
-  display: none;
+#mermaid-output[pending-listeners] {
+  opacity: 0;
 }
 
 #navigation-panel {
@@ -195,6 +191,7 @@ input[type='search'] {
 #legend-content {
   transform: translateX(-100%);
   display: grid;
+  z-index: -1;
   padding: 3rem 1rem 1rem 1rem;
   gap: 1.5rem;
   grid-template-columns: auto 1fr;

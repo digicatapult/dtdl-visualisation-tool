@@ -9,6 +9,20 @@ globalThis.toggleAccordion = (event) => {
   content?.toggleAttribute('aria-hidden')
 }
 
+/**
+ * Takes an input element id and extracts the value from it as a number if it has a value. Otherwise returns a default value provided
+ * @param {String} elementId - Id of the element to get the value attribute from
+ * @param {Number} defaultValue - Number to return if element Id does not have a valid value
+ * @returns - The parsed value or default
+ */
+function valueFromElementOrDefault(elementId, defaultValue) {
+  const value = document.getElementById(elementId)?.getAttribute('value')
+  if (value === null || value === undefined) {
+    return defaultValue
+  }
+  return parseFloat(value)
+}
+
 globalThis.setMermaidListeners = function setMermaidListeners() {
   const element = document.getElementById('mermaid-svg')
   if (!element) {
@@ -16,17 +30,29 @@ globalThis.setMermaidListeners = function setMermaidListeners() {
   }
   setSizes()
 
+  function onPan({ x, y }) {
+    document.getElementById('currentPanX')?.setAttribute('value', x)
+    document.getElementById('currentPanY')?.setAttribute('value', y)
+  }
+
+  function onZoom(newZoom) {
+    document.getElementById('currentZoom')?.setAttribute('value', newZoom)
+    onPan(panZoom.getPan())
+  }
+
   const panZoom = svgPanZoom('#mermaid-svg', {
     maxZoom: 10,
     minZoom: -100,
-    onZoom: (newZoom) => {
-      document.getElementById('currentZoom')?.setAttribute('value', newZoom)
-    },
-    onPan: ({ x, y }) => {
-      document.getElementById('currentPanX')?.setAttribute('value', x)
-      document.getElementById('currentPanY')?.setAttribute('value', y)
-    },
   })
+
+  panZoom.zoom(valueFromElementOrDefault('currentZoom', 1))
+  panZoom.pan({
+    x: valueFromElementOrDefault('currentPanX', 0),
+    y: valueFromElementOrDefault('currentPanY', 0),
+  })
+  panZoom.setOnPan(onPan)
+  panZoom.setOnZoom(onZoom)
+
   resetButton.onclick = () => {
     panZoom.resetZoom()
     panZoom.resetPan()
@@ -37,6 +63,18 @@ globalThis.setMermaidListeners = function setMermaidListeners() {
   zoomOutButton.onclick = () => {
     panZoom.zoomOut()
   }
+
+  const listener = (ev) => {
+    if (ev?.detail?.pathInfo?.requestPath !== '/update-layout') {
+      return
+    }
+    panZoom.disablePan()
+    panZoom.disableZoom()
+    document.body.removeEventListener('htmx:beforeRequest', listener)
+  }
+  document.body.addEventListener('htmx:beforeRequest', listener)
+
+  document.getElementById('mermaid-output')?.removeAttribute('pending-listeners')
 }
 
 function setSizes() {

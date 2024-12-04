@@ -1,19 +1,27 @@
 import { DtdlObjectModel, EntityType } from '@digicatapult/dtdl-parser'
+import { randomUUID } from 'crypto'
 import express from 'express'
 import { Get, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
+import { InvalidQueryError } from '../errors.js'
 import { Logger, type ILogger } from '../logger.js'
-import { urlQueryKeys, UrlQueryKeys, type RootParams, type UpdateParams } from '../models/controllerTypes.js'
+import {
+  GenerateParams,
+  relevantParams,
+  urlQueryKeys,
+  UrlQueryKeys,
+  type RootParams,
+  type UpdateParams,
+} from '../models/controllerTypes.js'
 import { Cache, type ICache } from '../utils/cache.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import { filterModelByDisplayName, getRelatedIdsById } from '../utils/dtdl/filter.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
 import { dtdlIdReinstateSemicolon } from '../utils/mermaid/helpers.js'
 import { Search, type ISearch } from '../utils/search.js'
+import SessionStore, { Session } from '../utils/sessions.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
-
-const relevantParams = ['search', 'diagramType', 'layout', 'expandedIds']
 
 @singleton()
 @injectable()
@@ -26,7 +34,8 @@ export class RootController extends HTMLController {
     private templates: MermaidTemplates,
     @inject(Search) private search: ISearch<EntityType>,
     @inject(Logger) private logger: ILogger,
-    @inject(Cache) private cache: ICache
+    @inject(Cache) private cache: ICache,
+    private sessionStore: SessionStore
   ) {
     super()
     this.logger = logger.child({ controller: '/' })
@@ -37,14 +46,22 @@ export class RootController extends HTMLController {
   public async get(@Queries() params: RootParams): Promise<HTML> {
     this.logger.debug('root page requested with search: %o', { search: params.search, layout: params.layout })
 
+    const sessionId = randomUUID()
+    const session = {
+      layout: params.layout,
+      diagramType: params.diagramType,
+      search: params.search,
+      highlightNodeId: params.highlightNodeId,
+      expandedIds: [],
+    }
+    this.sessionStore.set(sessionId, session)
+
     return this.html(
       this.templates.MermaidRoot({
         layout: params.layout,
         search: params.search,
-        highlightNodeId: params.highlightNodeId,
-        expandedIds: params.expandedIds,
+        sessionId,
         diagramType: params.diagramType,
-        lastSearch: params.lastSearch,
       })
     )
   }
@@ -54,55 +71,94 @@ export class RootController extends HTMLController {
   public async updateLayout(@Request() req: express.Request, @Queries() params: UpdateParams): Promise<HTML> {
     this.logger.debug('search: %o', { search: params.search, layout: params.layout })
 
-    if (params.search !== params.lastSearch) params.expandedIds = []
+    // get the base dtdl model that we will derive the graph from
+    const baseModel = this.dtdlLoader.getDefaultDtdlModel()
 
-    if (params.highlightNodeId && params.shouldExpand) {
-      params.expandedIds = params.expandedIds || []
-      params.expandedIds.push(params.highlightNodeId)
+    // pull out the stored session. If this is invalid the request is invalid
+    const session = this.sessionStore.get(params.sessionId)
+    if (!session) {
+      throw new InvalidQueryError('Session is not valid')
+    }
+    const newSession: Session = {
+      diagramType: params.diagramType,
+      layout: params.layout,
+      search: params.search,
+      expandedIds: [...session.expandedIds],
+      highlightNodeId: params.highlightNodeId ?? session.highlightNodeId,
     }
 
-    const model = this.dtdlLoader.getDefaultDtdlModel()
+    // update the new session
+    if (newSession.search !== session.search) newSession.expandedIds = []
 
-    if (params.highlightNodeId && params.shouldTruncate && params.expandedIds) {
-      const truncateId = dtdlIdReinstateSemicolon(params.highlightNodeId)
-      if (params.expandedIds.includes(truncateId)) {
+    if (newSession.highlightNodeId && params.shouldExpand) {
+      newSession.expandedIds.push(newSession.highlightNodeId)
+    }
+
+    if (newSession.highlightNodeId && params.shouldTruncate && newSession.expandedIds) {
+      const truncateId = dtdlIdReinstateSemicolon(newSession.highlightNodeId)
+      if (newSession.expandedIds.includes(truncateId)) {
         const currentModel = params.search
-          ? filterModelByDisplayName(model, this.search, params.search, params.expandedIds)
-          : model
-        params.expandedIds = this.truncateExpandedIds(truncateId, currentModel, params.expandedIds)
+          ? filterModelByDisplayName(baseModel, this.search, params.search, newSession.expandedIds)
+          : baseModel
+        newSession.expandedIds = this.truncateExpandedIds(truncateId, currentModel, newSession.expandedIds)
       }
     }
 
-    params.expandedIds = [...new Set(params.expandedIds?.map(dtdlIdReinstateSemicolon))] // remove duplicates
+    newSession.expandedIds = [...new Set(newSession.expandedIds.map(dtdlIdReinstateSemicolon))] // remove duplicates
 
-    const cacheKey = this.createCacheKey(params)
-    const generatedOutput = await this.generateOutput(params, cacheKey)
+    // get the filtered model now we've updated the session
+    const filteredModel = newSession.search
+      ? filterModelByDisplayName(baseModel, this.search, newSession.search, newSession.expandedIds)
+      : baseModel
 
+    // if the highlighted node isn't in the filtered model don't highlight it
+    if (newSession.highlightNodeId && !(dtdlIdReinstateSemicolon(newSession.highlightNodeId) in filteredModel)) {
+      newSession.highlightNodeId = undefined
+    }
+
+    // get the raw mermaid generated svg
+    const rawOutput = await this.generateRawOutput(filteredModel, newSession)
+
+    // set attributes to produce the final generated output
+    const attributeParams = {
+      svgWidth: params.svgWidth,
+      svgHeight: params.svgHeight,
+      diagramType: newSession.diagramType,
+      highlightNodeId: newSession.highlightNodeId,
+    }
+    const generatedOutput = this.generator.setSVGAttributes(rawOutput, attributeParams)
+
+    // store the updated session
+    this.sessionStore.set(params.sessionId, newSession)
+
+    // replace the current url
     const current = this.getCurrentPathQuery(req)
     if (current) {
       this.setReplaceUrl(current, params)
     }
 
+    // render out the final components to be replaced
     return this.html(
       this.templates.mermaidTarget({
         generatedOutput,
         target: 'mermaid-output',
       }),
       this.templates.searchPanel({
-        layout: params.layout,
-        swapOutOfBand: true,
-        search: params.search,
-        highlightNodeId: params.highlightNodeId,
-        expandedIds: params.expandedIds,
-        diagramType: params.diagramType,
-        lastSearch: params.search,
+        layout: newSession.layout,
+        search: newSession.search,
+        diagramType: newSession.diagramType,
+        sessionId: params.sessionId,
         svgWidth: params.svgWidth,
         svgHeight: params.svgHeight,
+        currentZoom: params.currentZoom,
+        currentPanX: params.currentPanX,
+        currentPanY: params.currentPanY,
+        swapOutOfBand: true,
       }),
       this.templates.navigationPanel({
         swapOutOfBand: true,
-        entityId: dtdlIdReinstateSemicolon(params.highlightNodeId ?? ''),
-        model: this.dtdlLoader.getDefaultDtdlModel(),
+        entityId: dtdlIdReinstateSemicolon(newSession.highlightNodeId ?? ''),
+        model: baseModel,
       })
     )
   }
@@ -135,7 +191,7 @@ export class RootController extends HTMLController {
 
   private setReplaceUrl(
     current: { path: string; query: URLSearchParams },
-    params: { [key in UrlQueryKeys]?: string | string[] | boolean }
+    params: { [key in UrlQueryKeys]?: string }
   ): void {
     const { path, query } = current
     for (const param of urlQueryKeys) {
@@ -153,39 +209,38 @@ export class RootController extends HTMLController {
     this.setHeader('HX-Push-Url', `${path}?${query}`)
   }
 
-  private createCacheKey(queryParams: UpdateParams): string {
-    const searchParams = new URLSearchParams(queryParams as unknown as Record<string, string>)
-    for (const key of Array.from(searchParams.keys())) {
-      if (!relevantParams.includes(key)) {
-        searchParams.delete(key)
+  private createCacheKey(queryParams: GenerateParams): string {
+    const searchParams = new URLSearchParams()
+    for (const key of relevantParams) {
+      const value = queryParams[key]
+      if (value === undefined) {
+        continue
       }
+
+      if (!Array.isArray(value)) {
+        searchParams.set(key, value)
+        continue
+      }
+      value.forEach((v) => searchParams.append(key, v))
     }
+
     searchParams.sort()
     return searchParams.toString()
   }
 
-  private async generateOutput(params: UpdateParams, cacheKey: string): Promise<string> {
+  private
+
+  private async generateRawOutput(model: DtdlObjectModel, session: GenerateParams): Promise<string> {
+    const cacheKey = this.createCacheKey(session)
     const fromCache = this.cache.get(cacheKey)
     if (fromCache) {
-      return this.generator.setSVGAttributes(fromCache, params)
+      return fromCache
     }
 
-    const model = params.search
-      ? filterModelByDisplayName(
-          this.dtdlLoader.getDefaultDtdlModel(),
-          this.search,
-          params.search,
-          params.expandedIds ?? []
-        )
-      : this.dtdlLoader.getDefaultDtdlModel()
-
-    if (params.highlightNodeId && !(dtdlIdReinstateSemicolon(params.highlightNodeId) in model)) {
-      params.highlightNodeId = undefined
-    }
-
-    const output = await this.generator.run(model, params.diagramType, params.layout)
+    const output = await this.generator.run(model, session.diagramType, session.layout)
     this.cache.set(cacheKey, output)
-    return this.generator.setSVGAttributes(output, params)
+
+    return output
   }
 
   private truncateExpandedIds(truncateId: string, model: DtdlObjectModel, expandedIds: string[]): string[] {
