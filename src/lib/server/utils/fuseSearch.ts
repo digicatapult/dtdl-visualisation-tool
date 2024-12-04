@@ -7,7 +7,6 @@ const env = container.resolve(Env)
 
 const defaultOptions: IFuseOptions<object> = {
   includeScore: true,
-  includeMatches: true,
   keys: ['Id', 'displayName.en', 'name'],
   threshold: env.get('SEARCH_THRESHOLD'),
 }

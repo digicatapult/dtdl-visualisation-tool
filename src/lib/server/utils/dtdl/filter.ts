@@ -45,15 +45,15 @@ const relationshipFilter =
       return false
     }
 
+    if (matchingIds.has(relationship.Id)) {
+      return true
+    }
+
     if (relationship.ChildOf && matchingIds.has(relationship.ChildOf)) {
       return true
     }
 
     if (relationship.target && matchingIds.has(relationship.target)) {
-      return true
-    }
-
-    if (matchingIds.has(relationship.Id)) {
       return true
     }
 
