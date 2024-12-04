@@ -205,8 +205,8 @@ describe('Generator', () => {
       </svg>
       `
       const testElement = `<svg id="mermaid-svg" width="300" height="100" viewBox="0 0 300 100" hx-include="#search-panel">
-        <g id="foo" class="node clickable" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}"/>
-        <g id="bar" class="node clickable" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}"/>
+        <g id="foo" class="node clickable" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}"/>
+        <g id="bar" class="node clickable" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}"/>
       </svg>`
       expect(generator.setSVGAttributes(controlStringElement, defaultParams)).to.equal(testElement)
     })
@@ -223,12 +223,12 @@ describe('Generator', () => {
       </svg>
       `
       const testElement = `<svg id="mermaid-svg" width="300" height="100" viewBox="0 0 300 100" hx-include="#search-panel">
-        <g id="foo" class="node clickable unexpanded" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}">
+        <g id="foo" class="node clickable unexpanded" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}">
           <g/>
-        <text x="0" y="0" class="corner-sign" onclick="event.stopPropagation()" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;shouldExpand&quot;:true,&quot;shouldTruncate&quot;:false}">+</text></g>
-        <g id="bar" class="node clickable expanded" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}">
+        <text x="0" y="0" class="corner-sign" onclick="event.stopPropagation()" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;shouldExpand&quot;:true,&quot;shouldTruncate&quot;:false}">+</text></g>
+        <g id="bar" class="node clickable expanded" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}">
           <rect/>
-        <text x="-5" y="20" class="corner-sign" onclick="event.stopPropagation()" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;shouldExpand&quot;:false,&quot;shouldTruncate&quot;:true}">-</text></g>
+        <text x="-5" y="20" class="corner-sign" onclick="event.stopPropagation()" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;shouldExpand&quot;:false,&quot;shouldTruncate&quot;:true}">-</text></g>
       </svg>`
       expect(generator.setSVGAttributes(controlStringElement, defaultParams)).to.equal(testElement)
     })
@@ -254,10 +254,10 @@ describe('Generator', () => {
       </svg>
       `
       const testElement = `<svg id="mermaid-svg" width="300" height="100" viewBox="0 0 300 100" hx-include="#search-panel">
-        <g id="foo-foo-1" class="node" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:&quot;foo&quot;}" highlighted="">
+        <g id="foo-foo-1" class="node" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:&quot;foo&quot;}" highlighted="">
           <g/>
         </g>
-        <g id="bar-bar-1" class="node" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:&quot;bar&quot;}">
+        <g id="bar-bar-1" class="node" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:&quot;bar&quot;}">
           <rect/>
         </g>
       </svg>`

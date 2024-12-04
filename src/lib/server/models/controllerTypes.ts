@@ -1,5 +1,7 @@
 import { Layout } from '../models/mermaidLayouts.js'
+import { Session } from '../utils/sessions.js'
 import { DiagramType } from './mermaidDiagrams.js'
+import { UUID } from './strings.js'
 
 export interface RootParams {
   /**
@@ -10,29 +12,30 @@ export interface RootParams {
    * @default 'flowchart'
    */
   diagramType: DiagramType
+
   highlightNodeId?: string
+
   search?: string
-  expandedIds?: string[]
-  shouldExpand?: boolean
-  shouldTruncate?: boolean
-  lastSearch?: string
 }
 export const urlQueryKeys = [
   'layout',
   'diagramType',
   'highlightNodeId',
   'search',
-  'expandedIds',
-  'shouldExpand',
-  'shouldTruncate',
-  'lastSearch',
 ] as const satisfies (keyof RootParams)[]
 export type UrlQueryKeys = (typeof urlQueryKeys)[number]
 
 export interface UpdateParams extends RootParams {
+  sessionId: UUID
+  shouldExpand?: boolean
+  shouldTruncate?: boolean
   svgWidth: number
   svgHeight: number
   currentZoom: number
   currentPanX: number
   currentPanY: number
 }
+
+export const relevantParams = ['search', 'diagramType', 'layout', 'expandedIds'] as const
+export type GenerateParamKeys = (typeof relevantParams)[number]
+export type GenerateParams = Pick<UpdateParams & Session, GenerateParamKeys>

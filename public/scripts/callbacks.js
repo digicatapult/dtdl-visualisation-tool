@@ -9,6 +9,20 @@ globalThis.toggleAccordion = (event) => {
   content?.toggleAttribute('aria-hidden')
 }
 
+/**
+ * Takes an input element id and extracts the value from it as a number if it has a value. Otherwise returns a default value provided
+ * @param {String} elementId - Id of the element to get the value attribute from
+ * @param {Number} defaultValue - Number to return if element Id does not have a valid value
+ * @returns - The parsed value or default
+ */
+function valueFromElementOrDefault(elementId, defaultValue) {
+  const value = document.getElementById(elementId)?.getAttribute('value')
+  if (value === null || value === undefined) {
+    return defaultValue
+  }
+  return parseFloat(value)
+}
+
 globalThis.setMermaidListeners = function setMermaidListeners() {
   const element = document.getElementById('mermaid-svg')
   if (!element) {
@@ -37,6 +51,22 @@ globalThis.setMermaidListeners = function setMermaidListeners() {
   zoomOutButton.onclick = () => {
     panZoom.zoomOut()
   }
+  panZoom.zoom(valueFromElementOrDefault('currentZoom', 1))
+  panZoom.pan({
+    x: valueFromElementOrDefault('currentPanX', 0),
+    y: valueFromElementOrDefault('currentPanY', 0),
+  })
+  const listener = (ev) => {
+    if (ev?.detail?.pathInfo?.requestPath !== '/update-layout') {
+      return
+    }
+    panZoom.disablePan()
+    panZoom.disableZoom()
+    document.body.removeEventListener('htmx:beforeRequest', listener)
+  }
+  document.body.addEventListener('htmx:beforeRequest', listener)
+
+  document.getElementById('mermaid-output')?.removeAttribute('pending-listeners')
 }
 
 function setSizes() {

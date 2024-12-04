@@ -14,8 +14,10 @@ import {
   simpleMockDtdlObjectModel,
 } from '../../utils/mermaid/__tests__/fixtures'
 import { SvgGenerator } from '../../utils/mermaid/generator.js'
+import SessionStore from '../../utils/sessions.js'
 import MermaidTemplates from '../../views/components/mermaid'
 import { complexMockDtdlModel } from './complexDtdlfixture.js'
+import { sessionMap } from './sessionFixtures.js'
 
 export const templateMock = {
   MermaidRoot: ({ search, layout }: { search: string; layout: string }) => `root_${layout}_${search}_root`,
@@ -29,8 +31,14 @@ export const templateMock = {
 export const mockLogger = pino({ level: 'silent' })
 export const mockCache = new LRUCache(10, 1000 * 60)
 
+export const sessionSetStub = sinon.stub()
+export const mockSession = {
+  get: sinon.stub().callsFake((id) => sessionMap[id]),
+  set: sessionSetStub,
+} as unknown as SessionStore
+
 export const mockDtdlLoader: DtdlLoader = new DtdlLoader(mockDtdlObjectModel)
-export const mockSearch = new FuseSearch<EntityType>()
+export const mockSearch = new FuseSearch<EntityType>(Object.values(simpleMockDtdlObjectModel))
 
 export const simpleMockDtdlLoader: DtdlLoader = new DtdlLoader(simpleMockDtdlObjectModel)
 export const complexMockDtdlLoader: DtdlLoader = new DtdlLoader(complexMockDtdlModel)
