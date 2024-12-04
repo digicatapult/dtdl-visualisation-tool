@@ -102,8 +102,9 @@ export class SvgGenerator {
     const svgElement = document.querySelector('#mermaid-svg')
     if (!svgElement) throw new InternalError('Error in finding mermaid-svg Element in generated output')
 
-    // set height and width explicitly so the element is sized correctly
+    // mermaid sets some default styles on the svg that are unhelpful for resizing. Remove them
     svgElement.removeAttribute('style')
+    // set height and width explicitly so the element is sized correctly
     svgElement.setAttribute('width', `${params.svgWidth}`)
     svgElement.setAttribute('height', `${params.svgHeight}`)
 

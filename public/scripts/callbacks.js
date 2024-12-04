@@ -37,7 +37,6 @@ globalThis.setMermaidListeners = function setMermaidListeners() {
 
   function onZoom(newZoom) {
     document.getElementById('currentZoom')?.setAttribute('value', newZoom)
-
     onPan(panZoom.getPan())
   }
 
