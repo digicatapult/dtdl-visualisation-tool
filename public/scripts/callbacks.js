@@ -30,17 +30,32 @@ globalThis.setMermaidListeners = function setMermaidListeners() {
   }
   setSizes()
 
+  function onPan({ x, y }) {
+    document.getElementById('currentPanX')?.setAttribute('value', x)
+    document.getElementById('currentPanY')?.setAttribute('value', y)
+    console.log('pan', x, y)
+  }
+
+  function onZoom(newZoom) {
+    document.getElementById('currentZoom')?.setAttribute('value', newZoom)
+    const pan = panZoom.getPan()
+    console.log('zoom', newZoom)
+    onPan(panZoom.getPan())
+  }
+
   const panZoom = svgPanZoom('#mermaid-svg', {
     maxZoom: 10,
     minZoom: -100,
-    onZoom: (newZoom) => {
-      document.getElementById('currentZoom')?.setAttribute('value', newZoom)
-    },
-    onPan: ({ x, y }) => {
-      document.getElementById('currentPanX')?.setAttribute('value', x)
-      document.getElementById('currentPanY')?.setAttribute('value', y)
-    },
   })
+
+  panZoom.zoom(valueFromElementOrDefault('currentZoom', 1))
+  panZoom.pan({
+    x: valueFromElementOrDefault('currentPanX', 0),
+    y: valueFromElementOrDefault('currentPanY', 0),
+  })
+  panZoom.setOnPan(onPan)
+  panZoom.setOnZoom(onZoom)
+
   resetButton.onclick = () => {
     panZoom.resetZoom()
     panZoom.resetPan()
@@ -51,11 +66,7 @@ globalThis.setMermaidListeners = function setMermaidListeners() {
   zoomOutButton.onclick = () => {
     panZoom.zoomOut()
   }
-  panZoom.zoom(valueFromElementOrDefault('currentZoom', 1))
-  panZoom.pan({
-    x: valueFromElementOrDefault('currentPanX', 0),
-    y: valueFromElementOrDefault('currentPanY', 0),
-  })
+
   const listener = (ev) => {
     if (ev?.detail?.pathInfo?.requestPath !== '/update-layout') {
       return
