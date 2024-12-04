@@ -22,7 +22,7 @@ export default class SessionStore {
     const fromCache = this.cache.get(sessionId)
     if (!fromCache) return undefined
 
-    return sessionParser.parse(JSON.stringify(fromCache))
+    return sessionParser.parse(JSON.parse(fromCache))
   }
 
   set(sessionId: string, session: Session) {
