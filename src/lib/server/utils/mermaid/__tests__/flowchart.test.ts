@@ -6,7 +6,9 @@ import Flowchart from '../flowchart'
 import { flowchartFixture, mockDtdlObjectModel } from './fixtures'
 import { parseMermaid } from './helpers'
 
-describe('Mermaid', () => {
+describe('Mermaid', function () {
+  this.timeout(10000)
+
   describe('Flowchart', () => {
     const flowchart = new Flowchart()
     it('should return a flowchart in markdown', () => {

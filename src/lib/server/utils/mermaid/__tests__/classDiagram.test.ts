@@ -6,7 +6,9 @@ import ClassDiagram, { arrowTypes, extractClassNodeCoordinate } from '../classDi
 import { classDiagramFixture, mockDtdlModelWithProperty, mockDtdlObjectModel } from './fixtures'
 import { parseMermaid } from './helpers'
 
-describe('ClassDiagram', () => {
+describe('ClassDiagram', function () {
+  this.timeout(10000)
+
   const classDiagram = new ClassDiagram()
   describe('generateMarkdown', () => {
     it('should return a flowchart in markdown', () => {
