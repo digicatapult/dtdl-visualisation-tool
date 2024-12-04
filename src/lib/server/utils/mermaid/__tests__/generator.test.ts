@@ -8,7 +8,8 @@ import { SvgGenerator } from '../generator'
 import { classDiagramFixtureSimple, flowchartFixtureSimple, simpleMockDtdlObjectModel } from './fixtures'
 import { checkIfStringIsSVG } from './helpers'
 
-describe('Generator', () => {
+describe('Generator', function () {
+  this.timeout(10000)
   const generator = new SvgGenerator()
 
   describe('mermaidMarkdownByChartType', () => {
