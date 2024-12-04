@@ -33,13 +33,11 @@ globalThis.setMermaidListeners = function setMermaidListeners() {
   function onPan({ x, y }) {
     document.getElementById('currentPanX')?.setAttribute('value', x)
     document.getElementById('currentPanY')?.setAttribute('value', y)
-    console.log('pan', x, y)
   }
 
   function onZoom(newZoom) {
     document.getElementById('currentZoom')?.setAttribute('value', newZoom)
-    const pan = panZoom.getPan()
-    console.log('zoom', newZoom)
+
     onPan(panZoom.getPan())
   }
 

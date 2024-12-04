@@ -228,6 +228,8 @@ export class RootController extends HTMLController {
     return searchParams.toString()
   }
 
+  private
+
   private async generateRawOutput(model: DtdlObjectModel, session: GenerateParams): Promise<string> {
     const cacheKey = this.createCacheKey(session)
     const fromCache = this.cache.get(cacheKey)
