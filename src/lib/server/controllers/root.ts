@@ -1,5 +1,6 @@
+import { randomUUID } from 'node:crypto'
+
 import { DtdlObjectModel, EntityType } from '@digicatapult/dtdl-parser'
-import { randomUUID } from 'crypto'
 import express from 'express'
 import { Get, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
@@ -126,7 +127,18 @@ export class RootController extends HTMLController {
       diagramType: newSession.diagramType,
       highlightNodeId: newSession.highlightNodeId,
     }
-    const generatedOutput = this.generator.setSVGAttributes(rawOutput, attributeParams)
+    const newOutput = this.generator.setSVGAttributes(rawOutput, attributeParams)
+
+    const { generatedOutput, pan, zoom } = this.setupAnimations(
+      newOutput,
+      session,
+      newSession,
+      params.currentZoom,
+      params.currentPanX,
+      params.currentPanY,
+      params.svgWidth,
+      params.svgHeight
+    )
 
     // store the updated session
     this.sessionStore.set(params.sessionId, newSession)
@@ -150,9 +162,9 @@ export class RootController extends HTMLController {
         sessionId: params.sessionId,
         svgWidth: params.svgWidth,
         svgHeight: params.svgHeight,
-        currentZoom: params.currentZoom,
-        currentPanX: params.currentPanX,
-        currentPanY: params.currentPanY,
+        currentZoom: zoom,
+        currentPanX: pan.x,
+        currentPanY: pan.y,
         swapOutOfBand: true,
       }),
       this.templates.navigationPanel({
@@ -228,7 +240,52 @@ export class RootController extends HTMLController {
     return searchParams.toString()
   }
 
-  private
+  private setupAnimations(
+    newOutput: string,
+    oldSession: Session,
+    newSession: Session,
+    currentZoom: number,
+    currentPanX: number,
+    currentPanY: number,
+    svgWidth: number,
+    svgHeight: number
+  ) {
+    // get the old svg from the cache
+    const oldOutput = this.cache.get(this.createCacheKey(oldSession))
+    // on a cache miss or a diagram type change we simply can't do animations
+    if (!oldOutput || oldSession.diagramType !== newSession.diagramType) {
+      return {
+        generatedOutput: newOutput,
+        zoom: currentZoom,
+        pan: { x: currentPanX, y: currentPanY },
+      }
+    }
+    // if the sessions are identical except for perhaps the highlighted node just return the generated output
+    if (
+      oldSession.diagramType === newSession.diagramType &&
+      oldSession.layout === newSession.layout &&
+      oldSession.search === newSession.search &&
+      oldSession.expandedIds.length === newSession.expandedIds.length &&
+      oldSession.expandedIds.every((id, index) => id === newSession.expandedIds[index])
+    ) {
+      return {
+        generatedOutput: newOutput,
+        zoom: currentZoom,
+        pan: { x: currentPanX, y: currentPanY },
+      }
+    }
+
+    return this.generator.setupAnimations(
+      newSession,
+      newOutput,
+      oldOutput,
+      currentZoom,
+      currentPanX,
+      currentPanY,
+      svgWidth,
+      svgHeight
+    )
+  }
 
   private async generateRawOutput(model: DtdlObjectModel, session: GenerateParams): Promise<string> {
     const cacheKey = this.createCacheKey(session)

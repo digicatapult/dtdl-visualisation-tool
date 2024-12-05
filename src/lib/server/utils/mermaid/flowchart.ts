@@ -2,25 +2,41 @@ import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@d
 import { getDisplayName } from '../dtdl/extract.js'
 import { getVisualisationState } from '../dtdl/filter.js'
 import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
-import { defaultMarkdownFn, dtdlIdReplaceSemicolon } from './helpers.js'
+import { defaultMarkdownFn, dtdlIdReplaceSemicolon, extractTransformTranslateCoords } from './helpers.js'
 
 const entityKindToShape = {
   Interface: 'rect',
   Default: 'rect',
 }
 
-export const extractFlowchartNodeCoordinates = (element: Element): { x: number; y: number } => {
+function getFloatAttrOrThrow(element: Element, name: string) {
+  const attr = element.getAttribute(name)
+  if (!attr) {
+    throw new Error(`Expected attribute ${name} to exist on ${element.nodeName}`)
+  }
+  return parseFloat(attr)
+}
+
+export const extractFlowchartNodeCoordinates = (element: Element) => {
   const rect = element.querySelector('rect')
 
-  if (!rect) return { x: 0, y: 0 }
+  if (!rect) {
+    throw new Error(`Expected flowchart node with id ${element.id} to contain a rect`)
+  }
 
-  const x = parseFloat(rect.getAttribute('x') || '0')
-  const y = parseFloat(rect.getAttribute('y') || '0')
-  const width = parseFloat(rect.getAttribute('width') || '0')
+  const { x, y } = extractTransformTranslateCoords(element)
+  const width = getFloatAttrOrThrow(rect, 'width')
+  const height = getFloatAttrOrThrow(rect, 'height')
 
   return {
-    x: x + width - 5,
-    y: y + 20,
+    x,
+    y,
+    width,
+    height,
+    left: x - 0.5 * width,
+    right: x + 0.5 * width,
+    top: y - 0.5 * height,
+    bottom: y + 0.5 * height,
   }
 }
 
