@@ -7,7 +7,7 @@ const env = container.resolve(Env)
 
 const defaultOptions: IFuseOptions<object> = {
   includeScore: true,
-  keys: ['Id', 'displayName.en'],
+  keys: ['Id', 'displayName.en', 'name'],
   threshold: env.get('SEARCH_THRESHOLD'),
 }
 @singleton()

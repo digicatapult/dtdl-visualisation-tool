@@ -45,6 +45,10 @@ const relationshipFilter =
       return false
     }
 
+    if (matchingIds.has(relationship.Id)) {
+      return true
+    }
+
     if (relationship.ChildOf && matchingIds.has(relationship.ChildOf)) {
       return true
     }

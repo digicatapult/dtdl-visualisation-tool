@@ -60,6 +60,14 @@ describe('filterModelByDisplayName', function () {
     expect(result).to.deep.equal(singleInterfaceFirst)
   })
 
+  test('should include single relationship if matches whole string', function () {
+    setCollection(multipleInterfacesAndRelationship)
+    const result = filterModelByDisplayName(multipleInterfacesAndRelationship, mockSearch, 'relInvalidTarget', [])
+    expect(result).to.deep.equal({
+      relInvalidTarget: multipleInterfacesAndRelationship.relInvalidTarget,
+    })
+  })
+
   test('should include all matching interfaces if they exist', function () {
     setCollection(multipleInterfaces)
     const result = filterModelByDisplayName(multipleInterfaces, mockSearch, 'r', [])
