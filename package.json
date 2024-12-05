@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.0.78",
+  "version": "0.0.79",
   "description": "CLI tool for dtdl visualisation",
   "main": "src/index.js",
   "bin": {
@@ -82,7 +82,7 @@
     "eslint-plugin-prettier": "^5.2.1",
     "globals": "^15.12.0",
     "mermaid": "^11.4.1",
-    "mocha": "^10.8.2",
+    "mocha": "^11.0.1",
     "playwright-ctrf-json-reporter": "^0.0.18",
     "prettier": "^3.4.1",
     "prettier-plugin-organize-imports": "^4.1.0",
