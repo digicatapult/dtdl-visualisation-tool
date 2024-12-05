@@ -1,4 +1,16 @@
 import { DtdlId, MermaidId } from '../../models/strings'
+
+export type BoundingBox = {
+  x: number
+  y: number
+  width: number
+  height: number
+  left: number
+  right: number
+  top: number
+  bottom: number
+}
+
 export const defaultMarkdownFn = (): string[] => []
 
 /*
@@ -26,7 +38,7 @@ export function extractTransformTranslateCoords(element: Element) {
   }
 }
 
-const pathRegex = /[ML](?:([\-]{0,1}\d+[\.]{0,1}\d+)\s+([\-]{0,1}\d+[\.]{0,1}\d+))/g
+const pathRegex = /[ML](?:(-{0,1}\d+(?:\.\d+){0,1})\s+(-{0,1}\d+(?:\.\d+){0,1}))/g
 export function extractPathExtents(element: Element) {
   const dAttr = element.getAttribute('d')
   const pairs = dAttr && Array.from(dAttr.matchAll(pathRegex))

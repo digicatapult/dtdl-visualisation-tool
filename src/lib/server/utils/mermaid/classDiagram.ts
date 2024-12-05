@@ -5,6 +5,7 @@ import { getDisplayName } from '../dtdl/extract.js'
 import { getVisualisationState } from '../dtdl/filter.js'
 import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
 import {
+  BoundingBox,
   defaultMarkdownFn,
   dtdlIdReplaceSemicolon,
   extractPathExtents,
@@ -41,7 +42,7 @@ export const extractClassNodeCoordinate = (element: Element) => {
     right: parentTransform.x + labelExtents.maxX,
     top: parentTransform.y + labelExtents.minY,
     bottom: parentTransform.y + labelExtents.maxY,
-  }
+  } satisfies BoundingBox
 }
 
 export default class ClassDiagram implements IDiagram<'classDiagram'> {

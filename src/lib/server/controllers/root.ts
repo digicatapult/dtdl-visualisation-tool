@@ -240,6 +240,8 @@ export class RootController extends HTMLController {
     return searchParams.toString()
   }
 
+  // this setupAnimations handles all the animations logic we can do before going to jsdom
+  // then pass through to the generator for applying the actual relevant animations
   private setupAnimations(
     newOutput: string,
     oldSession: Session,
@@ -250,17 +252,27 @@ export class RootController extends HTMLController {
     svgWidth: number,
     svgHeight: number
   ) {
+    // setup an early return value if we there's no animation needed
+    const withoutAnimations = {
+      generatedOutput: newOutput,
+      zoom: currentZoom,
+      pan: { x: currentPanX, y: currentPanY },
+    }
+
     // get the old svg from the cache
     const oldOutput = this.cache.get(this.createCacheKey(oldSession))
-    // on a cache miss or a diagram type change we simply can't do animations
-    if (!oldOutput || oldSession.diagramType !== newSession.diagramType) {
-      return {
-        generatedOutput: newOutput,
-        zoom: currentZoom,
-        pan: { x: currentPanX, y: currentPanY },
-      }
+
+    // on a cache miss skip animations so the render isn't twice as long
+    if (!oldOutput) {
+      return withoutAnimations
     }
-    // if the sessions are identical except for perhaps the highlighted node just return the generated output
+
+    // if the diagram type is different don't animate
+    if (oldSession.diagramType !== newSession.diagramType) {
+      return withoutAnimations
+    }
+
+    // if the sessions are identical except for the highlighted node skip the animations as the view transition is sufficient
     if (
       oldSession.diagramType === newSession.diagramType &&
       oldSession.layout === newSession.layout &&
@@ -268,13 +280,10 @@ export class RootController extends HTMLController {
       oldSession.expandedIds.length === newSession.expandedIds.length &&
       oldSession.expandedIds.every((id, index) => id === newSession.expandedIds[index])
     ) {
-      return {
-        generatedOutput: newOutput,
-        zoom: currentZoom,
-        pan: { x: currentPanX, y: currentPanY },
-      }
+      return withoutAnimations
     }
 
+    // looks like we need to modify the svg to setup animations
     return this.generator.setupAnimations(
       newSession,
       newOutput,

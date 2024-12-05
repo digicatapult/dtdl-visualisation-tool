@@ -12,6 +12,7 @@ import { Session } from '../sessions.js'
 import ClassDiagram, { extractClassNodeCoordinate } from './classDiagram.js'
 import { IDiagram } from './diagramInterface.js'
 import Flowchart, { extractFlowchartNodeCoordinates } from './flowchart.js'
+import { BoundingBox } from './helpers.js'
 
 const { log } = console
 
@@ -31,7 +32,7 @@ export class SvgGenerator {
   coordinateExtractors = {
     flowchart: extractFlowchartNodeCoordinates,
     classDiagram: extractClassNodeCoordinate,
-  } satisfies Record<DiagramType, Function>
+  } satisfies Record<DiagramType, (el: Element) => BoundingBox>
 
   private nodeIdPattern = /^[^-]+-(.+)-\d+$/
   getMermaidIdFromNodeId = (nodeId: string): MermaidId | null => {
@@ -122,6 +123,25 @@ export class SvgGenerator {
     return svgElement.outerHTML
   }
 
+  buildElementMap(
+    diagramType: DiagramType,
+    nodes: ArrayLike<Element>
+  ): Map<string, { element: Element; boundingBox: BoundingBox }> {
+    const coordExtractor = this.coordinateExtractors[diagramType]
+    return new Map(
+      Array.from(nodes)
+        .map((element) => {
+          const mermaidId = this.getMermaidIdFromNodeId(element.id)
+          if (!mermaidId) {
+            return null
+          }
+          const boundingBox = coordExtractor(element)
+          return [mermaidId, { element, boundingBox }] as const
+        })
+        .filter((x) => !!x)
+    )
+  }
+
   setupAnimations(
     newSession: Session,
     newOutput: string,
@@ -157,40 +177,20 @@ export class SvgGenerator {
       y: viewportTop + 0.5 * viewportBottom,
     }
 
-    const coordExtractor = this.coordinateExtractors[newSession.diagramType]
-    const newNodesMap = new Map(
-      Array.from(newDocument.getElementsByClassName('node'))
-        .map((element) => {
-          const mermaidId = this.getMermaidIdFromNodeId(element.id)
-          if (!mermaidId) {
-            return null
-          }
-          const boundingBox = coordExtractor(element)
-          return [mermaidId, { element, boundingBox }] as const
+    const newNodesMap = this.buildElementMap(newSession.diagramType, newDocument.getElementsByClassName('node'))
+    const oldNodesMap = this.buildElementMap(newSession.diagramType, oldDocument.getElementsByClassName('node'))
+    const visibleOldNodes = new Set(
+      Array.from(oldNodesMap)
+        .filter(([id, { boundingBox }]) => {
+          return (
+            boundingBox.right > viewport.left &&
+            boundingBox.left < viewport.right &&
+            boundingBox.bottom > viewport.top &&
+            boundingBox.top < viewport.bottom &&
+            newNodesMap.has(id)
+          )
         })
-        .filter((x) => !!x)
-    )
-    const visibleOldNodes = new Map(
-      Array.from(oldDocument.getElementsByClassName('node'))
-        .map((element) => {
-          const boundingBox = coordExtractor(element)
-          if (
-            boundingBox.right < viewport.left ||
-            boundingBox.left > viewport.right ||
-            boundingBox.top > viewport.bottom ||
-            boundingBox.bottom < viewport.top
-          ) {
-            return null
-          }
-          const mermaidId = this.getMermaidIdFromNodeId(element.id)
-          if (!mermaidId) {
-            return null
-          }
-
-          return [mermaidId, { element, boundingBox }] as const
-        })
-        .filter((x) => !!x)
-        .filter(([id]) => newNodesMap.has(id))
+        .map(([id]) => id)
     )
 
     if (visibleOldNodes.size === 0) {
@@ -201,53 +201,32 @@ export class SvgGenerator {
       }
     }
 
-    let panChange: { x: number; y: number }
-    if (newSession.highlightNodeId && visibleOldNodes.has(newSession.highlightNodeId)) {
-      // get the pan required for the highlighted node to stay stationary in the new svg
-      const oldHighlightedNode = visibleOldNodes.get(newSession.highlightNodeId)
-      const newHighlightedNode = newNodesMap.get(newSession.highlightNodeId)
-      if (!newHighlightedNode || !oldHighlightedNode) {
-        throw new Error()
-      }
+    const count = visibleOldNodes.size
+    const panChange = Array.from(visibleOldNodes).reduce(
+      (acc, id) => {
+        const oldBoundingBox = oldNodesMap.get(id)?.boundingBox
+        const newBoundingBox = newNodesMap.get(id)?.boundingBox
 
-      panChange = {
-        x: oldHighlightedNode.boundingBox.x - newHighlightedNode.boundingBox.x,
-        y: oldHighlightedNode.boundingBox.y - newHighlightedNode.boundingBox.y,
-      }
-    } else {
-      const count = visibleOldNodes.size
-      const centersOfMass = Array.from(visibleOldNodes).reduce(
-        (acc, [id, { boundingBox: oldBoundingBox }]) => {
-          const newBoundingBox = newNodesMap.get(id)?.boundingBox
-          if (!newBoundingBox) throw new InternalError(`Expected node ${id} to exist in new nodes set`)
-          acc.oldCoM.x += oldBoundingBox.x / count
-          acc.oldCoM.y += oldBoundingBox.y / count
-          acc.newCoM.x += newBoundingBox.x / count
-          acc.newCoM.y += newBoundingBox.y / count
-          return acc
-        },
-        { oldCoM: { x: 0, y: 0 }, newCoM: { x: 0, y: 0 } }
-      )
+        if (!newBoundingBox || !oldBoundingBox)
+          throw new InternalError(`Expected node ${id} to exist in new and old nodes`)
 
-      panChange = {
-        x: centersOfMass.oldCoM.x - centersOfMass.newCoM.x,
-        y: centersOfMass.oldCoM.y - centersOfMass.newCoM.y,
-      }
-    }
+        return {
+          x: acc.x + (oldBoundingBox.x - newBoundingBox.x) / count,
+          y: acc.y + (oldBoundingBox.y - newBoundingBox.y) / count,
+        }
+      },
+      { x: 0, y: 0 }
+    )
 
-    const newViewportLeft = -1 * (panChange.x + currentPanX / currentZoom)
-    const newViewportRight = (svgWidth - currentPanX) / currentZoom - panChange.x
-    const newViewportTop = -1 * (panChange.y + currentPanY / currentZoom)
-    const newViewportBottom = (svgHeight - currentPanY) / currentZoom - panChange.y
     const newViewport = {
-      left: newViewportLeft,
-      right: newViewportRight,
-      top: newViewportTop,
-      bottom: newViewportBottom,
-      width: newViewportRight - newViewportLeft,
-      height: newViewportBottom - newViewportTop,
-      x: newViewportLeft + 0.5 * newViewportRight,
-      y: newViewportTop + 0.5 * newViewportBottom,
+      left: viewport.left - panChange.x,
+      right: viewport.right - panChange.x,
+      top: viewport.top - panChange.y,
+      bottom: viewport.bottom - panChange.y,
+      width: viewport.width,
+      height: viewport.height,
+      x: viewport.x - panChange.x,
+      y: viewport.y - panChange.y,
     }
 
     const revealAnimation = newDocument.createElement('animate')
@@ -272,10 +251,6 @@ export class SvgGenerator {
       })
 
     Array.from(newNodesMap).forEach(([id, { element: newElement, boundingBox: newBoundingBox }]) => {
-      if (id === newSession.highlightNodeId) {
-        return
-      }
-
       if (
         newBoundingBox.right < newViewport.left ||
         newBoundingBox.left > newViewport.right ||
@@ -285,7 +260,7 @@ export class SvgGenerator {
         return
       }
 
-      const oldNode = visibleOldNodes.get(id)
+      const oldNode = visibleOldNodes.has(id) && oldNodesMap.get(id)
       if (!oldNode) {
         newElement.setAttribute('opacity', '0')
         newElement.appendChild(revealAnimation.cloneNode())

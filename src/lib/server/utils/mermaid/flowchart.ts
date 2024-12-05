@@ -2,7 +2,7 @@ import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@d
 import { getDisplayName } from '../dtdl/extract.js'
 import { getVisualisationState } from '../dtdl/filter.js'
 import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
-import { defaultMarkdownFn, dtdlIdReplaceSemicolon, extractTransformTranslateCoords } from './helpers.js'
+import { BoundingBox, defaultMarkdownFn, dtdlIdReplaceSemicolon, extractTransformTranslateCoords } from './helpers.js'
 
 const entityKindToShape = {
   Interface: 'rect',
@@ -37,7 +37,7 @@ export const extractFlowchartNodeCoordinates = (element: Element) => {
     right: x + 0.5 * width,
     top: y - 0.5 * height,
     bottom: y + 0.5 * height,
-  }
+  } satisfies BoundingBox
 }
 
 export default class Flowchart implements IDiagram<'flowchart'> {
