@@ -39,6 +39,7 @@ export const defaultParams: UpdateParams = {
   currentPanX: 0,
   currentPanY: 0,
   currentZoom: 1,
+  a11y: ['reduce-motion'],
 }
 
 describe('RootController', async () => {
@@ -297,6 +298,92 @@ describe('RootController', async () => {
 
       const session = sessionSetStub.lastCall.args[1]
       expect(session.expandedIds).to.deep.equal([])
+    })
+
+    it('should animate if svgs are compatible', async () => {
+      const req = mockReq({})
+      // run with default params to setup the cache
+      await controller.updateLayout(req, defaultParams)
+
+      const result = await controller
+        .updateLayout(req, {
+          ...defaultParams,
+          search: 'example',
+          a11y: [],
+        })
+        .then(toHTMLString)
+
+      expect(result).to.equal(
+        [
+          `mermaidTarget_${generatedSVGFixture}_attr_animate_mermaid-output_mermaidTarget`,
+          `searchPanel_example_dagre-d3_true_searchPanel`,
+          `navigationPanel_true__navigationPanel`,
+        ].join('')
+      )
+    })
+
+    it('should not animate if cache is empty', async () => {
+      const req = mockReq({})
+
+      const result = await controller
+        .updateLayout(req, {
+          ...defaultParams,
+          search: 'example',
+          a11y: [],
+        })
+        .then(toHTMLString)
+
+      expect(result).to.equal(
+        [
+          `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
+          `searchPanel_example_dagre-d3_true_searchPanel`,
+          `navigationPanel_true__navigationPanel`,
+        ].join('')
+      )
+    })
+
+    it('should not animate if diagram type changes', async () => {
+      const req = mockReq({})
+      // run with default params to setup the cache
+      await controller.updateLayout(req, { ...defaultParams, diagramType: 'classDiagram' })
+
+      const result = await controller
+        .updateLayout(req, {
+          ...defaultParams,
+          search: 'example',
+          a11y: [],
+        })
+        .then(toHTMLString)
+
+      expect(result).to.equal(
+        [
+          `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
+          `searchPanel_example_dagre-d3_true_searchPanel`,
+          `navigationPanel_true__navigationPanel`,
+        ].join('')
+      )
+    })
+
+    it('should not animate if only highlighted node changes', async () => {
+      const req = mockReq({})
+      // run with default params to setup the cache
+      await controller.updateLayout(req, defaultParams)
+
+      const result = await controller
+        .updateLayout(req, {
+          ...defaultParams,
+          highlightNodeId: 'example',
+          a11y: [],
+        })
+        .then(toHTMLString)
+
+      expect(result).to.equal(
+        [
+          `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
+          `searchPanel_undefined_dagre-d3_true_searchPanel`,
+          `navigationPanel_true__navigationPanel`,
+        ].join('')
+      )
     })
   })
 })

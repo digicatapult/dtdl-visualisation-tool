@@ -7,6 +7,7 @@ import { inject, injectable, singleton } from 'tsyringe'
 import { InvalidQueryError } from '../errors.js'
 import { Logger, type ILogger } from '../logger.js'
 import {
+  A11yPreference,
   GenerateParams,
   relevantParams,
   urlQueryKeys,
@@ -131,18 +132,17 @@ export class RootController extends HTMLController {
     }
     const newOutput = this.generator.setSVGAttributes(rawOutput, attributeParams)
 
-    const { generatedOutput, pan, zoom } = a11y.has('reduce-motion')
-      ? { generatedOutput: newOutput, zoom: params.currentZoom, pan: { x: params.currentPanX, y: params.currentPanY } }
-      : this.setupAnimations(
-          newOutput,
-          session,
-          newSession,
-          params.currentZoom,
-          params.currentPanX,
-          params.currentPanY,
-          params.svgWidth,
-          params.svgHeight
-        )
+    const { generatedOutput, pan, zoom } = this.setupAnimations(
+      a11y,
+      newOutput,
+      session,
+      newSession,
+      params.currentZoom,
+      params.currentPanX,
+      params.currentPanY,
+      params.svgWidth,
+      params.svgHeight
+    )
 
     // store the updated session
     this.sessionStore.set(params.sessionId, newSession)
@@ -247,6 +247,7 @@ export class RootController extends HTMLController {
   // this setupAnimations handles all the animations logic we can do before going to jsdom
   // then pass through to the generator for applying the actual relevant animations
   private setupAnimations(
+    a11yPrefs: Set<A11yPreference>,
     newOutput: string,
     oldSession: Session,
     newSession: Session,
@@ -261,6 +262,10 @@ export class RootController extends HTMLController {
       generatedOutput: newOutput,
       zoom: currentZoom,
       pan: { x: currentPanX, y: currentPanY },
+    }
+
+    if (a11yPrefs.has('reduce-motion')) {
+      return withoutAnimations
     }
 
     // get the old svg from the cache
