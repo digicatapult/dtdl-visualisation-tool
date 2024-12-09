@@ -29,7 +29,7 @@ export const extractClassNodeCoordinate = (element: Element) => {
   const parentTransform = extractTransformTranslateCoords(element)
   const labelContainerPath = element.querySelector('.label-container > path:first-child')
   if (!labelContainerPath) {
-    throw new InternalError('Expected node to contain a path')
+    throw new InternalError('Expected node to contain a path within the label-container')
   }
   const labelExtents = extractPathExtents(labelContainerPath)
 
