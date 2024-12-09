@@ -72,6 +72,8 @@ export class RootController extends HTMLController {
   public async updateLayout(@Request() req: express.Request, @Queries() params: UpdateParams): Promise<HTML> {
     this.logger.debug('search: %o', { search: params.search, layout: params.layout })
 
+    const a11y = new Set(params.a11y)
+
     // get the base dtdl model that we will derive the graph from
     const baseModel = this.dtdlLoader.getDefaultDtdlModel()
 
@@ -129,16 +131,18 @@ export class RootController extends HTMLController {
     }
     const newOutput = this.generator.setSVGAttributes(rawOutput, attributeParams)
 
-    const { generatedOutput, pan, zoom } = this.setupAnimations(
-      newOutput,
-      session,
-      newSession,
-      params.currentZoom,
-      params.currentPanX,
-      params.currentPanY,
-      params.svgWidth,
-      params.svgHeight
-    )
+    const { generatedOutput, pan, zoom } = a11y.has('reduce-motion')
+      ? { generatedOutput: newOutput, zoom: params.currentZoom, pan: { x: params.currentPanX, y: params.currentPanY } }
+      : this.setupAnimations(
+          newOutput,
+          session,
+          newSession,
+          params.currentZoom,
+          params.currentPanX,
+          params.currentPanY,
+          params.svgWidth,
+          params.svgHeight
+        )
 
     // store the updated session
     this.sessionStore.set(params.sessionId, newSession)

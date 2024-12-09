@@ -25,6 +25,8 @@ export const urlQueryKeys = [
 ] as const satisfies (keyof RootParams)[]
 export type UrlQueryKeys = (typeof urlQueryKeys)[number]
 
+const a11yPreferences = ['reduce-motion'] as const
+type A11yPreference = (typeof a11yPreferences)[number]
 export interface UpdateParams extends RootParams {
   sessionId: UUID
   shouldExpand?: boolean
@@ -34,6 +36,7 @@ export interface UpdateParams extends RootParams {
   currentZoom: number
   currentPanX: number
   currentPanY: number
+  a11y?: A11yPreference[]
 }
 
 export const relevantParams = ['search', 'diagramType', 'layout', 'expandedIds'] as const
