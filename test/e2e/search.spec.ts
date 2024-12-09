@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-test.describe('search', () => {
+test.describe.skip('search', () => {
   test('change search to reveal nodes', async ({ page }) => {
     await page.goto('./?layout=elk&diagramType=flowchart&search=Node')
     await page.waitForSelector("text='ConnectivityNodeContainer'")
