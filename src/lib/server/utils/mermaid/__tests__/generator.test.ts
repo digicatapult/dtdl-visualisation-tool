@@ -5,7 +5,15 @@ import { describe, it } from 'mocha'
 import sinon from 'sinon'
 import { defaultParams } from '../../../controllers/__tests__/root.test'
 import { SvgGenerator } from '../generator'
-import { classDiagramFixtureSimple, flowchartFixtureSimple, simpleMockDtdlObjectModel } from './fixtures'
+import {
+  classDiagramFixtureSimple,
+  flowchartFixtureSimple,
+  simpleMockDtdlObjectModel,
+  svgSearchFuelType,
+  svgSearchFuelTypeExpandedFossilFuel,
+  svgSearchNuclear,
+  withAnimationsOutputFixture,
+} from './fixtures'
 import { checkIfStringIsSVG } from './helpers'
 
 describe('Generator', function () {
@@ -336,6 +344,53 @@ describe('Generator', function () {
       expect(textElement.getAttribute('y')).to.equal('-5')
       expect(textElement.textContent).to.equal('-')
       expect(textElement.getAttribute('onclick')).to.equal('event.stopPropagation()')
+    })
+  })
+
+  describe('setupAnimations', () => {
+    it('should return new output if no nodes are present in both svgs', () => {
+      const result = generator.setupAnimations(
+        { diagramType: 'flowchart', layout: 'elk', search: 'FuelType', expandedIds: [] },
+        svgSearchFuelType,
+        svgSearchNuclear,
+        1,
+        0,
+        0,
+        2000,
+        2000
+      )
+
+      expect(result).to.deep.equal({
+        pan: { x: 0, y: 0 },
+        zoom: 1,
+        generatedOutput: svgSearchFuelType,
+      })
+    })
+  })
+
+  // this is essentially a snapshot test moving from a search of `FuelType` to the same search but with the `FossilFuel` node expanded
+  it('should return with animations if nodes are present', () => {
+    const result = generator.setupAnimations(
+      {
+        diagramType: 'flowchart',
+        layout: 'elk',
+        search: 'FuelType',
+        expandedIds: ['dtmi:digitaltwins:ngsi_ld:cim:energy:FossilFuel;1'],
+        highlightNodeId: 'dtmi:digitaltwins:ngsi_ld:cim:energy:FossilFuel:1',
+      },
+      svgSearchFuelTypeExpandedFossilFuel,
+      svgSearchFuelType,
+      1,
+      0,
+      0,
+      2000,
+      2000
+    )
+
+    expect(result).to.deep.equal({
+      generatedOutput: withAnimationsOutputFixture,
+      zoom: 1,
+      pan: { x: -97.73958333333334, y: -147 },
     })
   })
 })
