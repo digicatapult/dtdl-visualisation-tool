@@ -46,6 +46,9 @@ export const complexMockDtdlLoader: DtdlLoader = new DtdlLoader(complexMockDtdlM
 export const generatorRunStub = sinon.stub().resolves(generatedSVGFixture)
 export const mockGenerator: SvgGenerator = {
   setSVGAttributes: sinon.stub().callsFake((x) => `${x}_attr`),
+  setupAnimations: sinon
+    .stub()
+    .callsFake((...args) => ({ generatedOutput: `${args[1]}_animate`, pan: { x: 100, y: 50 }, zoom: 0.5 })),
   run: generatorRunStub,
 } as unknown as SvgGenerator
 

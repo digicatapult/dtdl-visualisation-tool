@@ -1,9 +1,16 @@
 import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
+import { InternalError } from '../../errors.js'
 import { DtdlId } from '../../models/strings.js'
 import { getDisplayName } from '../dtdl/extract.js'
 import { getVisualisationState } from '../dtdl/filter.js'
 import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
-import { defaultMarkdownFn, dtdlIdReplaceSemicolon } from './helpers.js'
+import {
+  BoundingBox,
+  defaultMarkdownFn,
+  dtdlIdReplaceSemicolon,
+  extractPathExtents,
+  extractTransformTranslateCoords,
+} from './helpers.js'
 
 export const arrowTypes = {
   Inheritance: '<|--',
@@ -18,29 +25,24 @@ export const arrowTypes = {
 
 export type ArrowType = (typeof arrowTypes)[keyof typeof arrowTypes]
 
-const extractCoordinatesFromTranslateString = (
-  translate: string | null | undefined
-): { x: number; y: number } | null => {
-  if (!translate) return null
-  const match = translate.match(/translate\(\s*([-\d.]+)[ ,\s]*([-\d.]+)\s*\)/)
-  return match ? { x: parseFloat(match[1]), y: parseFloat(match[2]) } : null
-}
-
-export const extractClassNodeCoordinate = (element: Element): { x: number; y: number } => {
-  const labelGroup = element.querySelector('.label-group.text')
-  const membersGroup = element.querySelector('.members-group.text')
-
-  const labelCoordinate = extractCoordinatesFromTranslateString(labelGroup?.getAttribute('transform'))
-  const membersCoordinate = extractCoordinatesFromTranslateString(membersGroup?.getAttribute('transform'))
-
-  if (labelCoordinate && membersCoordinate) {
-    return {
-      x: membersCoordinate.x * -1,
-      y: labelCoordinate.y,
-    }
+export const extractClassNodeCoordinate = (element: Element) => {
+  const parentTransform = extractTransformTranslateCoords(element)
+  const labelContainerPath = element.querySelector('.label-container > path:first-child')
+  if (!labelContainerPath) {
+    throw new InternalError('Expected node to contain a path within the label-container')
   }
+  const labelExtents = extractPathExtents(labelContainerPath)
 
-  return { x: 0, y: 0 }
+  return {
+    x: parentTransform.x,
+    y: parentTransform.y,
+    width: labelExtents.maxX - labelExtents.minX,
+    height: labelExtents.maxY - labelExtents.minY,
+    left: parentTransform.x + labelExtents.minX,
+    right: parentTransform.x + labelExtents.maxX,
+    top: parentTransform.y + labelExtents.minY,
+    bottom: parentTransform.y + labelExtents.maxY,
+  } satisfies BoundingBox
 }
 
 export default class ClassDiagram implements IDiagram<'classDiagram'> {

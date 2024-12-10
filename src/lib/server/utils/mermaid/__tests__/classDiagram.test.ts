@@ -94,49 +94,43 @@ describe('ClassDiagram', function () {
 })
 
 describe('extractClassNodeCoordinate', () => {
-  let dom: JSDOM, document: Document, element: Element, labelElement: Element, membersElement: Element
+  let dom: JSDOM, document: Document, element: Element, labelElement: Element, pathElement: Element
 
   beforeEach(() => {
     dom = new JSDOM()
     document = dom.window.document
     element = document.createElement('g')
     labelElement = document.createElement('g')
-    membersElement = document.createElement('g')
+    pathElement = document.createElement('path')
   })
 
   it('should extract the x and y coordinate from the transform attribute', () => {
-    // class diagram
-    labelElement.setAttribute('transform', 'translate(0,20)')
-    membersElement.setAttribute('transform', 'translate(10,0)')
+    element.setAttribute('transform', 'translate(100, 50)')
 
-    labelElement.classList.add('label-group', 'text')
-    membersElement.classList.add('members-group', 'text')
+    labelElement.classList.add('label-container', 'text')
+    pathElement.setAttribute('d', 'M0 0 L100 0 L100 200 L0 200 L0 0')
 
+    labelElement.appendChild(pathElement)
     element.appendChild(labelElement)
-    element.appendChild(membersElement)
 
     const coordinates = extractClassNodeCoordinate(element)
-    expect(coordinates).to.deep.equal({ x: -10, y: 20 })
+    expect(coordinates).to.deep.equal({
+      bottom: 250,
+      height: 200,
+      left: 100,
+      right: 200,
+      top: 50,
+      width: 100,
+      x: 100,
+      y: 50,
+    })
   })
-  it('should return {x: 0, y: 0} if the x and y coordinates do not exist in children element attributes of a given element', () => {
-    // class diagram
-    const zeroCoordinates = { x: 0, y: 0 }
-    expect(extractClassNodeCoordinate(element)).to.deep.equal(zeroCoordinates)
 
-    labelElement.classList.add('label-group')
-    labelElement.classList.add('text')
-
-    membersElement.classList.add('members-group')
-    membersElement.classList.add('text')
-
+  it('should throw if the expected children not occur on the g element', () => {
+    element.setAttribute('transform', 'translate(100, 50)')
+    labelElement.classList.add('label-container', 'text')
     element.appendChild(labelElement)
-    element.appendChild(membersElement)
 
-    expect(extractClassNodeCoordinate(element)).to.deep.equal(zeroCoordinates)
-
-    labelElement.setAttribute('transform', 'translate(x,y)')
-    membersElement.setAttribute('transform', 'translate(x,y)')
-
-    expect(extractClassNodeCoordinate(element)).to.deep.equal(zeroCoordinates)
+    expect(() => extractClassNodeCoordinate(element)).to.throw()
   })
 })

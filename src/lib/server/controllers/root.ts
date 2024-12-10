@@ -1,11 +1,13 @@
+import { randomUUID } from 'node:crypto'
+
 import { DtdlObjectModel, EntityType } from '@digicatapult/dtdl-parser'
-import { randomUUID } from 'crypto'
 import express from 'express'
 import { Get, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
 import { InvalidQueryError } from '../errors.js'
 import { Logger, type ILogger } from '../logger.js'
 import {
+  A11yPreference,
   GenerateParams,
   relevantParams,
   urlQueryKeys,
@@ -71,6 +73,8 @@ export class RootController extends HTMLController {
   public async updateLayout(@Request() req: express.Request, @Queries() params: UpdateParams): Promise<HTML> {
     this.logger.debug('search: %o', { search: params.search, layout: params.layout })
 
+    const a11y = new Set(params.a11y)
+
     // get the base dtdl model that we will derive the graph from
     const baseModel = this.dtdlLoader.getDefaultDtdlModel()
 
@@ -126,7 +130,19 @@ export class RootController extends HTMLController {
       diagramType: newSession.diagramType,
       highlightNodeId: newSession.highlightNodeId,
     }
-    const generatedOutput = this.generator.setSVGAttributes(rawOutput, attributeParams)
+    const newOutput = this.generator.setSVGAttributes(rawOutput, attributeParams)
+
+    const { generatedOutput, pan, zoom } = this.setupAnimations(
+      a11y,
+      newOutput,
+      session,
+      newSession,
+      params.currentZoom,
+      params.currentPanX,
+      params.currentPanY,
+      params.svgWidth,
+      params.svgHeight
+    )
 
     // store the updated session
     this.sessionStore.set(params.sessionId, newSession)
@@ -150,9 +166,9 @@ export class RootController extends HTMLController {
         sessionId: params.sessionId,
         svgWidth: params.svgWidth,
         svgHeight: params.svgHeight,
-        currentZoom: params.currentZoom,
-        currentPanX: params.currentPanX,
-        currentPanY: params.currentPanY,
+        currentZoom: zoom,
+        currentPanX: pan.x,
+        currentPanY: pan.y,
         swapOutOfBand: true,
       }),
       this.templates.navigationPanel({
@@ -228,7 +244,66 @@ export class RootController extends HTMLController {
     return searchParams.toString()
   }
 
-  private
+  // this setupAnimations handles all the animations logic we can do before going to jsdom
+  // then pass through to the generator for applying the actual relevant animations
+  private setupAnimations(
+    a11yPrefs: Set<A11yPreference>,
+    newOutput: string,
+    oldSession: Session,
+    newSession: Session,
+    currentZoom: number,
+    currentPanX: number,
+    currentPanY: number,
+    svgWidth: number,
+    svgHeight: number
+  ) {
+    // setup an early return value if we there's no animation needed
+    const withoutAnimations = {
+      generatedOutput: newOutput,
+      zoom: currentZoom,
+      pan: { x: currentPanX, y: currentPanY },
+    }
+
+    if (a11yPrefs.has('reduce-motion')) {
+      return withoutAnimations
+    }
+
+    // get the old svg from the cache
+    const oldOutput = this.cache.get(this.createCacheKey(oldSession))
+
+    // on a cache miss skip animations so the render isn't twice as long
+    if (!oldOutput) {
+      return withoutAnimations
+    }
+
+    // if the diagram type is different don't animate
+    if (oldSession.diagramType !== newSession.diagramType) {
+      return withoutAnimations
+    }
+
+    // if the sessions are identical except for the highlighted node skip the animations as the view transition is sufficient
+    if (
+      oldSession.diagramType === newSession.diagramType &&
+      oldSession.layout === newSession.layout &&
+      oldSession.search === newSession.search &&
+      oldSession.expandedIds.length === newSession.expandedIds.length &&
+      oldSession.expandedIds.every((id, index) => id === newSession.expandedIds[index])
+    ) {
+      return withoutAnimations
+    }
+
+    // looks like we need to modify the svg to setup animations
+    return this.generator.setupAnimations(
+      newSession,
+      newOutput,
+      oldOutput,
+      currentZoom,
+      currentPanX,
+      currentPanY,
+      svgWidth,
+      svgHeight
+    )
+  }
 
   private async generateRawOutput(model: DtdlObjectModel, session: GenerateParams): Promise<string> {
     const cacheKey = this.createCacheKey(session)

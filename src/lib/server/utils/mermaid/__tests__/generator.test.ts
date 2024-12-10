@@ -5,7 +5,15 @@ import { describe, it } from 'mocha'
 import sinon from 'sinon'
 import { defaultParams } from '../../../controllers/__tests__/root.test'
 import { SvgGenerator } from '../generator'
-import { classDiagramFixtureSimple, flowchartFixtureSimple, simpleMockDtdlObjectModel } from './fixtures'
+import {
+  classDiagramFixtureSimple,
+  flowchartFixtureSimple,
+  simpleMockDtdlObjectModel,
+  svgSearchFuelType,
+  svgSearchFuelTypeExpandedFossilFuel,
+  svgSearchNuclear,
+  withAnimationsOutputFixture,
+} from './fixtures'
 import { checkIfStringIsSVG } from './helpers'
 
 describe('Generator', function () {
@@ -97,8 +105,11 @@ describe('Generator', function () {
     it('should return an element with htmx attributes', () => {
       const element = document.createElement('div')
       const rectElement = document.createElement('rect')
+      rectElement.setAttribute('width', '50')
+      rectElement.setAttribute('height', '25')
 
       element.id = 'flowchart-dtmi:com:example:1-1'
+      element.setAttribute('transform', 'translate(100, 50)')
       element.appendChild(rectElement)
       element.classList.add('unexpanded')
 
@@ -130,48 +141,53 @@ describe('Generator', function () {
       const element = document.createElement('g')
       element.id = 'flowchart-dtmi:com:example:1-1'
       element.classList.add('unexpanded')
+      element.setAttribute('transform', 'translate(100, 50)')
+
       const rect = document.createElement('rect')
-      rect.setAttribute('x', '100')
-      rect.setAttribute('y', '100')
-      rect.setAttribute('width', '100')
+      rect.setAttribute('width', '50')
+      rect.setAttribute('height', '25')
+
       element.appendChild(rect)
 
       generator.setNodeAttributes(element, document, 'flowchart')
       const text = element.querySelector('text.corner-sign')
 
-      expect(text?.getAttribute('x')).to.equal('195')
-      expect(text?.getAttribute('y')).to.equal('120')
+      expect(text?.getAttribute('x')).to.equal('20')
+      expect(text?.getAttribute('y')).to.equal('7.5')
       expect(text?.innerHTML).to.equal('+')
     })
     it('should set correct coordinates for node control on a classDiagram node', () => {
       const element = document.createElement('g')
       element.id = 'class-dtmi:com:example:1-1'
       element.classList.add('expanded')
+      element.setAttribute('transform', 'translate(100, 50)')
+
+      const pathElement = document.createElement('path')
+      pathElement.setAttribute('d', 'M0 0 L100 0 L100 200 L0 200 L0 0')
+
       const labelElement = document.createElement('g')
-      const membersElement = document.createElement('g')
-      labelElement.setAttribute('transform', 'translate(0,20)')
-      membersElement.setAttribute('transform', 'translate(10,0)')
+      labelElement.classList.add('label-container', 'text')
 
-      labelElement.classList.add('label-group', 'text')
-      membersElement.classList.add('members-group', 'text')
-
+      labelElement.appendChild(pathElement)
       element.appendChild(labelElement)
-      element.appendChild(membersElement)
 
       generator.setNodeAttributes(element, document, 'classDiagram')
       const text = element.querySelector('text.corner-sign')
 
-      expect(text?.getAttribute('x')).to.equal('-10')
-      expect(text?.getAttribute('y')).to.equal('20')
+      expect(text?.getAttribute('x')).to.equal('45')
+      expect(text?.getAttribute('y')).to.equal('-80')
       expect(text?.innerHTML).to.equal('-')
     })
     it('should return an element with highlighted if matches', () => {
       const element = document.createElement('div')
       const rectElement = document.createElement('rect')
+      rectElement.setAttribute('width', '50')
+      rectElement.setAttribute('height', '25')
 
       element.id = 'flowchart-dtmi:com:example:1-1'
       element.appendChild(rectElement)
       element.classList.add('unexpanded')
+      element.setAttribute('transform', 'translate(100, 50)')
 
       generator.setNodeAttributes(element, document, 'flowchart', 'dtmi:com:example:1')
 
@@ -180,10 +196,13 @@ describe('Generator', function () {
     it("should not return an element with highlighted if doesn't match", () => {
       const element = document.createElement('div')
       const rectElement = document.createElement('rect')
+      rectElement.setAttribute('width', '50')
+      rectElement.setAttribute('height', '25')
 
       element.id = 'flowchart-dtmi:com:example:1-1'
       element.appendChild(rectElement)
       element.classList.add('unexpanded')
+      element.setAttribute('transform', 'translate(100, 50)')
 
       generator.setNodeAttributes(element, document, 'flowchart', 'dtmi:com:example:2')
 
@@ -215,21 +234,23 @@ describe('Generator', function () {
     it('should set clickable node elements to have htmx attributes that expand or truncate', () => {
       const controlStringElement = `
       <svg id="mermaid-svg" width="1024" height="768">
-        <g id="foo" class="node clickable unexpanded">
+        <g id="foo" class="node clickable unexpanded" transform="translate(100, 50)">
+          <rect width="50" height="25"></rect>
           <g></g>
         </g>
-        <g id="bar" class="node clickable expanded">
-          <rect></rect>
+        <g id="bar" class="node clickable expanded" transform="translate(100, 50)">
+          <rect width="50" height="25"></rect>
         </g>
       </svg>
       `
       const testElement = `<svg id="mermaid-svg" width="300" height="100" viewBox="0 0 300 100" hx-include="#search-panel">
-        <g id="foo" class="node clickable unexpanded" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}">
+        <g id="foo" class="node clickable unexpanded" transform="translate(100, 50)" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}">
+          <rect width="50" height="25"/>
           <g/>
-        <text x="0" y="0" class="corner-sign" onclick="event.stopPropagation()" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;shouldExpand&quot;:true,&quot;shouldTruncate&quot;:false}">+</text></g>
-        <g id="bar" class="node clickable expanded" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}">
-          <rect/>
-        <text x="-5" y="20" class="corner-sign" onclick="event.stopPropagation()" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;shouldExpand&quot;:false,&quot;shouldTruncate&quot;:true}">-</text></g>
+        <text x="20" y="7.5" class="corner-sign" onclick="event.stopPropagation()" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;shouldExpand&quot;:true,&quot;shouldTruncate&quot;:false}">+</text></g>
+        <g id="bar" class="node clickable expanded" transform="translate(100, 50)" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}">
+          <rect width="50" height="25"/>
+        <text x="20" y="7.5" class="corner-sign" onclick="event.stopPropagation()" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;shouldExpand&quot;:false,&quot;shouldTruncate&quot;:true}">-</text></g>
       </svg>`
       expect(generator.setSVGAttributes(controlStringElement, defaultParams)).to.equal(testElement)
     })
@@ -281,7 +302,7 @@ describe('Generator', function () {
 
     it('should add a text element with "+" sign for unexpanded elements', () => {
       element.classList.add('unexpanded')
-      const position = { x: 100, y: 50 }
+      const position = { width: 100, height: 50 }
       const hxAttributes = {
         'hx-get': '/update-layout',
         'hx-target': '#mermaid-output',
@@ -296,15 +317,15 @@ describe('Generator', function () {
         throw new Error('Text element was not created.')
       }
 
-      expect(textElement.getAttribute('x')).to.equal('100')
-      expect(textElement.getAttribute('y')).to.equal('50')
+      expect(textElement.getAttribute('x')).to.equal('45')
+      expect(textElement.getAttribute('y')).to.equal('-5')
       expect(textElement.textContent).to.equal('+')
       expect(textElement.getAttribute('onclick')).to.equal('event.stopPropagation()')
     })
 
     it('should add a text element with "-" sign for unexpanded elements', () => {
       element.classList.add('expanded')
-      const position = { x: 100, y: 50 }
+      const position = { width: 100, height: 50 }
       const hxAttributes = {
         'hx-get': '/update-layout',
         'hx-target': '#mermaid-output',
@@ -319,10 +340,57 @@ describe('Generator', function () {
         throw new Error('Text element was not created.')
       }
 
-      expect(textElement.getAttribute('x')).to.equal('100')
-      expect(textElement.getAttribute('y')).to.equal('50')
+      expect(textElement.getAttribute('x')).to.equal('45')
+      expect(textElement.getAttribute('y')).to.equal('-5')
       expect(textElement.textContent).to.equal('-')
       expect(textElement.getAttribute('onclick')).to.equal('event.stopPropagation()')
+    })
+  })
+
+  describe('setupAnimations', () => {
+    it('should return new output if no nodes are present in both svgs', () => {
+      const result = generator.setupAnimations(
+        { diagramType: 'flowchart', layout: 'elk', search: 'FuelType', expandedIds: [] },
+        svgSearchFuelType,
+        svgSearchNuclear,
+        1,
+        0,
+        0,
+        2000,
+        2000
+      )
+
+      expect(result).to.deep.equal({
+        pan: { x: 0, y: 0 },
+        zoom: 1,
+        generatedOutput: svgSearchFuelType,
+      })
+    })
+  })
+
+  // this is essentially a snapshot test moving from a search of `FuelType` to the same search but with the `FossilFuel` node expanded
+  it('should return with animations if nodes are present', () => {
+    const result = generator.setupAnimations(
+      {
+        diagramType: 'flowchart',
+        layout: 'elk',
+        search: 'FuelType',
+        expandedIds: ['dtmi:digitaltwins:ngsi_ld:cim:energy:FossilFuel;1'],
+        highlightNodeId: 'dtmi:digitaltwins:ngsi_ld:cim:energy:FossilFuel:1',
+      },
+      svgSearchFuelTypeExpandedFossilFuel,
+      svgSearchFuelType,
+      1,
+      0,
+      0,
+      2000,
+      2000
+    )
+
+    expect(result).to.deep.equal({
+      generatedOutput: withAnimationsOutputFixture,
+      zoom: 1,
+      pan: { x: -97.73958333333334, y: -147 },
     })
   })
 })

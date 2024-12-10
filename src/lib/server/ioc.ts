@@ -17,7 +17,7 @@ container.register<ICache>(Cache, {
 })
 
 export const iocContainer: IocContainer = {
-  get: <T>(controller: { prototype: T }): T => {
+  get: <T>(controller): T => {
     return container.resolve<T>(controller as never)
   },
 }

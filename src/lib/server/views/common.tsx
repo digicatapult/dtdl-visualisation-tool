@@ -20,6 +20,7 @@ export const Page = (props: PropsWithChildren<{ title: string }>): JSX.Element =
         ></meta> */}
         <script src="/lib/svg-pan-zoom/svg-pan-zoom.min.js"></script>
         <script src="/public/scripts/callbacks.js" type="module"></script>
+        <script src="/public/scripts/a11y.js" type="module"></script>
         <link rel="icon" type="image/ico" sizes="48x48" href="/public/images/favicon.ico" />
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700&display=swap" />
         <link rel="stylesheet" type="text/css" href="/public/styles/main.css" />

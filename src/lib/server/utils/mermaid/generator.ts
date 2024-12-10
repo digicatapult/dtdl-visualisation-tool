@@ -8,9 +8,11 @@ import { UpdateParams } from '../../models/controllerTypes.js'
 import { DiagramType } from '../../models/mermaidDiagrams.js'
 import { Layout } from '../../models/mermaidLayouts.js'
 import { MermaidId } from '../../models/strings.js'
+import { Session } from '../sessions.js'
 import ClassDiagram, { extractClassNodeCoordinate } from './classDiagram.js'
 import { IDiagram } from './diagramInterface.js'
 import Flowchart, { extractFlowchartNodeCoordinates } from './flowchart.js'
+import { BoundingBox } from './helpers.js'
 
 const { log } = console
 
@@ -27,10 +29,10 @@ export class SvgGenerator {
     flowchart: new Flowchart(),
     classDiagram: new ClassDiagram(),
   }
-  coordinateExtractors: Record<DiagramType, (el: Element) => { x: number; y: number }> = {
+  coordinateExtractors = {
     flowchart: extractFlowchartNodeCoordinates,
     classDiagram: extractClassNodeCoordinate,
-  }
+  } satisfies Record<DiagramType, (el: Element) => BoundingBox>
 
   private nodeIdPattern = /^[^-]+-(.+)-\d+$/
   getMermaidIdFromNodeId = (nodeId: string): MermaidId | null => {
@@ -52,15 +54,15 @@ export class SvgGenerator {
 
   addCornerSign(
     element: Element,
-    position: { x: number; y: number },
+    size: { width: number; height: number },
     document: Document,
     hxAttributes: Record<string, string>
   ): void {
-    const { x, y } = position
+    const { width, height } = size
 
     const text = document.createElement('text')
-    text.setAttribute('x', x.toString())
-    text.setAttribute('y', y.toString())
+    text.setAttribute('x', (width / 2 - 5).toString())
+    text.setAttribute('y', (20 - height / 2).toString())
     text.classList.add('corner-sign')
     text.textContent = element.classList.contains('unexpanded') ? '+' : '-'
 
@@ -99,7 +101,7 @@ export class SvgGenerator {
   ): string {
     const dom = new JSDOM(svg, { contentType: 'image/svg+xml' })
     const document = dom.window.document
-    const svgElement = document.querySelector('#mermaid-svg')
+    const svgElement = document.getElementById('mermaid-svg')
     if (!svgElement) throw new InternalError('Error in finding mermaid-svg Element in generated output')
 
     // mermaid sets some default styles on the svg that are unhelpful for resizing. Remove them
@@ -119,6 +121,174 @@ export class SvgGenerator {
     })
 
     return svgElement.outerHTML
+  }
+
+  buildElementMap(
+    diagramType: DiagramType,
+    nodes: ArrayLike<Element>
+  ): Map<string, { element: Element; boundingBox: BoundingBox }> {
+    const coordExtractor = this.coordinateExtractors[diagramType]
+    return new Map(
+      Array.from(nodes)
+        .map((element) => {
+          const mermaidId = this.getMermaidIdFromNodeId(element.id)
+          if (!mermaidId) {
+            return null
+          }
+          const boundingBox = coordExtractor(element)
+          return [mermaidId, { element, boundingBox }] as const
+        })
+        .filter((x) => !!x)
+    )
+  }
+
+  setupAnimations(
+    newSession: Session,
+    newOutput: string,
+    oldOutput: string,
+    currentZoom: number,
+    currentPanX: number,
+    currentPanY: number,
+    svgWidth: number,
+    svgHeight: number
+  ) {
+    // next we need to parse the two svgs into JSDom
+    const oldDom = new JSDOM(oldOutput, { contentType: 'image/svg+xml' })
+    const oldDocument = oldDom.window.document
+
+    const newDom = new JSDOM(newOutput, { contentType: 'image/svg+xml' })
+    const newDocument = newDom.window.document
+    const newSvgElement = newDocument.getElementById('mermaid-svg')
+    if (!newSvgElement) throw new InternalError('Error in finding mermaid-svg Element in generated output')
+
+    // calculate the coordinates of the viewport in svg space
+    const viewportLeft = -1 * (currentPanX / currentZoom)
+    const viewportRight = (svgWidth - currentPanX) / currentZoom
+    const viewportTop = -1 * (currentPanY / currentZoom)
+    const viewportBottom = (svgHeight - currentPanY) / currentZoom
+    const viewport = {
+      left: viewportLeft,
+      right: viewportRight,
+      top: viewportTop,
+      bottom: viewportBottom,
+      width: viewportRight - viewportLeft,
+      height: viewportBottom - viewportTop,
+      x: viewportLeft + 0.5 * viewportRight,
+      y: viewportTop + 0.5 * viewportBottom,
+    }
+
+    const newNodesMap = this.buildElementMap(newSession.diagramType, newDocument.getElementsByClassName('node'))
+    const oldNodesMap = this.buildElementMap(newSession.diagramType, oldDocument.getElementsByClassName('node'))
+    const visibleOldNodes = new Set(
+      Array.from(oldNodesMap)
+        .filter(([id, { boundingBox }]) => {
+          return (
+            boundingBox.right > viewport.left &&
+            boundingBox.left < viewport.right &&
+            boundingBox.bottom > viewport.top &&
+            boundingBox.top < viewport.bottom &&
+            newNodesMap.has(id)
+          )
+        })
+        .map(([id]) => id)
+    )
+
+    if (visibleOldNodes.size === 0) {
+      return {
+        generatedOutput: newOutput,
+        zoom: 1,
+        pan: { x: 0, y: 0 },
+      }
+    }
+
+    const count = visibleOldNodes.size
+    const panChange = Array.from(visibleOldNodes).reduce(
+      (acc, id) => {
+        const oldBoundingBox = oldNodesMap.get(id)?.boundingBox
+        const newBoundingBox = newNodesMap.get(id)?.boundingBox
+
+        if (!newBoundingBox || !oldBoundingBox)
+          throw new InternalError(`Expected node ${id} to exist in new and old nodes`)
+
+        return {
+          x: acc.x + (oldBoundingBox.x - newBoundingBox.x) / count,
+          y: acc.y + (oldBoundingBox.y - newBoundingBox.y) / count,
+        }
+      },
+      { x: 0, y: 0 }
+    )
+
+    const newViewport = {
+      left: viewport.left - panChange.x,
+      right: viewport.right - panChange.x,
+      top: viewport.top - panChange.y,
+      bottom: viewport.bottom - panChange.y,
+      width: viewport.width,
+      height: viewport.height,
+      x: viewport.x - panChange.x,
+      y: viewport.y - panChange.y,
+    }
+
+    const revealAnimation = newDocument.createElement('animate')
+    revealAnimation.setAttribute('attributeName', 'opacity')
+    revealAnimation.setAttribute('from', '0')
+    revealAnimation.setAttribute('to', '1')
+    revealAnimation.setAttribute('dur', '200ms')
+    revealAnimation.setAttribute('begin', '500ms')
+    revealAnimation.setAttribute('fill', 'freeze')
+
+    // hide the edges and labels with the reveal animation
+    newSvgElement.getElementsByClassName('edges')
+    newSvgElement.getElementsByClassName('edgeLabels')
+    Array.from([
+      Array.from(newSvgElement.getElementsByClassName('edges')),
+      Array.from(newSvgElement.getElementsByClassName('edgeLabels')),
+    ])
+      .flat()
+      .forEach((element) => {
+        element.setAttribute('opacity', '0')
+        element.appendChild(revealAnimation.cloneNode())
+      })
+
+    Array.from(newNodesMap).forEach(([id, { element: newElement, boundingBox: newBoundingBox }]) => {
+      if (
+        newBoundingBox.right < newViewport.left ||
+        newBoundingBox.left > newViewport.right ||
+        newBoundingBox.top > newViewport.bottom ||
+        newBoundingBox.bottom < newViewport.top
+      ) {
+        return
+      }
+
+      const oldNode = visibleOldNodes.has(id) && oldNodesMap.get(id)
+      if (!oldNode) {
+        newElement.setAttribute('opacity', '0')
+        newElement.appendChild(revealAnimation.cloneNode())
+        return
+      }
+
+      const animateTransform = newDocument.createElement('animateTransform')
+      animateTransform.setAttribute('attributeName', 'transform')
+      animateTransform.setAttribute('type', 'translate')
+      animateTransform.setAttribute('additive', 'sum')
+      animateTransform.setAttribute(
+        'from',
+        `${oldNode.boundingBox.x - newBoundingBox.x - panChange.x},${oldNode.boundingBox.y - newBoundingBox.y - panChange.y}`
+      )
+      animateTransform.setAttribute('to', '0,0')
+      animateTransform.setAttribute('dur', '500ms')
+      animateTransform.setAttribute('fill', 'freeze')
+      newElement.appendChild(animateTransform)
+    })
+
+    return {
+      generatedOutput: newSvgElement.outerHTML,
+      zoom: currentZoom,
+      pan: {
+        x: currentPanX + panChange.x * currentZoom,
+        y: currentPanY + panChange.y * currentZoom,
+      },
+    }
   }
 
   async run(

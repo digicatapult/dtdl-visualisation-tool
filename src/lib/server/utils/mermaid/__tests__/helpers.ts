@@ -31,3 +31,15 @@ export const parseMermaid = async (markdown: string): Promise<ParseResult> => {
   await browser.close()
   return parsedMermaid
 }
+
+export function withGroupElement(): Element {
+  const dom = new JSDOM()
+  const document = dom.window.document
+  return document.createElement('g')
+}
+
+export function withPathElement(): Element {
+  const dom = new JSDOM()
+  const document = dom.window.document
+  return document.createElement('path')
+}
