@@ -4,6 +4,7 @@ ignores: [
     'rimraf',
     '@kitajs/ts-html-plugin',
     'htmx-ext-json-enc',
+    'htmx-ext-response-targets',
     'htmx.org',
     'svg-pan-zoom',
     'playwright-ctrf-json-reporter'

@@ -5,11 +5,6 @@
       "src/lib/server/controllers/**/*.tsx",
       "src/lib/server/controllers/**/*.ts"
     ],
-    "multerOpts": {
-      "limits": {
-        "fileSize": 104857600
-      }
-    },
     "spec": {
       "outputDirectory": "src/lib/server",
       "specVersion": 3

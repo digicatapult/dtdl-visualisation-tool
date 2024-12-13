@@ -28,6 +28,7 @@ export type UrlQueryKeys = (typeof urlQueryKeys)[number]
 export type A11yPreference = 'reduce-motion'
 export interface UpdateParams extends RootParams {
   sessionId: UUID
+  dtdlModelId: UUID
   shouldExpand?: boolean
   shouldTruncate?: boolean
   svgWidth: number
@@ -38,6 +39,6 @@ export interface UpdateParams extends RootParams {
   a11y?: A11yPreference[]
 }
 
-export const relevantParams = ['search', 'diagramType', 'layout', 'expandedIds'] as const
+export const relevantParams = ['search', 'diagramType', 'layout', 'expandedIds', 'dtdlModelId'] as const
 export type GenerateParamKeys = (typeof relevantParams)[number]
 export type GenerateParams = Pick<UpdateParams & Session, GenerateParamKeys>

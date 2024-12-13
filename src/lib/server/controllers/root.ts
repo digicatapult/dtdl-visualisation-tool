@@ -1,9 +1,12 @@
 import { randomUUID } from 'node:crypto'
+import fs from 'node:fs'
+import os from 'node:os'
 
-import { DtdlObjectModel, EntityType } from '@digicatapult/dtdl-parser'
+import { DtdlObjectModel, EntityType, getInterop, parseDirectories } from '@digicatapult/dtdl-parser'
 import express from 'express'
-import { Get, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
+import { Get, Post, Produces, Queries, Query, Request, Route, SuccessResponse, UploadedFile } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
+import unzipper from 'unzipper'
 import { InvalidQueryError } from '../errors.js'
 import { Logger, type ILogger } from '../logger.js'
 import {
@@ -17,6 +20,7 @@ import {
 } from '../models/controllerTypes.js'
 import { Cache, type ICache } from '../utils/cache.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
+import { allInterfaceFilter } from '../utils/dtdl/extract.js'
 import { filterModelByDisplayName, getRelatedIdsById } from '../utils/dtdl/filter.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
 import { dtdlIdReinstateSemicolon } from '../utils/mermaid/helpers.js'
@@ -63,6 +67,7 @@ export class RootController extends HTMLController {
         layout: params.layout,
         search: params.search,
         sessionId,
+        dtdlModelId: this.dtdlLoader.getDefaultDtdlModelId(),
         diagramType: params.diagramType,
       })
     )
@@ -72,11 +77,11 @@ export class RootController extends HTMLController {
   @Get('/update-layout')
   public async updateLayout(@Request() req: express.Request, @Queries() params: UpdateParams): Promise<HTML> {
     this.logger.debug('search: %o', { search: params.search, layout: params.layout })
-
+    this.setHeader('HX-Trigger', '') // remove event from responses
     const a11y = new Set(params.a11y)
 
     // get the base dtdl model that we will derive the graph from
-    const baseModel = this.dtdlLoader.getDefaultDtdlModel()
+    const baseModel = this.dtdlLoader.getDtdlModel(params.dtdlModelId)
 
     // pull out the stored session. If this is invalid the request is invalid
     const session = this.sessionStore.get(params.sessionId)
@@ -164,6 +169,7 @@ export class RootController extends HTMLController {
         search: newSession.search,
         diagramType: newSession.diagramType,
         sessionId: params.sessionId,
+        dtdlModelId: params.dtdlModelId,
         svgWidth: params.svgWidth,
         svgHeight: params.svgHeight,
         currentZoom: zoom,
@@ -185,12 +191,39 @@ export class RootController extends HTMLController {
     return this.html(this.templates.Legend({ showContent }))
   }
 
-  @SuccessResponse(200)
-  @Get('/entity/{id}')
-  public async getEntityById(id: string): Promise<HTML> {
-    const entityId = dtdlIdReinstateSemicolon(id)
-    const entity = this.dtdlLoader.getDefaultDtdlModel()[entityId]
-    return this.html(`${JSON.stringify(entity, null, 4)}`)
+  @SuccessResponse(200, 'File uploaded successfully')
+  @Post('/upload')
+  public async uploadZip(@UploadedFile('file') file: Express.Multer.File): Promise<HTML> {
+    if (file.mimetype !== 'application/zip') {
+      return this.html('Only .zip accepted')
+    }
+    const directory = await unzipper.Open.buffer(file.buffer)
+
+    console.log(directory.numberOfRecords)
+    console.log(directory.sizeOfCentralDirectory)
+
+    const tempDir = os.tmpdir()
+    const extractionPath = fs.mkdtempSync(tempDir)
+    await directory.extract({ path: extractionPath })
+    console.log(extractionPath)
+
+    const parser = await getInterop()
+    const parsedDtdl = parseDirectories(extractionPath, parser)
+    if (!parsedDtdl) {
+      return this.html('Failed to parse DTDL')
+    }
+    const dtdlModelId = this.dtdlLoader.setDtdlModel(parsedDtdl)
+    const interfaces = Object.entries(parsedDtdl)
+      .filter(allInterfaceFilter)
+      .map(([, entity]) => entity)
+    this.search.setCollection(interfaces)
+
+    this.setHeader('HX-Trigger', 'newDtdl')
+
+    return this.html(`
+      ${file.originalname}
+      <input hx-swap-oob="true" id="dtdlModelId" name="dtdlModelId" type="hidden" value="${dtdlModelId}" />
+    `)
   }
 
   private getCurrentPathQuery(req: express.Request): { path: string; query: URLSearchParams } | undefined {

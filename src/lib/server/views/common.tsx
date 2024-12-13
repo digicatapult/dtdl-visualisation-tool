@@ -13,6 +13,7 @@ export const Page = (props: PropsWithChildren<{ title: string }>): JSX.Element =
       <head>
         <script src="/lib/htmx.org/htmx.min.js"></script>
         <script src="/lib/htmx-ext-json-enc/json-enc.js"></script>
+        <script src="/lib/htmx-ext-response-targets/response-targets.js"></script>
         {/* Helpful for debugging */}
         {/* <meta
           name="htmx-config"
