@@ -16,9 +16,11 @@ test.describe('xss-vulnerabilities', () => {
       })
 
       await page.goto('./')
-      await page.fill('#search', payload)
-
-      await page.waitForTimeout(2000)
+      await Promise.all([
+        page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200),
+        page.fill('#search', payload),
+      ])
+      await page.waitForTimeout(500)
 
       expect(dialogTriggered).toBe(false)
     })

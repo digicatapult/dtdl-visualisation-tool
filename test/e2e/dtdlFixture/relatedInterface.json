@@ -1,6 +1,0 @@
-{
-    "@context": ["dtmi:dtdl:context;3"],
-    "@id": "dtmi:digitaltwins:ngsi_ld:cim:energy:OperationalLimitSet;1",
-    "@type": "Interface",
-    "displayName": "<script>alert('xss-attack')</script>"
-  }

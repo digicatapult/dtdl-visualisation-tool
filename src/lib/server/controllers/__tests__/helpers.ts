@@ -43,7 +43,10 @@ export const mockSearch = new FuseSearch<EntityType>(Object.values(simpleMockDtd
 export const simpleMockDtdlLoader: DtdlLoader = new DtdlLoader(simpleMockDtdlObjectModel)
 export const complexMockDtdlLoader: DtdlLoader = new DtdlLoader(complexMockDtdlModel)
 
-export const generatorRunStub = sinon.stub().resolves(generatedSVGFixture)
+export const generatorRunStub = sinon.stub().resolves({
+  type: 'svg',
+  content: generatedSVGFixture,
+})
 export const mockGenerator: SvgGenerator = {
   setSVGAttributes: sinon.stub().callsFake((x) => `${x}_attr`),
   setupAnimations: sinon
