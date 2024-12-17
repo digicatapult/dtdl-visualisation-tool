@@ -32,7 +32,6 @@ export default class MermaidTemplates {
     search,
     layout,
     sessionId,
-    dtdlModelId,
     diagramType,
     svgWidth,
     svgHeight,
@@ -41,7 +40,6 @@ export default class MermaidTemplates {
     search?: string
     layout: Layout
     sessionId: UUID
-    dtdlModelId: UUID
     diagramType: DiagramType
     svgWidth?: number
     svgHeight?: number
@@ -52,12 +50,11 @@ export default class MermaidTemplates {
           layout={layout}
           search={search}
           sessionId={sessionId}
-          dtdlModelId={dtdlModelId}
           diagramType={diagramType}
           svgWidth={svgWidth}
           svgHeight={svgHeight}
         />
-        <form id="upload-form" hx-ext="response-targets" hx-on="htmx:afterRequest: this.reset()">
+        <form id="upload-form" hx-ext="response-targets">
           <label id="upload-button" for="upload">
             Upload Ontology
           </label>
@@ -206,7 +203,6 @@ export default class MermaidTemplates {
     layout,
     swapOutOfBand,
     sessionId,
-    dtdlModelId,
     diagramType,
     svgWidth,
     svgHeight,
@@ -220,7 +216,6 @@ export default class MermaidTemplates {
     diagramType: DiagramType
     // hidden inputs not set by input controls
     sessionId: UUID
-    dtdlModelId: UUID
     svgWidth?: number
     svgHeight?: number
     currentZoom?: number
@@ -250,7 +245,6 @@ export default class MermaidTemplates {
           {...commonUpdateAttrs}
         />
         <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
-        <input id="dtdlModelId" name="dtdlModelId" type="hidden" value={escapeHtml(dtdlModelId || '')} />
 
         <input id="svgWidth" name="svgWidth" type="hidden" value={maybeNumberToAttr(svgWidth, 300)} />
         <input id="svgHeight" name="svgHeight" type="hidden" value={maybeNumberToAttr(svgHeight, 100)} />

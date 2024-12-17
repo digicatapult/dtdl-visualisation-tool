@@ -6,15 +6,17 @@ import { UUID } from '../../models/strings'
 @singleton()
 export class DtdlLoader {
   private dtdlModels: Map<UUID, DtdlObjectModel>
-  private defaultDtdlModelId: UUID
+  private currentDtdlModelId: UUID
 
-  constructor(defaultModel: DtdlObjectModel) {
+  constructor(model?: DtdlObjectModel) {
     this.dtdlModels = new Map<UUID, DtdlObjectModel>()
-    this.defaultDtdlModelId = this.setDtdlModel(defaultModel)
+    this.currentDtdlModelId = ''
+
+    if (model) this.setDtdlModel(model)
   }
 
-  getDefaultDtdlModelId(): UUID {
-    return this.defaultDtdlModelId
+  getCurrentDtdlModelId(): UUID {
+    return this.currentDtdlModelId
   }
 
   getDtdlModel(id: UUID): DtdlObjectModel {
@@ -26,6 +28,7 @@ export class DtdlLoader {
   setDtdlModel(dtdlObjectModel: DtdlObjectModel): UUID {
     const dtdlModelId = randomUUID()
     this.dtdlModels.set(dtdlModelId, dtdlObjectModel)
+    this.currentDtdlModelId = dtdlModelId
     return dtdlModelId
   }
 }
