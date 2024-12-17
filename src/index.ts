@@ -7,14 +7,13 @@ import chalk from 'chalk'
 import { Command } from 'commander'
 import { container } from 'tsyringe'
 import { httpServer } from './lib/server/index.js'
+import { logger } from './lib/server/logger.js'
 import { DtdlLoader } from './lib/server/utils/dtdl/dtdlLoader.js'
 import { allInterfaceFilter } from './lib/server/utils/dtdl/extract.js'
 import { FuseSearch } from './lib/server/utils/fuseSearch.js'
 import { SvgGenerator } from './lib/server/utils/mermaid/generator.js'
 import { Search } from './lib/server/utils/search.js'
 import version from './version.js'
-
-const { log } = console
 
 const program = new Command()
 
@@ -59,16 +58,15 @@ program
         useValue: new FuseSearch(interfaces),
       })
 
-      log(`Loading SVG generator...`)
-      const generator = new SvgGenerator()
+      logger.info(`Loading SVG generator...`)
+      const generator = container.resolve(SvgGenerator)
       await generator.run(minimumDtdl, 'flowchart', 'elk', {})
-      container.register(SvgGenerator, { useValue: generator })
-      log(`Complete`)
+      logger.info(`Complete`)
 
       httpServer(options.port)
-      log(`\nView DTDL model: http://localhost:${options.port}`)
+      logger.info(`View DTDL model: http://localhost:${options.port}`)
     } else {
-      log(`Error parsing DTDL`)
+      logger.error(`Error parsing DTDL`)
       process.exit(1)
     }
   })
@@ -90,7 +88,7 @@ if (!program.option) {
 }
 
 program.on('command:*', function () {
-  log(`
+  logger.error(`
     ${r('Invalid command: %s\nSee --help for a list of available commands.')}
     ${program.args.join(' ')}`)
   process.exit(127)

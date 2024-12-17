@@ -15,6 +15,33 @@
   fill: #fbf291;
 }
 
+/* make it so markers colors match those of their lines (note the duplicate class to increase specificity) */
+#mermaid-svg .marker.marker {
+  stroke: context-stroke !important;
+  fill: context-fill !important;
+}
+/* color paths based on their highlighted state */
+#mermaid-svg g.edges > path,
+#mermaid-svg g.edgePaths > path {
+  fill-opacity: 0;
+}
+#mermaid-svg g.edges > path:not([highlighted]),
+#mermaid-svg g.edgePaths > path:not([highlighted]) {
+  stroke: #333333;
+  fill: #333333;
+}
+#mermaid-svg g.edgePaths > path[highlighted],
+#mermaid-svg g.edgePaths > path[highlighted] {
+  stroke: red;
+  fill: red;
+}
+#mermaid-svg g.edgeLabel[highlighted] .text-inner-tspan {
+  fill: red;
+}
+#mermaid-svg g[clickable]:hover {
+  cursor: pointer;
+}
+
 g.node path,
 g.node.search path {
   stroke-dasharray: 5, 5;

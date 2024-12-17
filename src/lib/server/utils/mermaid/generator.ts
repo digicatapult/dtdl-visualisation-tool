@@ -2,8 +2,11 @@ import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { renderMermaid, type ParseMDDOptions } from '@mermaid-js/mermaid-cli'
 import { JSDOM } from 'jsdom'
 import puppeteer, { Browser } from 'puppeteer'
-import { singleton } from 'tsyringe'
+import { inject, singleton } from 'tsyringe'
+import { z } from 'zod'
+
 import { InternalError } from '../../errors.js'
+import { Logger, type ILogger } from '../../logger.js'
 import { UpdateParams } from '../../models/controllerTypes.js'
 import { DiagramType } from '../../models/mermaidDiagrams.js'
 import { Layout } from '../../models/mermaidLayouts.js'
@@ -12,14 +15,24 @@ import { Session } from '../sessions.js'
 import ClassDiagram, { extractClassNodeCoordinate } from './classDiagram.js'
 import { IDiagram } from './diagramInterface.js'
 import Flowchart, { extractFlowchartNodeCoordinates } from './flowchart.js'
-import { BoundingBox } from './helpers.js'
+import { BoundingBox, dtdlIdReplaceSemicolon } from './helpers.js'
 
-const { log } = console
+export const generateResultParser = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('text'),
+    content: z.string(),
+  }),
+  z.object({
+    type: z.literal('svg'),
+    content: z.string(),
+  }),
+])
+export type GenerateResult = z.infer<typeof generateResultParser>
 
 @singleton()
 export class SvgGenerator {
   public browser: Promise<Browser>
-  constructor() {
+  constructor(@inject(Logger) private logger: ILogger) {
     this.browser = puppeteer.launch({})
   }
 
@@ -35,19 +48,20 @@ export class SvgGenerator {
   } satisfies Record<DiagramType, (el: Element) => BoundingBox>
 
   private nodeIdPattern = /^[^-]+-(.+)-\d+$/
-  getMermaidIdFromNodeId = (nodeId: string): MermaidId | null => {
-    const mermaidId = nodeId.match(this.nodeIdPattern)
+  private edgePattern = /^[^_]+_(.*?)(?:_\d+)+$/
+  getMermaidIdFromId = (nodeId: string, elementType: 'node' | 'edge'): MermaidId | null => {
+    const mermaidId = nodeId.match(elementType === 'node' ? this.nodeIdPattern : this.edgePattern)
     return mermaidId === null ? mermaidId : mermaidId[1]
   }
 
-  generateHxAttributes(element: Element): Record<string, string> {
+  generateHxAttributes(highlightNodeId: string): Record<string, string> {
     return {
       'hx-get': '/update-layout',
       'hx-target': '#mermaid-output',
       'hx-swap': 'outerHTML transition:true',
       'hx-indicator': '#spinner',
       'hx-vals': JSON.stringify({
-        highlightNodeId: this.getMermaidIdFromNodeId(element.id),
+        highlightNodeId,
       }),
     }
   }
@@ -81,7 +95,12 @@ export class SvgGenerator {
   }
 
   setNodeAttributes(element: Element, document: Document, diagramType: DiagramType, highlightNodeId?: string) {
-    const hxAttributes = this.generateHxAttributes(element)
+    const id = this.getMermaidIdFromId(element.id, 'node')
+    if (!id) {
+      return
+    }
+
+    const hxAttributes = this.generateHxAttributes(id)
 
     Object.entries(hxAttributes).forEach(([key, value]) => element.setAttribute(key, value))
 
@@ -90,14 +109,51 @@ export class SvgGenerator {
       this.addCornerSign(element, position, document, hxAttributes)
     }
 
-    if (highlightNodeId && this.getMermaidIdFromNodeId(element.id) === highlightNodeId) {
+    if (id === highlightNodeId) {
       element.setAttribute('highlighted', '')
     }
   }
 
+  setEdgeAttributes(
+    lineElement: Element,
+    labelElement: Element,
+    relationshipMap: Map<string, string>,
+    highlighNodeId?: string
+  ) {
+    const labelText = labelElement.querySelector('.text-inner-tspan')?.innerHTML
+    const relationshipId = relationshipMap.get(`${this.getMermaidIdFromId(lineElement.id, 'edge')}_${labelText}`)
+
+    if (!relationshipId) {
+      return
+    }
+
+    const hxAttributes = this.generateHxAttributes(relationshipId)
+    Object.entries(hxAttributes).forEach(([key, value]) => {
+      labelElement.setAttribute(key, value)
+    })
+
+    labelElement.setAttribute('clickable', '')
+    if (relationshipId === highlighNodeId) {
+      lineElement.setAttribute('highlighted', '')
+      labelElement.setAttribute('highlighted', '')
+    }
+  }
+
+  getSvgGraphElements(svgElement: Element, elementType: 'nodes' | 'edges' | 'edgeLabels' | 'edgePaths') {
+    const query = `g.${elementType}`
+    const parent = svgElement.querySelector(query)
+
+    if (!parent) {
+      throw new InternalError(`Expected there to be an element in the SVG that satisfies the query ${query}`)
+    }
+
+    return parent
+  }
+
   setSVGAttributes(
     svg: string,
-    params: Pick<UpdateParams, 'svgWidth' | 'svgHeight' | 'highlightNodeId' | 'diagramType'>
+    model: DtdlObjectModel,
+    params: Pick<UpdateParams, 'svgWidth' | 'svgHeight' | 'highlightNodeId' | 'diagramType' | 'layout'>
   ): string {
     const dom = new JSDOM(svg, { contentType: 'image/svg+xml' })
     const document = dom.window.document
@@ -112,12 +168,35 @@ export class SvgGenerator {
 
     // modify the viewbox to match the available container
     svgElement.setAttribute('viewBox', `0 0 ${params.svgWidth} ${params.svgHeight}`)
-
     svgElement.setAttribute('hx-include', '#search-panel')
-    const nodes = svgElement.getElementsByClassName('node')
 
-    Array.from(nodes).forEach((node) => {
+    // mutate nodes to make them clickable and styled correctly
+    const nodes = this.getSvgGraphElements(svgElement, 'nodes')
+    Array.from(nodes.children).forEach((node) => {
       this.setNodeAttributes(node, document, params.diagramType, params.highlightNodeId)
+    })
+    // re-order nodes after edges so that the path fill doesn't overlap clickable nodes
+    nodes.parentNode?.appendChild(nodes)
+
+    // mutate edges to make them clickable and styled accordingly
+    const edges = this.getSvgGraphElements(svgElement, params.layout === 'elk' ? 'edges' : 'edgePaths')
+    const edgeLabels = this.getSvgGraphElements(svgElement, 'edgeLabels')
+    const relationshipMap = new Map(
+      Object.values(model)
+        .map((entity) => {
+          if (entity.EntityKind !== 'Relationship' || !('target' in entity) || !entity.ChildOf || !entity.target) {
+            return null
+          }
+          return [
+            [dtdlIdReplaceSemicolon(entity.ChildOf), dtdlIdReplaceSemicolon(entity.target), entity.name].join('_'),
+            entity.Id,
+          ] as const
+        })
+        .filter((x) => !!x)
+    )
+    Array.from(edges.children).forEach((edge, i) => {
+      const label = edgeLabels.children[i]
+      this.setEdgeAttributes(edge, label, relationshipMap, params.highlightNodeId)
     })
 
     return svgElement.outerHTML
@@ -131,7 +210,7 @@ export class SvgGenerator {
     return new Map(
       Array.from(nodes)
         .map((element) => {
-          const mermaidId = this.getMermaidIdFromNodeId(element.id)
+          const mermaidId = this.getMermaidIdFromId(element.id, 'node')
           if (!mermaidId) {
             return null
           }
@@ -297,7 +376,7 @@ export class SvgGenerator {
     layout: Layout,
     options: ParseMDDOptions = {},
     isRetry: boolean = false
-  ): Promise<string> {
+  ): Promise<GenerateResult> {
     try {
       //  Mermaid config
       const parseMDDOptions: ParseMDDOptions = {
@@ -316,18 +395,31 @@ export class SvgGenerator {
       }
 
       const graph = this.mermaidMarkdownByDiagramType[diagramType].generateMarkdown(dtdlObject, ' TD')
-      if (!graph) return 'No graph'
+      if (!graph) {
+        return {
+          type: 'text',
+          content: 'No graph',
+        }
+      }
 
       const { data } = await renderMermaid(await this.browser, graph, 'svg', parseMDDOptions)
       const decoder = new TextDecoder()
 
-      if (!decoder.decode(data)) return 'No SVG generated'
+      if (!decoder.decode(data)) {
+        return {
+          type: 'text',
+          content: 'No SVG generated',
+        }
+      }
 
-      return decoder.decode(data)
+      return {
+        type: 'svg',
+        content: decoder.decode(data),
+      }
     } catch (err) {
-      log('Something went wrong rendering mermaid layout', err)
+      this.logger.warn('Something went wrong rendering mermaid layout', err)
       if (!isRetry) {
-        log('Attempting to relaunch puppeteer')
+        this.logger.info('Attempting to relaunch puppeteer')
 
         const oldBrowser = await this.browser
         await oldBrowser.close()
@@ -335,6 +427,7 @@ export class SvgGenerator {
         this.browser = puppeteer.launch({})
         return this.run(dtdlObject, diagramType, layout, options, true)
       }
+      this.logger.error('Something went wrong rendering mermaid layout', err)
       throw err
     }
   }

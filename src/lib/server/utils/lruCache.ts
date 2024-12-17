@@ -1,5 +1,6 @@
 import { LRUCache as LRU } from 'lru-cache'
 
+import { z } from 'zod'
 import { ICache } from './cache'
 
 export class LRUCache implements ICache {
@@ -13,10 +14,16 @@ export class LRUCache implements ICache {
     })
   }
 
-  get = (key: string): string | undefined => this.cache.get(key)
+  get = <T>(key: string, parser: z.ZodType<T>): T | undefined => {
+    const fromCache = this.cache.get(key)
+    if (fromCache === undefined) {
+      return
+    }
+    return parser.parse(JSON.parse(fromCache))
+  }
 
-  set = (key: string, value: string): void => {
-    this.cache.set(key, value)
+  set = <T>(key: string, value: T): void => {
+    this.cache.set(key, JSON.stringify(value))
   }
 
   has = (key: string): boolean => this.cache.has(key)

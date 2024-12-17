@@ -18,7 +18,7 @@ import {
 import { Cache, type ICache } from '../utils/cache.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import { filterModelByDisplayName, getRelatedIdsById } from '../utils/dtdl/filter.js'
-import { SvgGenerator } from '../utils/mermaid/generator.js'
+import { GenerateResult, generateResultParser, SvgGenerator } from '../utils/mermaid/generator.js'
 import { dtdlIdReinstateSemicolon } from '../utils/mermaid/helpers.js'
 import { Search, type ISearch } from '../utils/search.js'
 import SessionStore, { Session } from '../utils/sessions.js'
@@ -128,21 +128,33 @@ export class RootController extends HTMLController {
       svgWidth: params.svgWidth,
       svgHeight: params.svgHeight,
       diagramType: newSession.diagramType,
+      layout: newSession.layout,
       highlightNodeId: newSession.highlightNodeId,
     }
-    const newOutput = this.generator.setSVGAttributes(rawOutput, attributeParams)
 
-    const { generatedOutput, pan, zoom } = this.setupAnimations(
-      a11y,
-      newOutput,
-      session,
-      newSession,
-      params.currentZoom,
-      params.currentPanX,
-      params.currentPanY,
-      params.svgWidth,
-      params.svgHeight
-    )
+    let finalOutput: { generatedOutput: string; pan: { x: number; y: number }; zoom: number }
+
+    if (rawOutput.type === 'svg') {
+      const newOutput = this.generator.setSVGAttributes(rawOutput.content, filteredModel, attributeParams)
+      finalOutput = this.setupAnimations(
+        a11y,
+        newOutput,
+        session,
+        newSession,
+        params.currentZoom,
+        params.currentPanX,
+        params.currentPanY,
+        params.svgWidth,
+        params.svgHeight
+      )
+    } else {
+      finalOutput = {
+        generatedOutput: rawOutput.content,
+        zoom: params.currentZoom,
+        pan: { x: params.currentPanX, y: params.currentPanY },
+      }
+    }
+    const { generatedOutput, pan, zoom } = finalOutput
 
     // store the updated session
     this.sessionStore.set(params.sessionId, newSession)
@@ -269,10 +281,16 @@ export class RootController extends HTMLController {
     }
 
     // get the old svg from the cache
-    const oldOutput = this.cache.get(this.createCacheKey(oldSession))
+    const cacheKey = this.createCacheKey(oldSession)
+    const oldOutput = this.cache.get(cacheKey, generateResultParser)
 
     // on a cache miss skip animations so the render isn't twice as long
     if (!oldOutput) {
+      return withoutAnimations
+    }
+
+    // if old output wasn't an svg also skip
+    if (oldOutput.type !== 'svg') {
       return withoutAnimations
     }
 
@@ -296,7 +314,7 @@ export class RootController extends HTMLController {
     return this.generator.setupAnimations(
       newSession,
       newOutput,
-      oldOutput,
+      oldOutput.content,
       currentZoom,
       currentPanX,
       currentPanY,
@@ -305,9 +323,9 @@ export class RootController extends HTMLController {
     )
   }
 
-  private async generateRawOutput(model: DtdlObjectModel, session: GenerateParams): Promise<string> {
+  private async generateRawOutput(model: DtdlObjectModel, session: GenerateParams): Promise<GenerateResult> {
     const cacheKey = this.createCacheKey(session)
-    const fromCache = this.cache.get(cacheKey)
+    const fromCache = this.cache.get(cacheKey, generateResultParser)
     if (fromCache) {
       return fromCache
     }

@@ -2,6 +2,7 @@ import { ParseMDDOptions } from '@mermaid-js/mermaid-cli'
 import { expect } from 'chai'
 import { JSDOM } from 'jsdom'
 import { describe, it } from 'mocha'
+import { pino } from 'pino'
 import sinon from 'sinon'
 import { defaultParams } from '../../../controllers/__tests__/root.test'
 import { SvgGenerator } from '../generator'
@@ -18,7 +19,8 @@ import { checkIfStringIsSVG } from './helpers'
 
 describe('Generator', function () {
   this.timeout(10000)
-  const generator = new SvgGenerator()
+  const logger = pino({ level: 'silent' })
+  const generator = new SvgGenerator(logger)
 
   describe('mermaidMarkdownByChartType', () => {
     it('should return a flowchart graph for a simple dtdl model', () => {
@@ -54,7 +56,8 @@ describe('Generator', function () {
 
     it('should return no graph for empty object model', async () => {
       const generatedOutput = await generator.run({}, defaultParams.diagramType, defaultParams.layout, options)
-      expect(generatedOutput).to.equal(`No graph`)
+      expect(generatedOutput.type).to.equal('text')
+      expect(generatedOutput.content).to.equal(`No graph`)
     })
 
     it('should return a simple svg', async () => {
@@ -64,11 +67,12 @@ describe('Generator', function () {
         defaultParams.layout,
         options
       )
-      expect(checkIfStringIsSVG(generatedOutput)).to.equal(true)
+      expect(generatedOutput.type).to.equal('svg')
+      expect(checkIfStringIsSVG(generatedOutput.content)).to.equal(true)
     })
 
     it('should retry if an error occurs', async () => {
-      const generator = new SvgGenerator()
+      const generator = new SvgGenerator(logger)
       const browser = await generator.browser
       const stub = sinon.stub(browser, 'newPage').onFirstCall().rejects('Error').callThrough()
 
@@ -79,7 +83,8 @@ describe('Generator', function () {
         options
       )
 
-      expect(checkIfStringIsSVG(generatedOutput)).to.equal(true)
+      expect(generatedOutput.type).to.equal('svg')
+      expect(checkIfStringIsSVG(generatedOutput.content)).to.equal(true)
       expect(stub.callCount).to.equal(1)
     })
   })
@@ -87,11 +92,19 @@ describe('Generator', function () {
   describe('getMermaidIdFromNodeId', () => {
     it('should return a mermaidId from a svg node id', () => {
       const svgNodeId = 'flowchart-dtmi:com:example:1-1'
-      expect(generator.getMermaidIdFromNodeId(svgNodeId)).to.equal('dtmi:com:example:1')
+      expect(generator.getMermaidIdFromId(svgNodeId, 'node')).to.equal('dtmi:com:example:1')
     })
-    it('should return a null from a string that does not match the regex pattern', () => {
+    it('should return a null from a string that does not match the node regex pattern', () => {
       const nonMatchingString = 'dtmi:com:example:1'
-      expect(generator.getMermaidIdFromNodeId(nonMatchingString)).to.equal(null)
+      expect(generator.getMermaidIdFromId(nonMatchingString, 'node')).to.equal(null)
+    })
+    it('should return a mermaidId from a svg edge id', () => {
+      const svgNodeId = 'test_edge_id_0_1_2_345'
+      expect(generator.getMermaidIdFromId(svgNodeId, 'edge')).to.equal('edge_id')
+    })
+    it('should return a null from a string that does not match the edge regex pattern', () => {
+      const nonMatchingString = 'dtmi:com:example:1'
+      expect(generator.getMermaidIdFromId(nonMatchingString, 'edge')).to.equal(null)
     })
   })
   describe('setNodeAttributes', () => {
@@ -128,14 +141,15 @@ describe('Generator', function () {
       expect(hxVals.shouldTruncate).to.equal(false)
     })
 
-    it('should set highlighNodeId to be null', () => {
+    it('should not set htmx attributes if id is invalid', () => {
       const element = document.createElement('div')
       element.id = 'invalidId'
 
       generator.setNodeAttributes(element, document, 'classDiagram')
 
-      const hxVals = JSON.parse(element.getAttribute('hx-vals') ?? '')
-      expect(hxVals.highlightNodeId).to.equal(null)
+      const attrs = ['hx-get', 'hx-target', 'hx-swap', 'hx-indicator', 'hx-vals']
+      const vals = attrs.map(element.getAttribute.bind(element))
+      expect(vals).to.deep.equal([null, null, null, null, null])
     })
     it('should set correct coordinates for node control on a flowchart node', () => {
       const element = document.createElement('g')
@@ -209,56 +223,118 @@ describe('Generator', function () {
       expect(element.getAttribute('highlighted')).to.equal(null)
     })
   })
+
+  describe('setEdgeAttributes', () => {
+    let dom: JSDOM, document: Document
+
+    beforeEach(() => {
+      dom = new JSDOM()
+      document = dom.window.document
+    })
+
+    it('should return an element with htmx attributes', () => {
+      const labelInner = document.createElement('text')
+      labelInner.classList.add('text-inner-tspan')
+
+      const element = document.createElement('div')
+      const rectElement = document.createElement('rect')
+      rectElement.setAttribute('width', '50')
+      rectElement.setAttribute('height', '25')
+
+      element.id = 'flowchart-dtmi:com:example:1-1'
+      element.setAttribute('transform', 'translate(100, 50)')
+      element.appendChild(rectElement)
+      element.classList.add('unexpanded')
+
+      generator.setNodeAttributes(element, document, 'flowchart')
+
+      expect(element.getAttribute('hx-get')).to.equal('/update-layout')
+      expect(element.getAttribute('hx-target')).to.equal('#mermaid-output')
+
+      const hxVals = {
+        ...JSON.parse(element.getAttribute('hx-vals') ?? ''),
+        ...JSON.parse(element.querySelector('text')?.getAttribute('hx-vals') ?? ''),
+      }
+
+      expect(hxVals.highlightNodeId).to.equal('dtmi:com:example:1')
+      expect(hxVals.shouldExpand).to.equal(true)
+      expect(hxVals.shouldTruncate).to.equal(false)
+    })
+  })
+
   describe('setSVGAttributes', () => {
     it('should return a html string with added attributes', () => {
-      const controlStringElement = '<svg id="mermaid-svg" width="1024" height="768"/>'
+      const controlStringElement =
+        '<svg id="mermaid-svg" width="1024" height="768"><g class="nodes"/><g class="edgePaths"/><g class="edgeLabels"/></svg>'
       const testElement =
-        '<svg id="mermaid-svg" width="300" height="100" viewBox="0 0 300 100" hx-include="#search-panel"/>'
-      expect(generator.setSVGAttributes(controlStringElement, defaultParams)).to.equal(testElement)
+        '<svg id="mermaid-svg" width="300" height="100" viewBox="0 0 300 100" hx-include="#search-panel"><g class="edgePaths"/><g class="edgeLabels"/><g class="nodes"/></svg>'
+      expect(generator.setSVGAttributes(controlStringElement, simpleMockDtdlObjectModel, defaultParams)).to.equal(
+        testElement
+      )
     })
 
     it('should set clickable node elements to have htmx attributes that do not expand or truncate', () => {
       const controlStringElement = `
       <svg id="mermaid-svg" width="1024" height="768">
-        <g id="foo" class="node clickable"/>
-        <g id="bar" class="node clickable"/>
+        <g class="nodes">
+          <g id="flowchart-dtmi:com:foo:1-1" class="node clickable"/>
+          <g id="flowchart-dtmi:com:bar:1-1" class="node clickable"/>
+        </g>
+        <g class="edgePaths"/>
+        <g class="edgeLabels"/>
       </svg>
-      `
+        `
       const testElement = `<svg id="mermaid-svg" width="300" height="100" viewBox="0 0 300 100" hx-include="#search-panel">
-        <g id="foo" class="node clickable" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}"/>
-        <g id="bar" class="node clickable" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}"/>
-      </svg>`
-      expect(generator.setSVGAttributes(controlStringElement, defaultParams)).to.equal(testElement)
+        
+        <g class="edgePaths"/>
+        <g class="edgeLabels"/>
+      <g class="nodes">
+          <g id="flowchart-dtmi:com:foo:1-1" class="node clickable" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:&quot;dtmi:com:foo:1&quot;}"/>
+          <g id="flowchart-dtmi:com:bar:1-1" class="node clickable" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:&quot;dtmi:com:bar:1&quot;}"/>
+        </g></svg>`
+      expect(generator.setSVGAttributes(controlStringElement, simpleMockDtdlObjectModel, defaultParams)).to.equal(
+        testElement
+      )
     })
 
     it('should set clickable node elements to have htmx attributes that expand or truncate', () => {
       const controlStringElement = `
       <svg id="mermaid-svg" width="1024" height="768">
-        <g id="foo" class="node clickable unexpanded" transform="translate(100, 50)">
-          <rect width="50" height="25"></rect>
-          <g></g>
+        <g class="nodes">
+          <g id="flowchart-dtmi:com:foo:1-1" class="node clickable unexpanded" transform="translate(100, 50)">
+            <rect width="50" height="25"></rect>
+            <g></g>
+          </g>
+          <g id="flowchart-dtmi:com:bar:1-1" class="node clickable expanded" transform="translate(100, 50)">
+            <rect width="50" height="25"></rect>
+          </g>
         </g>
-        <g id="bar" class="node clickable expanded" transform="translate(100, 50)">
-          <rect width="50" height="25"></rect>
-        </g>
+        <g class="edgePaths"/>
+        <g class="edgeLabels"/>
       </svg>
       `
       const testElement = `<svg id="mermaid-svg" width="300" height="100" viewBox="0 0 300 100" hx-include="#search-panel">
-        <g id="foo" class="node clickable unexpanded" transform="translate(100, 50)" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}">
-          <rect width="50" height="25"/>
-          <g/>
-        <text x="20" y="7.5" class="corner-sign" onclick="event.stopPropagation()" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;shouldExpand&quot;:true,&quot;shouldTruncate&quot;:false}">+</text></g>
-        <g id="bar" class="node clickable expanded" transform="translate(100, 50)" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:null}">
-          <rect width="50" height="25"/>
-        <text x="20" y="7.5" class="corner-sign" onclick="event.stopPropagation()" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;shouldExpand&quot;:false,&quot;shouldTruncate&quot;:true}">-</text></g>
-      </svg>`
-      expect(generator.setSVGAttributes(controlStringElement, defaultParams)).to.equal(testElement)
+        
+        <g class="edgePaths"/>
+        <g class="edgeLabels"/>
+      <g class="nodes">
+          <g id="flowchart-dtmi:com:foo:1-1" class="node clickable unexpanded" transform="translate(100, 50)" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:&quot;dtmi:com:foo:1&quot;}">
+            <rect width="50" height="25"/>
+            <g/>
+          <text x="20" y="7.5" class="corner-sign" onclick="event.stopPropagation()" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;shouldExpand&quot;:true,&quot;shouldTruncate&quot;:false}">+</text></g>
+          <g id="flowchart-dtmi:com:bar:1-1" class="node clickable expanded" transform="translate(100, 50)" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:&quot;dtmi:com:bar:1&quot;}">
+            <rect width="50" height="25"/>
+          <text x="20" y="7.5" class="corner-sign" onclick="event.stopPropagation()" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;shouldExpand&quot;:false,&quot;shouldTruncate&quot;:true}">-</text></g>
+        </g></svg>`
+      expect(generator.setSVGAttributes(controlStringElement, simpleMockDtdlObjectModel, defaultParams)).to.equal(
+        testElement
+      )
     })
 
     it('should throw an internal error if given svg string does not have id mermaid-svg', () => {
       const controlStringElement = '<svg id="not-mermaid-svg"/>'
       expect(() => {
-        generator.setSVGAttributes(controlStringElement, defaultParams)
+        generator.setSVGAttributes(controlStringElement, simpleMockDtdlObjectModel, defaultParams)
       })
         .to.throw('Error in finding mermaid-svg Element in generated output')
         .with.property('code', 501)
@@ -267,26 +343,34 @@ describe('Generator', function () {
     it('should set highlighted node with highlighted attr', () => {
       const controlStringElement = `
       <svg id="mermaid-svg" width="1024" height="768">
-        <g id="foo-foo-1" class="node">
-          <g></g>
+        <g class="nodes">
+          <g id="flowchart-dtmi:com:foo:1-1" class="node">
+            <g></g>
+          </g>
+          <g id="flowchart-dtmi:com:bar:1-1" class="node">
+            <rect></rect>
+          </g>
         </g>
-        <g id="bar-bar-1" class="node">
-          <rect></rect>
-        </g>
+        <g class="edgePaths"/>
+        <g class="edgeLabels"/>
       </svg>
       `
       const testElement = `<svg id="mermaid-svg" width="300" height="100" viewBox="0 0 300 100" hx-include="#search-panel">
-        <g id="foo-foo-1" class="node" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:&quot;foo&quot;}" highlighted="">
-          <g/>
-        </g>
-        <g id="bar-bar-1" class="node" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:&quot;bar&quot;}">
-          <rect/>
-        </g>
-      </svg>`
+        
+        <g class="edgePaths"/>
+        <g class="edgeLabels"/>
+      <g class="nodes">
+          <g id="flowchart-dtmi:com:foo:1-1" class="node" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:&quot;dtmi:com:foo:1&quot;}" highlighted="">
+            <g/>
+          </g>
+          <g id="flowchart-dtmi:com:bar:1-1" class="node" hx-get="/update-layout" hx-target="#mermaid-output" hx-swap="outerHTML transition:true" hx-indicator="#spinner" hx-vals="{&quot;highlightNodeId&quot;:&quot;dtmi:com:bar:1&quot;}">
+            <rect/>
+          </g>
+        </g></svg>`
       expect(
-        generator.setSVGAttributes(controlStringElement, {
+        generator.setSVGAttributes(controlStringElement, simpleMockDtdlObjectModel, {
           ...defaultParams,
-          highlightNodeId: 'foo',
+          highlightNodeId: 'dtmi:com:foo:1',
         })
       ).to.equal(testElement)
     })

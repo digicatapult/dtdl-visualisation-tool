@@ -3,6 +3,7 @@ import { describe, it } from 'mocha'
 import sinon from 'sinon'
 import { UpdateParams } from '../../models/controllerTypes.js'
 import { generatedSVGFixture, mockDtdlObjectModel } from '../../utils/mermaid/__tests__/fixtures'
+import { generateResultParser } from '../../utils/mermaid/generator.js'
 import { RootController } from '../root'
 import {
   complexMockDtdlLoader,
@@ -112,6 +113,29 @@ describe('RootController', async () => {
       )
     })
 
+    it('should render plain text content', async () => {
+      const req = mockReq({})
+      mockCache.set('diagramType=flowchart&layout=dagre-d3', {
+        type: 'text',
+        content: 'None',
+      })
+
+      const result = await controller
+        .updateLayout(req, {
+          ...defaultParams,
+          a11y: [],
+        })
+        .then(toHTMLString)
+
+      expect(result).to.equal(
+        [
+          `mermaidTarget_None_mermaid-output_mermaidTarget`,
+          `searchPanel_undefined_dagre-d3_true_searchPanel`,
+          `navigationPanel_true__navigationPanel`,
+        ].join('')
+      )
+    })
+
     it('should set HX-Push-Url header if hx-current-url is passed', async () => {
       const stub = sinon.stub(controller, 'setHeader')
 
@@ -198,7 +222,10 @@ describe('RootController', async () => {
       const req = mockReq({})
       const generatorRunCount = generatorRunStub.callCount
       await controller.updateLayout(req, defaultParams)
-      expect(mockCache.get('diagramType=flowchart&layout=dagre-d3')).to.equal(generatedSVGFixture)
+      expect(mockCache.get('diagramType=flowchart&layout=dagre-d3', generateResultParser)).to.deep.equal({
+        type: 'svg',
+        content: generatedSVGFixture,
+      })
 
       await controller.updateLayout(req, defaultParams)
       expect(generatorRunStub.callCount).to.equal(generatorRunCount + 1)
@@ -209,7 +236,10 @@ describe('RootController', async () => {
       await controller.updateLayout(req, { ...defaultParams, sessionId: validSessionSomeSearchId })
       await controller.updateLayout(req, { ...defaultParams, sessionId: validSessionSomeOtherSearchId })
       expect(mockCache.size()).to.equal(1)
-      expect(mockCache.get('diagramType=flowchart&layout=dagre-d3')).to.equal(generatedSVGFixture)
+      expect(mockCache.get('diagramType=flowchart&layout=dagre-d3', generateResultParser)).to.deep.equal({
+        type: 'svg',
+        content: generatedSVGFixture,
+      })
     })
 
     it('should truncate the last expandedId', async () => {
@@ -381,6 +411,30 @@ describe('RootController', async () => {
         [
           `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
           `searchPanel_undefined_dagre-d3_true_searchPanel`,
+          `navigationPanel_true__navigationPanel`,
+        ].join('')
+      )
+    })
+
+    it('should not animate if old output was plain text', async () => {
+      const req = mockReq({})
+      mockCache.set('diagramType=flowchart&layout=dagre-d3', {
+        type: 'text',
+        content: 'None',
+      })
+
+      const result = await controller
+        .updateLayout(req, {
+          ...defaultParams,
+          search: 'example',
+          a11y: [],
+        })
+        .then(toHTMLString)
+
+      expect(result).to.equal(
+        [
+          `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
+          `searchPanel_example_dagre-d3_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
         ].join('')
       )

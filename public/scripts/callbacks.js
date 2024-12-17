@@ -26,6 +26,7 @@ function valueFromElementOrDefault(elementId, defaultValue) {
 globalThis.setMermaidListeners = function setMermaidListeners() {
   const element = document.getElementById('mermaid-svg')
   if (!element) {
+    document.getElementById('mermaid-output')?.removeAttribute('pending-listeners')
     return
   }
   setSizes()
