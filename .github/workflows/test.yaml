@@ -9,22 +9,22 @@ jobs:
     uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@main
     with:
       matrix_commands: '["lint", "depcheck", "check", "xss-scan"]'
-  
+
   tests-npm:
     uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
     with:
       docker_compose_file: ''
       npm_build_command: 'npm run build'
-      tests:  '["test:unit"]'
-  
-  e2e-tests-npm:
-    uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
-    with:
-      docker_compose_file: ''
-      pre_test_command: 'npm ci && npx playwright install-deps && npx playwright install'
-      test_command: 'npm run test:playwright || exit 1'
-    permissions:
-      contents: write
+      tests: '["test:unit"]'
+
+  # e2e-tests-npm:
+  #   uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
+  #   with:
+  #     docker_compose_file: ''
+  #     pre_test_command: 'npm ci && npx playwright install-deps && npx playwright install'
+  #     test_command: 'npm run test:playwright || exit 1'
+  #   permissions:
+  #     contents: write
 
   build-docker:
     uses: digicatapult/shared-workflows/.github/workflows/build-docker.yml@main

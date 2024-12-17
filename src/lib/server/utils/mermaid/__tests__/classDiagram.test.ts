@@ -34,7 +34,7 @@ describe('ClassDiagram', function () {
       )
       const test = [
         'class `dtmi:com:example_extended:1`["example extended"] \nclick `dtmi:com:example_extended:1` call getEntity()',
-        '`dtmi:com:example_extended:1` <|-- `dtmi:com:example:1`',
+        '`dtmi:com:example_extended:1` <|-- `dtmi:com:example:1` : extends',
         'class `dtmi:com:example_extended:1`:::search',
       ]
       expect(interfaceAsMarkdown).to.deep.equal(test)
@@ -87,7 +87,7 @@ describe('ClassDiagram', function () {
         'dtmi:com:nodeFrom;1',
         arrowTypes.Association
       )
-      const test = '`dtmi:com:nodeTo:1` --> `dtmi:com:nodeFrom:1`'
+      const test = '`dtmi:com:nodeTo:1` --> `dtmi:com:nodeFrom:1` : extends'
       expect(edgeStringWithoutLabel).to.equal(test)
     })
   })

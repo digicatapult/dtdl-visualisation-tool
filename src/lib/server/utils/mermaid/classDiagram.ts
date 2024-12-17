@@ -21,7 +21,7 @@ export const arrowTypes = {
   Dependency: '..>',
   Realization: '..|>',
   LinkDashed: '..',
-}
+} as const
 
 export type ArrowType = (typeof arrowTypes)[keyof typeof arrowTypes]
 
@@ -79,7 +79,7 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
   }
   createEdgeString(nodeFrom: DtdlId, nodeTo: DtdlId, edgeType: ArrowType, label?: string): string {
     let edge = `${this.safeClassName(nodeFrom)} ${edgeType} ${this.safeClassName(nodeTo)}`
-    edge += label ? ` : ${label}` : ''
+    edge += label ? ` : ${label}` : ' : extends'
     return edge
   }
   relationshipToMarkdown(dtdlObjectModel: DtdlObjectModel, entity: RelationshipType): string[] {

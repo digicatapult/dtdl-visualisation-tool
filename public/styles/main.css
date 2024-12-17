@@ -2,12 +2,6 @@
 
 @import url('/public/styles/reset.css'); /* generics/defaults */
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
 body {
   display: grid;
   justify-items: center;
@@ -189,18 +183,23 @@ input[type='search'] {
 }
 
 #legend-content {
+  position: absolute;
   transform: translateX(-100%);
   display: grid;
   z-index: -1;
   padding: 3rem 1rem 1rem 1rem;
   gap: 1.5rem;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto max-content;
   background: #f5f6fa;
-  transition: transform 300ms;
+  transition:
+    transform 300ms,
+    z-index 0ms 300ms;
 }
 
 #legend-content.show-content {
+  z-index: 0;
   transform: translateX(0);
+  transition-delay: 0ms;
   border: 1px solid #e8e8e8;
 }
 
@@ -219,6 +218,10 @@ input[type='search'] {
   text-align: left;
   background: #f5f6fa;
   border: 1px solid #e8e8e8;
+
+  &:hover {
+    cursor: pointer;
+  }
 }
 
 #legend button.show-content {
