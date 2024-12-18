@@ -101,5 +101,8 @@
   },
   "engines": {
     "node": ">= 20"
+  },
+  "optionalDependencies": {
+    "@swc/core-linux-x64-gnu": "^1.10.1"
   }
 }
