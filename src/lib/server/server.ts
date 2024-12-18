@@ -5,7 +5,7 @@ import express, { Express } from 'express'
 import multer from 'multer'
 import requestLogger from 'pino-http'
 import { ValidateError } from 'tsoa'
-import { HttpError } from './errors.js'
+import { HttpError, UploadError } from './errors.js'
 import { logger } from './logger.js'
 import { RegisterRoutes } from './routes.js'
 
@@ -55,6 +55,11 @@ export default async (): Promise<Express> => {
       req.log.debug('API error: %s', err?.toString())
     }
 
+    if (err instanceof UploadError) {
+      res.status(err.code).send(err.message)
+      return
+    }
+
     if (err instanceof HttpError) {
       res.status(err.code).send({
         message: err.message,
@@ -63,8 +68,6 @@ export default async (): Promise<Express> => {
     }
 
     if (err instanceof multer.MulterError) {
-      req.log.warn(`Multer error for ${req.path}:`, err.message)
-      req.log.trace('API error: stack %j', err.stack)
       res.status(400).send('Upload error')
       return
     }

@@ -6,6 +6,7 @@ import { Post, Produces, Route, SuccessResponse, UploadedFile } from 'tsoa'
 import { inject, injectable } from 'tsyringe'
 import unzipper from 'unzipper'
 import Database from '../../db/index.js'
+import { UploadError } from '../errors.js'
 import { Cache, type ICache } from '../utils/cache.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import { Search, type ISearch } from '../utils/search.js'
@@ -28,10 +29,15 @@ export class UploadController extends HTMLController {
   @Post('/')
   public async uploadZip(@UploadedFile('file') file: Express.Multer.File): Promise<HTML> {
     if (file.mimetype !== 'application/zip') {
-      return this.html('Only .zip accepted')
+      throw new UploadError('Only .zip accepted')
     }
 
-    const unzippedPath = await this.unzip(file.buffer)
+    let unzippedPath: string
+    try {
+      unzippedPath = await this.unzip(file.buffer)
+    } catch {
+      throw new UploadError('Unzipping error')
+    }
 
     const parser = await getInterop()
     const parsedDtdl = parseDirectories(unzippedPath, parser)
@@ -39,7 +45,7 @@ export class UploadController extends HTMLController {
     rm(unzippedPath, { recursive: true })
 
     if (!parsedDtdl) {
-      return this.html('Failed to parse DTDL')
+      throw new UploadError('Failed to parse DTDL')
     }
 
     this.db.insert('model', { name: file.originalname, parsed: parsedDtdl })
@@ -52,7 +58,7 @@ export class UploadController extends HTMLController {
     return this.html(`${file.originalname}`)
   }
 
-  private async unzip(file: Buffer): Promise<string> {
+  public async unzip(file: Buffer): Promise<string> {
     const directory = await unzipper.Open.buffer(file)
 
     const tempDir = os.tmpdir()

@@ -1,5 +1,5 @@
 services:
-  postgres-veritable-ui:
+  postgres-dtdl-visualisation-tool:
     image: postgres:17.2-alpine
     container_name: postgres-dtdl-visualisation-tool
     ports:
