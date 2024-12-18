@@ -2,7 +2,7 @@ import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import sinon from 'sinon'
 import { UpdateParams } from '../../models/controllerTypes.js'
-import { generatedSVGFixture } from '../../utils/mermaid/__tests__/fixtures'
+import { generatedSVGFixture, mockDtdlObjectModel } from '../../utils/mermaid/__tests__/fixtures'
 import { generateResultParser } from '../../utils/mermaid/generator.js'
 import { RootController } from '../root'
 import {
@@ -72,6 +72,19 @@ describe('RootController', async () => {
     it('should return rendered root template', async () => {
       const result = await controller.get({ ...defaultParams }).then(toHTMLString)
       expect(result).to.equal(`root_dagre-d3_undefined_root`)
+    })
+
+    it('should return parsed entity by ID', async () => {
+      const id = 'dtmi:com:example;1'
+      const result = await controller.getEntityById(id).then(toHTMLString)
+      expect(result).to.equal(JSON.stringify(mockDtdlObjectModel[id], null, 4))
+    })
+
+    it('should return parsed entity by mermaid safe ID', async () => {
+      const id = 'dtmi:com:example;1'
+      const mermaidSafeId = 'dtmi:com:example:1' // :1 suffix instead of ;1
+      const result = await controller.getEntityById(mermaidSafeId).then(toHTMLString)
+      expect(result).to.equal(JSON.stringify(mockDtdlObjectModel[id], null, 4))
     })
   })
 

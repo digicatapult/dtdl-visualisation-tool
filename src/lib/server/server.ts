@@ -78,6 +78,7 @@ export default async (): Promise<Express> => {
       return
     }
     if (err instanceof Error) {
+      req.log.error(`Unknown internal error ${err.name} ${err.message}`)
       res.status(500).json({
         message: 'Internal Server Error',
       })

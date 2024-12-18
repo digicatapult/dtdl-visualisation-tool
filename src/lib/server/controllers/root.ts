@@ -197,6 +197,14 @@ export class RootController extends HTMLController {
     return this.html(this.templates.Legend({ showContent }))
   }
 
+  @SuccessResponse(200)
+  @Get('/entity/{id}')
+  public async getEntityById(id: string): Promise<HTML> {
+    const entityId = dtdlIdReinstateSemicolon(id)
+    const entity = this.dtdlLoader.getDtdlModel()[entityId]
+    return this.html(`${JSON.stringify(entity, null, 4)}`)
+  }
+
   private getCurrentPathQuery(req: express.Request): { path: string; query: URLSearchParams } | undefined {
     const currentUrl = req.header('hx-current-url')
     if (!currentUrl) {
