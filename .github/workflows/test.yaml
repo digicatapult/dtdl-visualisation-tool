@@ -16,6 +16,10 @@ jobs:
       docker_compose_file: ''
       npm_build_command: 'npm run build'
       tests: '["test:unit"]'
+      env_vars: |
+        {
+          "TMPDIR": "${{ GITHUB_WORKSPACE }}"
+        }
 
   # e2e-tests-npm:
   #   uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
