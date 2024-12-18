@@ -7,5 +7,6 @@ ignores: [
     'htmx-ext-response-targets',
     'htmx.org',
     'svg-pan-zoom',
-    'playwright-ctrf-json-reporter'
+    'playwright-ctrf-json-reporter',
+    'pg'
 ]

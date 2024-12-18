@@ -54,23 +54,7 @@ export default class MermaidTemplates {
           svgWidth={svgWidth}
           svgHeight={svgHeight}
         />
-        <form id="upload-form" hx-ext="response-targets">
-          <label id="upload-button" for="upload">
-            Upload Ontology
-          </label>
-          <p id="upload-info"></p>
-          <input
-            hx-ext="ignore:json-enc"
-            type="file"
-            id="upload"
-            name="file"
-            hx-post="/upload"
-            hx-encoding="multipart/form-data"
-            accept=".zip"
-            hx-target="#upload-info"
-            hx-target-error="#upload-info"
-          />
-        </form>
+        <this.uploadForm />
       </section>
 
       <div id="mermaid-wrapper">
@@ -231,7 +215,6 @@ export default class MermaidTemplates {
         class="button-group"
         hx-swap-oob={swapOutOfBand ? 'true' : undefined}
         hx-sync="this:replace"
-        hx-trigger="newDtdl from:body"
         {...commonUpdateAttrs}
       >
         <h2>UKDTC</h2>
@@ -332,6 +315,28 @@ export default class MermaidTemplates {
           <p safe>{description}</p>
         </div>
       </div>
+    )
+  }
+
+  private uploadForm = () => {
+    return (
+      <form id="upload-form" hx-ext="response-targets">
+        <label id="upload-button" for="upload">
+          Upload Ontology
+        </label>
+        <p id="upload-info"></p>
+        <input
+          hx-ext="ignore:json-enc"
+          type="file"
+          id="upload"
+          name="file"
+          hx-post="/upload"
+          hx-encoding="multipart/form-data"
+          accept=".zip"
+          hx-target="#upload-info"
+          hx-target-error="#upload-info"
+        />
+      </form>
     )
   }
 }

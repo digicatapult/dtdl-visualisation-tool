@@ -4,6 +4,7 @@ import { pino } from 'pino'
 
 import { EntityType } from '@digicatapult/dtdl-parser'
 import sinon from 'sinon'
+import Database from '../../../db/index.js'
 import { Layout } from '../../models/mermaidLayouts.js'
 import { DtdlLoader } from '../../utils/dtdl/dtdlLoader'
 import { FuseSearch } from '../../utils/fuseSearch.js'
@@ -54,6 +55,9 @@ export const mockGenerator: SvgGenerator = {
     .callsFake((...args) => ({ generatedOutput: `${args[1]}_animate`, pan: { x: 100, y: 50 }, zoom: 0.5 })),
   run: generatorRunStub,
 } as unknown as SvgGenerator
+export const mockDb = {
+  insert: () => Promise.resolve(),
+} as unknown as Database
 
 export const toHTMLString = async (...streams: Readable[]) => {
   const chunks: Uint8Array[] = []

@@ -20,7 +20,10 @@
     "local": "npm i -g && dtdl-visualiser",
     "lint": "eslint .",
     "check": "npm run tsoa:build && tsc --noEmit",
-    "xss-scan": "xss-scan"
+    "xss-scan": "xss-scan",
+    "db:cmd": "node --import @swc-node/register/esm-register ./node_modules/.bin/knex",
+    "db:migrate": "npm run db:cmd -- migrate:latest",
+    "db:rollback": "npm run db:cmd -- migrate:rollback"
   },
   "repository": {
     "type": "git",
@@ -48,8 +51,10 @@
     "htmx-ext-response-targets": "^2.0.1",
     "htmx.org": "^1.9.12",
     "jsdom": "^25.0.1",
+    "knex": "^3.1.0",
     "lru-cache": "^11.0.2",
     "multer": "^1.4.5-lts.1",
+    "pg": "^8.13.1",
     "pino": "^9.5.0",
     "pino-http": "^10.3.0",
     "puppeteer": "^23.10.4",

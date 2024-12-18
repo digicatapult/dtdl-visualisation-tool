@@ -13,7 +13,8 @@ jobs:
   tests-npm:
     uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
     with:
-      docker_compose_file: ''
+      pre_test_command: 'npm run db:migrate'
+      docker_compose_file: docker-compose.yml
       npm_build_command: 'npm run build'
       tests: '["test:unit"]'
 

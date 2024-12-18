@@ -5,6 +5,7 @@ A CLI tool for visualising dtdl ontologies.
 ## Prerequisites
 
 `node` >= 20
+Docker
 
 ## Getting started
 
@@ -13,6 +14,13 @@ The build command should be run first to create the converted ts files.
 ```shell
 npm i
 npm run build
+```
+
+Start postgres and migrate to latest:
+
+```sh
+docker compose up -d
+npm run db:migrate
 ```
 
 To install npm CLI tool. It will be linked to local binaries so can be executed as `dtdl-visualiser`
@@ -71,12 +79,17 @@ The application can be run in Docker. `sample/energygrid` is automatically parse
 
 ## Environment variables
 
-| variable name    | required | default         | description                                                                       |
-| ---------------- | -------- | --------------- | --------------------------------------------------------------------------------- |
-| LOG_LEVEL        | n        | info            | Logging level. Valid values are [ trace , debug , info , warn , error , fatal ]   |
-| CACHE_TTL        | n        | `1000 * 60 * 5` | Time to live (in seconds) for cached diagrams                                     |
-| CACHE_SIZE       | n        | `100`           | Maximum number of diagrams to cache                                               |
-| SEARCH_THRESHOLD | n        | `0.4`           | Threshold for a fuzzy search match. 0.0 is a perfect match, 1.0 matches anything. |
+| variable name    | required | default                   | description                                                                       |
+| ---------------- | -------- | ------------------------- | --------------------------------------------------------------------------------- |
+| LOG_LEVEL        | n        | info                      | Logging level. Valid values are [ trace , debug , info , warn , error , fatal ]   |
+| CACHE_TTL        | n        | `1000 * 60 * 5`           | Time to live (in seconds) for cached diagrams                                     |
+| CACHE_SIZE       | n        | `100`                     | Maximum number of diagrams to cache                                               |
+| SEARCH_THRESHOLD | n        | `0.4`                     | Threshold for a fuzzy search match. 0.0 is a perfect match, 1.0 matches anything. |
+| DB_HOST          | n        | `localhost`               | The database hostname / host                                                      |
+| DB_NAME          | n        | `dtdl-visualisation-tool` | The database name                                                                 |
+| DB_USERNAME      | n        | `postgres`                | The database username                                                             |
+| DB_PASSWORD      | n        | `postgres`                | The database password                                                             |
+| DB_PORT          | n        | `5432`                    | The database port number                                                          |
 
 ## Testing
 
