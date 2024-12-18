@@ -76,7 +76,7 @@ export class RootController extends HTMLController {
     const a11y = new Set(params.a11y)
 
     // get the base dtdl model that we will derive the graph from
-    const baseModel = this.dtdlLoader.getDtdlModel(this.dtdlLoader.getCurrentDtdlModelId())
+    const baseModel = this.dtdlLoader.getDtdlModel()
 
     // pull out the stored session. If this is invalid the request is invalid
     const session = this.sessionStore.get(params.sessionId)
@@ -196,43 +196,6 @@ export class RootController extends HTMLController {
   public async getLegend(@Query() showContent: boolean): Promise<HTML> {
     return this.html(this.templates.Legend({ showContent }))
   }
-
-  // @SuccessResponse(200, 'File uploaded successfully')
-  // @Post('/upload')
-  // public async uploadZip(@UploadedFile('file') file: Express.Multer.File): Promise<HTML> {
-  //   if (file.mimetype !== 'application/zip') {
-  //     return this.html('Only .zip accepted')
-  //   }
-  //   const directory = await unzipper.Open.buffer(file.buffer)
-
-  //   console.log(directory.numberOfRecords)
-  //   console.log(directory.sizeOfCentralDirectory)
-
-  //   const tempDir = os.tmpdir()
-  //   const extractionPath = fs.mkdtempSync(tempDir)
-  //   await directory.extract({ path: extractionPath })
-
-  //   const parser = await getInterop()
-  //   const parsedDtdl = parseDirectories(extractionPath, parser)
-  //   //await fs.rmdir(extractionPath, { recursive: true })
-
-  //   if (!parsedDtdl) {
-  //     return this.html('Failed to parse DTDL')
-  //   }
-  //   const dtdlModelId = this.dtdlLoader.setDtdlModel(parsedDtdl)
-  //   const interfaces = Object.entries(parsedDtdl)
-  //     .filter(allInterfaceFilter)
-  //     .map(([, entity]) => entity)
-  //   this.search.setCollection(interfaces)
-
-  //   this.setHeader('HX-Trigger-After-Swap', 'newDtdl')
-  //   this.setHeader('HX-Refresh', 'true')
-
-  //   return this.html(`
-  //     ${file.originalname}
-  //     <input hx-swap-oob="true" id="dtdlModelId" name="dtdlModelId" type="hidden" value="${dtdlModelId}" />
-  //   `)
-  // }
 
   private getCurrentPathQuery(req: express.Request): { path: string; query: URLSearchParams } | undefined {
     const currentUrl = req.header('hx-current-url')

@@ -3,20 +3,18 @@ import compression from 'compression'
 import cors from 'cors'
 import express, { Express } from 'express'
 import multer from 'multer'
-import requestLogger from 'pino-http'
 import { ValidateError } from 'tsoa'
 import { HttpError } from './errors.js'
-import { logger } from './logger.js'
 import { RegisterRoutes } from './routes.js'
 
 export default async (): Promise<Express> => {
   const app: Express = express()
 
-  app.use(
-    requestLogger({
-      logger,
-    })
-  )
+  // app.use(
+  //   requestLogger({
+  //     logger,
+  //   })
+  // )
 
   app.use(cors())
   app.use(compression())

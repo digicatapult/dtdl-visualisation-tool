@@ -1,4 +1,4 @@
-import fs from 'node:fs'
+import { mkdtemp, rm } from 'node:fs/promises'
 import os from 'node:os'
 
 import { EntityType, getInterop, parseDirectories } from '@digicatapult/dtdl-parser'
@@ -7,7 +7,6 @@ import { inject, injectable } from 'tsyringe'
 import unzipper from 'unzipper'
 import { Cache, type ICache } from '../utils/cache.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
-import { allInterfaceFilter } from '../utils/dtdl/extract.js'
 import { Search, type ISearch } from '../utils/search.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
@@ -29,31 +28,34 @@ export class UploadController extends HTMLController {
     if (file.mimetype !== 'application/zip') {
       return this.html('Only .zip accepted')
     }
-    const directory = await unzipper.Open.buffer(file.buffer)
 
-    console.log(directory.numberOfRecords)
-    console.log(directory.sizeOfCentralDirectory)
-
-    const tempDir = os.tmpdir()
-    const extractionPath = fs.mkdtempSync(tempDir)
-    await directory.extract({ path: extractionPath })
+    const unzippedPath = await this.unzip(file.buffer)
 
     const parser = await getInterop()
-    const parsedDtdl = parseDirectories(extractionPath, parser)
-    //await fs.rmdir(extractionPath, { recursive: true })
+    const parsedDtdl = parseDirectories(unzippedPath, parser)
+
+    rm(unzippedPath, { recursive: true })
 
     if (!parsedDtdl) {
       return this.html('Failed to parse DTDL')
     }
-    const dtdlModelId = this.dtdlLoader.setDtdlModel(parsedDtdl)
-    const interfaces = Object.entries(parsedDtdl)
-      .filter(allInterfaceFilter)
-      .map(([, entity]) => entity)
-    this.search.setCollection(interfaces)
+
+    this.dtdlLoader.setDtdlModel(parsedDtdl)
+    this.search.setCollection(this.dtdlLoader.getCollection())
     this.cache.clear()
 
     this.setHeader('HX-Redirect', '/')
 
-    return this.html(dtdlModelId)
+    return this.html(`${file.originalname}`)
+  }
+
+  private async unzip(file: Buffer): Promise<string> {
+    const directory = await unzipper.Open.buffer(file)
+
+    const tempDir = os.tmpdir()
+    const extractionPath = await mkdtemp(tempDir)
+    await directory.extract({ path: extractionPath })
+
+    return extractionPath
   }
 }

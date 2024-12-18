@@ -9,7 +9,6 @@ import { container } from 'tsyringe'
 import { httpServer } from './lib/server/index.js'
 import { logger } from './lib/server/logger.js'
 import { DtdlLoader } from './lib/server/utils/dtdl/dtdlLoader.js'
-import { allInterfaceFilter } from './lib/server/utils/dtdl/extract.js'
 import { FuseSearch } from './lib/server/utils/fuseSearch.js'
 import { SvgGenerator } from './lib/server/utils/mermaid/generator.js'
 import { Search } from './lib/server/utils/search.js'
@@ -50,12 +49,8 @@ program
         useValue: dtdlLoader,
       })
 
-      const interfaces = Object.entries(parsedDtdl)
-        .filter(allInterfaceFilter)
-        .map(([, entity]) => entity)
-
       container.register(Search, {
-        useValue: new FuseSearch(interfaces),
+        useValue: new FuseSearch(dtdlLoader.getCollection()),
       })
 
       logger.info(`Loading SVG generator...`)
@@ -64,7 +59,6 @@ program
       logger.info(`Complete`)
 
       httpServer(options.port)
-      logger.info(`View DTDL model: http://localhost:${options.port}`)
     } else {
       logger.error(`Error parsing DTDL`)
       process.exit(1)
