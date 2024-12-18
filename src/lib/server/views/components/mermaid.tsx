@@ -54,7 +54,7 @@ export default class MermaidTemplates {
           svgWidth={svgWidth}
           svgHeight={svgHeight}
         />
-        <this.uploadForm />
+        <this.uploadForm sessionId={sessionId} />
       </section>
 
       <div id="mermaid-wrapper">
@@ -318,24 +318,23 @@ export default class MermaidTemplates {
     )
   }
 
-  private uploadForm = () => {
+  private uploadForm = ({ sessionId }: { sessionId: UUID }) => {
     return (
-      <form id="upload-form" hx-ext="response-targets">
+      <form
+        id="upload-form"
+        hx-ext="response-targets, ignore:json-enc"
+        hx-target="#upload-info"
+        hx-target-error="#upload-info"
+        hx-post="/upload"
+        hx-encoding="multipart/form-data"
+        hx-trigger="change from:#upload"
+      >
         <label id="upload-button" for="upload">
           Upload Ontology
         </label>
         <p id="upload-info"></p>
-        <input
-          hx-ext="ignore:json-enc"
-          type="file"
-          id="upload"
-          name="file"
-          hx-post="/upload"
-          hx-encoding="multipart/form-data"
-          accept=".zip"
-          hx-target="#upload-info"
-          hx-target-error="#upload-info"
-        />
+        <input type="file" id="upload" name="file" accept=".zip" />
+        <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
       </form>
     )
   }

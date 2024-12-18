@@ -18,7 +18,7 @@ jobs:
       tests: '["test:unit"]'
       env_vars: |
         {
-          "TMPDIR": "${{ GITHUB_WORKSPACE }}"
+          "TMPDIR": "${{ github.workspace }}"
         }
 
   # e2e-tests-npm:

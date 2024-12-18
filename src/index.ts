@@ -50,7 +50,7 @@ program
       })
 
       container.register(Search, {
-        useValue: new FuseSearch(dtdlLoader.getCollection()),
+        useValue: new FuseSearch(dtdlLoader.getCollection(parsedDtdl)),
       })
 
       logger.info(`Loading SVG generator...`)

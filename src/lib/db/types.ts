@@ -5,7 +5,7 @@ export const tablesList = ['model'] as const
 
 const insertModel = z.object({
   name: z.string(),
-  parsed: z.object({}),
+  parsed: z.unknown(),
 })
 
 const Zod = {
@@ -29,6 +29,19 @@ export type Models = {
     insert: z.infer<(typeof Zod)[key]['insert']>
   }
 }
+
+type WhereComparison<M extends TABLE> = {
+  [key in keyof Models[M]['get']]: [
+    Extract<key, string>,
+    '=' | '>' | '>=' | '<' | '<=' | '<>' | 'LIKE' | 'ILIKE',
+    Extract<Models[M]['get'][key], Knex.Value>,
+  ]
+}
+export type WhereMatch<M extends TABLE> = {
+  [key in keyof Models[M]['get']]?: Models[M]['get'][key]
+}
+
+export type Where<M extends TABLE> = WhereMatch<M> | (WhereMatch<M> | WhereComparison<M>[keyof Models[M]['get']])[]
 
 export type IDatabase = {
   [key in TABLE]: () => Knex.QueryBuilder

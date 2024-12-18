@@ -16,6 +16,7 @@ export interface RootParams {
   highlightNodeId?: string
 
   search?: string
+  sessionId?: UUID
 }
 export const urlQueryKeys = [
   'layout',

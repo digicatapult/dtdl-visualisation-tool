@@ -6,7 +6,8 @@ import path from 'path'
 import sinon from 'sinon'
 import { UploadError } from '../../errors.js'
 import { UploadController } from '../upload.js'
-import { mockCache, mockDb, mockSearch, simpleMockDtdlLoader, toHTMLString } from './helpers.js'
+import { mockCache, mockDb, mockSearch, mockSession, simpleMockDtdlLoader, toHTMLString } from './helpers.js'
+import { validSessionId } from './sessionFixtures.js'
 
 chai.use(chaiAsPromised)
 const { expect } = chai
@@ -15,7 +16,7 @@ const __filename = new URL(import.meta.url).pathname
 const __dirname = path.dirname(__filename)
 
 describe('UploadController', async () => {
-  const controller = new UploadController(simpleMockDtdlLoader, mockDb, mockSearch, mockCache)
+  const controller = new UploadController(simpleMockDtdlLoader, mockDb, mockSearch, mockCache, mockSession)
 
   afterEach(() => {
     sinon.restore()
@@ -29,7 +30,7 @@ describe('UploadController', async () => {
         buffer: readFileSync(path.resolve(__dirname, './simple.zip')),
         originalname,
       }
-      const result = await controller.uploadZip(mockFile as Express.Multer.File).then(toHTMLString)
+      const result = await controller.uploadZip(mockFile as Express.Multer.File, validSessionId).then(toHTMLString)
       expect(result).to.equal(originalname)
     })
 
@@ -38,7 +39,7 @@ describe('UploadController', async () => {
         mimetype: 'application/json',
       }
 
-      await expect(controller.uploadZip(mockFile as Express.Multer.File)).to.be.rejectedWith(
+      await expect(controller.uploadZip(mockFile as Express.Multer.File, validSessionId)).to.be.rejectedWith(
         UploadError,
         'Only .zip accepted'
       )
@@ -50,7 +51,7 @@ describe('UploadController', async () => {
         mimetype: 'application/zip',
         buffer: readFileSync(path.resolve(__dirname, './simple.zip')),
       }
-      await expect(controller.uploadZip(mockFile as Express.Multer.File)).to.be.rejectedWith(
+      await expect(controller.uploadZip(mockFile as Express.Multer.File, validSessionId)).to.be.rejectedWith(
         UploadError,
         'Unzipping error'
       )
@@ -61,7 +62,7 @@ describe('UploadController', async () => {
         mimetype: 'application/zip',
         buffer: readFileSync(path.resolve(__dirname, './error.zip')),
       }
-      await expect(controller.uploadZip(mockFile as Express.Multer.File)).to.be.rejectedWith(
+      await expect(controller.uploadZip(mockFile as Express.Multer.File, validSessionId)).to.be.rejectedWith(
         UploadError,
         'Failed to parse DTDL'
       )

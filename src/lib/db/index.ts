@@ -3,7 +3,8 @@ import { container, singleton } from 'tsyringe'
 import { z } from 'zod'
 
 import { Env } from '../server/env.js'
-import Zod, { IDatabase, Models, TABLE, tablesList } from './types.js'
+import Zod, { IDatabase, Models, TABLE, tablesList, Where } from './types.js'
+import { reduceWhere } from './util.js'
 
 const env = container.resolve(Env)
 const clientSingleton = knex({
@@ -43,5 +44,13 @@ export default class Database {
     record: Models[typeof model]['insert']
   ): Promise<Models[typeof model]['get'][]> => {
     return z.array(Zod[model].get).parse(await this.db[model]().insert(record).returning('*'))
+  }
+
+  get = async <M extends TABLE>(model: M, where?: Where<M>, limit?: number): Promise<Models[typeof model]['get'][]> => {
+    let query = this.db[model]()
+    query = reduceWhere(query, where)
+    if (limit !== undefined) query = query.limit(limit)
+    const result = await query
+    return z.array(Zod[model].get).parse(result)
   }
 }

@@ -56,7 +56,7 @@ export const mockGenerator: SvgGenerator = {
   run: generatorRunStub,
 } as unknown as SvgGenerator
 export const mockDb = {
-  insert: () => Promise.resolve(),
+  insert: () => Promise.resolve([{ id: 1 }]),
 } as unknown as Database
 
 export const toHTMLString = async (...streams: Readable[]) => {
