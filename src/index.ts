@@ -6,6 +6,7 @@ import { DtdlObjectModel, getInterop, parseDirectories, validateDirectories } fr
 import chalk from 'chalk'
 import { Command } from 'commander'
 import { container } from 'tsyringe'
+import Database from './lib/db/index.js'
 import { httpServer } from './lib/server/index.js'
 import { logger } from './lib/server/logger.js'
 import { DtdlLoader } from './lib/server/utils/dtdl/dtdlLoader.js'
@@ -44,7 +45,7 @@ program
     const parsedDtdl = parseDirectories(options.path, parser)
 
     if (parsedDtdl) {
-      const dtdlLoader = new DtdlLoader(parsedDtdl)
+      const dtdlLoader = new DtdlLoader(container.resolve(Database), parsedDtdl)
       container.register(DtdlLoader, {
         useValue: dtdlLoader,
       })

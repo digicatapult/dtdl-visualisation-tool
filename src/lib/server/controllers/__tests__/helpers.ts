@@ -9,11 +9,7 @@ import { Layout } from '../../models/mermaidLayouts.js'
 import { DtdlLoader } from '../../utils/dtdl/dtdlLoader'
 import { FuseSearch } from '../../utils/fuseSearch.js'
 import { LRUCache } from '../../utils/lruCache.js'
-import {
-  generatedSVGFixture,
-  mockDtdlObjectModel,
-  simpleMockDtdlObjectModel,
-} from '../../utils/mermaid/__tests__/fixtures'
+import { generatedSVGFixture, simpleMockDtdlObjectModel } from '../../utils/mermaid/__tests__/fixtures'
 import { SvgGenerator } from '../../utils/mermaid/generator.js'
 import SessionStore from '../../utils/sessions.js'
 import MermaidTemplates from '../../views/components/mermaid'
@@ -31,6 +27,9 @@ export const templateMock = {
 } as unknown as MermaidTemplates
 export const mockLogger = pino({ level: 'silent' })
 export const mockCache = new LRUCache(10, 1000 * 60)
+export const mockDb = {
+  insert: () => Promise.resolve([{ id: 1 }]),
+} as unknown as Database
 
 export const sessionSetStub = sinon.stub()
 export const mockSession = {
@@ -38,11 +37,10 @@ export const mockSession = {
   set: sessionSetStub,
 } as unknown as SessionStore
 
-export const mockDtdlLoader: DtdlLoader = new DtdlLoader(mockDtdlObjectModel)
 export const mockSearch = new FuseSearch<EntityType>(Object.values(simpleMockDtdlObjectModel))
 
-export const simpleMockDtdlLoader: DtdlLoader = new DtdlLoader(simpleMockDtdlObjectModel)
-export const complexMockDtdlLoader: DtdlLoader = new DtdlLoader(complexMockDtdlModel)
+export const simpleMockDtdlLoader: DtdlLoader = new DtdlLoader(mockDb, simpleMockDtdlObjectModel)
+export const complexMockDtdlLoader: DtdlLoader = new DtdlLoader(mockDb, complexMockDtdlModel)
 
 export const generatorRunStub = sinon.stub().resolves({
   type: 'svg',
@@ -55,9 +53,6 @@ export const mockGenerator: SvgGenerator = {
     .callsFake((...args) => ({ generatedOutput: `${args[1]}_animate`, pan: { x: 100, y: 50 }, zoom: 0.5 })),
   run: generatorRunStub,
 } as unknown as SvgGenerator
-export const mockDb = {
-  insert: () => Promise.resolve([{ id: 1 }]),
-} as unknown as Database
 
 export const toHTMLString = async (...streams: Readable[]) => {
   const chunks: Uint8Array[] = []
