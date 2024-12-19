@@ -6,7 +6,15 @@ import path from 'path'
 import sinon from 'sinon'
 import { UploadError } from '../../errors.js'
 import { UploadController } from '../upload.js'
-import { mockCache, mockDb, mockSearch, mockSession, simpleMockDtdlLoader, toHTMLString } from './helpers.js'
+import {
+  mockCache,
+  mockDb,
+  mockSearch,
+  mockSession,
+  simpleMockDtdlLoader,
+  templateMock,
+  toHTMLString,
+} from './helpers.js'
 import { validSessionId } from './sessionFixtures.js'
 
 chai.use(chaiAsPromised)
@@ -16,14 +24,21 @@ const __filename = new URL(import.meta.url).pathname
 const __dirname = path.dirname(__filename)
 
 describe('UploadController', async () => {
-  const controller = new UploadController(simpleMockDtdlLoader, mockDb, mockSearch, mockCache, mockSession)
+  const controller = new UploadController(
+    simpleMockDtdlLoader,
+    mockDb,
+    templateMock,
+    mockSearch,
+    mockCache,
+    mockSession
+  )
 
   afterEach(() => {
     sinon.restore()
   })
 
   describe('/', () => {
-    it('should return file name on success', async () => {
+    it('should return root template on success', async () => {
       const originalname = 'test.zip'
       const mockFile = {
         mimetype: 'application/zip',
@@ -31,7 +46,7 @@ describe('UploadController', async () => {
         originalname,
       }
       const result = await controller.uploadZip(mockFile as Express.Multer.File, validSessionId).then(toHTMLString)
-      expect(result).to.equal(originalname)
+      expect(result).to.equal(`root_dagre-d3_undefined_root`)
     })
 
     it(`should error on non-'application/zip' mimetype`, async () => {

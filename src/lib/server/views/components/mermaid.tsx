@@ -323,7 +323,8 @@ export default class MermaidTemplates {
       <form
         id="upload-form"
         hx-ext="response-targets, ignore:json-enc"
-        hx-target="#upload-info"
+        hx-target="#content-main"
+        hx-select="#content-main"
         hx-target-error="#upload-info"
         hx-post="/upload"
         hx-encoding="multipart/form-data"

@@ -13,6 +13,7 @@ import { Cache, type ICache } from '../utils/cache.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import { Search, type ISearch } from '../utils/search.js'
 import SessionStore from '../utils/sessions.js'
+import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
 @injectable()
@@ -22,6 +23,7 @@ export class UploadController extends HTMLController {
   constructor(
     private dtdlLoader: DtdlLoader,
     private db: Database,
+    private templates: MermaidTemplates,
     @inject(Search) private search: ISearch<EntityType>,
     @inject(Cache) private cache: ICache,
     private sessionStore: SessionStore
@@ -70,9 +72,14 @@ export class UploadController extends HTMLController {
     this.search.setCollection(this.dtdlLoader.getCollection(parsedDtdl))
     this.cache.clear()
 
-    this.setHeader('HX-Redirect', `/?sessionId=${sessionId}`)
-
-    return this.html(`${file.originalname}`)
+    return this.html(
+      this.templates.MermaidRoot({
+        layout: session.layout,
+        diagramType: session.diagramType,
+        search: undefined,
+        sessionId,
+      })
+    )
   }
 
   public async unzip(file: Buffer): Promise<string> {
