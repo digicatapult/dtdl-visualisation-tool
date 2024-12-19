@@ -168,7 +168,7 @@ export class SvgGenerator {
 
     // modify the viewbox to match the available container
     svgElement.setAttribute('viewBox', `0 0 ${params.svgWidth} ${params.svgHeight}`)
-    svgElement.setAttribute('hx-include', '#search-panel')
+    svgElement.setAttribute('hx-include', '#sessionId, #search-panel')
 
     // mutate nodes to make them clickable and styled correctly
     const nodes = this.getSvgGraphElements(svgElement, 'nodes')
