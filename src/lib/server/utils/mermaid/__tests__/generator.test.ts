@@ -267,7 +267,7 @@ describe('Generator', function () {
       const controlStringElement =
         '<svg id="mermaid-svg" width="1024" height="768"><g class="nodes"/><g class="edgePaths"/><g class="edgeLabels"/></svg>'
       const testElement =
-        '<svg id="mermaid-svg" width="300" height="100" viewBox="0 0 300 100" hx-include="#search-panel"><g class="edgePaths"/><g class="edgeLabels"/><g class="nodes"/></svg>'
+        '<svg id="mermaid-svg" width="300" height="100" viewBox="0 0 300 100" hx-include="#sessionId, #search-panel"><g class="edgePaths"/><g class="edgeLabels"/><g class="nodes"/></svg>'
       expect(generator.setSVGAttributes(controlStringElement, simpleMockDtdlObjectModel, defaultParams)).to.equal(
         testElement
       )
@@ -284,7 +284,7 @@ describe('Generator', function () {
         <g class="edgeLabels"/>
       </svg>
         `
-      const testElement = `<svg id="mermaid-svg" width="300" height="100" viewBox="0 0 300 100" hx-include="#search-panel">
+      const testElement = `<svg id="mermaid-svg" width="300" height="100" viewBox="0 0 300 100" hx-include="#sessionId, #search-panel">
         
         <g class="edgePaths"/>
         <g class="edgeLabels"/>
@@ -313,7 +313,7 @@ describe('Generator', function () {
         <g class="edgeLabels"/>
       </svg>
       `
-      const testElement = `<svg id="mermaid-svg" width="300" height="100" viewBox="0 0 300 100" hx-include="#search-panel">
+      const testElement = `<svg id="mermaid-svg" width="300" height="100" viewBox="0 0 300 100" hx-include="#sessionId, #search-panel">
         
         <g class="edgePaths"/>
         <g class="edgeLabels"/>
@@ -355,7 +355,7 @@ describe('Generator', function () {
         <g class="edgeLabels"/>
       </svg>
       `
-      const testElement = `<svg id="mermaid-svg" width="300" height="100" viewBox="0 0 300 100" hx-include="#search-panel">
+      const testElement = `<svg id="mermaid-svg" width="300" height="100" viewBox="0 0 300 100" hx-include="#sessionId, #search-panel">
         
         <g class="edgePaths"/>
         <g class="edgeLabels"/>
