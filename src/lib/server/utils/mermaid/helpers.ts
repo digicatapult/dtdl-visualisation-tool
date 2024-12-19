@@ -25,6 +25,36 @@ export const dtdlIdReinstateSemicolon = (idWithColon: MermaidId): DtdlId => {
   return idWithColon.replace(/:(?=\d+$)/, ';') // replace final : with ;
 }
 
+export function boundingBoxIntersects(a: BoundingBox, b: BoundingBox) {
+  return a.right > b.left && a.left < b.right && a.bottom > b.top && a.top < b.bottom
+}
+
+export function boundingBoxFromBoundary(left: number, right: number, top: number, bottom: number) {
+  return {
+    left,
+    right,
+    top,
+    bottom,
+    width: right - left,
+    height: bottom - top,
+    x: 0.5 * (left + right),
+    y: 0.5 * (top + bottom),
+  }
+}
+
+export function translateBoundingBox(boundingBox: BoundingBox, dx: number, dy: number) {
+  return {
+    left: boundingBox.left + dx,
+    right: boundingBox.right + dx,
+    top: boundingBox.top + dy,
+    bottom: boundingBox.bottom + dy,
+    width: boundingBox.width,
+    height: boundingBox.height,
+    x: boundingBox.x + dx,
+    y: boundingBox.y + dy,
+  }
+}
+
 const translateRegex = /translate\(\s*([-\d.]+)[ ,\s]*([-\d.]+)\s*\)/
 export function extractTransformTranslateCoords(element: Element) {
   const transform = element.getAttribute('transform')

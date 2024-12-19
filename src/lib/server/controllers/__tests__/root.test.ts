@@ -2,8 +2,8 @@ import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import sinon from 'sinon'
 import { UpdateParams } from '../../models/controllerTypes.js'
+import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../models/renderedDiagram/index.js'
 import { generatedSVGFixture } from '../../utils/mermaid/__tests__/fixtures'
-import { generateResultParser } from '../../utils/mermaid/generator.js'
 import { RootController } from '../root'
 import {
   complexMockDtdlLoader,
@@ -11,6 +11,7 @@ import {
   mockCache,
   mockGenerator,
   mockLogger,
+  mockMutator,
   mockReq,
   mockSearch,
   mockSession,
@@ -52,6 +53,7 @@ describe('RootController', async () => {
   const controller = new RootController(
     simpleMockDtdlLoader,
     mockGenerator,
+    mockMutator,
     templateMock,
     mockSearch,
     mockLogger,
@@ -61,6 +63,7 @@ describe('RootController', async () => {
   const complexController = new RootController(
     complexMockDtdlLoader,
     mockGenerator,
+    mockMutator,
     templateMock,
     mockSearch,
     mockLogger,
@@ -209,10 +212,9 @@ describe('RootController', async () => {
       const req = mockReq({})
       const generatorRunCount = generatorRunStub.callCount
       await controller.updateLayout(req, defaultParams)
-      expect(mockCache.get('diagramType=flowchart&layout=dagre-d3', generateResultParser)).to.deep.equal({
-        type: 'svg',
-        content: generatedSVGFixture,
-      })
+      const fromCache = mockCache.get('diagramType=flowchart&layout=dagre-d3', renderedDiagramParser)
+      expect(fromCache).instanceOf(MermaidSvgRender)
+      expect(fromCache?.renderToString()).to.deep.equal(generatedSVGFixture)
 
       await controller.updateLayout(req, defaultParams)
       expect(generatorRunStub.callCount).to.equal(generatorRunCount + 1)
@@ -222,11 +224,12 @@ describe('RootController', async () => {
       const req = mockReq({})
       await controller.updateLayout(req, { ...defaultParams, sessionId: validSessionSomeSearchId })
       await controller.updateLayout(req, { ...defaultParams, sessionId: validSessionSomeOtherSearchId })
+
       expect(mockCache.size()).to.equal(1)
-      expect(mockCache.get('diagramType=flowchart&layout=dagre-d3', generateResultParser)).to.deep.equal({
-        type: 'svg',
-        content: generatedSVGFixture,
-      })
+
+      const fromCache = mockCache.get('diagramType=flowchart&layout=dagre-d3', renderedDiagramParser)
+      expect(fromCache).instanceOf(MermaidSvgRender)
+      expect(fromCache?.renderToString()).to.deep.equal(generatedSVGFixture)
     })
 
     it('should truncate the last expandedId', async () => {
@@ -383,8 +386,7 @@ describe('RootController', async () => {
 
     it('should not animate if only highlighted node changes', async () => {
       const req = mockReq({})
-      // run with default params to setup the cache
-      await controller.updateLayout(req, defaultParams)
+      mockCache.set('diagramType=flowchart&layout=dagre-d3', new MermaidSvgRender(Buffer.from(generatedSVGFixture)))
 
       const result = await controller
         .updateLayout(req, {
@@ -405,10 +407,7 @@ describe('RootController', async () => {
 
     it('should not animate if old output was plain text', async () => {
       const req = mockReq({})
-      mockCache.set('diagramType=flowchart&layout=dagre-d3', {
-        type: 'text',
-        content: 'None',
-      })
+      mockCache.set('diagramType=flowchart&layout=dagre-d3', new PlainTextRender('None'))
 
       const result = await controller
         .updateLayout(req, {
