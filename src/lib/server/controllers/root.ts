@@ -180,7 +180,6 @@ export class RootController extends HTMLController {
         layout: newSession.layout,
         search: newSession.search,
         diagramType: newSession.diagramType,
-        sessionId: params.sessionId,
         svgWidth: params.svgWidth,
         svgHeight: params.svgHeight,
         currentZoom: zoom,
