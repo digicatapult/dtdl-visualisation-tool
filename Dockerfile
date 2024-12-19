@@ -34,6 +34,7 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 
 COPY public ./public
+COPY knexfile.js ./
 COPY --from=builder /dtdl-visualisation-tool/build ./build
 
 RUN npm i -g

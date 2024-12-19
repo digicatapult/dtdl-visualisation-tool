@@ -253,7 +253,7 @@ describe('Generator', function () {
       mutator.setSVGAttributes(render, simpleMockDtdlObjectModel, defaultParams)
 
       const attributes = render.svgElement.attributes
-      expect(attributes.getNamedItem('hx-include')?.value).to.equal('#search-panel')
+      expect(attributes.getNamedItem('hx-include')?.value).to.equal('#sessionId, #search-panel')
       expect(attributes.getNamedItem('viewBox')?.value).to.equal('0 0 300 100')
       expect(attributes.getNamedItem('height')?.value).to.equal('100')
       expect(attributes.getNamedItem('width')?.value).to.equal('300')

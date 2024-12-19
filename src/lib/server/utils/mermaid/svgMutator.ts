@@ -136,7 +136,7 @@ export class SvgMutator {
 
     // modify the viewbox to match the available container
     svg.svgElement.setAttribute('viewBox', `0 0 ${params.svgWidth} ${params.svgHeight}`)
-    svg.svgElement.setAttribute('hx-include', '#search-panel')
+    svg.svgElement.setAttribute('hx-include', '#sessionId, #search-panel')
 
     // mutate nodes to make them clickable and styled correctly
     svg.mapGraphNodes((node) => {

@@ -43,8 +43,6 @@ button.highlighted {
 }
 
 #search-panel {
-  grid-column: 1 / -1;
-  grid-row: 1;
   display: flex;
   align-items: center;
   font-size: 1.2em;
@@ -63,7 +61,7 @@ button.highlighted {
   background-size: 20px;
   background-position: 20px;
   padding-left: 60px;
-  width: 60ch;
+  width: 50ch;
   margin-right: 20px;
 }
 #search-panel > select,
@@ -275,4 +273,43 @@ input[type='search'] {
   position: absolute;
   top: -5px;
   right: 2px;
+}
+
+#toolbar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+}
+
+
+#upload-form {
+  width: 20ch;
+  padding: 10px;
+}
+
+#upload {
+  display: none;
+}
+
+#upload-button {
+  display: flex;
+  border-color: #e3e3e4;
+  border-style: solid;
+  border-radius: 5px;
+  border-width: 1px;
+  padding: 5px;
+  cursor: pointer;
+  background-color: #f5f6fa;
+  justify-content: center;
+}
+
+#upload-button:hover {
+  background-color: #e9e9ed;
+}
+
+#upload-info {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 5px;
+  font-size: 0.8rem;
 }
