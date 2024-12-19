@@ -102,7 +102,59 @@ input[type='search'] {
   opacity: 0;
 }
 
+#navigation-panel {
+  position: absolute;
+  right: 0;
+  background-color: #f5f6fa;
+  border: 1px solid #e8e8e8;
+  border-bottom: 0;
+  width: 400px;
+  height: 100%;
+  transition:
+    transform 200ms;
+}
 
+
+#navigation-panel-content {
+  height: 100%;
+  overflow-y: auto;
+  opacity: 1;
+  transition: opacity 200ms;
+}
+
+#navigation-panel:not([aria-expanded]) {
+  transform: translateX(360px);
+}
+
+#navigation-panel:not([aria-expanded]) #navigation-panel-button {
+  transform: scaleX(-1);
+}
+
+#navigation-panel:not([aria-expanded]) #navigation-panel-content {
+  opacity: 0;
+}
+
+#navigation-panel[aria-expanded] ~ #svg-controls {
+  transform: translateX(-360px);
+}
+
+#navigation-panel-button {
+  background-color: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 50%;
+  height: 2rem;
+  width: 2rem;
+  position: absolute;
+  top: 5rem;
+  left: -1rem;
+  z-index: 1;
+}
+
+#navigation-panel-button::before {
+  content: '❯';
+  color: #a6a6a6;
+  transform: scaleX(1);
+}
 
 #navigation-panel h3 {
   font-size: 1.2rem;
@@ -168,59 +220,6 @@ input[type='search'] {
   to {
     transform: rotate(360deg);
   }
-}
-
-#navigation-panel {
-  position: absolute;
-  right: 0;
-  background-color: #f5f6fa;
-  border: 1px solid #e8e8e8;
-  border-bottom: 0;
-  width: 400px;
-  height: 100%;
-  transition:
-    transform 200ms;
-}
-
-#navigation-panel-content {
-  height: 100%;
-  overflow-y: auto;
-  opacity: 1;
-  transition: opacity 200ms;
-}
-
-#navigation-panel-content:not([aria-expanded]) {
-  opacity: 0;
-}
-
-#navigation-panel:not([aria-expanded]) {
-  transform: translateX(360px);
-}
-
-#navigation-panel[aria-expanded] ~ #svg-controls {
-  transform: translateX(-360px);
-}
-
-#navigation-panel-button {
-  background-color: white;
-  border: 1px solid #e8e8e8;
-  border-radius: 50%;
-  height: 2rem;
-  width: 2rem;
-  position: absolute;
-  top: 5rem;
-  left: -1rem;
-  z-index: 1;
-}
-
-#navigation-panel-button::before {
-  content: '❯';
-  color: #a6a6a6;
-  transform: scaleX(1);
-}
-
-#navigation-panel-button:not([aria-expanded]) {
-  transform: scaleX(-1);
 }
 
 #legend {
