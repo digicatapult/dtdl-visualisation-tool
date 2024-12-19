@@ -9,6 +9,13 @@ globalThis.toggleAccordion = (event) => {
   content?.toggleAttribute('aria-hidden')
 }
 
+globalThis.toggleNavPanel = (event) => {
+  const panel = document.querySelector('#navigation-panel')
+
+  event.target.toggleAttribute('aria-expanded')
+  panel?.toggleAttribute('aria-expanded')
+}
+
 /**
  * Takes an input element id and extracts the value from it as a number if it has a value. Otherwise returns a default value provided
  * @param {String} elementId - Id of the element to get the value attribute from

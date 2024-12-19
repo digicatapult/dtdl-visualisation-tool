@@ -57,14 +57,14 @@ export default class MermaidTemplates {
       <div id="mermaid-wrapper">
         <this.mermaidTarget target="mermaid-output" generatedOutput={generatedOutput} />
         <div id="spinner" />
-        <div id="svg-controls">
-          <button id="zoom-in">+</button>
-          <button id="reset-pan-zoom">◯</button>
-          <button id="zoom-out">-</button>
-        </div>
-        <this.Legend showContent={false} />
       </div>
-      <this.navigationPanel />
+      <this.Legend showContent={false} />
+      <div id="svg-controls">
+        <button id="zoom-in">+</button>
+        <button id="reset-pan-zoom">◯</button>
+        <button id="zoom-out">-</button>
+      </div>
+      <this.navigationPanel expanded={false} />
     </Page>
   )
 
@@ -93,14 +93,27 @@ export default class MermaidTemplates {
     swapOutOfBand,
     entityId,
     model,
+    expanded,
   }: {
     swapOutOfBand?: boolean
     entityId?: DtdlId
     model?: DtdlObjectModel
+    expanded: boolean
   }): JSX.Element => {
     const entity = entityId && model ? model[entityId] : undefined
     return (
-      <aside id="navigation-panel" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
+      <aside
+        id="navigation-panel"
+        hx-swap-oob={swapOutOfBand ? 'true' : undefined}
+        {...(expanded && { 'aria-expanded': '' })}
+      >
+        <button
+          id="navigation-panel-button"
+          onclick="globalThis.toggleNavPanel(event)"
+          {...(expanded && { 'aria-expanded': '' })}
+        >
+          D
+        </button>
         {entity && model ? (
           <>
             <section>
