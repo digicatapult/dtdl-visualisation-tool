@@ -1,17 +1,16 @@
 import { singleton } from 'tsyringe'
-import { z } from 'zod'
 
 import { DiagramType } from '../models/mermaidDiagrams.js'
 import { Layout } from '../models/mermaidLayouts.js'
 
-const sessionParser = z.object({
-  layout: z.union([z.literal('elk'), z.literal('dagre-d3')]) satisfies z.ZodType<Layout>,
-  diagramType: z.union([z.literal('flowchart'), z.literal('classDiagram')]) satisfies z.ZodType<DiagramType>,
-  search: z.string().optional(),
-  highlightNodeId: z.string().optional(),
-  expandedIds: z.array(z.string()),
-})
-export type Session = z.infer<typeof sessionParser>
+export type Session = {
+  layout: Layout
+  diagramType: DiagramType
+  search?: string
+  highlightNodeId?: string
+  expandedIds: string[]
+  dtdlModelId?: string
+}
 
 @singleton()
 export default class SessionStore {

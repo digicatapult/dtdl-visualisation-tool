@@ -14,7 +14,7 @@ const commonUpdateAttrs = {
   'hx-target': '#mermaid-output',
   'hx-get': '/update-layout',
   'hx-swap': 'outerHTML  transition:true',
-  'hx-include': '#search-panel',
+  'hx-include': '#sessionId, #search-panel',
   'hx-indicator': '#spinner',
   'hx-disabled-elt': 'select',
 }
@@ -45,14 +45,17 @@ export default class MermaidTemplates {
     svgHeight?: number
   }) => (
     <Page title={'UKDTC'}>
-      <this.searchPanel
-        layout={layout}
-        search={search}
-        sessionId={sessionId}
-        diagramType={diagramType}
-        svgWidth={svgWidth}
-        svgHeight={svgHeight}
-      />
+      <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
+      <section id="toolbar">
+        <this.searchPanel
+          layout={layout}
+          search={search}
+          diagramType={diagramType}
+          svgWidth={svgWidth}
+          svgHeight={svgHeight}
+        />
+        <this.uploadForm />
+      </section>
 
       <div id="mermaid-wrapper">
         <this.mermaidTarget target="mermaid-output" generatedOutput={generatedOutput} />
@@ -198,7 +201,6 @@ export default class MermaidTemplates {
     search,
     layout,
     swapOutOfBand,
-    sessionId,
     diagramType,
     svgWidth,
     svgHeight,
@@ -211,7 +213,6 @@ export default class MermaidTemplates {
     layout: Layout
     diagramType: DiagramType
     // hidden inputs not set by input controls
-    sessionId: UUID
     svgWidth?: number
     svgHeight?: number
     currentZoom?: number
@@ -239,7 +240,6 @@ export default class MermaidTemplates {
           hx-trigger="input changed delay:500ms, search"
           {...commonUpdateAttrs}
         />
-        <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
 
         <input id="svgWidth" name="svgWidth" type="hidden" value={maybeNumberToAttr(svgWidth, 300)} />
         <input id="svgHeight" name="svgHeight" type="hidden" value={maybeNumberToAttr(svgHeight, 100)} />
@@ -327,6 +327,28 @@ export default class MermaidTemplates {
           <p safe>{description}</p>
         </div>
       </div>
+    )
+  }
+
+  private uploadForm = () => {
+    return (
+      <form
+        id="upload-form"
+        hx-ext="response-targets, ignore:json-enc"
+        hx-target="#content-main"
+        hx-select="#content-main"
+        hx-target-error="#upload-info"
+        hx-post="/upload"
+        hx-encoding="multipart/form-data"
+        hx-trigger="change from:#upload"
+        hx-include="#sessionId"
+      >
+        <label id="upload-button" for="upload">
+          Upload Ontology
+        </label>
+        <p id="upload-info"></p>
+        <input type="file" id="upload" name="file" accept=".zip" />
+      </form>
     )
   }
 }

@@ -14,7 +14,7 @@ export class LRUCache implements ICache {
     })
   }
 
-  get = <T>(key: string, parser: z.ZodType<T>): T | undefined => {
+  get = <T, D extends z.ZodTypeDef = z.ZodTypeDef>(key: string, parser: z.ZodType<T, D, unknown>): T | undefined => {
     const fromCache = this.cache.get(key)
     if (fromCache === undefined) {
       return

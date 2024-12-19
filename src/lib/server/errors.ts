@@ -21,3 +21,13 @@ export class InvalidQueryError extends HttpError {
     return 422
   }
 }
+
+export class UploadError extends Error {
+  constructor(message?: string) {
+    super(message)
+  }
+
+  public get code(): number {
+    return 400
+  }
+}
