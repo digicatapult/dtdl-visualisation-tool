@@ -6,10 +6,10 @@ import { DtdlObjectModel, getInterop, parseDirectories, validateDirectories } fr
 import chalk from 'chalk'
 import { Command } from 'commander'
 import { container } from 'tsyringe'
+import Database from './lib/db/index.js'
 import { httpServer } from './lib/server/index.js'
 import { logger } from './lib/server/logger.js'
 import { DtdlLoader } from './lib/server/utils/dtdl/dtdlLoader.js'
-import { allInterfaceFilter } from './lib/server/utils/dtdl/extract.js'
 import { FuseSearch } from './lib/server/utils/fuseSearch.js'
 import { SvgGenerator } from './lib/server/utils/mermaid/generator.js'
 import { Search } from './lib/server/utils/search.js'
@@ -45,17 +45,13 @@ program
     const parsedDtdl = parseDirectories(options.path, parser)
 
     if (parsedDtdl) {
-      const dtdlLoader = new DtdlLoader(parsedDtdl)
+      const dtdlLoader = new DtdlLoader(container.resolve(Database), parsedDtdl)
       container.register(DtdlLoader, {
         useValue: dtdlLoader,
       })
 
-      const interfaces = Object.entries(parsedDtdl)
-        .filter(allInterfaceFilter)
-        .map(([, entity]) => entity)
-
       container.register(Search, {
-        useValue: new FuseSearch(interfaces),
+        useValue: new FuseSearch(dtdlLoader.getCollection(parsedDtdl)),
       })
 
       logger.info(`Loading SVG generator...`)
@@ -64,7 +60,6 @@ program
       logger.info(`Complete`)
 
       httpServer(options.port)
-      logger.info(`View DTDL model: http://localhost:${options.port}`)
     } else {
       logger.error(`Error parsing DTDL`)
       process.exit(1)

@@ -10,6 +10,7 @@ const sessionParser = z.object({
   search: z.string().optional(),
   highlightNodeId: z.string().optional(),
   expandedIds: z.array(z.string()),
+  dtdlModelId: z.string().optional(),
 })
 export type Session = z.infer<typeof sessionParser>
 

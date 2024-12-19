@@ -48,15 +48,19 @@ export class RootController extends HTMLController {
   public async get(@Queries() params: RootParams): Promise<HTML> {
     this.logger.debug('root page requested with search: %o', { search: params.search, layout: params.layout })
 
-    const sessionId = randomUUID()
-    const session = {
-      layout: params.layout,
-      diagramType: params.diagramType,
-      search: params.search,
-      highlightNodeId: params.highlightNodeId,
-      expandedIds: [],
+    let sessionId = params.sessionId
+
+    if (!sessionId || !this.sessionStore.get(sessionId)) {
+      sessionId = randomUUID()
+      const session = {
+        layout: params.layout,
+        diagramType: params.diagramType,
+        search: params.search,
+        highlightNodeId: params.highlightNodeId,
+        expandedIds: [],
+      }
+      this.sessionStore.set(sessionId, session)
     }
-    this.sessionStore.set(sessionId, session)
 
     return this.html(
       this.templates.MermaidRoot({
@@ -75,14 +79,15 @@ export class RootController extends HTMLController {
 
     const a11y = new Set(params.a11y)
 
-    // get the base dtdl model that we will derive the graph from
-    const baseModel = this.dtdlLoader.getDefaultDtdlModel()
-
     // pull out the stored session. If this is invalid the request is invalid
     const session = this.sessionStore.get(params.sessionId)
     if (!session) {
       throw new InvalidQueryError('Session is not valid')
     }
+
+    // get the base dtdl model that we will derive the graph from
+    const baseModel = await this.dtdlLoader.getDtdlModel(session.dtdlModelId)
+
     const newSession: Session = {
       diagramType: params.diagramType,
       layout: params.layout,
@@ -175,7 +180,6 @@ export class RootController extends HTMLController {
         layout: newSession.layout,
         search: newSession.search,
         diagramType: newSession.diagramType,
-        sessionId: params.sessionId,
         svgWidth: params.svgWidth,
         svgHeight: params.svgHeight,
         currentZoom: zoom,
@@ -195,14 +199,6 @@ export class RootController extends HTMLController {
   @Get('/legend')
   public async getLegend(@Query() showContent: boolean): Promise<HTML> {
     return this.html(this.templates.Legend({ showContent }))
-  }
-
-  @SuccessResponse(200)
-  @Get('/entity/{id}')
-  public async getEntityById(id: string): Promise<HTML> {
-    const entityId = dtdlIdReinstateSemicolon(id)
-    const entity = this.dtdlLoader.getDefaultDtdlModel()[entityId]
-    return this.html(`${JSON.stringify(entity, null, 4)}`)
   }
 
   private getCurrentPathQuery(req: express.Request): { path: string; query: URLSearchParams } | undefined {

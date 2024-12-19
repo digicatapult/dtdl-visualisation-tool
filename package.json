@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "CLI tool for dtdl visualisation",
   "main": "src/index.js",
   "bin": {
@@ -20,7 +20,10 @@
     "local": "npm i -g && dtdl-visualiser",
     "lint": "eslint .",
     "check": "npm run tsoa:build && tsc --noEmit",
-    "xss-scan": "xss-scan"
+    "xss-scan": "xss-scan",
+    "db:cmd": "node --import @swc-node/register/esm-register ./node_modules/.bin/knex",
+    "db:migrate": "npm run db:cmd -- migrate:latest",
+    "db:rollback": "npm run db:cmd -- migrate:rollback"
   },
   "repository": {
     "type": "git",
@@ -45,9 +48,13 @@
     "express": "^4.21.2",
     "fuse.js": "^7.0.0",
     "htmx-ext-json-enc": "^2.0.1",
+    "htmx-ext-response-targets": "^2.0.1",
     "htmx.org": "^1.9.12",
     "jsdom": "^25.0.1",
+    "knex": "^3.1.0",
     "lru-cache": "^11.0.2",
+    "multer": "^1.4.5-lts.1",
+    "pg": "^8.13.1",
     "pino": "^9.5.0",
     "pino-http": "^10.3.0",
     "puppeteer": "^23.10.4",
@@ -56,6 +63,7 @@
     "svg-pan-zoom": "^3.6.2",
     "tsoa": "^6.6.0",
     "tsyringe": "^4.8.0",
+    "unzipper": "^0.12.3",
     "zod": "^3.24.1"
   },
   "devDependencies": {
@@ -66,6 +74,7 @@
     "@swc/cli": "^0.5.2",
     "@swc/core": "^1.10.1",
     "@types/chai": "^5.0.1",
+    "@types/chai-as-promised": "^8.0.1",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/jsdom": "^21.1.7",
@@ -73,8 +82,10 @@
     "@types/node": "^22.10.2",
     "@types/pino-http": "^5.8.4",
     "@types/sinon": "^17.0.3",
+    "@types/unzipper": "^0.10.10",
     "@typescript-eslint/eslint-plugin": "^8.18.0",
     "@typescript-eslint/parser": "^8.18.0",
+    "chai-as-promised": "^8.0.1",
     "depcheck": "^1.4.7",
     "eslint": "^9.17.0",
     "eslint-config-prettier": "^9.1.0",
