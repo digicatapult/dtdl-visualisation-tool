@@ -187,7 +187,7 @@ export class RootController extends HTMLController {
         swapOutOfBand: true,
         entityId: dtdlIdReinstateSemicolon(newSession.highlightNodeId ?? ''),
         model: baseModel,
-        expanded: newSession.highlightNodeId != undefined,
+        expanded: newSession.highlightNodeId !== undefined,
       })
     )
   }

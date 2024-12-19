@@ -10,10 +10,12 @@ globalThis.toggleAccordion = (event) => {
 }
 
 globalThis.toggleNavPanel = (event) => {
-  const panel = document.querySelector('#navigation-panel')
+  const panel = event.target.parentElement
+  const content = panel?.querySelector('#navigation-panel-content')
 
   event.target.toggleAttribute('aria-expanded')
   panel?.toggleAttribute('aria-expanded')
+  content?.toggleAttribute('aria-expanded')
 }
 
 /**
