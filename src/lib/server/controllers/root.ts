@@ -15,11 +15,13 @@ import {
   type RootParams,
   type UpdateParams,
 } from '../models/controllerTypes.js'
+import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../models/renderedDiagram/index.js'
 import { Cache, type ICache } from '../utils/cache.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import { filterModelByDisplayName, getRelatedIdsById } from '../utils/dtdl/filter.js'
-import { GenerateResult, generateResultParser, SvgGenerator } from '../utils/mermaid/generator.js'
+import { SvgGenerator } from '../utils/mermaid/generator.js'
 import { dtdlIdReinstateSemicolon } from '../utils/mermaid/helpers.js'
+import { SvgMutator } from '../utils/mermaid/svgMutator.js'
 import { Search, type ISearch } from '../utils/search.js'
 import SessionStore, { Session } from '../utils/sessions.js'
 import MermaidTemplates from '../views/components/mermaid.js'
@@ -33,6 +35,7 @@ export class RootController extends HTMLController {
   constructor(
     private dtdlLoader: DtdlLoader,
     private generator: SvgGenerator,
+    private svgMutator: SvgMutator,
     private templates: MermaidTemplates,
     @inject(Search) private search: ISearch<EntityType>,
     @inject(Logger) private logger: ILogger,
@@ -72,8 +75,6 @@ export class RootController extends HTMLController {
   @Get('/update-layout')
   public async updateLayout(@Request() req: express.Request, @Queries() params: UpdateParams): Promise<HTML> {
     this.logger.debug('search: %o', { search: params.search, layout: params.layout })
-
-    const a11y = new Set(params.a11y)
 
     // get the base dtdl model that we will derive the graph from
     const baseModel = this.dtdlLoader.getDefaultDtdlModel()
@@ -121,40 +122,10 @@ export class RootController extends HTMLController {
     }
 
     // get the raw mermaid generated svg
-    const rawOutput = await this.generateRawOutput(filteredModel, newSession)
+    const output = await this.generateRawOutput(filteredModel, newSession)
 
-    // set attributes to produce the final generated output
-    const attributeParams = {
-      svgWidth: params.svgWidth,
-      svgHeight: params.svgHeight,
-      diagramType: newSession.diagramType,
-      layout: newSession.layout,
-      highlightNodeId: newSession.highlightNodeId,
-    }
-
-    let finalOutput: { generatedOutput: string; pan: { x: number; y: number }; zoom: number }
-
-    if (rawOutput.type === 'svg') {
-      const newOutput = this.generator.setSVGAttributes(rawOutput.content, filteredModel, attributeParams)
-      finalOutput = this.setupAnimations(
-        a11y,
-        newOutput,
-        session,
-        newSession,
-        params.currentZoom,
-        params.currentPanX,
-        params.currentPanY,
-        params.svgWidth,
-        params.svgHeight
-      )
-    } else {
-      finalOutput = {
-        generatedOutput: rawOutput.content,
-        zoom: params.currentZoom,
-        pan: { x: params.currentPanX, y: params.currentPanY },
-      }
-    }
-    const { generatedOutput, pan, zoom } = finalOutput
+    // perform out manipulations on the svg
+    const { pan, zoom } = this.manipulateOutput(output, filteredModel, session, newSession, params)
 
     // store the updated session
     this.sessionStore.set(params.sessionId, newSession)
@@ -168,7 +139,7 @@ export class RootController extends HTMLController {
     // render out the final components to be replaced
     return this.html(
       this.templates.mermaidTarget({
-        generatedOutput,
+        generatedOutput: output.renderToString(),
         target: 'mermaid-output',
       }),
       this.templates.searchPanel({
@@ -256,11 +227,47 @@ export class RootController extends HTMLController {
     return searchParams.toString()
   }
 
+  private manipulateOutput(
+    output: MermaidSvgRender | PlainTextRender,
+    model: DtdlObjectModel,
+    oldSession: Session,
+    newSession: Session,
+    params: UpdateParams
+  ) {
+    if (output.type === 'text') {
+      return {
+        zoom: params.currentZoom,
+        pan: { x: params.currentPanX, y: params.currentPanY },
+      }
+    }
+
+    const attributeParams = {
+      svgWidth: params.svgWidth,
+      svgHeight: params.svgHeight,
+      diagramType: newSession.diagramType,
+      layout: newSession.layout,
+      highlightNodeId: newSession.highlightNodeId,
+    }
+
+    this.svgMutator.setSVGAttributes(output, model, attributeParams)
+    return this.setupAnimations(
+      new Set(params.a11y),
+      output,
+      oldSession,
+      newSession,
+      params.currentZoom,
+      params.currentPanX,
+      params.currentPanY,
+      params.svgWidth,
+      params.svgHeight
+    )
+  }
+
   // this setupAnimations handles all the animations logic we can do before going to jsdom
   // then pass through to the generator for applying the actual relevant animations
   private setupAnimations(
     a11yPrefs: Set<A11yPreference>,
-    newOutput: string,
+    newOutput: MermaidSvgRender,
     oldSession: Session,
     newSession: Session,
     currentZoom: number,
@@ -282,7 +289,7 @@ export class RootController extends HTMLController {
 
     // get the old svg from the cache
     const cacheKey = this.createCacheKey(oldSession)
-    const oldOutput = this.cache.get(cacheKey, generateResultParser)
+    const oldOutput = this.cache.get(cacheKey, renderedDiagramParser)
 
     // on a cache miss skip animations so the render isn't twice as long
     if (!oldOutput) {
@@ -311,10 +318,10 @@ export class RootController extends HTMLController {
     }
 
     // looks like we need to modify the svg to setup animations
-    return this.generator.setupAnimations(
+    return this.svgMutator.setupAnimations(
       newSession,
       newOutput,
-      oldOutput.content,
+      oldOutput,
       currentZoom,
       currentPanX,
       currentPanY,
@@ -323,9 +330,12 @@ export class RootController extends HTMLController {
     )
   }
 
-  private async generateRawOutput(model: DtdlObjectModel, session: GenerateParams): Promise<GenerateResult> {
+  private async generateRawOutput(
+    model: DtdlObjectModel,
+    session: GenerateParams
+  ): Promise<MermaidSvgRender | PlainTextRender> {
     const cacheKey = this.createCacheKey(session)
-    const fromCache = this.cache.get(cacheKey, generateResultParser)
+    const fromCache = this.cache.get(cacheKey, renderedDiagramParser)
     if (fromCache) {
       return fromCache
     }

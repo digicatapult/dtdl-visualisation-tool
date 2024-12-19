@@ -41,3 +41,6 @@ export interface UpdateParams extends RootParams {
 export const relevantParams = ['search', 'diagramType', 'layout', 'expandedIds'] as const
 export type GenerateParamKeys = (typeof relevantParams)[number]
 export type GenerateParams = Pick<UpdateParams & Session, GenerateParamKeys>
+
+export type AttributeParamKeys = 'svgWidth' | 'svgHeight' | 'highlightNodeId' | 'diagramType' | 'layout'
+export type AttributeParams = Pick<UpdateParams, AttributeParamKeys>

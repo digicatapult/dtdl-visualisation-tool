@@ -3,10 +3,13 @@ import { expect } from 'chai'
 import { withGroupElement, withPathElement } from './helpers.js'
 
 import {
+  boundingBoxFromBoundary,
+  boundingBoxIntersects,
   dtdlIdReinstateSemicolon,
   dtdlIdReplaceSemicolon,
   extractPathExtents,
   extractTransformTranslateCoords,
+  translateBoundingBox,
 } from '../helpers.js'
 
 describe('Helpers', () => {
@@ -90,6 +93,137 @@ describe('Helpers', () => {
         maxX: 20.5,
         minY: 20.5,
         maxY: 30.5,
+      })
+    })
+  })
+
+  describe('boundingBoxIntersects', () => {
+    const other = {
+      x: 5,
+      y: 5,
+      width: 10,
+      height: 10,
+      left: 0,
+      right: 10,
+      top: -5,
+      bottom: 5,
+    }
+    it('should not intersect if on the left', function () {
+      const input = {
+        x: -5,
+        y: 0,
+        width: 10,
+        height: 10,
+        left: -10,
+        right: 0,
+        top: -5,
+        bottom: 5,
+      }
+      const result = boundingBoxIntersects(input, other)
+      expect(result).to.equal(false)
+    })
+
+    it('should not intersect if on the right', function () {
+      const input = {
+        x: 15,
+        y: 0,
+        width: 10,
+        height: 10,
+        left: 10,
+        right: 20,
+        top: -5,
+        bottom: 5,
+      }
+      const result = boundingBoxIntersects(input, other)
+      expect(result).to.equal(false)
+    })
+
+    it('should not intersect if above', function () {
+      const input = {
+        x: 0,
+        y: -10,
+        width: 10,
+        height: 10,
+        left: -5,
+        right: 5,
+        top: -15,
+        bottom: -5,
+      }
+      const result = boundingBoxIntersects(input, other)
+      expect(result).to.equal(false)
+    })
+
+    it('should not intersect if below', function () {
+      const input = {
+        x: 0,
+        y: 10,
+        width: 10,
+        height: 10,
+        left: -5,
+        right: 5,
+        top: 5,
+        bottom: 15,
+      }
+      const result = boundingBoxIntersects(input, other)
+      expect(result).to.equal(false)
+    })
+
+    it('should intersect if overlap', function () {
+      const input = {
+        x: 0,
+        y: 0,
+        width: 10,
+        height: 10,
+        left: -5,
+        right: 5,
+        top: -5,
+        bottom: 5,
+      }
+      const result = boundingBoxIntersects(input, other)
+      expect(result).to.equal(true)
+    })
+  })
+
+  describe('boundingBoxFromBoundary', () => {
+    it('should generate a bounding box', () => {
+      const result = boundingBoxFromBoundary(10, 20, 30, 40)
+      expect(result).to.deep.equal({
+        x: 15,
+        y: 35,
+        width: 10,
+        height: 10,
+        top: 30,
+        bottom: 40,
+        left: 10,
+        right: 20,
+      })
+    })
+  })
+  describe('translateBoundingBox', () => {
+    it('should translate the bounding box', () => {
+      const result = translateBoundingBox(
+        {
+          x: 0,
+          y: 0,
+          left: -10,
+          right: 10,
+          top: -10,
+          bottom: 10,
+          width: 20,
+          height: 20,
+        },
+        10,
+        20
+      )
+      expect(result).to.deep.equal({
+        x: 10,
+        y: 20,
+        left: 0,
+        right: 20,
+        top: 10,
+        bottom: 30,
+        width: 20,
+        height: 20,
       })
     })
   })
