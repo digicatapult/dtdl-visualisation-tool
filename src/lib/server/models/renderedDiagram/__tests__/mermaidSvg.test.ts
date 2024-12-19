@@ -11,15 +11,15 @@ describe('MermaidSvgRender', function () {
       const svgBuffer = Buffer.from('foo')
       expect(() => new MermaidSvgRender(svgBuffer)).to.throw(InternalError)
     })
-    it("throws if content doesn\'t contain a nodes class element", function () {
+    it("throws if content doesn't contain a nodes class element", function () {
       const svgBuffer = Buffer.from('<svg><g class="edges"/><g class="edgeLabels"/></svg>')
       expect(() => new MermaidSvgRender(svgBuffer)).to.throw(InternalError)
     })
-    it("throws if content doesn\'t contain an edges or edgePaths class element", function () {
+    it("throws if content doesn't contain an edges or edgePaths class element", function () {
       const svgBuffer = Buffer.from('<svg><g class="nodes"/><g class="edgeLabels"/></svg>')
       expect(() => new MermaidSvgRender(svgBuffer)).to.throw(InternalError)
     })
-    it("throws if content doesn\'t contain an edgeLabels class element", function () {
+    it("throws if content doesn't contain an edgeLabels class element", function () {
       const svgBuffer = Buffer.from('<svg><g class="edges"/><g class="edgeLabels"/></svg>')
       expect(() => new MermaidSvgRender(svgBuffer)).to.throw(InternalError)
     })
