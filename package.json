@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "CLI tool for dtdl visualisation",
   "main": "src/index.js",
   "bin": {
@@ -55,7 +55,7 @@
     "lru-cache": "^11.0.2",
     "multer": "^1.4.5-lts.1",
     "pg": "^8.13.1",
-    "pino": "^9.5.0",
+    "pino": "^9.6.0",
     "pino-http": "^10.3.0",
     "puppeteer": "^23.11.1",
     "react": "^19.0.0",
@@ -83,8 +83,8 @@
     "@types/pino-http": "^5.8.4",
     "@types/sinon": "^17.0.3",
     "@types/unzipper": "^0.10.10",
-    "@typescript-eslint/eslint-plugin": "^8.18.1",
-    "@typescript-eslint/parser": "^8.18.1",
+    "@typescript-eslint/eslint-plugin": "^8.18.2",
+    "@typescript-eslint/parser": "^8.18.2",
     "chai-as-promised": "^8.0.1",
     "depcheck": "^1.4.7",
     "eslint": "^9.17.0",
