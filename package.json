@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "CLI tool for dtdl visualisation",
   "main": "src/index.js",
   "bin": {
@@ -72,7 +72,7 @@
     "@playwright/test": "^1.49.1",
     "@swc-node/register": "^1.10.9",
     "@swc/cli": "^0.5.2",
-    "@swc/core": "^1.10.1",
+    "@swc/core": "^1.10.3",
     "@types/chai": "^5.0.1",
     "@types/chai-as-promised": "^8.0.1",
     "@types/cors": "^2.8.17",
