@@ -28,7 +28,6 @@ export default class MermaidTemplates {
   constructor() {}
 
   public MermaidRoot = ({
-    generatedOutput,
     search,
     layout,
     sessionId,
@@ -36,7 +35,6 @@ export default class MermaidTemplates {
     svgWidth,
     svgHeight,
   }: {
-    generatedOutput?: JSX.Element | undefined
     search?: string
     layout: Layout
     sessionId: UUID
@@ -58,17 +56,22 @@ export default class MermaidTemplates {
       </section>
 
       <div id="mermaid-wrapper">
-        <this.mermaidTarget target="mermaid-output" generatedOutput={generatedOutput} />
+        <this.mermaidTarget target="mermaid-output" />
         <div id="spinner" />
       </div>
       <this.Legend showContent={false} />
       <this.navigationPanel expanded={false} />
-      <div id="svg-controls">
-        <button id="zoom-in">+</button>
-        <button id="reset-pan-zoom">◯</button>
-        <button id="zoom-out">-</button>
-      </div>
+      <this.svgControls />
     </Page>
+  )
+
+  public svgControls = ({ generatedOutput }: { generatedOutput?: string }): JSX.Element => (
+    <div id="svg-controls" hx-swap-oob="true">
+      <img id="minimap" src={generatedOutput ?? ''} />
+      <button id="zoom-in">+</button>
+      <button id="reset-pan-zoom">◯</button>
+      <button id="zoom-out">-</button>
+    </div>
   )
 
   public mermaidTarget = ({

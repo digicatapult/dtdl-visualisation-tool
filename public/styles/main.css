@@ -11,6 +11,7 @@ body {
   height: 100vh;
   width: 100vw;
   margin: 0;
+  overflow-x: hidden;
 }
 
 button.highlighted {
@@ -358,4 +359,9 @@ input[type='search'] {
   white-space: nowrap;
   margin: 5px;
   font-size: 0.8rem;
+}
+
+#minimap {
+  width: 100px;
+  height: 100px;
 }

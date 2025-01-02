@@ -49,6 +49,12 @@ export class MermaidSvgRender extends RenderedDiagram<'svg'> {
     return this.svg.outerHTML
   }
 
+  toDataUri() {
+    const svgString = this.renderToString()
+    const encodedSvg = Buffer.from(svgString).toString('base64')
+    return `data:image/svg+xml;base64,${encodedSvg}`
+  }
+
   mapGraphNodes<T>(fn: (node: Element, index: number, render: MermaidSvgRender) => T) {
     return Array.from(this.nodesParent.children).map((el, i) => fn(el, i, this))
   }
