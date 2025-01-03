@@ -112,7 +112,16 @@ export const filterModelByDisplayName = (
     })
   )
 
-  const idsAndRelationships = new Set([...matchingIds, ...matchingExtends, ...matchingRelationships])
+  // for each expandedId include the node that it extends
+  const expandedExtends = [...expandedIds].flatMap((id) => {
+    const entity = dtdlObjectModel[id]
+    if (entity.EntityKind !== 'Interface' || !('extends' in entity)) {
+      return []
+    }
+    return entity.extends
+  })
+
+  const idsAndRelationships = new Set([...matchingIds, ...matchingExtends, ...matchingRelationships, ...expandedExtends])
 
   return [...idsAndRelationships].reduce((acc, id) => {
     const entity = dtdlObjectModel[id]
