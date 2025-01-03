@@ -1,7 +1,3 @@
-const resetButton = document.getElementById('reset-pan-zoom')
-const zoomInButton = document.getElementById('zoom-in')
-const zoomOutButton = document.getElementById('zoom-out')
-
 globalThis.toggleAccordion = (event) => {
   const content = event.target.closest('section')?.querySelector('.accordion-content')
 
@@ -30,6 +26,10 @@ function valueFromElementOrDefault(elementId, defaultValue) {
 }
 
 globalThis.setMermaidListeners = function setMermaidListeners() {
+  const resetButton = document.getElementById('reset-pan-zoom')
+  const zoomInButton = document.getElementById('zoom-in')
+  const zoomOutButton = document.getElementById('zoom-out')
+
   const element = document.getElementById('mermaid-svg')
   if (!element) {
     document.getElementById('mermaid-output')?.removeAttribute('pending-listeners')

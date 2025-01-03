@@ -5,7 +5,9 @@ import { RenderedDiagram } from './base.js'
 
 export class MermaidSvgRender extends RenderedDiagram<'svg'> {
   private jsdom: JSDOM
+  private minimapDom: JSDOM
   private svg: Element
+  private minimapSvg: Element
   private nodesParent: Element
   private edgesParent: Element
   private edgeLabelsParent: Element
@@ -34,12 +36,14 @@ export class MermaidSvgRender extends RenderedDiagram<'svg'> {
 
     try {
       this.jsdom = new JSDOM(svgBuffer, { contentType: 'image/svg+xml' })
+      this.minimapDom = new JSDOM(svgBuffer, { contentType: 'image/svg+xml' })
     } catch (err) {
       throw new InternalError(`Error parsing svg ${err}`)
     }
 
     const keyElements = this.validateSvg()
     this.svg = keyElements.svg
+    this.minimapSvg = keyElements.minimapSvg
     this.nodesParent = keyElements.nodes
     this.edgesParent = keyElements.edges
     this.edgeLabelsParent = keyElements.edgeLabels
@@ -49,8 +53,13 @@ export class MermaidSvgRender extends RenderedDiagram<'svg'> {
     return this.svg.outerHTML
   }
 
+  renderForMinimap() {
+    this.minimapSvg.setAttribute('style', 'width: 100%; height: 100%;')
+    return this.minimapSvg.outerHTML
+  }
+
   toDataUri() {
-    const svgString = this.renderToString()
+    const svgString = this.renderForMinimap()
     const encodedSvg = Buffer.from(svgString).toString('base64')
     return `data:image/svg+xml;base64,${encodedSvg}`
   }
@@ -66,6 +75,8 @@ export class MermaidSvgRender extends RenderedDiagram<'svg'> {
   private validateSvg() {
     const document = this.jsdom.window.document
     const svg = document.getElementsByTagName('svg')[0]
+    const minimapSvg = this.minimapDom.window.document.getElementsByTagName('svg')[0]
+
     const nodes = svg.querySelector('g.nodes')
     if (nodes === null) {
       throw new InternalError('Error finding nodes in MermaidSVG')
@@ -84,6 +95,7 @@ export class MermaidSvgRender extends RenderedDiagram<'svg'> {
 
     return {
       svg,
+      minimapSvg,
       nodes,
       edges,
       edgeLabels,

@@ -183,7 +183,8 @@ input[type='search'] {
 
 #svg-controls {
   display: grid;
-  gap: 5px;
+  grid-template-columns: auto auto;
+  gap: 10px;
   position: absolute;
   bottom: 10px;
   right: 50px;
@@ -192,7 +193,13 @@ input[type='search'] {
     transform 200ms;
 }
 
-#svg-controls button {
+#zoom-buttons {
+  display: grid;
+  gap: 5px;
+  align-content: start;
+}
+
+#zoom-buttons button {
   width: 25px;
   height: 25px;
   cursor: pointer;
@@ -362,6 +369,9 @@ input[type='search'] {
 }
 
 #minimap {
-  width: 100px;
-  height: 100px;
+  width: 300px;
+  height: 200px;
+  border: 2px solid #646464;
+  background-color: white;
+  padding: 0.5rem;
 }

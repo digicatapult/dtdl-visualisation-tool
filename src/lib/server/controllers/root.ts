@@ -165,7 +165,7 @@ export class RootController extends HTMLController {
         expanded: newSession.highlightNodeId !== undefined,
       }),
       this.templates.svgControls({
-        generatedOutput: output.type === 'svg' ? output.toDataUri() : '',
+        generatedOutput: output.type === 'svg' ? output.renderForMinimap() : '',
       })
     )
   }
