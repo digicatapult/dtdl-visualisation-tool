@@ -121,7 +121,12 @@ export const filterModelByDisplayName = (
     return entity.extends
   })
 
-  const idsAndRelationships = new Set([...matchingIds, ...matchingExtends, ...matchingRelationships, ...expandedExtends])
+  const idsAndRelationships = new Set([
+    ...matchingIds,
+    ...matchingExtends,
+    ...matchingRelationships,
+    ...expandedExtends,
+  ])
 
   return [...idsAndRelationships].reduce((acc, id) => {
     const entity = dtdlObjectModel[id]
