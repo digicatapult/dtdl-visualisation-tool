@@ -2,6 +2,10 @@
 
 @import url('/public/styles/reset.css'); /* generics/defaults */
 
+:root {
+  --navigation-panel-translate-x: 360px;
+}
+
 body {
   display: grid;
   justify-items: center;
@@ -113,7 +117,6 @@ input[type='search'] {
     transform 200ms;
 }
 
-
 #navigation-panel-content {
   height: 100%;
   overflow-y: auto;
@@ -122,7 +125,7 @@ input[type='search'] {
 }
 
 #navigation-panel:not([aria-expanded]) {
-  transform: translateX(360px);
+  transform: translateX(var(--navigation-panel-translate-x));
 }
 
 #navigation-panel:not([aria-expanded]) #navigation-panel-button {
@@ -134,7 +137,7 @@ input[type='search'] {
 }
 
 #navigation-panel[aria-expanded] ~ #svg-controls {
-  transform: translateX(-360px);
+  transform: translateX(calc(-1 * var(--navigation-panel-translate-x)));
 }
 
 #navigation-panel-button {
@@ -152,7 +155,6 @@ input[type='search'] {
 #navigation-panel-button::before {
   content: '❯';
   color: #a6a6a6;
-  transform: scaleX(1);
 }
 
 #navigation-panel h3 {
