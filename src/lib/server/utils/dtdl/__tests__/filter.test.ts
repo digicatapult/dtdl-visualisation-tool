@@ -119,6 +119,12 @@ describe('filterModelByDisplayName', function () {
     const result = filterModelByDisplayName(extendedInterface, mockSearch, 'parent', [])
     expect(result).to.deep.equal(extendedInterface)
   })
+
+  test('should include entities that are extended by expanded entities', function () {
+    setCollection(extendedInterface)
+    const result = filterModelByDisplayName(extendedInterface, mockSearch, 'child', ['child'])
+    expect(result).to.deep.equal(extendedInterface)
+  })
 })
 
 describe('getRelatedIdsById', function () {
