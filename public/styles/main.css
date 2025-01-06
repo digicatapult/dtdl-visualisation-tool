@@ -2,10 +2,6 @@
 
 @import url('/public/styles/reset.css'); /* generics/defaults */
 
-:root {
-  --navigation-panel-translate-x: 360px;
-}
-
 body {
   display: grid;
   justify-items: center;
@@ -44,6 +40,9 @@ button.highlighted {
   grid-template-rows: auto 1fr;
   height: 100vh;
   width: 100%;
+
+  --navigation-panel-width: 400px;
+  --navigation-panel-translate-x: calc(0.9* var(--navigation-panel-width));
 }
 
 #search-panel {
@@ -111,7 +110,7 @@ input[type='search'] {
   background-color: #f5f6fa;
   border: 1px solid #e8e8e8;
   border-bottom: 0;
-  width: 400px;
+  width: var(--navigation-panel-width);
   height: 100%;
   transition:
     transform 200ms;
