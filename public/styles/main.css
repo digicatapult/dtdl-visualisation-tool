@@ -11,6 +11,7 @@ body {
   height: 100vh;
   width: 100vw;
   margin: 0;
+  overflow-x: hidden;
 }
 
 button.highlighted {
@@ -37,9 +38,11 @@ button.highlighted {
 #content-main {
   display: grid;
   grid-template-rows: auto 1fr;
-  grid-template-columns: 1fr auto;
   height: 100vh;
   width: 100%;
+
+  --navigation-panel-width: 400px;
+  --navigation-panel-translate-x: calc(0.9* var(--navigation-panel-width));
 }
 
 #search-panel {
@@ -102,13 +105,55 @@ input[type='search'] {
 }
 
 #navigation-panel {
+  position: absolute;
+  right: 0;
   background-color: #f5f6fa;
-  grid-column: 2;
-  grid-row: 2;
-  overflow-y: auto;
   border: 1px solid #e8e8e8;
   border-bottom: 0;
-  max-width: 400px;
+  width: var(--navigation-panel-width);
+  height: 100%;
+  transition:
+    transform 200ms;
+}
+
+#navigation-panel-content {
+  height: 100%;
+  overflow-y: auto;
+  opacity: 1;
+  transition: opacity 200ms;
+}
+
+#navigation-panel:not([aria-expanded]) {
+  transform: translateX(var(--navigation-panel-translate-x));
+}
+
+#navigation-panel:not([aria-expanded]) #navigation-panel-button {
+  transform: scaleX(-1);
+}
+
+#navigation-panel:not([aria-expanded]) #navigation-panel-content {
+  opacity: 0;
+}
+
+#navigation-panel[aria-expanded] ~ #svg-controls {
+  transform: translateX(calc(-1 * var(--navigation-panel-translate-x)));
+}
+
+#navigation-panel-button {
+  background-color: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 50%;
+  height: 2rem;
+  width: 2rem;
+  position: absolute;
+  top: 5rem;
+  left: -1rem;
+  z-index: 1;
+}
+
+#navigation-panel-button::before {
+  content: '❯';
+  color: #a6a6a6;
 }
 
 #navigation-panel h3 {
@@ -117,7 +162,7 @@ input[type='search'] {
 }
 
 #navigation-panel section {
-  padding: 15px;
+  padding: 20px;
   border-bottom: 1px solid #e8e8e8;
   word-wrap: break-word;
 }
@@ -142,7 +187,10 @@ input[type='search'] {
   gap: 5px;
   position: absolute;
   bottom: 10px;
-  right: 10px;
+  right: 50px;
+  transform: translateX(0);
+  transition:
+    transform 200ms;
 }
 
 #svg-controls button {
@@ -277,7 +325,7 @@ input[type='search'] {
 
 #toolbar {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr 1fr;
 }
 
 
