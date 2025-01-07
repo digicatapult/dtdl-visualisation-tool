@@ -165,7 +165,7 @@ export class RootController extends HTMLController {
         expanded: newSession.highlightNodeId !== undefined,
       }),
       this.templates.svgControls({
-        generatedOutput: output.type === 'svg' ? output.renderForMinimap() : '',
+        generatedOutput: output.renderForMinimap(),
       })
     )
   }
@@ -240,8 +240,6 @@ export class RootController extends HTMLController {
         pan: { x: params.currentPanX, y: params.currentPanY },
       }
     }
-
-    //minimap
 
     const attributeParams = {
       svgWidth: params.svgWidth,

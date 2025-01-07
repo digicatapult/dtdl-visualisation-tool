@@ -55,7 +55,6 @@ export class MermaidSvgRender extends RenderedDiagram<'svg'> {
   }
 
   renderForMinimap() {
-    this.minimapSvg.setAttribute('style', 'width: 100%; height: 100%;')
     return this.minimapSvg.outerHTML
   }
 
@@ -76,7 +75,6 @@ export class MermaidSvgRender extends RenderedDiagram<'svg'> {
   private validateSvg(jsdom: JSDOM) {
     const document = jsdom.window.document
     const svg = document.getElementsByTagName('svg')[0]
-
     const nodes = svg.querySelector('g.nodes')
     if (nodes === null) {
       throw new InternalError('Error finding nodes in MermaidSVG')

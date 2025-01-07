@@ -1,3 +1,9 @@
+let panZoom = null
+const contentMain = document.querySelector('#content-main')
+
+const minimapStyles = window.getComputedStyle(document.getElementById('minimap'))
+const desiredAspectRatio = parseFloat(minimapStyles.width) / parseFloat(minimapStyles.height)
+
 globalThis.toggleAccordion = (event) => {
   const content = event.target.closest('section')?.querySelector('.accordion-content')
 
@@ -24,14 +30,8 @@ function valueFromElementOrDefault(elementId, defaultValue) {
   }
   return parseFloat(value)
 }
-let panZoom = null
-const styles = window.getComputedStyle(document.getElementById('minimap'))
-
-const desiredAspectRatio = parseFloat(styles.width) / parseFloat(styles.height)
-const contentMain = document.querySelector('#content-main')
 
 globalThis.setMermaidListeners = function setMermaidListeners() {
-  console.log('Setting mermaid listeners')
   const resetButton = document.getElementById('reset-pan-zoom')
   const zoomInButton = document.getElementById('zoom-in')
   const zoomOutButton = document.getElementById('zoom-out')
@@ -46,13 +46,13 @@ globalThis.setMermaidListeners = function setMermaidListeners() {
   function onPan({ x, y }) {
     document.getElementById('currentPanX')?.setAttribute('value', x)
     document.getElementById('currentPanY')?.setAttribute('value', y)
-    minimap()
+    setMinimap()
   }
 
   function onZoom(newZoom) {
     document.getElementById('currentZoom')?.setAttribute('value', newZoom)
     onPan(panZoom.getPan())
-    minimap()
+    setMinimap()
   }
 
   panZoom = svgPanZoom('#mermaid-svg', {
@@ -90,7 +90,8 @@ globalThis.setMermaidListeners = function setMermaidListeners() {
   document.body.addEventListener('htmx:beforeRequest', listener)
 
   document.getElementById('mermaid-output')?.removeAttribute('pending-listeners')
-  minimap()
+
+  setMinimap()
 }
 
 function setSizes() {
@@ -106,44 +107,47 @@ function setSizes() {
   svg?.setAttribute('viewBox', `0 0 ${boundingRec.width} ${boundingRec.height}`)
   svg?.setAttribute('width', `${boundingRec.width}`)
   svg?.setAttribute('height', `${boundingRec.height}`)
+
+  setMinimap()
 }
 
-function minimap() {
-  const svg = document.querySelector('#mermaid-output #mermaid-svg')
-  const viewport = document.querySelector('#mermaid-output .svg-pan-zoom_viewport')
+function setMinimap() {
+  const mainSvg = document.querySelector('#mermaid-output #mermaid-svg')
+  const mainViewport = document.querySelector('#mermaid-output .svg-pan-zoom_viewport')
 
-  const minimapSvg = document.querySelector('#minimap #mermaid-svg')
+  if (!(mainSvg && mainViewport)) return
 
-  if (svg && minimapSvg && viewport) {
-    const width = svg.getBoundingClientRect().width
-    const height = svg.getBoundingClientRect().height
-    const vW = viewport.getBBox().width
-    const vH = viewport.getBBox().height
+  const fullSvgWidth = mainSvg.getBoundingClientRect().width
+  const fullSvgHeight = mainSvg.getBoundingClientRect().height
+  const viewportWidth = mainViewport.getBBox().width
+  const viewportHeight = mainViewport.getBBox().height
 
-    const actualAspectRatio = vW / vH
+  const actualAspectRatio = viewportWidth / viewportHeight // aspect ratio of the generated svg
 
-    const minimapHeight = actualAspectRatio < desiredAspectRatio ? 100 : 100 * (desiredAspectRatio / actualAspectRatio)
-    const minimapWidth = actualAspectRatio < desiredAspectRatio ? 100 * (actualAspectRatio / desiredAspectRatio) : 100
+  // make the minimap svg as big as possible within bounds of the minimap
+  const minimapSvgWidth = actualAspectRatio < desiredAspectRatio ? 100 * (actualAspectRatio / desiredAspectRatio) : 100
+  const minimapSvgHeight = actualAspectRatio < desiredAspectRatio ? 100 : 100 * (desiredAspectRatio / actualAspectRatio)
 
-    contentMain.style.setProperty('--minimap-width', `${minimapWidth}%`)
-    contentMain.style.setProperty('--minimap-height', `${minimapHeight}%`)
+  contentMain.style.setProperty('--minimap-svg-width', `${minimapSvgWidth}%`)
+  contentMain.style.setProperty('--minimap-svg-height', `${minimapSvgHeight}%`)
 
-    const scale = panZoom.getZoom()
-    const { x, y } = panZoom.getPan()
-    const translateX = x / scale
-    const translateY = y / scale
+  const zoomScale = panZoom.getZoom()
+  const { x, y } = panZoom.getPan()
 
-    const lensWidth = ((width / vW) * 100) / scale + '%'
-    const lensHeight = ((height / vH) * 100) / scale + '%'
+  // invert translations, positive translation of svg means negative translation of lens
+  const translateX = x * -1
+  const translateY = y * -1
 
-    contentMain.style.setProperty('--minimap-lens-width', lensWidth)
-    contentMain.style.setProperty('--minimap-lens-height', lensHeight)
-    contentMain.style.setProperty('--lens-left', `${((-1 * translateX) / vW) * 100}%`)
-    contentMain.style.setProperty('--lens-top', `${((-1 * translateY) / vH) * 100}%`)
-  }
+  const lensWidth = `${(fullSvgWidth / zoomScale / viewportWidth) * 100}%`
+  const lensHeight = `${(fullSvgHeight / zoomScale / viewportHeight) * 100}%`
+  const lensLeft = `${(translateX / zoomScale / viewportWidth) * 100}%`
+  const lensTop = `${(translateY / zoomScale / viewportHeight) * 100}%`
+
+  contentMain.style.setProperty('--minimap-lens-width', lensWidth)
+  contentMain.style.setProperty('--minimap-lens-height', lensHeight)
+  contentMain.style.setProperty('--minimap-lens-left', lensLeft)
+  contentMain.style.setProperty('--minimap-lens-top', lensTop)
 }
 
 setSizes()
-minimap()
 addEventListener('resize', setSizes)
-addEventListener('resize', minimap)
