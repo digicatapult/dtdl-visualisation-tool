@@ -24,8 +24,10 @@ function valueFromElementOrDefault(elementId, defaultValue) {
   }
   return parseFloat(value)
 }
+let panZoom = null
 
 globalThis.setMermaidListeners = function setMermaidListeners() {
+  console.log('Setting mermaid listeners')
   const resetButton = document.getElementById('reset-pan-zoom')
   const zoomInButton = document.getElementById('zoom-in')
   const zoomOutButton = document.getElementById('zoom-out')
@@ -40,14 +42,17 @@ globalThis.setMermaidListeners = function setMermaidListeners() {
   function onPan({ x, y }) {
     document.getElementById('currentPanX')?.setAttribute('value', x)
     document.getElementById('currentPanY')?.setAttribute('value', y)
+    console.log(x)
+    minimap()
   }
 
   function onZoom(newZoom) {
     document.getElementById('currentZoom')?.setAttribute('value', newZoom)
     onPan(panZoom.getPan())
+    minimap()
   }
 
-  const panZoom = svgPanZoom('#mermaid-svg', {
+  panZoom = svgPanZoom('#mermaid-svg', {
     maxZoom: 10,
     minZoom: -100,
   })
@@ -82,6 +87,7 @@ globalThis.setMermaidListeners = function setMermaidListeners() {
   document.body.addEventListener('htmx:beforeRequest', listener)
 
   document.getElementById('mermaid-output')?.removeAttribute('pending-listeners')
+  minimap()
 }
 
 function setSizes() {
@@ -93,11 +99,54 @@ function setSizes() {
   document.getElementById('svgWidth')?.setAttribute('value', `${boundingRec.width}`)
   document.getElementById('svgHeight')?.setAttribute('value', `${boundingRec.height}`)
 
-  const svg = document.getElementById('mermaid-svg')
+  const svg = document.querySelector('#mermaid-output #mermaid-svg')
   svg?.setAttribute('viewBox', `0 0 ${boundingRec.width} ${boundingRec.height}`)
   svg?.setAttribute('width', `${boundingRec.width}`)
   svg?.setAttribute('height', `${boundingRec.height}`)
 }
 
+function minimap() {
+  console.log('hi')
+  const svg = document.querySelector('#mermaid-output #mermaid-svg')
+  const viewport = document.querySelector('#mermaid-output .svg-pan-zoom_viewport')
+
+  const minimapSvg = document.querySelector('#minimap #mermaid-svg')
+
+  if (svg && minimapSvg && viewport) {
+    const width = svg.getBoundingClientRect().width
+    const height = svg.getBoundingClientRect().height
+    const vW = viewport.getBBox().width
+    const vH = viewport.getBBox().height
+
+    const contentMain = document.querySelector('#content-main')
+
+    const maxWidth = 300
+    const maxHeight = 200
+
+    const aspectRatio = vW / vH
+
+    const minimapWidth = Math.min(maxWidth, maxHeight * aspectRatio)
+    const minimapHeight = Math.min(maxHeight, maxWidth / aspectRatio)
+
+    contentMain.style.setProperty('--minimap-width', `${minimapWidth}px`)
+    contentMain.style.setProperty('--minimap-height', `${minimapHeight}px`)
+
+    const scale = panZoom.getZoom()
+    const { x, y } = panZoom.getPan()
+    const translateX = x / scale
+    const translateY = y / scale
+
+    const lensWidth = ((width / vW) * 100) / scale + '%'
+    const lensHeight = ((height / vH) * 100) / scale + '%'
+
+    contentMain.style.setProperty('--minimap-lens-width', lensWidth)
+    contentMain.style.setProperty('--minimap-lens-height', lensHeight)
+    contentMain.style.setProperty('--lens-left', `${((-1 * translateX) / vW) * 100}%`)
+    contentMain.style.setProperty('--lens-top', `${((-1 * translateY) / vH) * 100}%`)
+  }
+}
+
 setSizes()
+minimap()
 addEventListener('resize', setSizes)
+addEventListener('resize', minimap)
