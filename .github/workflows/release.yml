@@ -37,8 +37,8 @@ jobs:
       - static-checks-npm
     uses: digicatapult/shared-workflows/.github/workflows/build-docker.yml@main
     with:
-      push_dockerhub: false
-      push_ghcr: false
+      push_dockerhub: true
+      push_ghcr: true
     permissions:
       packages: write
       contents: write
