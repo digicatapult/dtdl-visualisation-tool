@@ -85,6 +85,10 @@ input[type='search'] {
   font-weight: 200;
 }
 
+label[for="diagramType"] {
+  white-space: nowrap;
+}
+
 #mermaid-wrapper {
   grid-column: 1;
   grid-row: 2;
@@ -400,5 +404,4 @@ input[type='search'] {
   height: var(--minimap-lens-height, 100px);
   border: 2px solid red;
   background-color: rgba(255, 0, 0, 0.1);
-  box-sizing: border-box;
 }

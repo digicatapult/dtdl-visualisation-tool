@@ -41,12 +41,13 @@ export class MermaidSvgRender extends RenderedDiagram<'svg'> {
       throw new InternalError(`Error parsing svg ${err}`)
     }
 
-    const keyElements = this.validateSvg()
+    const keyElements = this.validateSvg(this.jsdom)
     this.svg = keyElements.svg
-    this.minimapSvg = keyElements.minimapSvg
     this.nodesParent = keyElements.nodes
     this.edgesParent = keyElements.edges
     this.edgeLabelsParent = keyElements.edgeLabels
+
+    this.minimapSvg = this.validateSvg(this.minimapDom).svg
   }
 
   renderToString() {
@@ -72,10 +73,9 @@ export class MermaidSvgRender extends RenderedDiagram<'svg'> {
     return Array.from(this.edgesParent.children).map((el, i) => fn(el, this.edgeLabelsParent.children[i], i, this))
   }
 
-  private validateSvg() {
-    const document = this.jsdom.window.document
+  private validateSvg(jsdom: JSDOM) {
+    const document = jsdom.window.document
     const svg = document.getElementsByTagName('svg')[0]
-    const minimapSvg = this.minimapDom.window.document.getElementsByTagName('svg')[0]
 
     const nodes = svg.querySelector('g.nodes')
     if (nodes === null) {
@@ -95,7 +95,6 @@ export class MermaidSvgRender extends RenderedDiagram<'svg'> {
 
     return {
       svg,
-      minimapSvg,
       nodes,
       edges,
       edgeLabels,

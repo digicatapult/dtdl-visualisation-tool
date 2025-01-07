@@ -25,6 +25,10 @@ function valueFromElementOrDefault(elementId, defaultValue) {
   return parseFloat(value)
 }
 let panZoom = null
+const styles = window.getComputedStyle(document.getElementById('minimap'))
+
+const desiredAspectRatio = parseFloat(styles.width) / parseFloat(styles.height)
+const contentMain = document.querySelector('#content-main')
 
 globalThis.setMermaidListeners = function setMermaidListeners() {
   console.log('Setting mermaid listeners')
@@ -42,7 +46,6 @@ globalThis.setMermaidListeners = function setMermaidListeners() {
   function onPan({ x, y }) {
     document.getElementById('currentPanX')?.setAttribute('value', x)
     document.getElementById('currentPanY')?.setAttribute('value', y)
-    console.log(x)
     minimap()
   }
 
@@ -106,7 +109,6 @@ function setSizes() {
 }
 
 function minimap() {
-  console.log('hi')
   const svg = document.querySelector('#mermaid-output #mermaid-svg')
   const viewport = document.querySelector('#mermaid-output .svg-pan-zoom_viewport')
 
@@ -118,18 +120,13 @@ function minimap() {
     const vW = viewport.getBBox().width
     const vH = viewport.getBBox().height
 
-    const contentMain = document.querySelector('#content-main')
+    const actualAspectRatio = vW / vH
 
-    const maxWidth = 300
-    const maxHeight = 200
+    const minimapHeight = actualAspectRatio < desiredAspectRatio ? 100 : 100 * (desiredAspectRatio / actualAspectRatio)
+    const minimapWidth = actualAspectRatio < desiredAspectRatio ? 100 * (actualAspectRatio / desiredAspectRatio) : 100
 
-    const aspectRatio = vW / vH
-
-    const minimapWidth = Math.min(maxWidth, maxHeight * aspectRatio)
-    const minimapHeight = Math.min(maxHeight, maxWidth / aspectRatio)
-
-    contentMain.style.setProperty('--minimap-width', `${minimapWidth}px`)
-    contentMain.style.setProperty('--minimap-height', `${minimapHeight}px`)
+    contentMain.style.setProperty('--minimap-width', `${minimapWidth}%`)
+    contentMain.style.setProperty('--minimap-height', `${minimapHeight}%`)
 
     const scale = panZoom.getZoom()
     const { x, y } = panZoom.getPan()
