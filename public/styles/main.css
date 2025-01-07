@@ -372,17 +372,25 @@ input[type='search'] {
   margin: 5px;
   font-size: 0.8rem;
 }
-
-#minimap {
+#minimap-padding {
   width: var(--minimap-width, 0);
   height: var(--minimap-height, 0);
+  position: relative;
+}
+
+#minimap {
+  width: 300px;
+  height: 200px;
   border: 2px solid #646464;
   background-color: white;
   position: relative;
   overflow: hidden;
+  display: grid;
+  justify-items: center;
+  align-items: center;
 }
 
-#minimap::after {
+#minimap-padding::after {
   content: '';
   display: block;
   position: absolute;
@@ -392,4 +400,5 @@ input[type='search'] {
   height: var(--minimap-lens-height, 100px);
   border: 2px solid red;
   background-color: rgba(255, 0, 0, 0.1);
+  box-sizing: border-box;
 }

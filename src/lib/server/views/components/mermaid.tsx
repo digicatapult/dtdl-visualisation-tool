@@ -67,7 +67,9 @@ export default class MermaidTemplates {
 
   public svgControls = ({ generatedOutput }: { generatedOutput?: string }): JSX.Element => (
     <div id="svg-controls" hx-swap-oob="true">
-      <div id="minimap">{generatedOutput}</div>
+      <div id="minimap">
+        <div id="minimap-padding">{generatedOutput}</div>
+      </div>
       <div id="zoom-buttons">
         <button id="zoom-in">+</button>
         <button id="reset-pan-zoom">◯</button>
