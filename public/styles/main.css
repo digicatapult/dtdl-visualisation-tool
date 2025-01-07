@@ -45,6 +45,8 @@ button.highlighted {
   --minimap-lens-height: 10%;
   --minimap-width: 300px;
   --minimap-height: 200px;
+  --navigation-panel-width: 400px;
+  --navigation-panel-translate-x: calc(0.9* var(--navigation-panel-width));
 }
 
 #search-panel {
@@ -116,12 +118,11 @@ label[for="diagramType"] {
   background-color: #f5f6fa;
   border: 1px solid #e8e8e8;
   border-bottom: 0;
-  width: 400px;
+  width: var(--navigation-panel-width);
   height: 100%;
   transition:
     transform 200ms;
 }
-
 
 #navigation-panel-content {
   height: 100%;
@@ -131,7 +132,7 @@ label[for="diagramType"] {
 }
 
 #navigation-panel:not([aria-expanded]) {
-  transform: translateX(360px);
+  transform: translateX(var(--navigation-panel-translate-x));
 }
 
 #navigation-panel:not([aria-expanded]) #navigation-panel-button {
@@ -143,7 +144,7 @@ label[for="diagramType"] {
 }
 
 #navigation-panel[aria-expanded] ~ #svg-controls {
-  transform: translateX(-360px);
+  transform: translateX(calc(-1 * var(--navigation-panel-translate-x)));
 }
 
 #navigation-panel-button {
@@ -161,7 +162,6 @@ label[for="diagramType"] {
 #navigation-panel-button::before {
   content: '❯';
   color: #a6a6a6;
-  transform: scaleX(1);
 }
 
 #navigation-panel h3 {
