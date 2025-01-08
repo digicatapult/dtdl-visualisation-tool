@@ -15,6 +15,7 @@ jobs:
     with:
       docker_compose_file: ''
       npm_build_command: 'npm run build'
+      pre_test_command: 'echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns'
       tests: '["test:unit"]'
       env_vars: |
         {
