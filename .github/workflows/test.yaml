@@ -14,7 +14,7 @@ jobs:
     uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
     with:
       docker_compose_file: ''
-      npm_build_command: 'npm run build'
+      npm_build_command: 'npm run build && echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns'
       tests: '["test:unit"]'
       env_vars: |
         {
