@@ -19,6 +19,7 @@ describe('ClassDiagram', function () {
       if (markdown === null) assert.fail()
 
       const parsedMermaid = await parseMermaid(markdown)
+
       expect(parsedMermaid).to.deep.equal({ diagramType: 'class', config: {} })
     })
     it('should return null for a empty Dtdl model', () => {
