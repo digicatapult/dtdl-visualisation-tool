@@ -5,7 +5,9 @@ import { RenderedDiagram } from './base.js'
 
 export class MermaidSvgRender extends RenderedDiagram<'svg'> {
   private jsdom: JSDOM
+  private minimapDom: JSDOM
   private svg: Element
+  private minimapSvg: Element
   private nodesParent: Element
   private edgesParent: Element
   private edgeLabelsParent: Element
@@ -34,19 +36,26 @@ export class MermaidSvgRender extends RenderedDiagram<'svg'> {
 
     try {
       this.jsdom = new JSDOM(svgBuffer, { contentType: 'image/svg+xml' })
+      this.minimapDom = new JSDOM(svgBuffer, { contentType: 'image/svg+xml' })
     } catch (err) {
       throw new InternalError(`Error parsing svg ${err}`)
     }
 
-    const keyElements = this.validateSvg()
+    const keyElements = this.validateSvg(this.jsdom)
     this.svg = keyElements.svg
     this.nodesParent = keyElements.nodes
     this.edgesParent = keyElements.edges
     this.edgeLabelsParent = keyElements.edgeLabels
+
+    this.minimapSvg = this.validateSvg(this.minimapDom).svg
   }
 
   renderToString() {
     return this.svg.outerHTML
+  }
+
+  renderForMinimap() {
+    return this.minimapSvg.outerHTML
   }
 
   mapGraphNodes<T>(fn: (node: Element, index: number, render: MermaidSvgRender) => T) {
@@ -57,8 +66,8 @@ export class MermaidSvgRender extends RenderedDiagram<'svg'> {
     return Array.from(this.edgesParent.children).map((el, i) => fn(el, this.edgeLabelsParent.children[i], i, this))
   }
 
-  private validateSvg() {
-    const document = this.jsdom.window.document
+  private validateSvg(jsdom: JSDOM) {
+    const document = jsdom.window.document
     const svg = document.getElementsByTagName('svg')[0]
     const nodes = svg.querySelector('g.nodes')
     if (nodes === null) {

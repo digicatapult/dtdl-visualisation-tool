@@ -87,6 +87,7 @@ describe('RootController', async () => {
           `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
           `searchPanel_undefined_dagre-d3_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
+          `svgControls_${generatedSVGFixture}_svgControls`,
         ].join('')
       )
     })
@@ -99,6 +100,7 @@ describe('RootController', async () => {
           `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
           `searchPanel_example 1_dagre-d3_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
+          `svgControls_${generatedSVGFixture}_svgControls`,
         ].join('')
       )
     })
@@ -122,6 +124,7 @@ describe('RootController', async () => {
           `mermaidTarget_None_mermaid-output_mermaidTarget`,
           `searchPanel_undefined_dagre-d3_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
+          `svgControls__svgControls`,
         ].join('')
       )
     })
@@ -338,6 +341,7 @@ describe('RootController', async () => {
           `mermaidTarget_${generatedSVGFixture}_attr_animate_mermaid-output_mermaidTarget`,
           `searchPanel_example_dagre-d3_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
+          `svgControls_${generatedSVGFixture}_svgControls`,
         ].join('')
       )
     })
@@ -358,6 +362,7 @@ describe('RootController', async () => {
           `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
           `searchPanel_example_dagre-d3_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
+          `svgControls_${generatedSVGFixture}_svgControls`,
         ].join('')
       )
     })
@@ -380,6 +385,7 @@ describe('RootController', async () => {
           `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
           `searchPanel_example_dagre-d3_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
+          `svgControls_${generatedSVGFixture}_svgControls`,
         ].join('')
       )
     })
@@ -401,6 +407,7 @@ describe('RootController', async () => {
           `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
           `searchPanel_undefined_dagre-d3_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
+          `svgControls_${generatedSVGFixture}_svgControls`,
         ].join('')
       )
     })
@@ -422,6 +429,7 @@ describe('RootController', async () => {
           `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
           `searchPanel_example_dagre-d3_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
+          `svgControls_${generatedSVGFixture}_svgControls`,
         ].join('')
       )
     })

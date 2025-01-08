@@ -83,6 +83,10 @@ input[type='search'] {
   font-weight: 200;
 }
 
+label[for="diagramType"] {
+  white-space: nowrap;
+}
+
 #mermaid-wrapper {
   grid-column: 1;
   grid-row: 2;
@@ -184,7 +188,8 @@ input[type='search'] {
 
 #svg-controls {
   display: grid;
-  gap: 5px;
+  grid-template-columns: auto auto;
+  gap: 10px;
   position: absolute;
   bottom: 10px;
   right: 50px;
@@ -193,7 +198,13 @@ input[type='search'] {
     transform 200ms;
 }
 
-#svg-controls button {
+#zoom-buttons {
+  display: grid;
+  gap: 5px;
+  align-content: start;
+}
+
+#zoom-buttons button {
   width: 25px;
   height: 25px;
   cursor: pointer;
@@ -360,4 +371,38 @@ input[type='search'] {
   white-space: nowrap;
   margin: 5px;
   font-size: 0.8rem;
+}
+
+#minimap {
+  width: 300px;
+  height: 200px;
+  border: 2px solid #646464;
+  background-color: white;
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  justify-items: center;
+  align-items: center;
+}
+
+#minimap-svg {
+  width: var(--minimap-svg-width);
+  height: var(--minimap-svg-height);
+  position: relative;
+}
+
+#minimap-svg > #mermaid-svg {
+  width: 100%;
+  height: 100%;
+}
+
+#minimap-svg::after {
+  content: '';
+  position: absolute;
+  top: var(--minimap-lens-top);
+  left: var(--minimap-lens-left);
+  width: var(--minimap-lens-width);
+  height: var(--minimap-lens-height);
+  border: 2px solid red;
+  background-color: rgba(255, 0, 0, 0.1);
 }

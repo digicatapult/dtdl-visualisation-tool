@@ -163,6 +163,9 @@ export class RootController extends HTMLController {
         entityId: dtdlIdReinstateSemicolon(newSession.highlightNodeId ?? ''),
         model: baseModel,
         expanded: newSession.highlightNodeId !== undefined,
+      }),
+      this.templates.svgControls({
+        generatedOutput: output.renderForMinimap(),
       })
     )
   }
