@@ -147,6 +147,29 @@ function setMinimap() {
   contentMain.style.setProperty('--minimap-lens-height', lensHeight)
   contentMain.style.setProperty('--minimap-lens-left', lensLeft)
   contentMain.style.setProperty('--minimap-lens-top', lensTop)
+
+  const minimap = document.getElementById('minimap')
+  const minimapSvg = document.getElementById('minimap-svg')
+  if (!minimapSvg) return
+
+  minimap.onclick = (event) => {
+    const offsetX = event.clientX - minimapSvg.getBoundingClientRect().left
+    const offsetY = event.clientY - minimapSvg.getBoundingClientRect().top
+
+    const { width: svgWidthPixels, height: svgHeightPixels } = minimapSvg.getBoundingClientRect()
+
+    const percentX = offsetX / svgWidthPixels
+    const percentY = offsetY / svgHeightPixels
+
+    const lensWidthPixels = (fullSvgWidth / viewportWidth) * svgWidthPixels
+    const lensHeightPixels = (fullSvgHeight / viewportHeight) * svgHeightPixels
+
+    const targetX = percentX * viewportWidth * zoomScale * -1
+    const targetY = percentY * viewportHeight * zoomScale * -1
+
+    console.log(targetX)
+    panZoom.pan({ x: targetX, y: targetY })
+  }
 }
 
 setSizes()
