@@ -152,21 +152,20 @@ function setMinimap() {
   if (!minimap || !minimapSvg) return
 
   minimap.onclick = (event) => {
-    // compute click coordinates relative to the svg rather than whole clickable minimap div
-    const { left, top, width: svgWidthPixels, height: svgHeightPixels } = minimapSvg.getBoundingClientRect()
-    const offsetX = event.clientX - left
-    const offsetY = event.clientY - top
+    // compute click coordinates relative to the svg
+    const { left, top, width: svgWidth, height: svgHeight } = minimapSvg.getBoundingClientRect()
+    const x = event.clientX - left
+    const y = event.clientY - top
 
-    const percentX = offsetX / svgWidthPixels
-    const percentY = offsetY / svgHeightPixels
+    const percentX = x / svgWidth
+    const percentY = y / svgHeight
 
-    const lensWidthPixels = ((viewportSvgWidth / rawSvgWidth) * svgWidthPixels) / zoomScale
-    const lensHeightPixels = ((viewportSvgHeight / rawSvgHeight) * svgHeightPixels) / zoomScale
-    const centreOffsetX = lensWidthPixels / svgWidthPixels / 2
-    const centreOffsetY = lensHeightPixels / svgHeightPixels / 2
+    // offset so centre of lens moves to click coords
+    const percentCentreOffsetX = viewportSvgWidth / rawSvgWidth / zoomScale / 2
+    const percentCentreOffsetY = viewportSvgHeight / rawSvgHeight / zoomScale / 2
 
-    const targetX = (percentX - centreOffsetX) * rawSvgWidth * zoomScale * -1
-    const targetY = (percentY - centreOffsetY) * rawSvgHeight * zoomScale * -1
+    const targetX = (percentX - percentCentreOffsetX) * rawSvgWidth * zoomScale * -1
+    const targetY = (percentY - percentCentreOffsetY) * rawSvgHeight * zoomScale * -1
 
     panZoom.pan({ x: targetX, y: targetY })
   }
