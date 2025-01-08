@@ -146,6 +146,30 @@ function setMinimap() {
   contentMain.style.setProperty('--minimap-lens-height', lensHeight)
   contentMain.style.setProperty('--minimap-lens-left', lensLeft)
   contentMain.style.setProperty('--minimap-lens-top', lensTop)
+
+  const minimap = document.getElementById('minimap')
+  const minimapSvg = document.getElementById('minimap-svg')
+  if (!minimap || !minimapSvg) return
+
+  minimap.onclick = (event) => {
+    // compute click coordinates relative to the svg rather than whole clickable minimap div
+    const { left, top, width: svgWidthPixels, height: svgHeightPixels } = minimapSvg.getBoundingClientRect()
+    const offsetX = event.clientX - left
+    const offsetY = event.clientY - top
+
+    const percentX = offsetX / svgWidthPixels
+    const percentY = offsetY / svgHeightPixels
+
+    const lensWidthPixels = ((viewportSvgWidth / rawSvgWidth) * svgWidthPixels) / zoomScale
+    const lensHeightPixels = ((viewportSvgHeight / rawSvgHeight) * svgHeightPixels) / zoomScale
+    const centreOffsetX = lensWidthPixels / svgWidthPixels / 2
+    const centreOffsetY = lensHeightPixels / svgHeightPixels / 2
+
+    const targetX = (percentX - centreOffsetX) * rawSvgWidth * zoomScale * -1
+    const targetY = (percentY - centreOffsetY) * rawSvgHeight * zoomScale * -1
+
+    panZoom.pan({ x: targetX, y: targetY })
+  }
 }
 
 setSizes()
