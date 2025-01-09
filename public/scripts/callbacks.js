@@ -117,16 +117,15 @@ function setMinimap() {
 
   if (!(mainSvg && mainViewport)) return
 
-  const fullSvgWidth = mainSvg.getBoundingClientRect().width
-  const fullSvgHeight = mainSvg.getBoundingClientRect().height
-  const viewportWidth = mainViewport.getBBox().width
-  const viewportHeight = mainViewport.getBBox().height
+  const { width: viewportSvgWidth, height: viewportSvgHeight } = mainSvg.getBoundingClientRect()
+  const { width: rawSvgWidth, height: rawSvgHeight } = mainViewport.getBBox()
 
-  const actualAspectRatio = viewportWidth / viewportHeight // aspect ratio of the generated svg
+  const actualAspectRatio = rawSvgWidth / rawSvgHeight // aspect ratio of the generated svg
+  const scaleFactor = actualAspectRatio / desiredAspectRatio
 
   // make the minimap svg as big as possible within bounds of the minimap
-  const minimapSvgWidth = actualAspectRatio < desiredAspectRatio ? 100 * (actualAspectRatio / desiredAspectRatio) : 100
-  const minimapSvgHeight = actualAspectRatio < desiredAspectRatio ? 100 : 100 * (desiredAspectRatio / actualAspectRatio)
+  const minimapSvgWidth = actualAspectRatio < desiredAspectRatio ? 100 * scaleFactor : 100
+  const minimapSvgHeight = actualAspectRatio < desiredAspectRatio ? 100 : 100 / scaleFactor
 
   contentMain.style.setProperty('--minimap-svg-width', `${minimapSvgWidth}%`)
   contentMain.style.setProperty('--minimap-svg-height', `${minimapSvgHeight}%`)
@@ -138,15 +137,38 @@ function setMinimap() {
   const translateX = x * -1
   const translateY = y * -1
 
-  const lensWidth = `${(fullSvgWidth / zoomScale / viewportWidth) * 100}%`
-  const lensHeight = `${(fullSvgHeight / zoomScale / viewportHeight) * 100}%`
-  const lensLeft = `${(translateX / zoomScale / viewportWidth) * 100}%`
-  const lensTop = `${(translateY / zoomScale / viewportHeight) * 100}%`
+  const lensWidth = `${(viewportSvgWidth / zoomScale / rawSvgWidth) * 100}%`
+  const lensHeight = `${(viewportSvgHeight / zoomScale / rawSvgHeight) * 100}%`
+  const lensLeft = `${(translateX / zoomScale / rawSvgWidth) * 100}%`
+  const lensTop = `${(translateY / zoomScale / rawSvgHeight) * 100}%`
 
   contentMain.style.setProperty('--minimap-lens-width', lensWidth)
   contentMain.style.setProperty('--minimap-lens-height', lensHeight)
   contentMain.style.setProperty('--minimap-lens-left', lensLeft)
   contentMain.style.setProperty('--minimap-lens-top', lensTop)
+
+  const minimap = document.getElementById('minimap')
+  const minimapSvg = document.getElementById('minimap-svg')
+  if (!minimap || !minimapSvg) return
+
+  minimap.onclick = (event) => {
+    // compute click coordinates relative to the svg
+    const { left, top, width: svgWidth, height: svgHeight } = minimapSvg.getBoundingClientRect()
+    const x = event.clientX - left
+    const y = event.clientY - top
+
+    const percentX = x / svgWidth
+    const percentY = y / svgHeight
+
+    // offset so centre of lens moves to click coords
+    const percentCentreOffsetX = viewportSvgWidth / rawSvgWidth / zoomScale / 2
+    const percentCentreOffsetY = viewportSvgHeight / rawSvgHeight / zoomScale / 2
+
+    const targetX = (percentX - percentCentreOffsetX) * rawSvgWidth * zoomScale * -1
+    const targetY = (percentY - percentCentreOffsetY) * rawSvgHeight * zoomScale * -1
+
+    panZoom.pan({ x: targetX, y: targetY })
+  }
 }
 
 setSizes()
