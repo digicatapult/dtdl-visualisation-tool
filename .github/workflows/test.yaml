@@ -55,8 +55,12 @@ jobs:
       fail-fast: false
       matrix:
         command: ['test:unit', 'test:integration']
-    runs-on: macos-14
+    runs-on: macos-15-arm64
     steps:
+      - name: install docker
+        run: |
+          brew install docker
+          brew install docker-compose
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
