@@ -5,9 +5,10 @@ import express, { Express } from 'express'
 import multer from 'multer'
 import requestLogger from 'pino-http'
 import { ValidateError } from 'tsoa'
-import { HttpError, UploadError } from './errors.js'
+import { HttpError } from './errors.js'
 import { logger } from './logger.js'
 import { RegisterRoutes } from './routes.js'
+import { errorToast } from './views/components/errors.js'
 
 export default async (): Promise<Express> => {
   const app: Express = express()
@@ -51,42 +52,24 @@ export default async (): Promise<Express> => {
     if (err instanceof Error) {
       req.log.debug('API error: %s', err.message)
       req.log.trace('API error: stack %j', err.stack)
+      if (!(err instanceof HttpError || err instanceof multer.MulterError)) {
+        req.log.error(`Unknown internal error ${err.name} ${err.message}`)
+      }
     } else {
-      req.log.debug('API error: %s', err?.toString())
-    }
-
-    if (err instanceof UploadError) {
-      res.status(err.code).send(err.message)
-      return
-    }
-
-    if (err instanceof HttpError) {
-      res.status(err.code).send({
-        message: err.message,
-      })
-      return
-    }
-
-    if (err instanceof multer.MulterError) {
-      res.status(400).send('Upload error')
-      return
+      req.log.error('API error (not instance of Error!): %s', err?.toString())
     }
 
     if (err instanceof ValidateError) {
       req.log.warn(`Caught Validation Error for ${req.path}:`, err.fields)
-      res.status(422).json({
-        message: 'Validation Failed',
-        details: err?.fields,
-      })
-      return
     }
-    if (err instanceof Error) {
-      req.log.error(`Unknown internal error ${err.name} ${err.message}`)
-      res.status(500).json({
-        message: 'Internal Server Error',
-      })
-      return
-    }
+
+    const code = err instanceof HttpError ? err.code : 500
+
+    res.setHeader('HX-Reswap', 'innerHTML')
+    // really ugly workaround for https://github.com/bigskysoftware/htmx/issues/2518
+    res.setHeader('HX-Reselect', ':not(* > *)')
+    res.setHeader('Content-Type', 'text/html')
+    res.status(code).send(errorToast(err))
 
     next()
   })

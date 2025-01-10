@@ -4,7 +4,7 @@ import { readFileSync } from 'fs'
 import { describe, it } from 'mocha'
 import path from 'path'
 import sinon from 'sinon'
-import { UploadError } from '../../errors.js'
+import { DataError, UploadError } from '../../errors.js'
 import { UploadController } from '../upload.js'
 import {
   mockCache,
@@ -56,7 +56,7 @@ describe('UploadController', async () => {
 
       await expect(controller.uploadZip(mockFile as Express.Multer.File, validSessionId)).to.be.rejectedWith(
         UploadError,
-        'Only .zip accepted'
+        'File must be a .zip'
       )
     })
 
@@ -68,7 +68,7 @@ describe('UploadController', async () => {
       }
       await expect(controller.uploadZip(mockFile as Express.Multer.File, validSessionId)).to.be.rejectedWith(
         UploadError,
-        'Unzipping error'
+        'Uploaded zip file is not valid'
       )
     })
 
@@ -78,8 +78,8 @@ describe('UploadController', async () => {
         buffer: readFileSync(path.resolve(__dirname, './error.zip')),
       }
       await expect(controller.uploadZip(mockFile as Express.Multer.File, validSessionId)).to.be.rejectedWith(
-        UploadError,
-        'Failed to parse DTDL'
+        DataError,
+        'Failed to parse DTDL model'
       )
     })
   })

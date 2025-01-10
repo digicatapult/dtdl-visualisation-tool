@@ -2,10 +2,6 @@ import { escapeHtml, type PropsWithChildren } from '@kitajs/html'
 
 export const parseError = (): JSX.Element => <p>Ontology Undefined</p>
 
-const extractHtmxProps = (props: object): Record<`hx-${string}`, unknown> => {
-  return Object.fromEntries(Object.entries(props).filter(([key]) => key.startsWith('hx-')))
-}
-
 export const Page = (props: PropsWithChildren<{ title: string }>): JSX.Element => (
   <>
     {'<!DOCTYPE html>'}
@@ -29,8 +25,11 @@ export const Page = (props: PropsWithChildren<{ title: string }>): JSX.Element =
         <link rel="stylesheet" type="text/css" href="/public/styles/accordion.css" />
         <title>{escapeHtml(props.title)}</title>
       </head>
-      <body hx-ext="json-enc">
-        <div id="content-main" {...extractHtmxProps(props)}>
+      <body hx-ext="json-enc, response-targets" hx-target-error=".toast-wrapper:empty">
+        <div id="toast-container">
+          <div class="toast-wrapper" />
+        </div>
+        <div id="content-main" title={props.title}>
           {props.children}
         </div>
       </body>
