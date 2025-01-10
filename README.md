@@ -73,7 +73,7 @@ dtdl-visualiser validate -p sample/energygrid -r
 
 ## Docker
 
-The application can be run in Docker. `sample/energygrid` is automatically parsed at start up. **The image runs as `amd64` - it is very slow when emulated by Rosetta**.
+The application can be run in Docker. `sample/energygrid` is automatically parsed at start up.
 
 `docker build -t dtdl-visualiser .` and run with `docker run -p 3000:3000 dtdl-visualiser`.
 
