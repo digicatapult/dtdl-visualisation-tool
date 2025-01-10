@@ -1,4 +1,4 @@
-import { GenericContainer, StartedTestContainer } from 'testcontainers'
+import { GenericContainer, StartedTestContainer, Wait } from 'testcontainers'
 
 interface VisualisationUIConfig {
   containerName: string
@@ -26,6 +26,8 @@ export async function startVisualisationContainer(env: VisualisationUIConfig) {
       container: containerPort,
       host: hostPort,
     })
+    .withWaitStrategy(Wait.forListeningPorts())
+    .withReuse()
     .start()
   return visualisationUIContainer
 }
