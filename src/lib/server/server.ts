@@ -64,12 +64,14 @@ export default async (): Promise<Express> => {
     }
 
     const code = err instanceof HttpError ? err.code : 500
+    const toast = errorToast(err)
 
     res.setHeader('HX-Reswap', 'innerHTML')
     // really ugly workaround for https://github.com/bigskysoftware/htmx/issues/2518
     res.setHeader('HX-Reselect', ':not(* > *)')
     res.setHeader('Content-Type', 'text/html')
-    res.status(code).send(errorToast(err))
+    res.setHeader('HX-Trigger', JSON.stringify({ dtdlVisualisationError: { dialogId: toast.dialogId } }))
+    res.status(code).send(toast.response)
 
     next()
   })
