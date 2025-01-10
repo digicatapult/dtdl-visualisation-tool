@@ -1,4 +1,4 @@
-import { GenericContainer, Network, StartedNetwork, StartedTestContainer } from 'testcontainers'
+import { GenericContainer, Network, StartedTestContainer } from 'testcontainers'
 import { logger } from '../../src/lib/server/logger.js'
 
 interface VisualisationUIConfig {
@@ -7,13 +7,9 @@ interface VisualisationUIConfig {
   containerPort: number
 }
 
-let network: StartedNetwork | null = null
+const network = await new Network().start()
 
 export async function bringUpVisualisationContainer(): Promise<StartedTestContainer> {
-  if (!network) {
-    network = await new Network().start()
-  }
-
   const visualisationUIConfig: VisualisationUIConfig = {
     containerName: 'dtdl-visualiser',
     hostPort: 3000,
@@ -31,6 +27,7 @@ export async function startVisualisationContainer(env: VisualisationUIConfig) {
 
   logger.info(`Starting container ${containerName} on port ${containerPort}...`)
   const visualisationUIContainer = await containerBase
+    .withNetwork(network)
     .withExposedPorts({
       container: containerPort,
       host: hostPort,
