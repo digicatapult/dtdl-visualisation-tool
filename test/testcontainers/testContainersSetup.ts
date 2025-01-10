@@ -40,5 +40,10 @@ export async function startVisualisationContainer(env: VisualisationUIConfig) {
     .withNetwork(network!) // Connect to the custom network
     .withReuse()
     .start()
+  logger.info(`Started container ${containerName}`)
+
+  logger.info(
+    `Container ${visualisationUIContainer.getHost()} is running on http://localhost:${visualisationUIContainer.getMappedPort(containerPort)}`
+  )
   return visualisationUIContainer
 }
