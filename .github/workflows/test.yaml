@@ -55,7 +55,7 @@ jobs:
       fail-fast: false
       matrix:
         command: ['test:unit', 'test:integration']
-    runs-on: macos-15-arm64
+    runs-on: macos-14
     steps:
       - name: install docker
         run: |
