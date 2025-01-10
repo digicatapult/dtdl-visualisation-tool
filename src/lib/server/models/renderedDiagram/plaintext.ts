@@ -11,4 +11,7 @@ export class PlainTextRender extends RenderedDiagram<'text'> {
   renderToString(): string {
     return this.content
   }
+  renderForMinimap() {
+    return ''
+  }
 }

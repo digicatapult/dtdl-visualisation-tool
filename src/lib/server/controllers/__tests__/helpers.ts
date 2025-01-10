@@ -25,6 +25,8 @@ export const templateMock = {
     `searchPanel_${search}_${layout}_${swapOutOfBand || false}_searchPanel`,
   navigationPanel: ({ swapOutOfBand, content }: { swapOutOfBand?: boolean; content?: string }) =>
     `navigationPanel_${swapOutOfBand || false}_${content || ''}_navigationPanel`,
+  svgControls: ({ generatedOutput }: { generatedOutput?: JSX.Element }): JSX.Element =>
+    `svgControls_${generatedOutput}_svgControls`,
 } as unknown as MermaidTemplates
 export const mockLogger = pino({ level: 'silent' })
 export const mockCache = new LRUCache(10, 1000 * 60)
@@ -48,6 +50,7 @@ export const generatorRunStub = sinon.stub().callsFake(() => {
     type: 'svg',
     content: generatedSVGFixture,
     renderToString: () => mock.content,
+    renderForMinimap: () => generatedSVGFixture,
   }
   return Promise.resolve(mock)
 })
