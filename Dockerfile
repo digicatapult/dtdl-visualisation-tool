@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.12
-FROM node:lts-bookworm-slim AS builder
+FROM --platform=linux/amd64 node:lts-bookworm-slim AS builder
 
 WORKDIR /dtdl-visualisation-tool
 
@@ -14,7 +14,7 @@ COPY . .
 RUN npm run build
 
 # Service
-FROM node:lts-bookworm-slim AS service
+FROM --platform=linux/amd64 node:lts-bookworm-slim AS service
 
 ENV PPTRUSER_UID=10042
 ENV NODE_OPTIONS="--no-warnings"

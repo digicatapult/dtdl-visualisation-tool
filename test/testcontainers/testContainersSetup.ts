@@ -22,7 +22,7 @@ export async function bringUpVisualisationContainer(): Promise<StartedTestContai
 export async function startVisualisationContainer(env: VisualisationUIConfig) {
   const { containerName, containerPort } = env
   logger.info(`Building container...`)
-  const containerBase = await GenericContainer.fromDockerfile('./').withPlatform('linux/arm64').withCache(true).build()
+  const containerBase = await GenericContainer.fromDockerfile('./').withCache(true).build()
   logger.info(`Built container.`)
 
   logger.info(`Starting container ${containerName} on port ${containerPort}...`)
