@@ -1,4 +1,5 @@
 import { GenericContainer, Network, StartedNetwork, StartedTestContainer, Wait } from 'testcontainers'
+import { logger } from '../../src/lib/server/logger.js'
 
 interface VisualisationUIConfig {
   containerName: string
@@ -24,8 +25,11 @@ export async function bringUpVisualisationContainer(): Promise<StartedTestContai
 
 export async function startVisualisationContainer(env: VisualisationUIConfig) {
   const { containerName, containerPort, hostPort } = env
+  logger.info(`Building container...`)
   const containerBase = await GenericContainer.fromDockerfile('./').withCache(true).build()
+  logger.info(`Built container.`)
 
+  logger.info(`Starting container ${containerName} on port ${containerPort}...`)
   const visualisationUIContainer = await containerBase
     .withName(containerName)
     .withExposedPorts({
