@@ -1,4 +1,4 @@
-import { GenericContainer, StartedTestContainer, Wait } from 'testcontainers'
+import { GenericContainer, Network, StartedNetwork, StartedTestContainer, Wait } from 'testcontainers'
 
 interface VisualisationUIConfig {
   containerName: string
@@ -6,7 +6,13 @@ interface VisualisationUIConfig {
   containerPort: number
 }
 
+let network: StartedNetwork | null = null
+
 export async function bringUpVisualisationContainer(): Promise<StartedTestContainer> {
+  if (!network) {
+    network = await new Network().start()
+  }
+
   const visualisationUIConfig: VisualisationUIConfig = {
     containerName: 'dtdl-visualiser',
     hostPort: 3000,
@@ -27,6 +33,7 @@ export async function startVisualisationContainer(env: VisualisationUIConfig) {
       host: hostPort,
     })
     .withWaitStrategy(Wait.forListeningPorts())
+    .withNetwork(network!) // Connect to the custom network
     .withReuse()
     .start()
   return visualisationUIContainer
