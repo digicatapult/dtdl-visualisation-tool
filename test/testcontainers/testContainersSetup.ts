@@ -1,4 +1,4 @@
-import { GenericContainer, Network, StartedNetwork, StartedTestContainer, Wait } from 'testcontainers'
+import { GenericContainer, Network, StartedNetwork, StartedTestContainer } from 'testcontainers'
 import { logger } from '../../src/lib/server/logger.js'
 
 interface VisualisationUIConfig {
@@ -24,26 +24,13 @@ export async function bringUpVisualisationContainer(): Promise<StartedTestContai
 }
 
 export async function startVisualisationContainer(env: VisualisationUIConfig) {
-  const { containerName, containerPort, hostPort } = env
+  const { containerName, containerPort } = env
   logger.info(`Building container...`)
   const containerBase = await GenericContainer.fromDockerfile('./').withCache(true).build()
   logger.info(`Built container.`)
 
   logger.info(`Starting container ${containerName} on port ${containerPort}...`)
-  const visualisationUIContainer = await containerBase
-    .withName(containerName)
-    .withExposedPorts({
-      container: containerPort,
-      host: hostPort,
-    })
-    .withWaitStrategy(Wait.forListeningPorts())
-    .withNetwork(network!) // Connect to the custom network
-    .withReuse()
-    .start()
+  const visualisationUIContainer = await containerBase.start()
   logger.info(`Started container ${containerName}`)
-
-  logger.info(
-    `Container ${visualisationUIContainer.getHost()} is running on http://localhost:${visualisationUIContainer.getMappedPort(containerPort)}`
-  )
   return visualisationUIContainer
 }
