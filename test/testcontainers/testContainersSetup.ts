@@ -20,13 +20,19 @@ export async function bringUpVisualisationContainer(): Promise<StartedTestContai
 }
 
 export async function startVisualisationContainer(env: VisualisationUIConfig) {
-  const { containerName, containerPort } = env
+  const { containerName, containerPort, hostPort } = env
   logger.info(`Building container...`)
   const containerBase = await GenericContainer.fromDockerfile('./').withCache(true).build()
   logger.info(`Built container.`)
 
   logger.info(`Starting container ${containerName} on port ${containerPort}...`)
-  const visualisationUIContainer = await containerBase.withNetwork(network).withExposedPorts(containerPort).start()
+  const visualisationUIContainer = await containerBase
+    .withNetwork(network)
+    .withExposedPorts({
+      container: containerPort,
+      host: hostPort,
+    })
+    .start()
   logger.info(`Started container ${containerName}`)
   logger.info(`Started container on port ${visualisationUIContainer.getMappedPort(containerPort)}`)
   return visualisationUIContainer

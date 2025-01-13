@@ -23,7 +23,7 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 COPY sample ./sample
 
-RUN apt-get update && apt-get install -y chromium-sandbox --no-install-recommends
+RUN apt-get update && apt-get install -y chromium --no-install-recommends
 
 RUN groupadd -r pptruser && useradd -u $PPTRUSER_UID -rm -g pptruser -G audio,video pptruser
 
