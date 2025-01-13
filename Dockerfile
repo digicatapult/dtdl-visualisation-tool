@@ -19,11 +19,11 @@ FROM node:lts-bookworm-slim AS service
 ENV PPTRUSER_UID=10042
 ENV NODE_OPTIONS="--no-warnings"
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-sandbox
 
 COPY sample ./sample
 
-RUN apt-get update && apt-get install -y chromium-browser --no-install-recommends
+RUN apt-get update && apt-get install -y chromium-sandbox
 
 RUN groupadd -r pptruser && useradd -u $PPTRUSER_UID -rm -g pptruser -G audio,video pptruser
 
