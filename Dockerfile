@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.12
-FROM --platform=linux/arm64 node:lts-bookworm-slim AS builder
+FROM node:lts-bookworm-slim AS builder
 
 WORKDIR /dtdl-visualisation-tool
 
@@ -14,7 +14,7 @@ COPY . .
 RUN npm run build
 
 # Service
-FROM --platform=linux/arm64 node:lts-bookworm-slim AS service
+FROM node:lts-bookworm-slim AS service
 
 ENV PPTRUSER_UID=10042
 ENV NODE_OPTIONS="--no-warnings"
@@ -22,8 +22,6 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 COPY sample ./sample
-
-RUN apt-get update && apt-get install -y --no-install-recommends chromium
 
 RUN groupadd -r pptruser && useradd -u $PPTRUSER_UID -rm -g pptruser -G audio,video pptruser
 
@@ -36,6 +34,7 @@ RUN npm ci --omit=dev
 COPY public ./public
 COPY knexfile.js ./
 COPY --from=builder /dtdl-visualisation-tool/build ./build
+RUN npx playwright install chromium --with-deps --only-shell
 
 RUN npm i -g
 
