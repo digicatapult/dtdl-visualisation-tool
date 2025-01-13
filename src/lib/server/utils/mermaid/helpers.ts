@@ -1,5 +1,5 @@
-import { InternalError } from '../../errors'
-import { DtdlId, MermaidId } from '../../models/strings'
+import { InternalError } from '../../errors.js'
+import { DtdlId, MermaidId } from '../../models/strings.js'
 
 export type BoundingBox = {
   x: number

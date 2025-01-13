@@ -3,7 +3,7 @@
 import { randomUUID } from 'node:crypto'
 
 import { escapeHtml } from '@kitajs/html'
-import { ErrorCategory, HttpError, InternalError } from '../../errors'
+import { ErrorCategory, HttpError, InternalError } from '../../errors.js'
 
 const categoryToClass = (category: ErrorCategory): 'internal-error' | 'data-error' | 'temp-error' => {
   switch (category) {
