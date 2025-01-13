@@ -15,3 +15,9 @@ test.describe('search', () => {
     expect(await page.isVisible("text='EquipmentContainer'")).toBe(true)
   })
 })
+
+test.describe('fail', () => {
+  test('that testsfail as expected', () => {
+    expect(true).toBe(false)
+  })
+})
