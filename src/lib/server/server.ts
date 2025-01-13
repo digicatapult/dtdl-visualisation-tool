@@ -5,10 +5,12 @@ import express, { Express } from 'express'
 import multer from 'multer'
 import requestLogger from 'pino-http'
 import { ValidateError } from 'tsoa'
-import { HttpError } from './errors.js'
+import { HttpError, UploadError } from './errors.js'
 import { logger } from './logger.js'
 import { RegisterRoutes } from './routes.js'
 import { errorToast } from './views/components/errors.js'
+
+const maxFileSizeMB = 10
 
 export default async (): Promise<Express> => {
   const app: Express = express()
@@ -25,7 +27,7 @@ export default async (): Promise<Express> => {
   const multerOptions = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 10 * 1024 * 1024,
+      fileSize: maxFileSizeMB * 1024 * 1024,
     },
   })
 
@@ -61,6 +63,10 @@ export default async (): Promise<Express> => {
 
     if (err instanceof ValidateError) {
       req.log.warn(`Caught Validation Error for ${req.path}:`, err.fields)
+    }
+
+    if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+      err = new UploadError(`Zip file is too large. Must be less than ${maxFileSizeMB}MB`)
     }
 
     const code = err instanceof HttpError ? err.code : 500
