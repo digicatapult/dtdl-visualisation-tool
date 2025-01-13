@@ -23,6 +23,8 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 COPY sample ./sample
 
+RUN apt-get update && apt-get install -y chromium --no-install-recommends
+
 RUN groupadd -r pptruser && useradd -u $PPTRUSER_UID -rm -g pptruser -G audio,video pptruser
 
 WORKDIR /dtdl-visualisation-tool
@@ -34,7 +36,6 @@ RUN npm ci --omit=dev
 COPY public ./public
 COPY knexfile.js ./
 COPY --from=builder /dtdl-visualisation-tool/build ./build
-RUN npx playwright install chromium --with-deps --only-shell
 
 RUN npm i -g
 
