@@ -7,7 +7,7 @@ import { FormField, Post, Produces, Route, SuccessResponse, UploadedFile } from 
 import { inject, injectable } from 'tsyringe'
 import unzipper from 'unzipper'
 import Database from '../../db/index.js'
-import { InvalidQueryError, UploadError } from '../errors.js'
+import { DataError, InvalidQueryError, UploadError } from '../errors.js'
 import { type UUID } from '../models/strings.js'
 import { Cache, type ICache } from '../utils/cache.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
@@ -35,14 +35,14 @@ export class UploadController extends HTMLController {
   @Post('/')
   public async uploadZip(@UploadedFile('file') file: Express.Multer.File, @FormField() sessionId: UUID): Promise<HTML> {
     if (file.mimetype !== 'application/zip') {
-      throw new UploadError('Only .zip accepted')
+      throw new UploadError('File must be a .zip')
     }
 
     let unzippedPath: string
     try {
       unzippedPath = await this.unzip(file.buffer)
     } catch {
-      throw new UploadError('Unzipping error')
+      throw new UploadError('Uploaded zip file is not valid')
     }
 
     const parser = await getInterop()
@@ -51,14 +51,19 @@ export class UploadController extends HTMLController {
     rm(unzippedPath, { recursive: true })
 
     if (!parsedDtdl) {
-      throw new UploadError('Failed to parse DTDL')
+      throw new DataError('Failed to parse DTDL model')
     }
 
     const [{ id }] = await this.db.insert('model', { name: file.originalname, parsed: parsedDtdl })
 
     const session = this.sessionStore.get(sessionId)
     if (!session) {
-      throw new InvalidQueryError('Session is not valid')
+      throw new InvalidQueryError(
+        'Session Error',
+        'Please refresh the page or try again later',
+        `Session ${sessionId} not found in session store`,
+        false
+      )
     }
     this.sessionStore.set(sessionId, {
       layout: session.layout,

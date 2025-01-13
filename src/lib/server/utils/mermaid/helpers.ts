@@ -1,4 +1,5 @@
-import { DtdlId, MermaidId } from '../../models/strings'
+import { InternalError } from '../../errors.js'
+import { DtdlId, MermaidId } from '../../models/strings.js'
 
 export type BoundingBox = {
   x: number
@@ -60,7 +61,7 @@ export function extractTransformTranslateCoords(element: Element) {
   const transform = element.getAttribute('transform')
   const result = transform && transform.match(translateRegex)
   if (!result) {
-    throw new Error(`Expected translate in transform attribute on element ${element.id}`)
+    throw new InternalError(`Expected translate in transform attribute on element ${element.id}`)
   }
   return {
     x: parseFloat(result[1]),
@@ -73,7 +74,7 @@ export function extractPathExtents(element: Element) {
   const dAttr = element.getAttribute('d')
   const pairs = dAttr && Array.from(dAttr.matchAll(pathRegex))
   if (!pairs || !pairs.length) {
-    throw new Error(`Expected lengths in d attribute on path element ${element.id}`)
+    throw new InternalError(`Expected lengths in d attribute on path element ${element.id}`)
   }
   return pairs.reduce(
     ({ minX, minY, maxX, maxY }, match) => {
