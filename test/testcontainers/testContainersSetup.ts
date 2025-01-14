@@ -31,7 +31,7 @@ export async function startVisualisationContainer(env: VisualisationUIConfig) {
     .withExposedPorts({
       container: containerPort,
       host: hostPort,
-    }).withAddedCapabilities('SYS_ADMIN')
+    })
     .start()
   logger.info(`Started container ${containerName}`)
   logger.info(`Started container on port ${visualisationUIContainer.getMappedPort(containerPort)}`)
