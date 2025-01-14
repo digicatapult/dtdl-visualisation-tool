@@ -6,12 +6,12 @@ import { bringUpVisualisationContainer } from './testcontainers/testContainersSe
 let visualisationContainer: StartedTestContainer
 
 before(async function () {
-  this.timeout(300000)
+  this.timeout(420000)
   visualisationContainer = await bringUpVisualisationContainer()
 })
 
 after(async function () {
-  this.timeout(300000)
+  this.timeout(420000)
   if (visualisationContainer) {
     await visualisationContainer.stop()
   }
