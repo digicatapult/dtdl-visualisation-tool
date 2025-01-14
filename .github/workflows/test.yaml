@@ -22,7 +22,10 @@ jobs:
         include <tunables/global>
 
         profile chrome $CHROME_PUPPETEER_PATH flags=(unconfined) {
+          /dev/shm/** rw,
+          /tmp/** rw,
           /usr/bin/chromium rix,
+          /var/tmp/** rw,
           userns,
 
           # Site-specific additions and overrides. See local/README for details.
