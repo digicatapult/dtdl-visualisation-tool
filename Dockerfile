@@ -21,25 +21,10 @@ ENV NODE_OPTIONS="--no-warnings"
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV CHROME_PUPPETEER_PATH=/usr/bin/chromium
-ENV CHROME_DEVEL_SANDBOX=/usr/local/bin/chrome-sandbox
 
 COPY sample ./sample
 
-RUN apt-get update && apt-get install -y chromium build-essential wget --no-install-recommends
-
-RUN wget https://chromium.googlesource.com/chromium/src/+/main/docs/linux/suid_sandbox_development.md?format=TEXT -O /tmp/suid_sandbox.md && \
-    apt-get install -y git && \
-    git clone https://chromium.googlesource.com/chromium/src.git /chromium-src && \
-    cd /chromium-src && \
-    tools/gn/bootstrap/bootstrap.py && \
-    out/Default/gn gen out/Default && \
-    ninja -C out/Default chrome_sandbox && \
-    cp out/Default/chrome_sandbox /usr/local/bin/chrome-sandbox && \
-    chmod 4755 /usr/local/bin/chrome-sandbox
-
-RUN apt-get purge -y build-essential git && \
-    apt-get autoremove -y && \
-    rm -rf /chromium-src /tmp/* /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y chromium chromium-sandbox --no-install-recommends
 
 RUN groupadd -r pptruser && useradd -u $PPTRUSER_UID -rm -g pptruser -G audio,video pptruser
 
