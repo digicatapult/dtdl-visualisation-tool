@@ -80,7 +80,12 @@ export const filterModelByDisplayName = (
   // make sure all expanded Ids are valid
   for (const expandedId of expandedIds) {
     if (!(expandedId in dtdlObjectModel)) {
-      throw new InvalidQueryError(`Invalid "expandedId" ${expandedId}`)
+      throw new InvalidQueryError(
+        'Request Error',
+        `Invalid parameter "expandedId" (${expandedId}). Please reset view or reload model.`,
+        'Invalid parameter "expandedId" (${expandedId})',
+        true
+      )
     }
   }
 

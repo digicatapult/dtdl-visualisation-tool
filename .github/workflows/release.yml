@@ -34,18 +34,35 @@ jobs:
           "TMPDIR": "${{ github.workspace }}"
         }
 
-  # e2e-tests-npm:
-  #   uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
-  #   with:
-  #     docker_compose_file: ''
-  #     pre_test_command: 'npm ci && npx playwright install-deps && npx playwright install'
-  #     test_command: 'npm run test:playwright || exit 1'
-  #   permissions:
-  #     contents: write
+  e2e-tests-npm:
+    uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
+    with:
+      docker_compose_file: ''
+      pre_test_command: |
+        export CHROME_PUPPETEER_PATH=/@{HOME}/.cache/puppeteer/chrome/**/**/chrome
+        cat | sudo tee /etc/apparmor.d/chrome-puppeteer <<EOF
+        abi <abi/4.0>,
+        include <tunables/global>
+
+        profile chrome $CHROME_PUPPETEER_PATH flags=(unconfined) {
+          userns,
+
+          # Site-specific additions and overrides. See local/README for details.
+          include if exists <local/chrome>
+        }
+        EOF
+        sudo service apparmor reload  # reload AppArmor profiles to include the new one
+
+        npm ci
+        npx playwright install-deps
+        npx playwright install
+      test_command: 'npm run test:playwright || exit 1'
+    permissions:
+      contents: write
 
   build-docker:
     needs:
-      # - e2e-tests-npm
+      - e2e-tests-npm
       - tests-npm
       - static-checks-npm
     uses: digicatapult/shared-workflows/.github/workflows/build-docker.yml@main

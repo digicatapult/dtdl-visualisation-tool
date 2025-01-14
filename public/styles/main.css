@@ -42,7 +42,8 @@ button.highlighted {
   width: 100%;
 
   --navigation-panel-width: 400px;
-  --navigation-panel-translate-x: calc(0.9* var(--navigation-panel-width));
+  --navigation-panel-translate-x: calc(0.9 * var(--navigation-panel-width));
+  --background-color: #f5f6fa;
 }
 
 #search-panel {
@@ -58,7 +59,7 @@ button.highlighted {
 }
 
 #search-panel > input[type='search'] {
-  background-color: #f5f6fa;
+  background-color: var(--background-color);
   background-image: url('/public/images/magnifying-glass.png');
   background-repeat: no-repeat;
   background-size: 20px;
@@ -83,7 +84,7 @@ input[type='search'] {
   font-weight: 200;
 }
 
-label[for="diagramType"] {
+label[for='diagramType'] {
   white-space: nowrap;
 }
 
@@ -96,6 +97,7 @@ label[for="diagramType"] {
   align-items: center;
   /* hide the overflow to prevent the svg even momentarily extending beyond the viewport */
   overflow: hidden;
+  background-color: var(--background-color);
 }
 
 #mermaid-output {
@@ -111,13 +113,12 @@ label[for="diagramType"] {
 #navigation-panel {
   position: absolute;
   right: 0;
-  background-color: #f5f6fa;
+  background: white;
   border: 1px solid #e8e8e8;
   border-bottom: 0;
   width: var(--navigation-panel-width);
   height: 100%;
-  transition:
-    transform 200ms;
+  transition: transform 200ms;
 }
 
 #navigation-panel-content {
@@ -194,8 +195,7 @@ label[for="diagramType"] {
   bottom: 10px;
   right: 50px;
   transform: translateX(0);
-  transition:
-    transform 200ms;
+  transition: transform 200ms;
 }
 
 #zoom-buttons {
@@ -247,7 +247,7 @@ label[for="diagramType"] {
   padding: 3rem 1rem 1rem 1rem;
   gap: 1.5rem;
   grid-template-columns: auto max-content;
-  background: #f5f6fa;
+  background: white;
   transition:
     transform 300ms,
     z-index 0ms 300ms;
@@ -273,7 +273,7 @@ label[for="diagramType"] {
   width: 7rem;
   padding: 0.6rem 1.5rem 0.6rem 2.5rem;
   text-align: left;
-  background: #f5f6fa;
+  background: white;
   border: 1px solid #e8e8e8;
 
   &:hover {
@@ -339,8 +339,10 @@ label[for="diagramType"] {
   grid-template-columns: 1fr 1fr;
 }
 
-
 #upload-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   width: 20ch;
   padding: 10px;
 }
@@ -357,7 +359,7 @@ label[for="diagramType"] {
   border-width: 1px;
   padding: 5px;
   cursor: pointer;
-  background-color: #f5f6fa;
+  background-color: var(--background-color);
   justify-content: center;
 }
 
@@ -405,4 +407,128 @@ label[for="diagramType"] {
   height: var(--minimap-lens-height);
   border: 2px solid red;
   background-color: rgba(255, 0, 0, 0.1);
+}
+
+#toast-container {
+  --open-close-duration: 200ms;
+  --dialog-shift-duration: 300ms;
+  --dialog-height: 6lh;
+
+  position: fixed;
+  left: 0px;
+  top: calc(100lvh - 1lh - var(--dialog-height));
+  z-index: 10;
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+#toast-container dialog {
+  display: flex;
+  align-items: center;
+  gap: 3ch;
+  width: 45ch;
+  padding: 24px;
+  height: var(--dialog-height);
+  margin-inline: 20px auto;
+  margin-block-end: 20px;
+  border: none;
+  border-radius: 20px;
+  box-shadow: 0px 4px 4px 0px black;
+
+  transition:
+    display var(--open-close-duration) allow-discrete,
+    overlay var(--open-close-duration) allow-discrete;
+
+  animation: fade-in var(--open-close-duration) forwards;
+  &:not([open]) {
+    animation: fade-out var(--open-close-duration) forwards;
+  }
+}
+
+#toast-container dialog + .toast-wrapper {
+  transition: transform var(--dialog-shift-duration) var(--open-close-duration);
+}
+
+#toast-container dialog[open] + .toast-wrapper {
+  transform: translateY(calc(-1lh - var(--dialog-height)));
+}
+
+#toast-container .toast-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+#toast-container img.internal-error {
+  filter: hue-rotate(0deg) brightness(2) contrast(2);
+}
+
+#toast-container img.data-error {
+  filter: hue-rotate(30deg) brightness(2) contrast(2);
+}
+
+#toast-container img.temp-error {
+  filter: hue-rotate(60deg) brightness(2) contrast(2);
+}
+
+#toast-container h1 {
+  font-size: 1.2rem;
+  line-height: 1;
+  margin: 0;
+}
+
+#toast-container p {
+  font-size: 1rem;
+  line-height: 1;
+  margin: 0;
+}
+
+#toast-container button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 20px;
+  height: 20px;
+  background: transparent;
+  border: none;
+
+  &:hover {
+    cursor: pointer;
+  }
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0px;
+    margin-block: auto;
+    width: 100%;
+    height: 3px;
+    background: black;
+    transform-origin: center;
+  }
+
+  &::before {
+    transform: rotateZ(45deg);
+  }
+
+  &::after {
+    transform: rotateZ(-45deg);
+  }
 }

@@ -1,4 +1,5 @@
 import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
+import { InternalError } from '../../errors.js'
 import { getDisplayName } from '../dtdl/extract.js'
 import { getVisualisationState } from '../dtdl/filter.js'
 import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
@@ -12,7 +13,7 @@ const entityKindToShape = {
 function getFloatAttrOrThrow(element: Element, name: string) {
   const attr = element.getAttribute(name)
   if (!attr) {
-    throw new Error(`Expected attribute ${name} to exist on ${element.nodeName}`)
+    throw new InternalError(`Expected attribute ${name} to exist on ${element.nodeName}`)
   }
   return parseFloat(attr)
 }
@@ -21,7 +22,7 @@ export const extractFlowchartNodeCoordinates = (element: Element) => {
   const rect = element.querySelector('rect')
 
   if (!rect) {
-    throw new Error(`Expected flowchart node with id ${element.id} to contain a rect`)
+    throw new InternalError(`Expected flowchart node with id ${element.id} to contain a rect`)
   }
 
   const { x, y } = extractTransformTranslateCoords(element)
