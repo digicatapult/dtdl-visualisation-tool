@@ -26,6 +26,9 @@ COPY sample ./sample
 
 RUN apt-get update && apt-get install -y chromium --no-install-recommends
 
+RUN echo 'kernel.unprivileged_userns_clone=1' > /etc/sysctl.d/00-local-userns.conf && \
+    sysctl --system
+
 RUN groupadd -r pptruser && useradd -u $PPTRUSER_UID -rm -g pptruser -G audio,video pptruser
 
 WORKDIR /dtdl-visualisation-tool
