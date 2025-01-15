@@ -23,7 +23,7 @@ services:
     build:
       dockerfile: ./Dockerfile
     security_opt:
-      - apparmor:chrome-puppeteer
+      - apparmor=chrome-puppeteer
 
 volumes:
   postgres-dtdl-visualisation-tool:
