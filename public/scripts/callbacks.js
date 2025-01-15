@@ -17,6 +17,19 @@ globalThis.toggleNavPanel = (event) => {
   panel?.toggleAttribute('aria-expanded')
 }
 
+globalThis.showGithubModal = () => {
+  console.log('hi')
+  document.getElementById('github-modal').showModal()
+}
+
+htmx.on('htmx:load', (e) => {
+  console.log(e?.detail.elt.baseURI)
+  if (e?.detail.elt.baseURI.includes('github')) {
+    console.log(document.getElementById('github-modal'))
+    document.getElementById('github-modal').showModal()
+  }
+})
+
 /**
  * Takes an input element id and extracts the value from it as a number if it has a value. Otherwise returns a default value provided
  * @param {String} elementId - Id of the element to get the value attribute from

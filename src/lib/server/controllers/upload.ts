@@ -1,13 +1,17 @@
+import { Endpoints } from '@octokit/types'
 import { mkdtemp, rm } from 'node:fs/promises'
 import os from 'node:os'
 
 import { EntityType, getInterop, parseDirectories } from '@digicatapult/dtdl-parser'
+import { Octokit } from '@octokit/core'
 import { join } from 'node:path'
-import { FormField, Post, Produces, Route, SuccessResponse, UploadedFile } from 'tsoa'
-import { inject, injectable } from 'tsyringe'
+import { FormField, Get, Post, Produces, Query, Route, SuccessResponse, UploadedFile } from 'tsoa'
+import { container, inject, injectable } from 'tsyringe'
 import unzipper from 'unzipper'
 import Database from '../../db/index.js'
-import { DataError, InvalidQueryError, UploadError } from '../errors.js'
+import { Env } from '../env.js'
+import { DataError, InternalError, InvalidQueryError, UploadError } from '../errors.js'
+import { OAuthToken } from '../models/github.js'
 import { type UUID } from '../models/strings.js'
 import { Cache, type ICache } from '../utils/cache.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
@@ -16,6 +20,9 @@ import SessionStore from '../utils/sessions.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
+type listUserReposResponse = Endpoints['GET /user/repos']['response']
+
+const env = container.resolve(Env)
 @injectable()
 @Route('/upload')
 @Produces('text/html')
@@ -24,6 +31,7 @@ export class UploadController extends HTMLController {
     private dtdlLoader: DtdlLoader,
     private db: Database,
     private templates: MermaidTemplates,
+    private octokit: Octokit,
     @inject(Search) private search: ISearch<EntityType>,
     @inject(Cache) private cache: ICache,
     private sessionStore: SessionStore
@@ -87,6 +95,50 @@ export class UploadController extends HTMLController {
     )
   }
 
+  @SuccessResponse(200, '')
+  @Get('/github')
+  public async githubCallback(@Query() code: string, @Query() sessionId: string): Promise<HTML> {
+    const session = this.sessionStore.get(sessionId)
+    if (!session) {
+      throw new InvalidQueryError(
+        'Session Error',
+        'Please refresh the page or try again later',
+        `Session ${sessionId} not found in session store`,
+        false
+      )
+    }
+
+    const { access_token } = await this.fetchRequest<OAuthToken>(
+      `POST`,
+      `https://github.com/login/oauth/access_token`,
+      {
+        client_id: env.get('GH_CLIENT_ID'),
+        client_secret: env.get('GH_CLIENT_SECRET'),
+        code,
+      }
+    )
+
+    this.octokit = new Octokit({ auth: access_token })
+
+    const response: listUserReposResponse = await this.octokit.request('GET /user/repos', {
+      per_page: 100,
+      page: 1,
+    })
+    const repos = response.data.map(({ full_name }) => full_name)
+
+    console.log(repos)
+
+    return this.html(
+      this.templates.MermaidRoot({
+        layout: session.layout,
+        diagramType: session.diagramType,
+        search: undefined,
+        sessionId,
+      }),
+      this.templates.githubModal({ open: true, repos })
+    )
+  }
+
   public async unzip(file: Buffer): Promise<string> {
     const directory = await unzipper.Open.buffer(file)
 
@@ -95,5 +147,26 @@ export class UploadController extends HTMLController {
     await directory.extract({ path: extractionPath })
 
     return extractionPath
+  }
+
+  private async fetchRequest<ReturnType>(
+    method: 'POST',
+    url: string,
+    body: Record<string, unknown>
+  ): Promise<ReturnType> {
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify(body),
+    })
+
+    if (!response.ok) {
+      throw new InternalError(`Unexpected error calling POST ${url}: ${response.statusText}`)
+    }
+
+    return response.json() as ReturnType
   }
 }

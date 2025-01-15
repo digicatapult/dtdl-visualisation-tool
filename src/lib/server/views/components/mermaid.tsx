@@ -3,7 +3,8 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
 import { randomUUID } from 'crypto'
-import { singleton } from 'tsyringe'
+import { container, singleton } from 'tsyringe'
+import { Env } from '../../env.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { Layout, layoutEntries } from '../../models/mermaidLayouts.js'
 import { DtdlId, UUID } from '../../models/strings.js'
@@ -18,6 +19,10 @@ const commonUpdateAttrs = {
   'hx-indicator': '#spinner',
   'hx-disabled-elt': 'select',
 }
+
+const env = container.resolve(Env)
+
+const clientId = env.get('GH_CLIENT_ID')
 
 function maybeNumberToAttr(value: number | undefined, defaultValue: number) {
   return `${value === undefined ? defaultValue : value}`
@@ -53,6 +58,11 @@ export default class MermaidTemplates {
           svgHeight={svgHeight}
         />
         <this.uploadForm />
+        <a
+          href={`https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=http://localhost:3000/upload/github?sessionId=${sessionId}`}
+        >
+          GitHub
+        </a>
       </section>
 
       <div id="mermaid-wrapper">
@@ -64,6 +74,26 @@ export default class MermaidTemplates {
       <this.svgControls />
     </Page>
   )
+
+  public githubModal = ({ open, repos }: { open: boolean; repos?: string[] }) => {
+    const attributes = open
+      ? { 'hx-on::after-settle': `console.log('after-settle triggered'); globalThis.showGithubModal()` }
+      : {}
+    return (
+      <dialog
+        hx-on="htmx:load: globalThis.showGithubModal()"
+        id="github-modal"
+        hx-target="#github-modal"
+        {...attributes}
+        hx-swap-oob="true"
+      >
+        <ul>{repos && repos.map((repo) => <li>{repo}</li>)}</ul>
+        <form method="dialog">
+          <button class="modal-button" />
+        </form>
+      </dialog>
+    )
+  }
 
   public svgControls = ({ generatedOutput }: { generatedOutput?: JSX.Element }): JSX.Element => {
     const output = generatedOutput ?? ''
@@ -236,7 +266,9 @@ export default class MermaidTemplates {
         hx-sync="this:replace"
         {...commonUpdateAttrs}
       >
-        <h2>UKDTC</h2>
+        <h2>
+          <a href="http://localhost:3000">UKDTC</a>
+        </h2>
         <input
           id="search"
           name="search"

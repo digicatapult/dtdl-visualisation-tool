@@ -499,7 +499,7 @@ label[for='diagramType'] {
   margin: 0;
 }
 
-#toast-container button {
+.modal-button {
   position: absolute;
   top: 10px;
   right: 10px;
@@ -531,4 +531,9 @@ label[for='diagramType'] {
   &::after {
     transform: rotateZ(-45deg);
   }
+}
+
+#github-modal {
+  height: 50%;
+  overflow: auto;
 }
