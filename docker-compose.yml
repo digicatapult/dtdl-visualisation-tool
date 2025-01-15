@@ -10,6 +10,20 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_DB=dtdl-visualisation-tool
+  dtdl-visualiser:
+    container_name: dtdl-visualiser
+    ports:
+      - 3000:3000
+    build:
+      dockerfile: ./Dockerfile
+  dtdl-visualiser-ci:
+    container_name: dtdl-visualiser
+    ports:
+      - 3000:3000
+    build:
+      dockerfile: ./Dockerfile
+    security_opt:
+      - apparmor:chrome-puppeteer
 
 volumes:
   postgres-dtdl-visualisation-tool:
