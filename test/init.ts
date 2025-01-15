@@ -1,9 +1,9 @@
 import 'reflect-metadata'
 
-import { StartedDockerComposeEnvironment } from 'testcontainers'
+import { StartedTestContainer } from 'testcontainers'
 import { bringUpVisualisationContainer } from './testcontainers/testContainersSetup.js'
 
-let visualisationContainer: StartedDockerComposeEnvironment
+let visualisationContainer: StartedTestContainer
 
 before(async function () {
   this.timeout(420000)
@@ -13,6 +13,6 @@ before(async function () {
 after(async function () {
   this.timeout(420000)
   if (visualisationContainer) {
-      await visualisationContainer.down()
+    await visualisationContainer.stop()
   }
 })
