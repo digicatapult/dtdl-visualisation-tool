@@ -170,6 +170,7 @@ export class RootController extends HTMLController {
         expanded: newSession.highlightNodeId !== undefined,
       }),
       this.templates.svgControls({
+        swapOutOfBand: true,
         generatedOutput: output.renderForMinimap(),
       })
     )
