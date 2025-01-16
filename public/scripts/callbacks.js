@@ -1,5 +1,4 @@
 let panZoom = null
-const contentMain = document.querySelector('#content-main')
 
 const minimapStyles = window.getComputedStyle(document.getElementById('minimap'))
 const desiredAspectRatio = parseFloat(minimapStyles.width) / parseFloat(minimapStyles.height)
@@ -112,10 +111,11 @@ function setSizes() {
 }
 
 function setMinimap() {
+  const contentMain = document.querySelector('#content-main')
   const mainSvg = document.querySelector('#mermaid-output #mermaid-svg')
   const mainViewport = document.querySelector('#mermaid-output .svg-pan-zoom_viewport')
 
-  if (!(mainSvg && mainViewport)) return
+  if (!(contentMain && mainSvg && mainViewport)) return
 
   const { width: viewportSvgWidth, height: viewportSvgHeight } = mainSvg.getBoundingClientRect()
   const { width: rawSvgWidth, height: rawSvgHeight } = mainViewport.getBBox()

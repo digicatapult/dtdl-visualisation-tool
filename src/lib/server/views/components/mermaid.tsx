@@ -349,6 +349,7 @@ export default class MermaidTemplates {
         hx-ext="ignore:json-enc"
         hx-target="#content-main"
         hx-select="#content-main"
+        hx-swap="outerHTML"
         hx-post="/upload"
         hx-encoding="multipart/form-data"
         hx-trigger="change from:#upload"
