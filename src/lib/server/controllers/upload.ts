@@ -126,8 +126,6 @@ export class UploadController extends HTMLController {
     })
     const repos = response.data.map(({ full_name }) => full_name)
 
-    console.log(repos)
-
     return this.html(
       this.templates.MermaidRoot({
         layout: session.layout,
