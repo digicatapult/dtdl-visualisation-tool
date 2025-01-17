@@ -108,15 +108,11 @@ export class UploadController extends HTMLController {
       )
     }
 
-    const { access_token } = await this.fetchRequest<OAuthToken>(
-      `POST`,
-      `https://github.com/login/oauth/access_token`,
-      {
-        client_id: env.get('GH_CLIENT_ID'),
-        client_secret: env.get('GH_CLIENT_SECRET'),
-        code,
-      }
-    )
+    const { access_token } = await this.fetchAccessToken({
+      client_id: env.get('GH_CLIENT_ID'),
+      client_secret: env.get('GH_CLIENT_SECRET'),
+      code,
+    })
 
     this.octokit = new Octokit({ auth: access_token })
 
@@ -147,24 +143,22 @@ export class UploadController extends HTMLController {
     return extractionPath
   }
 
-  private async fetchRequest<ReturnType>(
-    method: 'POST',
-    url: string,
-    body: Record<string, unknown>
-  ): Promise<ReturnType> {
+  private async fetchAccessToken(body: Record<string, unknown>): Promise<OAuthToken> {
+    const url = `https://github.com/login/oauth/access_token`
     const response = await fetch(url, {
-      method,
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
       body: JSON.stringify(body),
     })
+    const json = await response.json()
 
-    if (!response.ok) {
-      throw new InternalError(`Unexpected error calling POST ${url}: ${response.statusText}`)
+    if (!response.ok || !json.access_token) {
+      throw new InternalError(`Unexpected error calling POST ${url}: ${json}`)
     }
 
-    return response.json() as ReturnType
+    return json as OAuthToken
   }
 }
