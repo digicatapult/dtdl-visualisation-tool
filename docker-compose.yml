@@ -24,6 +24,7 @@ services:
       dockerfile: ./Dockerfile
     security_opt:
       - apparmor=unconfined
+      - seccomp=unconfined
 
 volumes:
   postgres-dtdl-visualisation-tool:
