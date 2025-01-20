@@ -34,7 +34,7 @@ jobs:
         abi <abi/4.0>,
         include <tunables/global>
 
-        profile chrome-docker /usr/bin/chromium {
+        profile chrome-docker /usr/bin/chromium flags=(unconfined) {
 
           userns,
 
