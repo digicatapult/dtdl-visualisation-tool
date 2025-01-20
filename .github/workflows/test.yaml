@@ -34,12 +34,12 @@ jobs:
         abi <abi/4.0>,
         include <tunables/global>
 
-        profile chrome-docker /usr/bin/chromium flags=(unconfined) {
+        profile chrome-docker flags=(unconfined) {
 
           userns,
 
           # Site-specific additions and overrides. See local/README for details.
-          include if exists <local/chrome>
+          include if exists <local/docker-default>
         }
         EOF
         sudo service apparmor reload  # reload AppArmor profiles to include the new one
