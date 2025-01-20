@@ -23,8 +23,7 @@ services:
     build:
       dockerfile: ./Dockerfile
     security_opt:
-      - apparmor=unconfined
-      - seccomp=unconfined
+      - apparmor=chrome
 
 volumes:
   postgres-dtdl-visualisation-tool:
