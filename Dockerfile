@@ -21,10 +21,18 @@ ENV NODE_OPTIONS="--no-warnings"
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV CHROME_PUPPETEER_PATH=/usr/bin/chromium
+ENV CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
 
 COPY sample ./sample
 
-RUN apt-get update && apt-get install -y chromium chrome-sandbox --no-install-recommends
+RUN apt-get update && apt-get install -y \
+chromium \
+chromium-sandbox \
+--no-install-recommends \
+&& apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN ln -sf /usr/lib/chromium/chrome-sandbox /usr/bin/chrome-sandbox && \
+    chmod 4755 /usr/bin/chrome-sandbox
 
 RUN groupadd -r pptruser && useradd -u $PPTRUSER_UID -rm -g pptruser -G audio,video pptruser
 
