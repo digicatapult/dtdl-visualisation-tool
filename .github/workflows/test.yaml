@@ -36,13 +36,6 @@ jobs:
 
         profile chrome-docker /usr/bin/chromium {
 
-          /proc/** r,
-          /tmp/** rw,
-          /dev/shm rw,
-          /dev/snd rw,
-          /dev/dri rw,
-          capability sys_admin,
-          network,
           userns,
 
           # Site-specific additions and overrides. See local/README for details.
