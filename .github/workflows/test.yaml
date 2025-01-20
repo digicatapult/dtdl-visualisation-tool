@@ -38,6 +38,9 @@ jobs:
 
           /proc/** r,
           /tmp/** rw,
+          /dev/shm rw,
+          /dev/snd rw,
+          /dev/dri rw,
           capability sys_admin,
           network,
           userns,
