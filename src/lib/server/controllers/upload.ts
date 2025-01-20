@@ -3,7 +3,7 @@ import os from 'node:os'
 
 import { EntityType, getInterop, parseDirectories } from '@digicatapult/dtdl-parser'
 import { join } from 'node:path'
-import { FormField, Post, Produces, Route, SuccessResponse, UploadedFile } from 'tsoa'
+import { FormField, Get, Post, Produces, Query, Route, SuccessResponse, UploadedFile } from 'tsoa'
 import { inject, injectable } from 'tsyringe'
 import unzipper from 'unzipper'
 import Database from '../../db/index.js'
@@ -15,6 +15,7 @@ import { Search, type ISearch } from '../utils/search.js'
 import SessionStore from '../utils/sessions.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
+import OpenOntologyTemplates from '../views/components/openOntology.js'
 
 @injectable()
 @Route('/upload')
@@ -24,6 +25,7 @@ export class UploadController extends HTMLController {
     private dtdlLoader: DtdlLoader,
     private db: Database,
     private templates: MermaidTemplates,
+    private openOntologyTemplates: OpenOntologyTemplates,
     @inject(Search) private search: ISearch<EntityType>,
     @inject(Cache) private cache: ICache,
     private sessionStore: SessionStore
@@ -31,8 +33,20 @@ export class UploadController extends HTMLController {
     super()
   }
 
+  @SuccessResponse(200)
+  @Get('/')
+  public async uploadForm(@Query() sessionId: UUID): Promise<HTML> {
+    return this.html(this.openOntologyTemplates.OpenOntologyRoot({ sessionId }))
+  }
+
+  @SuccessResponse(200)
+  @Get('/uploadButton')
+  public async getLegend(@Query() showContent: boolean): Promise<HTML> {
+    return this.html(this.openOntologyTemplates.uploadMethod({ showContent }))
+  }
+
   @SuccessResponse(200, 'File uploaded successfully')
-  @Post('/')
+  @Post('/zip')
   public async uploadZip(@UploadedFile('file') file: Express.Multer.File, @FormField() sessionId: UUID): Promise<HTML> {
     if (file.mimetype !== 'application/zip') {
       throw new UploadError('File must be a .zip')

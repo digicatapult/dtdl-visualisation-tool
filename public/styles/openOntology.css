@@ -1,0 +1,64 @@
+#main-view {
+    grid-column: 1;
+    grid-row: 2;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    height: 100vh;
+    width: 100%;
+    padding-inline: 100px;
+
+    background-color: #f5f6fa;
+  }
+#main-view > h1 {
+    padding-block: 10px;
+  }
+#upload-method {
+  display:flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+#upload-file-button {
+    background-color: #397edd;
+    transition: background-color 0.3s;
+    color: white;
+    border-radius: 5px;
+    padding: 10px 20px;
+}
+#upload-file-button:hover {
+  background-color: #0256cb;
+  transition: background-color 0.3s;
+}
+.toggle-icon {
+  margin-left: 10px; /* Add spacing between text and the ^ symbol */
+  display: inline-block; /* Makes the div behave like an inline element */
+  font-weight: bolder;
+  transform: rotate(180deg)scaleX(1.7);
+  transition: transform 2s ease-in-out; /* Smooth rotation effect */
+}
+.show-content.toggle-icon {
+  transform: rotate(0deg)scaleX(1.7);
+  transition: transform 2s ease-in-out;
+}
+#upload-options {
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  max-height: 0; 
+  overflow: hidden; 
+  transition: max-height 0.3s ease-out; 
+}
+
+#upload-options.show-content {
+  max-height: 100vh;
+  transition: max-height 1s ease-in-out; 
+}
+.upload-option {
+  background-color: #ffffff;
+  color: black;
+  border-radius: 5px;
+  padding: 10px 20px;
+}

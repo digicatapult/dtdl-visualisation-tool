@@ -344,22 +344,18 @@ export default class MermaidTemplates {
 
   private uploadForm = () => {
     return (
-      <form
-        id="upload-form"
+      <button
+        id="upload-button"
         hx-ext="ignore:json-enc"
         hx-target="#content-main"
         hx-select="#content-main"
         hx-swap="outerHTML"
         hx-post="/upload"
+        hx-get="/upload"
         hx-encoding="multipart/form-data"
-        hx-trigger="change from:#upload"
+        hx-trigger="click"
         hx-include="#sessionId"
-      >
-        <label id="upload-button" for="upload">
-          Upload Ontology
-        </label>
-        <input type="file" id="upload" name="file" accept=".zip" />
-      </form>
+      > Upload Ontology </button>
     )
   }
 }

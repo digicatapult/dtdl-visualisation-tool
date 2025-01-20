@@ -45,3 +45,6 @@ export type GenerateParams = Pick<UpdateParams & Session, GenerateParamKeys>
 
 export type AttributeParamKeys = 'svgWidth' | 'svgHeight' | 'highlightNodeId' | 'diagramType' | 'layout'
 export type AttributeParams = Pick<UpdateParams, AttributeParamKeys>
+export interface openOntologyParams {
+  sessionId: UUID
+}
