@@ -1,7 +1,6 @@
+import path from 'path'
 import { DockerComposeEnvironment, StartedDockerComposeEnvironment } from 'testcontainers'
 import { logger } from '../../src/lib/server/logger.js'
-import path from 'path'
-import { Environment } from 'testcontainers/build/container-runtime/clients/container/types.js'
 
 // interface VisualisationUIConfig {
 //   containerName: string
@@ -22,10 +21,12 @@ export async function bringUpVisualisationContainer(): Promise<StartedDockerComp
 export async function startVisualisationContainer() {
   // const { containerName, containerPort, hostPort } = env
   logger.info(`Building container...`)
-  const composeFilePath = path.resolve('.');
+  const composeFilePath = path.resolve('.')
   const composeFile = 'docker-compose.yml'
   // const containerBase = await GenericContainer.fromDockerfile('./').withCache(true).build()
-  const environment = await new DockerComposeEnvironment(composeFilePath, composeFile).up([`${process.env.CI ? 'dtdl-visualiser-ci' : 'dtdl-visualiser'}`])
+  const environment = await new DockerComposeEnvironment(composeFilePath, composeFile).up([
+    `${process.env.CI ? 'dtdl-visualiser-ci' : 'dtdl-visualiser'}`,
+  ])
   logger.info(`Built container.`)
 
   // logger.info(`Starting container ${containerName} on port ${containerPort}...`)

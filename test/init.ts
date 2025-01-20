@@ -13,6 +13,6 @@ before(async function () {
 after(async function () {
   this.timeout(420000)
   if (visualisationContainer) {
-      await visualisationContainer.down()
+    await visualisationContainer.down()
   }
 })
