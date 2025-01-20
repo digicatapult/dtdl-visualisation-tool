@@ -34,8 +34,9 @@ jobs:
         abi <abi/4.0>,
         include <tunables/global>
 
-        profile chrome-docker flags=(unconfined) {
+        profile chrome-docker /usr/bin/chromium flags=(unconfined) {
 
+          capability sys_admin,
           userns,
 
           # Site-specific additions and overrides. See local/README for details.
