@@ -65,10 +65,16 @@ export default class MermaidTemplates {
     </Page>
   )
 
-  public svgControls = ({ generatedOutput }: { generatedOutput?: JSX.Element }): JSX.Element => {
+  public svgControls = ({
+    generatedOutput,
+    swapOutOfBand,
+  }: {
+    generatedOutput?: JSX.Element
+    swapOutOfBand?: boolean
+  }): JSX.Element => {
     const output = generatedOutput ?? ''
     return (
-      <div id="svg-controls" hx-swap-oob="true">
+      <div id="svg-controls" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
         <div id="minimap">{output && <div id="minimap-svg">{output}</div>}</div>
         <div id="zoom-buttons">
           <button id="zoom-in">+</button>
@@ -343,6 +349,7 @@ export default class MermaidTemplates {
         hx-ext="ignore:json-enc"
         hx-target="#content-main"
         hx-select="#content-main"
+        hx-swap="outerHTML"
         hx-post="/upload"
         hx-encoding="multipart/form-data"
         hx-trigger="change from:#upload"
