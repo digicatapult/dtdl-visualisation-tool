@@ -34,7 +34,7 @@ jobs:
         abi <abi/4.0>,
         include <tunables/global>
 
-        profile chromium-sandbox flags=(attach_disconnected) {
+        profile chromium-sandbox /usr/bin/chromium/** flags=(unconfined) {
           capability sys_admin,
           capability sys_chroot,
           capability setuid,
@@ -48,6 +48,7 @@ jobs:
           /sys/** r,
           /dev/shm/** rw,
           /tmp/** rw,
+          userns,
         }
         EOF
         sudo service apparmor reload  # reload AppArmor profiles to include the new one
