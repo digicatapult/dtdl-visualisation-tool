@@ -16,6 +16,19 @@ services:
       - 3000:3000
     build:
       dockerfile: ./Dockerfile
+    scale: 0
+    volumes:
+      - ./src/lib/db/migrations:/dtdl-visualisation-tool/src/lib/db/migrations
+    environment:
+      - DB_HOST=postgres-dtdl-visualisation-tool
+      - DB_NAME=dtdl-visualisation-tool
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - DB_PORT=5432
+    command: >
+      sh -c "
+        node ./node_modules/.bin/knex migrate:latest
+        dtdl-visualiser parse -p /sample/energygrid"
 
 volumes:
   postgres-dtdl-visualisation-tool:
