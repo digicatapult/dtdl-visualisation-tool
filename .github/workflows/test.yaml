@@ -30,7 +30,7 @@ jobs:
         }
         EOF
 
-        cat | sudo tee /etc/apparmor.d/chromium-apparmor-profile <<EOF
+        cat | sudo tee /etc/apparmor.d/chrome-puppeteer-docker <<EOF
         abi <abi/4.0>,
         include <tunables/global>
 
@@ -50,8 +50,8 @@ jobs:
           /tmp/** rw,
         }
         EOF
-        sudo apparmor_parser -r -W chromium-apparmor-profile
         sudo service apparmor reload  # reload AppArmor profiles to include the new one
+        sudo apparmor_parser -r -W chrome-puppeteer-docker
         sudo sysctl kernel.unprivileged_userns_clone=1
       env_vars: |
         {
