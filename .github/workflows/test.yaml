@@ -51,7 +51,7 @@ jobs:
         }
         EOF
         sudo service apparmor reload  # reload AppArmor profiles to include the new one
-        sudo apparmor_parser -r -W chrome-puppeteer-docker
+        sudo apparmor_parser -r -W chrome-puppeteer-docker.profile
         sudo sysctl kernel.unprivileged_userns_clone=1
       env_vars: |
         {
