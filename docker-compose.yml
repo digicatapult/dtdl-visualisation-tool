@@ -23,7 +23,7 @@ services:
     build:
       dockerfile: ./Dockerfile
     security_opt:
-      - apparmor=chrome-docker
+      - apparmor=chromium-sandbox
 
 volumes:
   postgres-dtdl-visualisation-tool:

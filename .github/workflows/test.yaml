@@ -30,19 +30,29 @@ jobs:
         }
         EOF
 
-        cat | sudo tee /etc/apparmor.d/chrome-puppeteer-docker <<EOF
+        cat | sudo tee /etc/apparmor.d/chromium-apparmor-profile <<EOF
         abi <abi/4.0>,
         include <tunables/global>
 
-        profile chrome-docker /usr/bin/chromium flags=(unconfined) {
-
-          userns,
-
-          # Site-specific additions and overrides. See local/README for details.
-          include if exists <local/docker-default>
+        profile chromium-sandbox flags=(attach_disconnected) {
+          capability sys_admin,
+          capability sys_chroot,
+          capability setuid,
+          capability setgid,
+          mount,
+          umount,
+          pivot_root,
+          ptrace,
+          signal,
+          /proc/** r,
+          /sys/** r,
+          /dev/shm/** rw,
+          /tmp/** rw,
         }
         EOF
+        sudo apparmor_parser -r -W chromium-apparmor-profile
         sudo service apparmor reload  # reload AppArmor profiles to include the new one
+        sudo sysctl kernel.unprivileged_userns_clone=1
       env_vars: |
         {
           "TMPDIR": "${{ github.workspace }}"
