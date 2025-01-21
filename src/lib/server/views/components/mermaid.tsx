@@ -5,6 +5,7 @@ import { escapeHtml } from '@kitajs/html'
 import { randomUUID } from 'crypto'
 import { container, singleton } from 'tsyringe'
 import { Env } from '../../env.js'
+import { ListItem } from '../../models/github.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { Layout, layoutEntries } from '../../models/mermaidLayouts.js'
 import { DtdlId, UUID } from '../../models/strings.js'
@@ -75,23 +76,73 @@ export default class MermaidTemplates {
     </Page>
   )
 
-  public githubModal = ({ open, repos }: { open: boolean; repos?: string[] }) => {
-    const attributes = open
-      ? { 'hx-on::after-settle': `console.log('after-settle triggered'); globalThis.showGithubModal()` }
-      : {}
+  public githubModal = ({ populateListLink }: { populateListLink: string }) => {
     return (
-      <dialog
-        hx-on="htmx:load: globalThis.showGithubModal()"
-        id="github-modal"
-        hx-target="#github-modal"
-        {...attributes}
-        hx-swap-oob="true"
-      >
-        <ul>{repos && repos.map((repo) => <li>{repo}</li>)}</ul>
+      <dialog id="github-modal" hx-swap-oob="true">
+        <div id="modal-wrapper">
+          <div id="spin" class="spinner" />
+          <ul
+            class="github-list"
+            hx-indicator="#spin"
+            hx-get={populateListLink}
+            hx-trigger="load"
+            hx-include="#sessionId"
+          ></ul>
+          <this.selectFolder />
+        </div>
         <form method="dialog">
           <button class="modal-button" />
         </form>
       </dialog>
+    )
+  }
+
+  public selectFolder = ({ link, swapOutOfBand }: { link?: string; swapOutOfBand?: boolean }) => (
+    <button
+      id="select-folder"
+      hx-trigger="click"
+      hx-include="#sessionId"
+      hx-get={link}
+      hx-swap-oob={swapOutOfBand ? 'true' : undefined}
+      hx-swap="outerHTML"
+      hx-target="#content-main"
+      hx-select="#content-main"
+      disabled={!link}
+    >
+      Select Folder
+    </button>
+  )
+
+  public githubListItems = ({
+    list,
+    nextPageLink,
+    previousLink,
+  }: {
+    list: ListItem[]
+    nextPageLink?: string
+    previousLink?: string
+  }) => {
+    const nextPageAttributes = {
+      'hx-get': nextPageLink,
+      'hx-trigger': 'intersect once',
+      'hx-swap': 'afterend',
+      'hx-include': '#sessionId',
+    }
+
+    return (
+      <>
+        {previousLink && (
+          <li hx-trigger="click" hx-target="closest ul" hx-get={previousLink}>
+            {`<`}
+          </li>
+        )}
+        {list.map((item) => (
+          <li hx-trigger="click" hx-target="closest ul" hx-get={item.link}>
+            {item.text}
+          </li>
+        ))}
+        {nextPageLink && list.length > 0 && <li {...nextPageAttributes} />}
+      </>
     )
   }
 

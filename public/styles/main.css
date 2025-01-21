@@ -12,6 +12,7 @@ body {
   width: 100vw;
   margin: 0;
   overflow-x: hidden;
+  --background-color: #f5f6fa;
 }
 
 button.highlighted {
@@ -27,14 +28,6 @@ button.highlighted {
   opacity: 0;
 }
 
-.spinner {
-  position: absolute;
-  left: 0px;
-  top: 0px;
-  height: 100%;
-  width: 100%;
-}
-
 #content-main {
   display: grid;
   grid-template-rows: auto 1fr;
@@ -43,7 +36,6 @@ button.highlighted {
 
   --navigation-panel-width: 400px;
   --navigation-panel-translate-x: calc(0.9 * var(--navigation-panel-width));
-  --background-color: #f5f6fa;
 }
 
 #search-panel {
@@ -211,12 +203,12 @@ label[for='diagramType'] {
   font-size: 0.7rem;
 }
 
-#spinner.htmx-request {
+.spinner.htmx-request {
   display: inline-block;
   opacity: 1;
 }
 
-#spinner {
+.spinner {
   display: none;
   position: absolute;
   width: 80px;
@@ -535,5 +527,28 @@ label[for='diagramType'] {
 
 #github-modal {
   height: 50%;
-  overflow: auto;
+  width: 50ch;
 }
+
+.github-list {
+  overflow: auto;
+  list-style-type: none;
+  padding: 0;
+  border: 1px solid #e8e8e8;
+  line-height: 1.8rem;
+  height: 100%;
+  width: 100%;
+}
+
+#modal-wrapper {
+  justify-items: center;
+  align-items: center;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  height: 100%;
+  gap: 1rem;
+  padding: 1rem 1rem 0 1rem;
+
+}
+
+.github-list li:nth-child(odd) { background: var(--background-color); }

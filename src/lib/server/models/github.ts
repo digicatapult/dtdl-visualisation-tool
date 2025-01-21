@@ -6,3 +6,8 @@ export interface OAuthToken {
   token_type: string
   scope: string
 }
+
+export interface ListItem {
+  text: string
+  link?: string
+}
