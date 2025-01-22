@@ -12,7 +12,7 @@ export default class OpenOntologyTemplates {
     public OpenOntologyRoot = ({ sessionId }: { sessionId: UUID }) => (
         <Page title="UKDTC">
             <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
-            <section id="toolbar">
+            <section id="upload-toolbar">
                 <h2>UKDTC</h2>
             </section>
             <this.mainView />
@@ -66,7 +66,12 @@ export default class OpenOntologyTemplates {
                 hx-include="#sessionId"
             >
                 <label id="zip-button" for="zip" class="upload-option">
-                    .zip
+
+
+                    <p>
+                        <img src='public/images/zip-folder.svg' alt='zip-folder' />
+                        Local Zip File
+                    </p>
                 </label>
                 <input type="file" id="zip" name="file" accept=".zip" />
             </form>
@@ -85,7 +90,10 @@ export default class OpenOntologyTemplates {
                 hx-include="#sessionId"
             >
                 <label id="zip-button" for="zip" class="upload-option">
-                    GitHub
+                    <p>
+                        <img src='public/images/github-mark.svg' alt='zip-folder' />
+                        GitHub
+                    </p>
                 </label>
                 <input type="file" id="zip" name="file" accept=".zip" />
             </form>

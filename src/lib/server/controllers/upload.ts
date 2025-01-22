@@ -36,6 +36,7 @@ export class UploadController extends HTMLController {
   @SuccessResponse(200)
   @Get('/')
   public async uploadForm(@Query() sessionId: UUID): Promise<HTML> {
+    this.setHeader('HX-Push-Url', `/upload`)
     return this.html(this.openOntologyTemplates.OpenOntologyRoot({ sessionId }))
   }
 

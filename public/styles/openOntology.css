@@ -14,7 +14,12 @@
   }
 #main-view > h1 {
     padding-block: 10px;
-  }
+}
+#upload-toolbar > h2 {
+  padding-inline: 20px;
+  font-weight: 200;
+  font-size: 1.8em;
+}
 #upload-method {
   display:flex;
   flex-direction: column;
@@ -44,12 +49,14 @@
   transition: transform 2s ease-in-out;
 }
 #upload-options {
+  display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  align-items: flex-start;
+  align-items: stretch;
   max-height: 0; 
   overflow: hidden; 
   transition: max-height 0.3s ease-out; 
+  width: 100%;
 }
 
 #upload-options.show-content {
@@ -57,8 +64,27 @@
   transition: max-height 1s ease-in-out; 
 }
 .upload-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   background-color: #ffffff;
   color: black;
-  border-radius: 5px;
-  padding: 10px 20px;
+  padding-block: 10px;
+  box-sizing: border-box;
+  width: 100%;
+  cursor: pointer;
+  border-top: 1px solid #f0f0f0;
+}
+.upload-option:hover {
+  background-color: #f0f0f0;
+}
+.upload-option img {
+  float: left;
+  width: 20px;
+  height: 20px;
+  margin-inline: 20px;
+}
+.upload-option p {
+  margin: 0px;
+  width: 100%;
 }
