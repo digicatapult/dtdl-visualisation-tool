@@ -91,6 +91,7 @@ export class UploadController extends HTMLController {
 
     this.search.setCollection(this.dtdlLoader.getCollection(parsedDtdl))
     this.cache.clear()
+    this.setHeader('HX-Push-Url', `/?sessionId=${sessionId}`)
 
     return this.html(
       this.templates.MermaidRoot({

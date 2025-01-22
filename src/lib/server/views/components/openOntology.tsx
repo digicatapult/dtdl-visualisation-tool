@@ -66,8 +66,6 @@ export default class OpenOntologyTemplates {
                 hx-include="#sessionId"
             >
                 <label id="zip-button" for="zip" class="upload-option">
-
-
                     <p>
                         <img src='public/images/zip-folder.svg' alt='zip-folder' />
                         Local Zip File
