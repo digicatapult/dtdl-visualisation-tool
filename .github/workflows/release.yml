@@ -29,7 +29,6 @@ jobs:
         }
         EOF
         sudo service apparmor reload  # reload AppArmor profiles to include the new one
-      tests: '["test:unit"]'
       env_vars: |
         {
           "TMPDIR": "${{ github.workspace }}"
@@ -68,8 +67,8 @@ jobs:
       - static-checks-npm
     uses: digicatapult/shared-workflows/.github/workflows/build-docker.yml@main
     with:
-      push_dockerhub: false
-      push_ghcr: false
+      push_dockerhub: true
+      push_ghcr: true
     permissions:
       packages: write
       contents: write

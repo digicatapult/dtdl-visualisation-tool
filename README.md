@@ -71,9 +71,22 @@ By default, validation ignores `ResolutionException`s that occur when parsing a 
 dtdl-visualiser validate -p sample/energygrid -r
 ```
 
+## Docker Compose
+
+To bring up the `postgres` database service on port `5432`, run 
+```
+docker compose up
+```
+
+To bring up both the `postgres` database and the `dtdl-visualiser` service in docker you may run 
+```
+docker compose up --scale dtdl-visualiser=1
+```
+The service will be available  on `http://localhost:3000`
+
 ## Docker
 
-The application can be run in Docker. `sample/energygrid` is automatically parsed at start up. **The image runs as `amd64` - it is very slow when emulated by Rosetta**.
+The application can be run in Docker. `sample/energygrid` is automatically parsed at start up.
 
 `docker build -t dtdl-visualiser .` and run with `docker run -p 3000:3000 dtdl-visualiser`.
 
@@ -90,6 +103,15 @@ The application can be run in Docker. `sample/energygrid` is automatically parse
 | DB_USERNAME      | n        | `postgres`                | The database username                                                             |
 | DB_PASSWORD      | n        | `postgres`                | The database password                                                             |
 | DB_PORT          | n        | `5432`                    | The database port number                                                          |
+
+## Database migrations
+
+To migrate up the database started by `docker compose`, run locally
+```
+npm run db:migrate
+```
+
+If you have started both the database and the `dtdl-visualiser` service with `docker compose`, the database will will already be migrated
 
 ## Testing
 
