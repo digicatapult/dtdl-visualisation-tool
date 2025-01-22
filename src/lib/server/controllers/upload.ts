@@ -176,6 +176,9 @@ export class UploadController extends HTMLController {
         list: branches,
         nextPageLink: `/upload/github/branches?owner=${owner}&repo=${repo}&per_page=${per_page}&page=${page + 1}`,
         ...(page === 1 && { previousLink: `/upload/github/repos?per_page=${DEFAULT_PER_PAGE}&page=1` }),
+      }),
+      this.templates.selectFolder({
+        swapOutOfBand: true,
       })
     )
   }

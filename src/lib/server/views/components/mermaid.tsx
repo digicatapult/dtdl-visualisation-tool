@@ -68,7 +68,7 @@ export default class MermaidTemplates {
 
       <div id="mermaid-wrapper">
         <this.mermaidTarget target="mermaid-output" />
-        <div id="spinner" />
+        <div id="spinner" class="spinner" />
       </div>
       <this.Legend showContent={false} />
       <this.navigationPanel expanded={false} />
@@ -108,6 +108,7 @@ export default class MermaidTemplates {
       hx-target="#content-main"
       hx-select="#content-main"
       disabled={!link}
+      onclick="document.getElementById('github-modal').close();"
     >
       Select Folder
     </button>
