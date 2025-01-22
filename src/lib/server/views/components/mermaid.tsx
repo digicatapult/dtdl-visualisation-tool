@@ -117,23 +117,24 @@ export default class MermaidTemplates {
   public githubListItems = ({
     list,
     nextPageLink,
-    previousLink,
+    backLink,
   }: {
     list: ListItem[]
     nextPageLink?: string
-    previousLink?: string
+    backLink?: string
   }) => {
     const nextPageAttributes = {
       'hx-get': nextPageLink,
       'hx-trigger': 'intersect once',
       'hx-swap': 'afterend',
       'hx-include': '#sessionId',
+      style: 'height: 1px; overflow: hidden',
     }
 
     return (
       <>
-        {previousLink && (
-          <li hx-trigger="click" hx-target="closest ul" hx-get={previousLink}>
+        {backLink && (
+          <li hx-trigger="click" hx-target="closest ul" hx-get={backLink}>
             {`<`}
           </li>
         )}
@@ -142,7 +143,7 @@ export default class MermaidTemplates {
             {item.text}
           </li>
         ))}
-        {nextPageLink && list.length > 0 && <li {...nextPageAttributes} />}
+        {nextPageLink && list.length > 0 && <li {...nextPageAttributes}></li>}
       </>
     )
   }

@@ -16,6 +16,7 @@ const envConfig = {
   DB_PORT: envalid.port({ default: 5432 }),
   GH_CLIENT_ID: envalid.str(),
   GH_CLIENT_SECRET: envalid.str(),
+  UPLOAD_LIMIT_MB: envalid.num({ default: 10 * 1024 * 1024 }),
 }
 
 export type ENV_CONFIG = typeof envConfig

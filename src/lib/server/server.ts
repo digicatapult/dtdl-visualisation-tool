@@ -5,12 +5,14 @@ import express, { Express } from 'express'
 import multer from 'multer'
 import requestLogger from 'pino-http'
 import { ValidateError } from 'tsoa'
+import { container } from 'tsyringe'
+import { Env } from './env.js'
 import { HttpError, UploadError } from './errors.js'
 import { logger } from './logger.js'
 import { RegisterRoutes } from './routes.js'
 import { errorToast } from './views/components/errors.js'
 
-const maxFileSizeMB = 10
+const env = container.resolve(Env)
 
 export default async (): Promise<Express> => {
   const app: Express = express()
@@ -27,7 +29,7 @@ export default async (): Promise<Express> => {
   const multerOptions = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: maxFileSizeMB * 1024 * 1024,
+      fileSize: env.get('UPLOAD_LIMIT_MB') * 1024 * 1024,
     },
   })
 
@@ -52,6 +54,7 @@ export default async (): Promise<Express> => {
     next: express.NextFunction
   ): void {
     if (err instanceof Error) {
+      console.log(err.message)
       req.log.debug('API error: %s', err.message)
       req.log.trace('API error: stack %j', err.stack)
       if (!(err instanceof HttpError || err instanceof multer.MulterError)) {
@@ -66,7 +69,7 @@ export default async (): Promise<Express> => {
     }
 
     if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
-      err = new UploadError(`Zip file is too large. Must be less than ${maxFileSizeMB}MB`)
+      err = new UploadError(`Zip file is too large. Must be less than ${env.get('UPLOAD_LIMIT_MB')}MB`)
     }
 
     const code = err instanceof HttpError ? err.code : 500

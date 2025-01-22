@@ -26,7 +26,8 @@ type listRepoContentsResponse = Endpoints['GET /repos/{owner}/{repo}/contents/{p
 
 const env = container.resolve(Env)
 
-const DEFAULT_PER_PAGE = 50
+const PER_PAGE = 50
+const uploadLimit = env.get('UPLOAD_LIMIT_MB') * 1024 * 1024
 
 @injectable()
 @Route('/upload')
@@ -71,31 +72,6 @@ export class UploadController extends HTMLController {
     )
   }
 
-  parseAndSetDtdlFromTmp = async (tmpPath: string, dtdlName: string, sessionId: string) => {
-    const parser = await getInterop()
-    const parsedDtdl = parseDirectories(tmpPath, parser)
-
-    rm(tmpPath, { recursive: true })
-
-    if (!parsedDtdl) {
-      throw new DataError('Failed to parse DTDL model')
-    }
-
-    const [{ id }] = await this.db.insert('model', { name: dtdlName, parsed: parsedDtdl })
-
-    const updateSession: Partial<Session> = {
-      search: undefined,
-      highlightNodeId: undefined,
-      expandedIds: [],
-      dtdlModelId: id,
-    }
-
-    this.sessionStore.update(sessionId, updateSession)
-
-    this.search.setCollection(this.dtdlLoader.getCollection(parsedDtdl))
-    this.cache.clear()
-  }
-
   @SuccessResponse(200, '')
   @Get('/github')
   public async githubCallback(@Query() code: string, @Query() sessionId: string): Promise<HTML> {
@@ -116,7 +92,7 @@ export class UploadController extends HTMLController {
         search: undefined,
         sessionId,
       }),
-      this.templates.githubModal({ populateListLink: `/upload/github/repos?per_page=${DEFAULT_PER_PAGE}&page=1` })
+      this.templates.githubModal({ populateListLink: `/upload/github/repos?per_page=${PER_PAGE}&page=1` })
     )
   }
 
@@ -137,7 +113,7 @@ export class UploadController extends HTMLController {
 
     const repos: ListItem[] = response.data.map(({ full_name, owner: { login: owner }, name }) => ({
       text: full_name,
-      link: `/upload/github/branches?owner=${owner}&repo=${name}&per_page=${DEFAULT_PER_PAGE}&page=1`,
+      link: `/upload/github/branches?owner=${owner}&repo=${name}&per_page=${PER_PAGE}&page=1`,
     }))
 
     return this.html(
@@ -168,14 +144,14 @@ export class UploadController extends HTMLController {
 
     const branches: ListItem[] = response.data.map(({ name }) => ({
       text: name,
-      link: `/upload/github/contents?owner=${owner}&repo=${repo}&path=.&ref=${name}&per_page=${DEFAULT_PER_PAGE}&page=1`,
+      link: `/upload/github/contents?owner=${owner}&repo=${repo}&path=.&ref=${name}&per_page=${PER_PAGE}&page=1`,
     }))
 
     return this.html(
       this.templates.githubListItems({
         list: branches,
         nextPageLink: `/upload/github/branches?owner=${owner}&repo=${repo}&per_page=${per_page}&page=${page + 1}`,
-        ...(page === 1 && { previousLink: `/upload/github/repos?per_page=${DEFAULT_PER_PAGE}&page=1` }),
+        ...(page === 1 && { backLink: `/upload/github/repos?per_page=${PER_PAGE}&page=1` }),
       }),
       this.templates.selectFolder({
         swapOutOfBand: true,
@@ -213,15 +189,15 @@ export class UploadController extends HTMLController {
     }))
 
     // If the path is root link to branches otherwise link to the previous directory
-    const previousLink =
+    const backLink =
       path === '.'
-        ? `/upload/github/branches?owner=${owner}&repo=${repo}&per_page=${DEFAULT_PER_PAGE}&page=1`
+        ? `/upload/github/branches?owner=${owner}&repo=${repo}&per_page=${PER_PAGE}&page=1`
         : `/upload/github/contents?owner=${owner}&repo=${repo}&path=${dirname(path)}&ref=${ref}`
 
     return this.html(
       this.templates.githubListItems({
         list: contents,
-        previousLink,
+        backLink,
       }),
       this.templates.selectFolder({
         link: `/upload/github/directory?owner=${owner}&repo=${repo}&path=${path}&ref=${ref}`,
@@ -242,33 +218,16 @@ export class UploadController extends HTMLController {
     const session = this.sessionStore.get(sessionId)
     const octokit = new Octokit({ auth: session.octokitToken })
 
-    const tempDir = await mkdtemp(join(os.tmpdir(), 'dtdl-'))
+    const tmpDir = await mkdtemp(join(os.tmpdir(), 'dtdl-'))
 
-    const fetchFiles = async (owner: string, repo: string, path: string, ref: string): Promise<void> => {
-      const response: listRepoContentsResponse = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
-        owner,
-        repo,
-        path,
-        ref,
-      })
+    const totalUploaded = { total: 0 }
+    await this.fetchFiles(octokit, tmpDir, owner, repo, path, ref, totalUploaded)
 
-      const contents = Array.isArray(response.data) ? response.data : [response.data]
-
-      for (const entry of contents) {
-        if (entry.type === 'file' && entry.download_url && entry.name.endsWith('.json')) {
-          const fileResponse = await fetch(entry.download_url)
-          const fileBuffer = await fileResponse.arrayBuffer()
-          const filePath = join(tempDir, basename(entry.name))
-          console.log('writing file', filePath)
-          await writeFile(filePath, Buffer.from(fileBuffer))
-        } else if (entry.type === 'dir') {
-          await fetchFiles(owner, repo, entry.path, ref)
-        }
-      }
+    if (totalUploaded.total === 0) {
+      throw new UploadError(`No '.json' files found`)
     }
 
-    await fetchFiles(owner, repo, path, ref)
-    await this.parseAndSetDtdlFromTmp(tempDir, `${owner}/${repo}/${ref}/${path}`, sessionId)
+    await this.parseAndSetDtdlFromTmp(tmpDir, `${owner}/${repo}/${ref}/${path}`, sessionId)
 
     return this.html(
       this.templates.MermaidRoot({
@@ -307,5 +266,71 @@ export class UploadController extends HTMLController {
     }
 
     return json as OAuthToken
+  }
+
+  private async fetchFiles(
+    octokit: Octokit,
+    tempDir: string,
+    owner: string,
+    repo: string,
+    path: string,
+    ref: string,
+    totalUploadedRef: { total: number }
+  ): Promise<void> {
+    const response: listRepoContentsResponse = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
+      owner,
+      repo,
+      path,
+      ref,
+    })
+
+    if (!Array.isArray(response.data))
+      throw new InternalError('Attempted to upload file rather than directory from GitHub API')
+
+    for (const entry of response.data) {
+      if (entry.type === 'file' && entry.name.endsWith('.json') && entry.download_url) {
+        const fileResponse = await fetch(entry.download_url)
+        const fileBuffer = await fileResponse.arrayBuffer()
+
+        totalUploadedRef.total += fileBuffer.byteLength
+        console.log(fileBuffer.byteLength)
+        console.log(totalUploadedRef.total)
+
+        if (totalUploadedRef.total > uploadLimit) {
+          throw new UploadError(`Total upload must be less than ${env.get('UPLOAD_LIMIT_MB')}MB`)
+        }
+
+        const filePath = join(tempDir, basename(entry.name))
+        console.log('writing file', filePath)
+        await writeFile(filePath, Buffer.from(fileBuffer))
+      } else if (entry.type === 'dir') {
+        await this.fetchFiles(octokit, tempDir, owner, repo, entry.path, ref, totalUploadedRef)
+      }
+    }
+  }
+
+  private parseAndSetDtdlFromTmp = async (tmpPath: string, dtdlName: string, sessionId: string) => {
+    const parser = await getInterop()
+    const parsedDtdl = parseDirectories(tmpPath, parser)
+
+    rm(tmpPath, { recursive: true })
+
+    if (!parsedDtdl) {
+      throw new DataError('Failed to parse DTDL model')
+    }
+
+    const [{ id }] = await this.db.insert('model', { name: dtdlName, parsed: parsedDtdl })
+
+    const updateSession: Partial<Session> = {
+      search: undefined,
+      highlightNodeId: undefined,
+      expandedIds: [],
+      dtdlModelId: id,
+    }
+
+    this.sessionStore.update(sessionId, updateSession)
+
+    this.search.setCollection(this.dtdlLoader.getCollection(parsedDtdl))
+    this.cache.clear()
   }
 }
