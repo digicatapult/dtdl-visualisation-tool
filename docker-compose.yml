@@ -12,6 +12,8 @@ services:
       - POSTGRES_DB=dtdl-visualisation-tool
   dtdl-visualiser:
     container_name: dtdl-visualiser
+    depends_on:
+      - postgres-dtdl-visualisation-tool
     ports:
       - 3000:3000
     build:
@@ -25,7 +27,7 @@ services:
       - DB_PORT=5432
     command: >
       sh -c "
-        npc knex migrate:latest --env production
+        npx knex migrate:latest --env production
         dtdl-visualiser parse -p /sample/energygrid"
 
 volumes:
