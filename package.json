@@ -11,7 +11,7 @@
     "depcheck": "depcheck",
     "test:unit": "SWRC=true NODE_ENV=test ./node_modules/.bin/mocha --config ./test/mocharc.json ./src/**/*.test.ts",
     "test:e2e": "SWRC=true DEBUG=testcontainers* playwright test --ui",
-    "test:playwright": "playwright test --trace on --max-failures=1",
+    "test:playwright": "playwright test --trace on --max-failures=1 --debug",
     "test:integration": "SWRC=true DEBUG=testcontainers* NODE_ENV=test ./node_modules/.bin/mocha --config ./test/mocharc.json ./test/integration/*.test.ts",
     "build": "npm run tsoa:build && swc ./src ./package.json -d ./build --copy-files",
     "clean": "rimraf -rf ./build",
