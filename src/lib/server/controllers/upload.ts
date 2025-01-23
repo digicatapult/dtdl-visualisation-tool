@@ -14,8 +14,8 @@ import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import { Search, type ISearch } from '../utils/search.js'
 import SessionStore from '../utils/sessions.js'
 import MermaidTemplates from '../views/components/mermaid.js'
-import { HTML, HTMLController } from './HTMLController.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
+import { HTML, HTMLController } from './HTMLController.js'
 
 @injectable()
 @Route('/upload')

@@ -1,5 +1,5 @@
 import 'reflect-metadata'
-import { bringUpVisualisationContainer, bringUpDatabaseContainer } from './testcontainers/testContainersSetup.js'
+import { bringUpDatabaseContainer, bringUpVisualisationContainer } from './testcontainers/testContainersSetup.js'
 
 async function globalSetup() {
   await bringUpDatabaseContainer()

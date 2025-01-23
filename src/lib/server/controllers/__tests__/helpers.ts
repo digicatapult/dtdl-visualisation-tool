@@ -14,8 +14,10 @@ import { SvgGenerator } from '../../utils/mermaid/generator.js'
 import { SvgMutator } from '../../utils/mermaid/svgMutator.js'
 import SessionStore from '../../utils/sessions.js'
 import MermaidTemplates from '../../views/components/mermaid'
+import OpenOntologyTemplates from '../../views/components/openOntology'
 import { complexMockDtdlModel } from './complexDtdlfixture.js'
 import { sessionMap } from './sessionFixtures.js'
+import { UUID } from '../../models/strings.js'
 
 export const templateMock = {
   MermaidRoot: ({ search, layout }: { search: string; layout: string }) => `root_${layout}_${search}_root`,
@@ -28,6 +30,18 @@ export const templateMock = {
   svgControls: ({ generatedOutput }: { generatedOutput?: JSX.Element }): JSX.Element =>
     `svgControls_${generatedOutput}_svgControls`,
 } as unknown as MermaidTemplates
+export const openOntologyMock = {
+  OpenOntologyRoot: ({ sessionId }: { sessionId: UUID }) =>
+    `root_${sessionId}_root`,
+  mainView: (): JSX.Element =>
+    `mainView_SomethingHere_mainView`,
+  uploadMethod: ({ showContent }: { showContent: boolean }) =>
+    `uploadMethod_${showContent}_uploadMethod`,
+  uploadZip: () =>
+    `uploadZip_Zip_uploadZip`,
+  uploadGithub: (): JSX.Element =>
+    `uploadGithub_Github_uploadGithub`,
+} as unknown as OpenOntologyTemplates
 export const mockLogger = pino({ level: 'silent' })
 export const mockCache = new LRUCache(10, 1000 * 60)
 export const mockDb = {

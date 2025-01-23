@@ -73,16 +73,14 @@ export async function startVisualisationContainer(env: VisualisationUIConfig): P
       host: hostPort,
     })
     .withEnvironment({
-      'DB_HOST': 'postgres-dtdl-visualisation-tool',
-      'DB_NAME': 'dtdl-visualisation-tool',
-      'DB_USERNAME': 'postgres',
-      'DB_PASSWORD': 'postgres',
-      'DB_PORT': '5432'
+      DB_HOST: 'postgres-dtdl-visualisation-tool',
+      DB_NAME: 'dtdl-visualisation-tool',
+      DB_USERNAME: 'postgres',
+      DB_PASSWORD: 'postgres',
+      DB_PORT: '5432',
     })
     .withAddedCapabilities('SYS_ADMIN')
-    .withCommand([
-      'sh', '-c', 'npx knex migrate:latest; dtdl-visualiser parse -p /sample/energygrid'
-    ])
+    .withCommand(['sh', '-c', 'npx knex migrate:latest --env production; dtdl-visualiser parse -p /sample/energygrid'])
     .start()
   logger.info(`Started container ${containerName}`)
   logger.info(`Started container on port ${visualisationUIContainer.getMappedPort(containerPort)}`)
