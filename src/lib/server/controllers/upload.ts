@@ -7,7 +7,7 @@ import { FormField, Get, Post, Produces, Query, Route, SuccessResponse, Uploaded
 import { inject, injectable } from 'tsyringe'
 import unzipper from 'unzipper'
 import Database from '../../db/index.js'
-import { DataError, InvalidQueryError, UploadError } from '../errors.js'
+import { DataError, InvalidQueryError, SessionError, UploadError } from '../errors.js'
 import { type UUID } from '../models/strings.js'
 import { Cache, type ICache } from '../utils/cache.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
@@ -35,7 +35,10 @@ export class UploadController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('/')
-  public async uploadForm(@Query() sessionId: UUID): Promise<HTML> {
+  public async uploadForm(@Query() sessionId?: UUID): Promise<HTML> {
+    if (!sessionId) {
+      throw new SessionError('No session ID provided')
+    }
     this.setHeader('HX-Push-Url', `/upload`)
     return this.html(this.openOntologyTemplates.OpenOntologyRoot({ sessionId }))
   }
@@ -91,7 +94,7 @@ export class UploadController extends HTMLController {
 
     this.search.setCollection(this.dtdlLoader.getCollection(parsedDtdl))
     this.cache.clear()
-    this.setHeader('HX-Push-Url', `/?sessionId=${sessionId}`)
+    this.setHeader('HX-Push-Url', `/`)
 
     return this.html(
       this.templates.MermaidRoot({

@@ -15,10 +15,13 @@
 #main-view > h1 {
     padding-block: 10px;
 }
-#upload-toolbar > h2 {
+#upload-toolbar * h2 {
   padding-inline: 20px;
   font-weight: 200;
   font-size: 1.8em;
+}
+#upload-toolbar > a {
+  display: inline-block;
 }
 #upload-method {
   display:flex;
@@ -65,7 +68,7 @@
 }
 .upload-option {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   background-color: #ffffff;
   color: black;
@@ -75,6 +78,7 @@
   cursor: pointer;
   border-top: 1px solid #f0f0f0;
 }
+.upload-option a:hover,
 .upload-option:hover {
   background-color: #f0f0f0;
 }

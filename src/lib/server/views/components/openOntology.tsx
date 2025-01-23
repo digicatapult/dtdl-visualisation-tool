@@ -13,7 +13,10 @@ export default class OpenOntologyTemplates {
         <Page title="UKDTC">
             <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
             <section id="upload-toolbar">
-                <h2>UKDTC</h2>
+                <a href='/'>
+                    <h2>UKDTC</h2>
+                </a>
+
             </section>
             <this.mainView />
 
@@ -66,10 +69,8 @@ export default class OpenOntologyTemplates {
                 hx-include="#sessionId"
             >
                 <label id="zip-button" for="zip" class="upload-option">
-                    <p>
-                        <img src='public/images/zip-folder.svg' alt='zip-folder' />
-                        Local Zip File
-                    </p>
+                    <img src='public/images/zip-folder.svg' alt='zip-folder' />
+                    <p>Local Zip File</p>
                 </label>
                 <input type="file" id="zip" name="file" accept=".zip" />
             </form>
@@ -77,24 +78,15 @@ export default class OpenOntologyTemplates {
     }
     private uploadGithub = () => {
         return (
-            <form
-                id="github-form"
-                hx-ext="ignore:json-enc"
-                hx-target="#content-main"
-                hx-select="#content-main"
-                hx-post="/upload/zip"
-                hx-encoding="multipart/form-data"
-                hx-trigger="change from:#zip"
-                hx-include="#sessionId"
-            >
-                <label id="zip-button" for="zip" class="upload-option">
-                    <p>
-                        <img src='public/images/github-mark.svg' alt='zip-folder' />
-                        GitHub
-                    </p>
+
+
+            <a href='/'>
+                <label id="github-auth-button" class="upload-option">
+                    <img src='public/images/github-mark.svg' alt='github' />
+                    <p>GitHub</p>
                 </label>
-                <input type="file" id="zip" name="file" accept=".zip" />
-            </form>
+            </a>
+
         )
     }
 }
