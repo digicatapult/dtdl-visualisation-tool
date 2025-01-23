@@ -2,8 +2,8 @@
 
 import { escapeHtml } from '@kitajs/html'
 import { singleton } from 'tsyringe'
-import { Page } from '../common'
-import { UUID } from '../../models/strings'
+import { Page } from '../common.js'
+import { UUID } from '../../models/strings.js'
 
 @singleton()
 export default class OpenOntologyTemplates {

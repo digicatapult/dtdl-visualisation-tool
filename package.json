@@ -10,7 +10,7 @@
   "scripts": {
     "depcheck": "depcheck",
     "test:unit": "SWRC=true NODE_ENV=test ./node_modules/.bin/mocha --config ./test/mocharc.json ./src/**/*.test.ts",
-    "test:e2e": "playwright test --ui",
+    "test:e2e": "SWRC=true DEBUG=testcontainers* playwright test --ui",
     "test:playwright": "playwright test --trace on --max-failures=1",
     "test:integration": "SWRC=true DEBUG=testcontainers* NODE_ENV=test ./node_modules/.bin/mocha --config ./test/mocharc.json ./test/integration/*.test.ts",
     "build": "npm run tsoa:build && swc ./src ./package.json -d ./build --copy-files",
@@ -74,6 +74,7 @@
     "@swc-node/register": "^1.10.9",
     "@swc/cli": "^0.6.0",
     "@swc/core": "^1.10.8",
+    "@testcontainers/postgresql": "^10.17.1",
     "@types/chai": "^5.0.1",
     "@types/chai-as-promised": "^8.0.1",
     "@types/cors": "^2.8.17",
