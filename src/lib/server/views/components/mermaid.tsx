@@ -3,7 +3,9 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
 import { randomUUID } from 'crypto'
-import { singleton } from 'tsyringe'
+import { container, singleton } from 'tsyringe'
+import { Env } from '../../env.js'
+import { ListItem } from '../../models/github.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { Layout, layoutEntries } from '../../models/mermaidLayouts.js'
 import { DtdlId, UUID } from '../../models/strings.js'
@@ -18,6 +20,10 @@ const commonUpdateAttrs = {
   'hx-indicator': '#spinner',
   'hx-disabled-elt': 'select',
 }
+
+const env = container.resolve(Env)
+
+const clientId = env.get('GH_CLIENT_ID')
 
 function maybeNumberToAttr(value: number | undefined, defaultValue: number) {
   return `${value === undefined ? defaultValue : value}`
@@ -53,17 +59,94 @@ export default class MermaidTemplates {
           svgHeight={svgHeight}
         />
         <this.uploadForm />
+        <a
+          href={`https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=http://localhost:3000/upload/github?sessionId=${sessionId}`}
+        >
+          GitHub
+        </a>
       </section>
 
       <div id="mermaid-wrapper">
         <this.mermaidTarget target="mermaid-output" />
-        <div id="spinner" />
+        <div id="spinner" class="spinner" />
       </div>
       <this.Legend showContent={false} />
       <this.navigationPanel expanded={false} />
       <this.svgControls />
     </Page>
   )
+
+  public githubModal = ({ populateListLink }: { populateListLink: string }) => {
+    return (
+      <dialog id="github-modal" hx-swap-oob="true">
+        <div id="modal-wrapper">
+          <div id="spin" class="spinner" />
+          <ul
+            class="github-list"
+            hx-indicator="#spin"
+            hx-get={populateListLink}
+            hx-trigger="load"
+            hx-include="#sessionId"
+          ></ul>
+          <this.selectFolder />
+        </div>
+        <form method="dialog">
+          <button class="modal-button" />
+        </form>
+      </dialog>
+    )
+  }
+
+  public selectFolder = ({ link, swapOutOfBand }: { link?: string; swapOutOfBand?: boolean }) => (
+    <button
+      id="select-folder"
+      hx-trigger="click"
+      hx-include="#sessionId"
+      hx-get={link}
+      hx-swap-oob={swapOutOfBand ? 'true' : undefined}
+      hx-swap="outerHTML"
+      hx-target="#content-main"
+      hx-select="#content-main"
+      disabled={!link}
+      onclick="document.getElementById('github-modal').close();"
+    >
+      Select Folder
+    </button>
+  )
+
+  public githubListItems = ({
+    list,
+    nextPageLink,
+    backLink,
+  }: {
+    list: ListItem[]
+    nextPageLink?: string
+    backLink?: string
+  }) => {
+    const nextPageAttributes = {
+      'hx-get': nextPageLink,
+      'hx-trigger': 'intersect once',
+      'hx-swap': 'afterend',
+      'hx-include': '#sessionId',
+      style: 'height: 1px; overflow: hidden',
+    }
+
+    return (
+      <>
+        {backLink && (
+          <li hx-trigger="click" hx-target="closest ul" hx-get={backLink}>
+            {`<`}
+          </li>
+        )}
+        {list.map((item) => (
+          <li hx-trigger="click" hx-target="closest ul" hx-get={item.link}>
+            {item.text}
+          </li>
+        ))}
+        {nextPageLink && list.length > 0 && <li {...nextPageAttributes}></li>}
+      </>
+    )
+  }
 
   public svgControls = ({
     generatedOutput,
@@ -242,7 +325,9 @@ export default class MermaidTemplates {
         hx-sync="this:replace"
         {...commonUpdateAttrs}
       >
-        <h2>UKDTC</h2>
+        <h2>
+          <a href="http://localhost:3000">UKDTC</a>
+        </h2>
         <input
           id="search"
           name="search"

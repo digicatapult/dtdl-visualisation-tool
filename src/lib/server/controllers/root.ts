@@ -4,7 +4,6 @@ import { DtdlObjectModel, EntityType } from '@digicatapult/dtdl-parser'
 import express from 'express'
 import { Get, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
-import { InvalidQueryError } from '../errors.js'
 import { Logger, type ILogger } from '../logger.js'
 import {
   A11yPreference,
@@ -82,14 +81,6 @@ export class RootController extends HTMLController {
 
     // pull out the stored session. If this is invalid the request is invalid
     const session = this.sessionStore.get(params.sessionId)
-    if (!session) {
-      throw new InvalidQueryError(
-        'Session Error',
-        'Please refresh the page or try again later',
-        `Session ${params.sessionId} not found in session store`,
-        false
-      )
-    }
 
     // get the base dtdl model that we will derive the graph from
     const baseModel = await this.dtdlLoader.getDtdlModel(session.dtdlModelId)
@@ -138,7 +129,7 @@ export class RootController extends HTMLController {
     const { pan, zoom } = this.manipulateOutput(output, filteredModel, session, newSession, params)
 
     // store the updated session
-    this.sessionStore.set(params.sessionId, newSession)
+    this.sessionStore.update(params.sessionId, newSession)
 
     // replace the current url
     const current = this.getCurrentPathQuery(req)

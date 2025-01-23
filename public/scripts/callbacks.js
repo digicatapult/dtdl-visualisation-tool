@@ -16,6 +16,15 @@ globalThis.toggleNavPanel = (event) => {
   panel?.toggleAttribute('aria-expanded')
 }
 
+htmx.on('htmx:load', (e) => {
+  if (e?.detail.elt.baseURI.includes('github')) {
+    document.getElementById('github-modal').showModal()
+
+    // Update the browser history to remove query parameters
+    window.history.replaceState({}, '', '/')
+  }
+})
+
 /**
  * Takes an input element id and extracts the value from it as a number if it has a value. Otherwise returns a default value provided
  * @param {String} elementId - Id of the element to get the value attribute from
