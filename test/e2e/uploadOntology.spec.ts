@@ -28,6 +28,7 @@ test.describe('Upload ontology from local drive', () => {
     await fileChooser.setFiles(filePath)
 
     await page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200)
+      await page.waitForTimeout(500)
 
     expect(await page.isVisible("text='dtmi:com:example;1'")).toBe(true)
   })
