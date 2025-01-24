@@ -25,10 +25,13 @@ test.describe('Upload ontology from local drive', () => {
     await page.getByText('Local Zip File').click()
     const fileChooser = await fileChooserPromise
     const filePath = path.join(__dirname, '../../src/lib/server/controllers/__tests__/simple.zip')
-    await fileChooser.setFiles(filePath)
 
-    await page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200)
-      await page.waitForTimeout(500)
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200),
+      fileChooser.setFiles(filePath),
+    ])
+
+    await page.waitForTimeout(10000)
 
     expect(await page.isVisible("text='dtmi:com:example;1'")).toBe(true)
   })

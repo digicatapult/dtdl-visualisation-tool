@@ -44,7 +44,6 @@ export async function startDatabaseContainer(env: databaseConfig): Promise<Start
     })
     .withNetwork(network)
     .withWaitStrategy(Wait.forLogMessage('database system is ready to accept connections'))
-    .withReuse()
     .start()
   return postgresContainer
 }
