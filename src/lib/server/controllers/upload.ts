@@ -7,14 +7,14 @@ import { FormField, Post, Produces, Route, SuccessResponse, UploadedFile } from 
 import { inject, injectable } from 'tsyringe'
 import unzipper from 'unzipper'
 import Database from '../../db/index.js'
-import { DataError, InvalidQueryError, UploadError } from '../errors.js'
+import { DataError, UploadError } from '../errors.js'
 import { type UUID } from '../models/strings.js'
 import { Cache, type ICache } from '../utils/cache.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import { Search, type ISearch } from '../utils/search.js'
 import SessionStore from '../utils/sessions.js'
 import MermaidTemplates from '../views/components/mermaid.js'
-import { HTML, HTMLController } from './HTMLController.js'
+import { HTMLController } from './HTMLController.js'
 
 @injectable()
 @Route('/upload')
@@ -31,9 +31,9 @@ export class UploadController extends HTMLController {
     super()
   }
 
-  @SuccessResponse(200, 'File uploaded successfully')
+  @SuccessResponse(302, 'File uploaded successfully')
   @Post('/')
-  public async uploadZip(@UploadedFile('file') file: Express.Multer.File, @FormField() sessionId: UUID): Promise<HTML> {
+  public async uploadZip(@UploadedFile('file') file: Express.Multer.File, @FormField() sessionId: UUID): Promise<void> {
     if (file.mimetype !== 'application/zip') {
       throw new UploadError('File must be a .zip')
     }
@@ -56,35 +56,8 @@ export class UploadController extends HTMLController {
 
     const [{ id }] = await this.db.insert('model', { name: file.originalname, parsed: parsedDtdl })
 
-    const session = this.sessionStore.get(sessionId)
-    if (!session) {
-      throw new InvalidQueryError(
-        'Session Error',
-        'Please refresh the page or try again later',
-        `Session ${sessionId} not found in session store`,
-        false
-      )
-    }
-    this.sessionStore.set(sessionId, {
-      layout: session.layout,
-      diagramType: session.diagramType,
-      search: undefined,
-      highlightNodeId: undefined,
-      expandedIds: [],
-      dtdlModelId: id,
-    })
-
-    this.search.setCollection(this.dtdlLoader.getCollection(parsedDtdl))
-    this.cache.clear()
-
-    return this.html(
-      this.templates.MermaidRoot({
-        layout: session.layout,
-        diagramType: session.diagramType,
-        search: undefined,
-        sessionId,
-      })
-    )
+    this.setHeader('HX-Redirect', `/dtdl/${id}/view`)
+    return
   }
 
   public async unzip(file: Buffer): Promise<string> {
