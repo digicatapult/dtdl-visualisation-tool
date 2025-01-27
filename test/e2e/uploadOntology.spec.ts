@@ -6,6 +6,12 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+test.beforeEach(async ({ page }) => {
+
+})
+
+test.afterAll()
+
 test.describe('Upload ontology from local drive', () => {
   test('Should upload simple ontology and render on ui', async ({ page }) => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
@@ -25,10 +31,11 @@ test.describe('Upload ontology from local drive', () => {
     await page.getByText('Local Zip File').click()
     const fileChooser = await fileChooserPromise
     const filePath = path.join(__dirname, '../../src/lib/server/controllers/__tests__/simple.zip')
-    await fileChooser.setFiles(filePath)
-
-    await page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200)
-      await page.waitForTimeout(500)
+      await Promise.all([
+          page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200),
+          fileChooser.setFiles(filePath),
+      ])
+      await page.waitForTimeout(1000)
 
     expect(await page.isVisible("text='dtmi:com:example;1'")).toBe(true)
   })
