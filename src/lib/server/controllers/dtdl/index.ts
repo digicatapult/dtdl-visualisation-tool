@@ -42,7 +42,7 @@ export class DtdlController extends HTMLController {
     private sessionStore: SessionStore
   ) {
     super()
-    this.logger = logger.child({ controller: '/' })
+    this.logger = logger.child({ controller: '/dtdl' })
   }
 
   @SuccessResponse(200)

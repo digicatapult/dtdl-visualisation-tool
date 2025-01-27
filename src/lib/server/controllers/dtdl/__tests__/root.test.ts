@@ -1,10 +1,10 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import sinon from 'sinon'
-import { UpdateParams } from '../../models/controllerTypes.js'
-import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../models/renderedDiagram/index.js'
-import { generatedSVGFixture } from '../../utils/mermaid/__tests__/fixtures'
-import { RootController } from '../root'
+import { UpdateParams } from '../../../models/controllerTypes.js'
+import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../../models/renderedDiagram/index.js'
+import { generatedSVGFixture } from '../../../utils/mermaid/__tests__/fixtures'
+import { RootController } from '../../root'
 import {
   complexMockDtdlLoader,
   generatorRunStub,
@@ -12,7 +12,6 @@ import {
   mockLogger,
   mockReq,
   sessionSetStub,
-  simpleDtdlId,
   simpleMockDtdlLoader,
   templateMock,
   toHTMLString,
@@ -51,12 +50,9 @@ describe('RootController', async () => {
   const complexController = new RootController(complexMockDtdlLoader, templateMock, mockLogger)
 
   describe('get', () => {
-    it.only('should redirect to the default model', async () => {
-      const setHeaderSpy = sinon.spy(controller, 'setHeader')
-      await controller.get({ ...defaultParams })
-
-      const locationHeader = setHeaderSpy.firstCall.args[1]
-      expect(locationHeader).to.equal(`/dtdl/${simpleDtdlId}/view?${new URLSearchParams({ ...params })}`)
+    it('should return rendered root template', async () => {
+      const result = await controller.get({ ...defaultParams }).then(toHTMLString)
+      expect(result).to.equal(`root_dagre-d3_undefined_root`)
     })
   })
 
