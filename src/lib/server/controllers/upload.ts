@@ -56,7 +56,7 @@ export class UploadController extends HTMLController {
 
     const [{ id }] = await this.db.insert('model', { name: file.originalname, parsed: parsedDtdl })
 
-    this.setHeader('HX-Redirect', `/dtdl/${id}/view`)
+    this.setHeader('HX-Redirect', `/ontology/${id}/view`)
     return
   }
 

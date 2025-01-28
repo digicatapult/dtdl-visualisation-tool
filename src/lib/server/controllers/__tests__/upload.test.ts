@@ -6,15 +6,7 @@ import path from 'path'
 import sinon from 'sinon'
 import { DataError, UploadError } from '../../errors.js'
 import { UploadController } from '../upload.js'
-import {
-  mockCache,
-  mockDb,
-  mockSearch,
-  mockSession,
-  simpleMockDtdlLoader,
-  templateMock,
-  toHTMLString,
-} from './helpers.js'
+import { mockCache, mockDb, mockSearch, mockSession, simpleMockDtdlLoader, templateMock } from './helpers.js'
 import { validSessionId } from './sessionFixtures.js'
 
 chai.use(chaiAsPromised)
@@ -38,15 +30,21 @@ describe('UploadController', async () => {
   })
 
   describe('/', () => {
-    it('should return root template on success', async () => {
+    it('should insert to db and redirect to view on success', async () => {
+      const setHeaderSpy = sinon.spy(controller, 'setHeader')
+      const insertDb = sinon.spy(mockDb, 'insert')
       const originalname = 'test.zip'
       const mockFile = {
         mimetype: 'application/zip',
         buffer: readFileSync(path.resolve(__dirname, './simple.zip')),
         originalname,
       }
-      const result = await controller.uploadZip(mockFile as Express.Multer.File, validSessionId).then(toHTMLString)
-      expect(result).to.equal(`root_dagre-d3_undefined_root`)
+      await controller.uploadZip(mockFile as Express.Multer.File, validSessionId)
+
+      const hxRedirectHeader = setHeaderSpy.firstCall.args[1]
+
+      expect(insertDb.calledOnce).to.equal(true)
+      expect(hxRedirectHeader).to.equal(`/dtdl/1/view`)
     })
 
     it(`should error on non-'application/zip' mimetype`, async () => {

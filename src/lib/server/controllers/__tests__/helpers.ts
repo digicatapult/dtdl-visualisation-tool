@@ -21,6 +21,11 @@ import { sessionMap } from './sessionFixtures.js'
 export const simpleDtdlId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed7'
 export const complexDtdlId: UUID = 'e89f119a-fc3b-4ce8-8722-2000a7ebeeab'
 
+const mockModelTable = {
+  [simpleDtdlId]: { parsed: simpleMockDtdlObjectModel },
+  [complexDtdlId]: { parsed: complexMockDtdlModel },
+}
+
 export const templateMock = {
   MermaidRoot: ({ search, layout }: { search: string; layout: string }) => `root_${layout}_${search}_root`,
   mermaidTarget: ({ generatedOutput, target }: { generatedOutput?: JSX.Element; target: string }): JSX.Element =>
@@ -37,12 +42,9 @@ export const mockCache = new LRUCache(10, 1000 * 60)
 
 export const mockDb = {
   insert: () => Promise.resolve([{ id: 1 }]),
-  get: sinon
-    .stub()
-    .withArgs(simpleDtdlId)
-    .resolves([simpleMockDtdlObjectModel])
-    .withArgs(complexDtdlId)
-    .resolves([complexMockDtdlModel]),
+  get: sinon.stub().callsFake((_, { id }) => {
+    return Promise.resolve([mockModelTable[id]])
+  }),
 } as unknown as Database
 
 export const sessionSetStub = sinon.stub()

@@ -79,7 +79,7 @@ globalThis.setMermaidListeners = function setMermaidListeners() {
   }
 
   const listener = (ev) => {
-    if (ev?.detail?.pathInfo?.requestPath !== '/update-layout') {
+    if (ev?.detail?.pathInfo?.requestPath !== 'update-layout') {
       return
     }
     panZoom.disablePan()
