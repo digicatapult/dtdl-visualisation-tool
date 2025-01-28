@@ -32,7 +32,6 @@ describe('UploadController', async () => {
         originalname,
       }
       await controller.uploadZip(mockFile as Express.Multer.File)
-
       const hxRedirectHeader = setHeaderSpy.firstCall.args[1]
 
       expect(insertDb.calledOnce).to.equal(true)

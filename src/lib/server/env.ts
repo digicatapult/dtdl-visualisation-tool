@@ -2,7 +2,7 @@ import * as envalid from 'envalid'
 import { singleton } from 'tsyringe'
 
 const envConfig = {
-  LOG_LEVEL: envalid.str({ default: 'fatal', devDefault: 'debug' }),
+  LOG_LEVEL: envalid.str({ default: 'info', devDefault: 'debug' }),
   CACHE_TTL: envalid.num({ default: 1000 * 60 * 5 }),
   CACHE_SIZE: envalid.num({ default: 100 }),
   SEARCH_THRESHOLD: envalid.num({ default: 0.4 }),

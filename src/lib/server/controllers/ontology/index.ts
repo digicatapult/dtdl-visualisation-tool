@@ -42,7 +42,7 @@ export class OntologyController extends HTMLController {
     private sessionStore: SessionStore
   ) {
     super()
-    this.logger = logger.child({ controller: '/dtdl' })
+    this.logger = logger.child({ controller: '/ontology' })
   }
 
   @SuccessResponse(200)

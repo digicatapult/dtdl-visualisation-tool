@@ -19,7 +19,7 @@ const mockDb = {
 const dtdlLoader = new DtdlLoader(mockDb, '1')
 
 describe('dtdlLoader', function () {
-  it('should return default model id from construction', async () => {
+  it('should return default model id from when dtdlLoader was instantiated', async () => {
     expect(dtdlLoader.getDefaultId()).to.equal('1')
   })
 

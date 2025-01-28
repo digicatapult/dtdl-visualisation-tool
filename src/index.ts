@@ -10,9 +10,7 @@ import Database from './lib/db/index.js'
 import { httpServer } from './lib/server/index.js'
 import { logger } from './lib/server/logger.js'
 import { DtdlLoader } from './lib/server/utils/dtdl/dtdlLoader.js'
-import { FuseSearch } from './lib/server/utils/fuseSearch.js'
 import { SvgGenerator } from './lib/server/utils/mermaid/generator.js'
-import { Search } from './lib/server/utils/search.js'
 import version from './version.js'
 
 const program = new Command()
@@ -57,10 +55,6 @@ program
     const dtdlLoader = new DtdlLoader(db, id)
     container.register(DtdlLoader, {
       useValue: dtdlLoader,
-    })
-
-    container.register(Search, {
-      useValue: new FuseSearch(dtdlLoader.getCollection(parsedDtdl)),
     })
 
     logger.info(`Loading SVG generator...`)
