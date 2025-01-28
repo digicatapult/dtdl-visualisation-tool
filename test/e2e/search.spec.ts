@@ -11,6 +11,6 @@ test.describe('search', () => {
       page.fill('#search', 'Container'),
     ])
 
-    await expect(page.locator('#mermaid-output').getByText('EquipmentContainer')).toBeVisible()
+    await expect(page.locator('#mermaid-output').getByText('ConnectivityNode', { exact: true })).toBeVisible()
   })
 })
