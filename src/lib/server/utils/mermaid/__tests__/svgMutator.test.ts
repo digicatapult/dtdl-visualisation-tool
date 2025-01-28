@@ -54,7 +54,7 @@ describe('Generator', function () {
 
       mutator.setNodeAttributes(element, document, 'flowchart')
 
-      expect(element.getAttribute('hx-get')).to.equal('/update-layout')
+      expect(element.getAttribute('hx-get')).to.equal('update-layout')
       expect(element.getAttribute('hx-target')).to.equal('#mermaid-output')
 
       const hxVals = {
@@ -196,7 +196,7 @@ describe('Generator', function () {
 
       mutator.setEdgeAttributes(line, label, relationshipMap)
 
-      expect(label.getAttribute('hx-get')).to.equal('/update-layout')
+      expect(label.getAttribute('hx-get')).to.equal('update-layout')
       expect(label.getAttribute('hx-target')).to.equal('#mermaid-output')
       expect(label.getAttribute('hx-swap')).to.equal('outerHTML transition:true')
       expect(label.getAttribute('hx-indicator')).to.equal('#spinner')
@@ -275,14 +275,14 @@ describe('Generator', function () {
       mutator.setSVGAttributes(render, simpleMockDtdlObjectModel, defaultParams)
 
       const fooAttrs = render.document.getElementById('flowchart-dtmi:com:foo:1-1')?.attributes
-      expect(fooAttrs?.getNamedItem('hx-get')?.value).to.equal('/update-layout')
+      expect(fooAttrs?.getNamedItem('hx-get')?.value).to.equal('update-layout')
       expect(fooAttrs?.getNamedItem('hx-target')?.value).to.equal('#mermaid-output')
       expect(fooAttrs?.getNamedItem('hx-swap')?.value).to.equal('outerHTML transition:true')
       expect(fooAttrs?.getNamedItem('hx-indicator')?.value).to.equal('#spinner')
       expect(fooAttrs?.getNamedItem('hx-vals')?.value).to.equal(JSON.stringify({ highlightNodeId: 'dtmi:com:foo:1' }))
 
       const barAttrs = render.document.getElementById('flowchart-dtmi:com:bar:1-1')?.attributes
-      expect(barAttrs?.getNamedItem('hx-get')?.value).to.equal('/update-layout')
+      expect(barAttrs?.getNamedItem('hx-get')?.value).to.equal('update-layout')
       expect(barAttrs?.getNamedItem('hx-target')?.value).to.equal('#mermaid-output')
       expect(barAttrs?.getNamedItem('hx-swap')?.value).to.equal('outerHTML transition:true')
       expect(barAttrs?.getNamedItem('hx-indicator')?.value).to.equal('#spinner')
@@ -310,7 +310,7 @@ describe('Generator', function () {
       const fooCornerElement = render.svgElement.querySelector('#flowchart-dtmi\\:com\\:foo\\:1-1 > text.corner-sign')
       expect(fooCornerElement?.innerHTML).to.equal('+')
       expect(fooCornerElement?.getAttribute('onclick')).to.equal('event.stopPropagation()')
-      expect(fooCornerElement?.getAttribute('hx-get')).to.equal('/update-layout')
+      expect(fooCornerElement?.getAttribute('hx-get')).to.equal('update-layout')
       expect(fooCornerElement?.getAttribute('hx-target')).to.equal('#mermaid-output')
       expect(fooCornerElement?.getAttribute('hx-swap')).to.equal('outerHTML transition:true')
       expect(fooCornerElement?.getAttribute('hx-indicator')).to.equal('#spinner')
@@ -320,7 +320,7 @@ describe('Generator', function () {
       const barCornerElement = render.svgElement.querySelector('#flowchart-dtmi\\:com\\:bar\\:1-1 > text.corner-sign')
       expect(barCornerElement?.innerHTML).to.equal('-')
       expect(barCornerElement?.getAttribute('onclick')).to.equal('event.stopPropagation()')
-      expect(barCornerElement?.getAttribute('hx-get')).to.equal('/update-layout')
+      expect(barCornerElement?.getAttribute('hx-get')).to.equal('update-layout')
       expect(barCornerElement?.getAttribute('hx-target')).to.equal('#mermaid-output')
       expect(barCornerElement?.getAttribute('hx-swap')).to.equal('outerHTML transition:true')
       expect(barCornerElement?.getAttribute('hx-indicator')).to.equal('#spinner')
@@ -369,7 +369,7 @@ describe('Generator', function () {
       element.classList.add('unexpanded')
       const position = { width: 100, height: 50 }
       const hxAttributes = {
-        'hx-get': '/update-layout',
+        'hx-get': 'update-layout',
         'hx-target': '#mermaid-output',
       }
 
@@ -392,7 +392,7 @@ describe('Generator', function () {
       element.classList.add('expanded')
       const position = { width: 100, height: 50 }
       const hxAttributes = {
-        'hx-get': '/update-layout',
+        'hx-get': 'update-layout',
         'hx-target': '#mermaid-output',
       }
 

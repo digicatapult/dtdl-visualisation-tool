@@ -10,14 +10,14 @@ import { DtdlId, UUID } from '../../models/strings.js'
 import { getDisplayName, isInterface, isRelationship } from '../../utils/dtdl/extract.js'
 import { AccordionSection, Page } from '../common.js'
 
-const commonUpdateAttrs = (dtdlModelId: UUID) => ({
+const commonUpdateAttrs = {
   'hx-target': '#mermaid-output',
   'hx-get': `update-layout`,
   'hx-swap': 'outerHTML  transition:true',
   'hx-include': '#sessionId, #search-panel',
   'hx-indicator': '#spinner',
   'hx-disabled-elt': 'select',
-})
+}
 
 function maybeNumberToAttr(value: number | undefined, defaultValue: number) {
   return `${value === undefined ? defaultValue : value}`
@@ -28,7 +28,6 @@ export default class MermaidTemplates {
   constructor() {}
 
   public MermaidRoot = ({
-    dtdlModelId,
     search,
     layout,
     sessionId,
@@ -36,7 +35,6 @@ export default class MermaidTemplates {
     svgWidth,
     svgHeight,
   }: {
-    dtdlModelId: UUID
     search?: string
     layout: Layout
     sessionId: UUID
@@ -48,7 +46,6 @@ export default class MermaidTemplates {
       <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
       <section id="toolbar">
         <this.searchPanel
-          dtdlModelId={dtdlModelId}
           layout={layout}
           search={search}
           diagramType={diagramType}
@@ -59,7 +56,7 @@ export default class MermaidTemplates {
       </section>
 
       <div id="mermaid-wrapper">
-        <this.mermaidTarget target="mermaid-output" dtdlModelId={dtdlModelId} />
+        <this.mermaidTarget target="mermaid-output" />
         <div id="spinner" />
       </div>
       <this.Legend showContent={false} />
@@ -91,17 +88,15 @@ export default class MermaidTemplates {
   public mermaidTarget = ({
     generatedOutput,
     target,
-    dtdlModelId,
   }: {
     generatedOutput?: JSX.Element
     target: string
-    dtdlModelId: UUID
   }): JSX.Element => {
     const attributes = generatedOutput
       ? { 'hx-on::after-settle': `globalThis.setMermaidListeners()`, 'pending-listeners': '' }
       : {
           'hx-trigger': 'load',
-          ...commonUpdateAttrs(dtdlModelId),
+          ...commonUpdateAttrs,
         }
     const output = generatedOutput ?? ''
     return (
@@ -215,7 +210,6 @@ export default class MermaidTemplates {
   }
 
   public searchPanel = ({
-    dtdlModelId,
     search,
     layout,
     swapOutOfBand,
@@ -227,7 +221,6 @@ export default class MermaidTemplates {
     currentPanY,
   }: {
     // inputs with current state
-    dtdlModelId: UUID
     search?: string
     layout: Layout
     diagramType: DiagramType
@@ -247,7 +240,7 @@ export default class MermaidTemplates {
         class="button-group"
         hx-swap-oob={swapOutOfBand ? 'true' : undefined}
         hx-sync="this:replace"
-        {...commonUpdateAttrs(dtdlModelId)}
+        {...commonUpdateAttrs}
       >
         <h2>UKDTC</h2>
         <input
@@ -257,7 +250,7 @@ export default class MermaidTemplates {
           value={escapeHtml(search || '')}
           placeholder="Search"
           hx-trigger="input changed delay:500ms, search"
-          {...commonUpdateAttrs(dtdlModelId)}
+          {...commonUpdateAttrs}
         />
 
         <input id="svgWidth" name="svgWidth" type="hidden" value={maybeNumberToAttr(svgWidth, 300)} />
@@ -267,7 +260,7 @@ export default class MermaidTemplates {
         <input id="currentPanY" name="currentPanY" type="hidden" value={maybeNumberToAttr(currentPanY, 0)} />
 
         <label for="diagramType">Diagram Type</label>
-        <select id="diagramType" name="diagramType" hx-trigger="input changed" {...commonUpdateAttrs(dtdlModelId)}>
+        <select id="diagramType" name="diagramType" hx-trigger="input changed" {...commonUpdateAttrs}>
           {diagramTypes.map((entry) => (
             <option value={entry} selected={entry === diagramType}>
               {escapeHtml(entry)}
@@ -280,7 +273,7 @@ export default class MermaidTemplates {
           name="layout"
           hx-trigger="input changed"
           disabled={diagramType === 'classDiagram'}
-          {...commonUpdateAttrs(dtdlModelId)}
+          {...commonUpdateAttrs}
         >
           {layoutEntries.map((entry) => (
             <option value={entry} selected={entry === layout}>
@@ -360,7 +353,6 @@ export default class MermaidTemplates {
         hx-post="/upload"
         hx-encoding="multipart/form-data"
         hx-trigger="change from:#upload"
-        hx-include="#sessionId"
       >
         <label id="upload-button" for="upload">
           Upload Ontology

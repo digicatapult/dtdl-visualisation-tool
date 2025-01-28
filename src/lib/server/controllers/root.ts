@@ -25,7 +25,7 @@ export class RootController extends HTMLController {
   public async get(@Queries() params: RootParams): Promise<void> {
     this.logger.debug('default model requested')
 
-    this.setHeader('Location', `/dtdl/${this.dtdlLoader.getDefaultId()}/view?${new URLSearchParams({ ...params })}`)
+    this.setHeader('Location', `/ontology/${this.dtdlLoader.getDefaultId()}/view?${new URLSearchParams({ ...params })}`)
     return
   }
 

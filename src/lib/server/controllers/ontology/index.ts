@@ -29,9 +29,9 @@ import { HTML, HTMLController } from '../HTMLController.js'
 
 @singleton()
 @injectable()
-@Route('/dtdl')
+@Route('/ontology')
 @Produces('text/html')
-export class DtdlController extends HTMLController {
+export class OntologyController extends HTMLController {
   constructor(
     private dtdlLoader: DtdlLoader,
     private generator: SvgGenerator,
@@ -47,7 +47,7 @@ export class DtdlController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('{dtdlModelId}/view')
-  public async get(@Path() dtdlModelId: UUID, @Queries() params: RootParams): Promise<HTML> {
+  public async view(@Path() dtdlModelId: UUID, @Queries() params: RootParams): Promise<HTML> {
     this.logger.debug(`model ${dtdlModelId} requested with search: %o`, {
       search: params.search,
       layout: params.layout,
@@ -69,7 +69,6 @@ export class DtdlController extends HTMLController {
 
     return this.html(
       this.templates.MermaidRoot({
-        dtdlModelId,
         layout: params.layout,
         search: params.search,
         sessionId,
@@ -157,12 +156,10 @@ export class DtdlController extends HTMLController {
     // render out the final components to be replaced
     return this.html(
       this.templates.mermaidTarget({
-        dtdlModelId,
         generatedOutput: output.renderToString(),
         target: 'mermaid-output',
       }),
       this.templates.searchPanel({
-        dtdlModelId,
         layout: newSession.layout,
         search: newSession.search,
         diagramType: newSession.diagramType,
@@ -354,7 +351,6 @@ export class DtdlController extends HTMLController {
     if (fromCache) {
       return fromCache
     }
-
     const output = await this.generator.run(model, session.diagramType, session.layout)
     this.cache.set(cacheKey, output)
 

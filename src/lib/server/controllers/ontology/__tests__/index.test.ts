@@ -3,19 +3,23 @@ import { describe, it } from 'mocha'
 import sinon from 'sinon'
 import { UpdateParams } from '../../../models/controllerTypes.js'
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../../models/renderedDiagram/index.js'
-import { generatedSVGFixture } from '../../../utils/mermaid/__tests__/fixtures'
-import { RootController } from '../../root'
+import { generatedSVGFixture } from '../../../utils/mermaid/__tests__/fixtures.js'
 import {
+  complexDtdlId,
   complexMockDtdlLoader,
   generatorRunStub,
   mockCache,
+  mockGenerator,
   mockLogger,
+  mockMutator,
   mockReq,
+  mockSession,
   sessionSetStub,
+  simpleDtdlId,
   simpleMockDtdlLoader,
   templateMock,
   toHTMLString,
-} from './helpers'
+} from '../../__tests__/helpers.js'
 import {
   validSessionExpanded11Id,
   validSessionExpanded12Id,
@@ -26,7 +30,8 @@ import {
   validSessionId,
   validSessionSomeOtherSearchId,
   validSessionSomeSearchId,
-} from './sessionFixtures.js'
+} from '../../__tests__/sessionFixtures.js'
+import { OntologyController } from '../index.js'
 
 export const defaultParams: UpdateParams = {
   sessionId: validSessionId,
@@ -40,18 +45,34 @@ export const defaultParams: UpdateParams = {
   a11y: ['reduce-motion'],
 }
 
-describe('RootController', async () => {
+describe('OntologyController', async () => {
   afterEach(() => {
     sinon.restore()
     mockCache.clear()
   })
 
-  const controller = new RootController(simpleMockDtdlLoader, templateMock, mockLogger)
-  const complexController = new RootController(complexMockDtdlLoader, templateMock, mockLogger)
+  const controller = new OntologyController(
+    simpleMockDtdlLoader,
+    mockGenerator,
+    mockMutator,
+    templateMock,
+    mockLogger,
+    mockCache,
+    mockSession
+  )
+  const complexController = new OntologyController(
+    complexMockDtdlLoader,
+    mockGenerator,
+    mockMutator,
+    templateMock,
+    mockLogger,
+    mockCache,
+    mockSession
+  )
 
-  describe('get', () => {
+  describe('view', () => {
     it('should return rendered root template', async () => {
-      const result = await controller.get({ ...defaultParams }).then(toHTMLString)
+      const result = await controller.view(simpleDtdlId, { ...defaultParams }).then(toHTMLString)
       expect(result).to.equal(`root_dagre-d3_undefined_root`)
     })
   })
@@ -59,7 +80,7 @@ describe('RootController', async () => {
   describe('updateLayout', () => {
     it('should return templated mermaidMarkdown and searchPanel', async () => {
       const req = mockReq({})
-      const result = await controller.updateLayout(req, defaultParams).then(toHTMLString)
+      const result = await controller.updateLayout(req, simpleDtdlId, defaultParams).then(toHTMLString)
       expect(result).to.equal(
         [
           `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
@@ -72,7 +93,9 @@ describe('RootController', async () => {
 
     it('should return templated mermaidMarkdown and searchPanel filtered', async () => {
       const req = mockReq({})
-      const result = await controller.updateLayout(req, { ...defaultParams, search: 'example 1' }).then(toHTMLString)
+      const result = await controller
+        .updateLayout(req, simpleDtdlId, { ...defaultParams, search: 'example 1' })
+        .then(toHTMLString)
       expect(result).to.equal(
         [
           `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
@@ -85,13 +108,13 @@ describe('RootController', async () => {
 
     it('should render plain text content', async () => {
       const req = mockReq({})
-      mockCache.set('diagramType=flowchart&layout=dagre-d3', {
+      mockCache.set(`diagramType=flowchart&dtdlId=${simpleDtdlId}&layout=dagre-d3`, {
         type: 'text',
         content: 'None',
       })
 
       const result = await controller
-        .updateLayout(req, {
+        .updateLayout(req, simpleDtdlId, {
           ...defaultParams,
           a11y: [],
         })
@@ -113,7 +136,7 @@ describe('RootController', async () => {
       const req = mockReq({
         'hx-current-url': 'http://localhost:3000/some/path?param1=x&param2=y',
       })
-      await controller.updateLayout(req, defaultParams).then(toHTMLString)
+      await controller.updateLayout(req, simpleDtdlId, defaultParams).then(toHTMLString)
 
       expect(stub.callCount).to.equal(2)
       expect(stub.firstCall.args).to.deep.equal([
@@ -129,7 +152,7 @@ describe('RootController', async () => {
       const req = mockReq({
         'hx-current-url': 'http://localhost:3000/some/path?param1=x&layout=y',
       })
-      await controller.updateLayout(req, defaultParams).then(toHTMLString)
+      await controller.updateLayout(req, simpleDtdlId, defaultParams).then(toHTMLString)
 
       expect(stub.firstCall.args).to.deep.equal([
         'HX-Push-Url',
@@ -141,7 +164,7 @@ describe('RootController', async () => {
       const stub = sinon.stub(controller, 'setHeader')
 
       const req = mockReq({})
-      await controller.updateLayout(req, defaultParams).then(toHTMLString)
+      await controller.updateLayout(req, simpleDtdlId, defaultParams).then(toHTMLString)
 
       expect(stub.callCount).to.equal(1)
       expect(stub.firstCall.args).to.deep.equal(['Content-Type', 'text/html'])
@@ -152,9 +175,11 @@ describe('RootController', async () => {
       const initCallCount = stub.callCount
 
       const req = mockReq({})
-      await controller
-        .updateLayout(req, { ...defaultParams, search: '"example 1"', highlightNodeId: 'dtmi:com:example;1' })
-        .then(toHTMLString)
+      await controller.updateLayout(req, simpleDtdlId, {
+        ...defaultParams,
+        search: '"example 1"',
+        highlightNodeId: 'dtmi:com:example;1',
+      })
 
       expect(stub.callCount).lessThanOrEqual(initCallCount + 1)
       expect(stub.lastCall.args[0]).to.equal(validSessionId)
@@ -173,7 +198,9 @@ describe('RootController', async () => {
       const req = mockReq({
         'hx-current-url': 'http://localhost:3000/some/path',
       })
-      await controller.updateLayout(req, { ...defaultParams, sessionId: validSessionExpanded11Id }).then(toHTMLString)
+      await controller
+        .updateLayout(req, simpleDtdlId, { ...defaultParams, sessionId: validSessionExpanded11Id })
+        .then(toHTMLString)
 
       expect(stub.firstCall.args).to.deep.equal(['HX-Push-Url', '/some/path?layout=dagre-d3&diagramType=flowchart'])
     })
@@ -184,7 +211,9 @@ describe('RootController', async () => {
       const req = mockReq({
         'hx-current-url': 'http://localhost:3000/some/path',
       })
-      await controller.updateLayout(req, { ...defaultParams, sessionId: validSessionExpanded12Id }).then(toHTMLString)
+      await controller
+        .updateLayout(req, simpleDtdlId, { ...defaultParams, sessionId: validSessionExpanded12Id })
+        .then(toHTMLString)
 
       expect(stub.firstCall.args).to.deep.equal(['HX-Push-Url', '/some/path?layout=dagre-d3&diagramType=flowchart'])
     })
@@ -192,23 +221,29 @@ describe('RootController', async () => {
     it('should cache generated output - keyed by params', async () => {
       const req = mockReq({})
       const generatorRunCount = generatorRunStub.callCount
-      await controller.updateLayout(req, defaultParams)
-      const fromCache = mockCache.get('diagramType=flowchart&layout=dagre-d3', renderedDiagramParser)
+      await controller.updateLayout(req, simpleDtdlId, defaultParams)
+      const fromCache = mockCache.get(
+        `diagramType=flowchart&dtdlId=${simpleDtdlId}&layout=dagre-d3`,
+        renderedDiagramParser
+      )
       expect(fromCache).instanceOf(MermaidSvgRender)
       expect(fromCache?.renderToString()).to.deep.equal(generatedSVGFixture)
 
-      await controller.updateLayout(req, defaultParams)
+      await controller.updateLayout(req, simpleDtdlId, defaultParams)
       expect(generatorRunStub.callCount).to.equal(generatorRunCount + 1)
     })
 
     it('should ignore lastSearch param when caching', async () => {
       const req = mockReq({})
-      await controller.updateLayout(req, { ...defaultParams, sessionId: validSessionSomeSearchId })
-      await controller.updateLayout(req, { ...defaultParams, sessionId: validSessionSomeOtherSearchId })
+      await controller.updateLayout(req, simpleDtdlId, { ...defaultParams, sessionId: validSessionSomeSearchId })
+      await controller.updateLayout(req, simpleDtdlId, { ...defaultParams, sessionId: validSessionSomeOtherSearchId })
 
       expect(mockCache.size()).to.equal(1)
 
-      const fromCache = mockCache.get('diagramType=flowchart&layout=dagre-d3', renderedDiagramParser)
+      const fromCache = mockCache.get(
+        `diagramType=flowchart&dtdlId=${simpleDtdlId}&layout=dagre-d3`,
+        renderedDiagramParser
+      )
       expect(fromCache).instanceOf(MermaidSvgRender)
       expect(fromCache?.renderToString()).to.deep.equal(generatedSVGFixture)
     })
@@ -217,7 +252,7 @@ describe('RootController', async () => {
       const req = mockReq({
         'hx-current-url': 'http://localhost:3000/some/path',
       })
-      await complexController.updateLayout(req, {
+      await complexController.updateLayout(req, complexDtdlId, {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '5',
@@ -231,7 +266,7 @@ describe('RootController', async () => {
       const req = mockReq({
         'hx-current-url': 'http://localhost:3000/some/path',
       })
-      await complexController.updateLayout(req, {
+      await complexController.updateLayout(req, complexDtdlId, {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '1',
@@ -246,7 +281,7 @@ describe('RootController', async () => {
       const req = mockReq({
         'hx-current-url': 'http://localhost:3000/some/path',
       })
-      await complexController.updateLayout(req, {
+      await complexController.updateLayout(req, complexDtdlId, {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '2',
@@ -261,7 +296,7 @@ describe('RootController', async () => {
       const req = mockReq({
         'hx-current-url': 'http://localhost:3000/some/path',
       })
-      await complexController.updateLayout(req, {
+      await complexController.updateLayout(req, complexDtdlId, {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '3',
@@ -275,7 +310,7 @@ describe('RootController', async () => {
       const req = mockReq({
         'hx-current-url': 'http://localhost:3000/some/path',
       })
-      await complexController.updateLayout(req, {
+      await complexController.updateLayout(req, complexDtdlId, {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '5',
@@ -290,7 +325,7 @@ describe('RootController', async () => {
       const req = mockReq({
         'hx-current-url': 'http://localhost:3000/some/path',
       })
-      await complexController.updateLayout(req, {
+      await complexController.updateLayout(req, complexDtdlId, {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '9',
@@ -304,10 +339,10 @@ describe('RootController', async () => {
     it('should animate if svgs are compatible', async () => {
       const req = mockReq({})
       // run with default params to setup the cache
-      await controller.updateLayout(req, defaultParams)
+      await controller.updateLayout(req, simpleDtdlId, defaultParams)
 
       const result = await controller
-        .updateLayout(req, {
+        .updateLayout(req, simpleDtdlId, {
           ...defaultParams,
           search: 'example',
           a11y: [],
@@ -328,7 +363,7 @@ describe('RootController', async () => {
       const req = mockReq({})
 
       const result = await controller
-        .updateLayout(req, {
+        .updateLayout(req, simpleDtdlId, {
           ...defaultParams,
           search: 'example',
           a11y: [],
@@ -348,10 +383,10 @@ describe('RootController', async () => {
     it('should not animate if diagram type changes', async () => {
       const req = mockReq({})
       // run with default params to setup the cache
-      await controller.updateLayout(req, { ...defaultParams, diagramType: 'classDiagram' })
+      await controller.updateLayout(req, simpleDtdlId, { ...defaultParams, diagramType: 'classDiagram' })
 
       const result = await controller
-        .updateLayout(req, {
+        .updateLayout(req, simpleDtdlId, {
           ...defaultParams,
           search: 'example',
           a11y: [],
@@ -373,7 +408,7 @@ describe('RootController', async () => {
       mockCache.set('diagramType=flowchart&layout=dagre-d3', new MermaidSvgRender(Buffer.from(generatedSVGFixture)))
 
       const result = await controller
-        .updateLayout(req, {
+        .updateLayout(req, simpleDtdlId, {
           ...defaultParams,
           highlightNodeId: 'example',
           a11y: [],
@@ -395,7 +430,7 @@ describe('RootController', async () => {
       mockCache.set('diagramType=flowchart&layout=dagre-d3', new PlainTextRender('None'))
 
       const result = await controller
-        .updateLayout(req, {
+        .updateLayout(req, simpleDtdlId, {
           ...defaultParams,
           search: 'example',
           a11y: [],
