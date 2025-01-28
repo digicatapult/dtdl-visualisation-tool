@@ -53,6 +53,7 @@ test.describe('Upload ontology from local drive', () => {
       page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200),
       page.goto('./'),
     ])
+      await page.waitForTimeout(5000)
     expect(await page.isVisible("text='ConnectivityNodeContainer'")).toBe(true)
 
     // Check classDiagram functionality
