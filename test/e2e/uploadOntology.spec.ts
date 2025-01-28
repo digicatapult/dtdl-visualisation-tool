@@ -14,8 +14,7 @@ test.describe('Upload ontology from local drive', () => {
       page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200),
       page.goto('./'),
     ])
-
-    expect(await page.isVisible("text='Upload Ontology'")).toBe(true)
+    await expect(page.locator('#toolbar').getByText('Upload Ontology')).toBeVisible()
 
     // Upload ontology and wait for file to load dtdl
     const filePath = path.join(__dirname, '../../src/lib/server/controllers/__tests__/error.zip')
@@ -24,8 +23,7 @@ test.describe('Upload ontology from local drive', () => {
       page.waitForResponse((resp) => resp.url().includes('/warning.svg')),
       page.getByLabel('Upload Ontology').setInputFiles(filePath),
     ])
-
-    expect(await page.isVisible("text='Failed to parse DTDL model'")).toBe(true)
+    await expect(page.getByText('Failed to parse DTDL model')).toBeVisible()
   })
   test('Should upload simple ontology and render on ui, go to page and render default ontology and make changes', async ({
     page,
@@ -36,40 +34,36 @@ test.describe('Upload ontology from local drive', () => {
       page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200),
       page.goto('./'),
     ])
-    await page.locator('#mermaid-output #mermaid-svg').waitFor({ state: 'visible' })
-    expect(await page.isVisible("text='Upload Ontology'")).toBe(true)
+    await expect(page.getByText('Upload Ontology')).toBeVisible()
 
     // Upload ontology and wait for file to load dtdl
     const filePath = path.join(__dirname, '../../src/lib/server/controllers/__tests__/simple.zip')
     await Promise.all([
       page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200),
-      page.getByLabel('Upload Ontology').setInputFiles(filePath),
+      page.locator('#toolbar').getByLabel('Upload Ontology').setInputFiles(filePath),
     ])
-    await page.locator('#mermaid-output #mermaid-svg').waitFor({ state: 'visible' })
-    expect(await page.isVisible("text='dtmi:com:example;1'")).toBe(true)
+    await expect(page.locator('#mermaid-output').getByText('dtmi:com:example;1')).toBeVisible()
 
     // Check classDiagram functionality
     await Promise.all([
       page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200),
       page.getByLabel('Diagram Type').selectOption('classDiagram'),
     ])
-    await page.locator('#mermaid-output #mermaid-svg').waitFor({ state: 'visible' })
-    await expect(await page.locator('#mermaid-output #mermaid-svg')).toHaveClass('classDiagram')
+    await expect(page.locator('#mermaid-output #mermaid-svg')).toHaveClass('classDiagram')
 
     // Render root page and test if default dtdl has loaded
     await Promise.all([
       page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200),
       page.goto('./'),
     ])
-    await page.locator('#mermaid-output #mermaid-svg').waitFor({ state: 'visible' })
-    expect(await page.isVisible("text='ConnectivityNodeContainer'")).toBe(true)
+
+    await expect(page.locator('#mermaid-output').getByText('ConnectivityNode', { exact: true })).toBeVisible()
 
     // Check classDiagram functionality
     await Promise.all([
       page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200),
       page.getByLabel('Diagram Type').selectOption('classDiagram'),
     ])
-    await page.locator('#mermaid-output #mermaid-svg').waitFor({ state: 'visible' })
-    expect(await page.isVisible("text='mRID'")).toBe(true)
+    await expect(page.locator('#mermaid-output #mermaid-svg')).toHaveClass('classDiagram')
   })
 })

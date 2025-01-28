@@ -10,8 +10,7 @@ test.describe('search', () => {
       page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200),
       page.fill('#search', 'Container'),
     ])
-    await page.waitForTimeout(500)
 
-    expect(await page.isVisible("text='EquipmentContainer'")).toBe(true)
+    await expect(page.locator('#mermaid-output').getByText('EquipmentContainer')).toBeVisible()
   })
 })
