@@ -51,6 +51,51 @@ export async function startDatabaseContainer(env: databaseConfig): Promise<Start
   return postgresContainer
 }
 
+interface databaseConfig {
+  containerName: string
+  hostPort: number
+  containerPort: number
+  db: string
+  dbUsername: string
+  dbPassword: string
+}
+
+const network = await new Network().start()
+
+let postgresContainer: StartedTestContainer
+let visualisationUIContainer: StartedTestContainer
+
+export async function bringUpDatabaseContainer(): Promise<StartedTestContainer> {
+  const postgresConfig: databaseConfig = {
+    containerName: 'postgres-dtdl-visualisation-tool',
+    hostPort: 5432,
+    containerPort: 5432,
+    db: 'dtdl-visualisation-tool',
+    dbUsername: 'postgres',
+    dbPassword: 'postgres',
+  }
+  postgresContainer = await startDatabaseContainer(postgresConfig)
+  return postgresContainer
+}
+
+export async function startDatabaseContainer(env: databaseConfig): Promise<StartedTestContainer> {
+  const postgresContainer = await new GenericContainer('postgres:17.2-alpine')
+    .withName(env.containerName)
+    .withExposedPorts({
+      container: env.containerPort,
+      host: env.hostPort,
+    })
+    .withEnvironment({
+      POSTGRES_PASSWORD: env.dbPassword,
+      POSTGRES_USER: env.dbUsername,
+      POSTGRES_DB: env.db,
+    })
+    .withNetwork(network)
+    .withWaitStrategy(Wait.forLogMessage('database system is ready to accept connections'))
+    .start()
+  return postgresContainer
+}
+
 export async function bringUpVisualisationContainer(): Promise<StartedTestContainer> {
   const visualisationUIConfig: VisualisationUIConfig = {
     containerName: 'dtdl-visualiser',
@@ -68,7 +113,7 @@ export async function startVisualisationContainer(env: VisualisationUIConfig): P
   logger.info(`Built container.`)
 
   logger.info(`Starting container ${containerName} on port ${containerPort}...`)
-  const visualisationUIContainer = await containerBase
+  visualisationUIContainer = await containerBase
     .withNetwork(network)
     .withExposedPorts({
       container: containerPort,
@@ -89,7 +134,7 @@ export async function startVisualisationContainer(env: VisualisationUIConfig): P
   return visualisationUIContainer
 }
 
-export async function stopContainers() {
+export async function stopAllContainers() {
   if (visualisationUIContainer) {
     await visualisationUIContainer.stop()
   }

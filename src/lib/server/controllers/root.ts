@@ -63,6 +63,7 @@ export class RootController extends HTMLController {
         expandedIds: [],
       }
       this.sessionStore.set(sessionId, session)
+      this.cache.clear()
     }
 
     return this.html(
@@ -93,6 +94,7 @@ export class RootController extends HTMLController {
 
     // get the base dtdl model that we will derive the graph from
     const baseModel = await this.dtdlLoader.getDtdlModel(session.dtdlModelId)
+    this.search.setCollection(this.dtdlLoader.getCollection(baseModel))
 
     const newSession: Session = {
       diagramType: params.diagramType,
@@ -138,7 +140,7 @@ export class RootController extends HTMLController {
     const { pan, zoom } = this.manipulateOutput(output, filteredModel, session, newSession, params)
 
     // store the updated session
-    this.sessionStore.set(params.sessionId, newSession)
+    this.sessionStore.set(params.sessionId, { ...session, ...newSession })
 
     // replace the current url
     const current = this.getCurrentPathQuery(req)

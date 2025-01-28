@@ -1,8 +1,8 @@
 import 'reflect-metadata'
-import { stopContainers } from './testcontainers/testContainersSetup.js'
+import { stopAllContainers } from './testcontainers/testContainersSetup.js'
 
 async function globalTeardown() {
-    await stopContainers()
+  await stopAllContainers()
 }
 
 export default globalTeardown
