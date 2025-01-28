@@ -2,22 +2,24 @@ import { type DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { singleton } from 'tsyringe'
 import Database from '../../../db/index.js'
 import { InternalError } from '../../errors.js'
-import { UUID } from '../../models/strings.js'
+import { type UUID } from '../../models/strings.js'
 import { allInterfaceFilter } from './extract.js'
 
 @singleton()
 export class DtdlLoader {
-  private defaultModel: DtdlObjectModel
   private db: Database
+  private defaultModelId: UUID
 
-  constructor(db: Database, dtdlModel: DtdlObjectModel) {
-    this.defaultModel = dtdlModel
+  constructor(db: Database, defaultModelId: UUID) {
+    this.defaultModelId = defaultModelId
     this.db = db
   }
 
-  async getDtdlModel(id?: UUID): Promise<DtdlObjectModel> {
-    if (!id) return this.defaultModel
+  getDefaultId() {
+    return this.defaultModelId
+  }
 
+  async getDtdlModel(id: UUID): Promise<DtdlObjectModel> {
     const [model] = await this.db.get('model', { id })
 
     if (!model) throw new InternalError(`Failed to find model: ${id}`)

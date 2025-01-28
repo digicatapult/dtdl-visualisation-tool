@@ -6,6 +6,7 @@ import { EntityType } from '@digicatapult/dtdl-parser'
 import sinon from 'sinon'
 import Database from '../../../db/index.js'
 import { Layout } from '../../models/mermaidLayouts.js'
+import { type UUID } from '../../models/strings.js'
 import { DtdlLoader } from '../../utils/dtdl/dtdlLoader'
 import { FuseSearch } from '../../utils/fuseSearch.js'
 import { LRUCache } from '../../utils/lruCache.js'
@@ -16,6 +17,14 @@ import SessionStore from '../../utils/sessions.js'
 import MermaidTemplates from '../../views/components/mermaid'
 import { complexMockDtdlModel } from './complexDtdlfixture.js'
 import { sessionMap } from './sessionFixtures.js'
+
+export const simpleDtdlId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed7'
+export const complexDtdlId: UUID = 'e89f119a-fc3b-4ce8-8722-2000a7ebeeab'
+
+const mockModelTable = {
+  [simpleDtdlId]: { parsed: simpleMockDtdlObjectModel },
+  [complexDtdlId]: { parsed: complexMockDtdlModel },
+}
 
 export const templateMock = {
   MermaidRoot: ({ search, layout }: { search: string; layout: string }) => `root_${layout}_${search}_root`,
@@ -30,8 +39,12 @@ export const templateMock = {
 } as unknown as MermaidTemplates
 export const mockLogger = pino({ level: 'silent' })
 export const mockCache = new LRUCache(10, 1000 * 60)
+
 export const mockDb = {
   insert: () => Promise.resolve([{ id: 1 }]),
+  get: sinon.stub().callsFake((_, { id }) => {
+    return Promise.resolve([mockModelTable[id]])
+  }),
 } as unknown as Database
 
 export const sessionSetStub = sinon.stub()
@@ -42,8 +55,8 @@ export const mockSession = {
 
 export const mockSearch = new FuseSearch<EntityType>(Object.values(simpleMockDtdlObjectModel))
 
-export const simpleMockDtdlLoader: DtdlLoader = new DtdlLoader(mockDb, simpleMockDtdlObjectModel)
-export const complexMockDtdlLoader: DtdlLoader = new DtdlLoader(mockDb, complexMockDtdlModel)
+export const simpleMockDtdlLoader: DtdlLoader = new DtdlLoader(mockDb, simpleDtdlId)
+export const complexMockDtdlLoader: DtdlLoader = new DtdlLoader(mockDb, complexDtdlId)
 
 export const generatorRunStub = sinon.stub().callsFake(() => {
   const mock = {

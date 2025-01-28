@@ -44,26 +44,31 @@ program
     const parser = await getInterop()
     const parsedDtdl = parseDirectories(options.path, parser)
 
-    if (parsedDtdl) {
-      const dtdlLoader = new DtdlLoader(container.resolve(Database), parsedDtdl)
-      container.register(DtdlLoader, {
-        useValue: dtdlLoader,
-      })
-
-      container.register(Search, {
-        useValue: new FuseSearch(dtdlLoader.getCollection(parsedDtdl)),
-      })
-
-      logger.info(`Loading SVG generator...`)
-      const generator = container.resolve(SvgGenerator)
-      await generator.run(minimumDtdl, 'flowchart', 'elk', {})
-      logger.info(`Complete`)
-
-      httpServer(options.port)
-    } else {
+    if (!parsedDtdl) {
       logger.error(`Error parsing DTDL`)
       process.exit(1)
     }
+
+    const db = container.resolve(Database)
+
+    logger.info(`Storing default model in db`)
+    const [{ id }] = await db.insert('model', { name: 'default', parsed: parsedDtdl })
+
+    const dtdlLoader = new DtdlLoader(db, id)
+    container.register(DtdlLoader, {
+      useValue: dtdlLoader,
+    })
+
+    container.register(Search, {
+      useValue: new FuseSearch(dtdlLoader.getCollection(parsedDtdl)),
+    })
+
+    logger.info(`Loading SVG generator...`)
+    const generator = container.resolve(SvgGenerator)
+    await generator.run(minimumDtdl, 'flowchart', 'elk', {})
+    logger.info(`Complete`)
+
+    httpServer(options.port)
   })
 
 program
