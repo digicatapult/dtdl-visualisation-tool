@@ -14,7 +14,7 @@ import { AccordionSection, Page } from '../common.js'
 
 const commonUpdateAttrs = {
   'hx-target': '#mermaid-output',
-  'hx-get': '/update-layout',
+  'hx-get': 'update-layout',
   'hx-swap': 'outerHTML  transition:true',
   'hx-include': '#sessionId, #search-panel',
   'hx-indicator': '#spinner',
@@ -60,7 +60,7 @@ export default class MermaidTemplates {
         />
         <this.uploadForm />
         <a
-          href={`https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=http://localhost:3000/upload/github?sessionId=${sessionId}`}
+          href={`https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=http://localhost:3000/github?sessionId=${sessionId}`}
         >
           GitHub
         </a>
@@ -438,7 +438,6 @@ export default class MermaidTemplates {
         hx-post="/upload"
         hx-encoding="multipart/form-data"
         hx-trigger="change from:#upload"
-        hx-include="#sessionId"
       >
         <label id="upload-button" for="upload">
           Upload Ontology

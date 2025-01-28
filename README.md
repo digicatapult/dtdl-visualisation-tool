@@ -127,7 +127,7 @@ With GitHub integration, users can choose to upload directories of DTDL files to
 - Permissions: Contents (Read Only)
 - GitHub App name: `dtdl-visualisation-tool` (displayed to user when they authorise)
 - Homepage URL: `http://localhost:3000`
-- Callback URL: `http://localhost:3000/upload/github`
+- Callback URL: `http://localhost:3000/github`
 
 Create a `.env` at root and set:
 
@@ -181,3 +181,11 @@ npm run test:playwright
 ```
 
 Test results are placed in `playwright-report`.
+
+### Debugging testcontainers
+
+When running test and you want to see logs from `testcontainer`, change the run command to include `DEBUG=testcontainers*` like this
+
+```
+"test:playwright": "DEBUG=testcontainers* playwright test --trace on --max-failures=1",
+```

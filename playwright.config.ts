@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   globalSetup: './test/globalSetup.ts',
+  globalTeardown: './test/globalTeardown.ts',
   testDir: './test/e2e',
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -25,6 +26,7 @@ export default defineConfig({
   expect: {
     timeout: 10 * 1000,
   },
+  timeout: 60 * 1000,
   projects: [
     {
       name: 'chromium',
