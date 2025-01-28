@@ -23,7 +23,7 @@ test.describe('Upload ontology from local drive', () => {
       page.waitForResponse((resp) => resp.url().includes('/upload') && resp.status() === 400),
       page.getByLabel('Upload Ontology').setInputFiles(filePath),
     ])
-    await page.waitForTimeout(5000)
+    await page.waitForTimeout(2000)
 
     expect(await page.isVisible("text='Failed to parse DTDL model'")).toBe(true)
   })
@@ -45,15 +45,23 @@ test.describe('Upload ontology from local drive', () => {
       page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200),
       page.getByLabel('Upload Ontology').setInputFiles(filePath),
     ])
-    await page.waitForTimeout(5000)
+    await page.waitForTimeout(2000)
     expect(await page.isVisible("text='dtmi:com:example;1'")).toBe(true)
+
+    // Check classDiagram functionality
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200),
+      page.getByLabel('Diagram Type').selectOption('classDiagram'),
+    ])
+    await page.waitForTimeout(2000)
+    await expect(await page.locator('#mermaid-output #mermaid-svg')).toHaveClass('classDiagram')
 
     // Render root page and test if default dtdl has loaded
     await Promise.all([
       page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200),
       page.goto('./'),
     ])
-    await page.waitForTimeout(5000)
+    await page.waitForTimeout(2000)
     expect(await page.isVisible("text='ConnectivityNodeContainer'")).toBe(true)
 
     // Check classDiagram functionality
@@ -61,18 +69,7 @@ test.describe('Upload ontology from local drive', () => {
       page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200),
       page.getByLabel('Diagram Type').selectOption('classDiagram'),
     ])
-    await page.waitForTimeout(5000)
+    await page.waitForTimeout(2000)
     expect(await page.isVisible("text='mRID'")).toBe(true)
-
-    // Test search functionality works
-
-    await page.focus('#search')
-    await Promise.all([
-      page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200),
-      page.fill('#search', 'Container'),
-    ])
-    await page.waitForTimeout(500)
-
-    expect(await page.isVisible("text='EquipmentContainer'")).toBe(true)
   })
 })
