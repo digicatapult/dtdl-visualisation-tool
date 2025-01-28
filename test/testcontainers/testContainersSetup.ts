@@ -18,6 +18,9 @@ interface databaseConfig {
 
 const network = await new Network().start()
 
+let postgresContainer: StartedTestContainer
+let visualisationUIContainer: StartedTestContainer
+
 export async function bringUpDatabaseContainer(): Promise<StartedTestContainer> {
   const postgresConfig: databaseConfig = {
     containerName: 'postgres-dtdl-visualisation-tool',
@@ -27,7 +30,7 @@ export async function bringUpDatabaseContainer(): Promise<StartedTestContainer> 
     dbUsername: 'postgres',
     dbPassword: 'postgres',
   }
-  const postgresContainer = await startDatabaseContainer(postgresConfig)
+  postgresContainer = await startDatabaseContainer(postgresConfig)
   return postgresContainer
 }
 
@@ -55,7 +58,7 @@ export async function bringUpVisualisationContainer(): Promise<StartedTestContai
     hostPort: 3000,
     containerPort: 3000,
   }
-  const visualisationUIContainer = await startVisualisationContainer(visualisationUIConfig)
+  visualisationUIContainer = await startVisualisationContainer(visualisationUIConfig)
   return visualisationUIContainer
 }
 
@@ -66,7 +69,7 @@ export async function startVisualisationContainer(env: VisualisationUIConfig): P
   logger.info(`Built container.`)
 
   logger.info(`Starting container ${containerName} on port ${containerPort}...`)
-  const visualisationUIContainer = await containerBase
+  visualisationUIContainer = await containerBase
     .withNetwork(network)
     .withExposedPorts({
       container: containerPort,
@@ -85,4 +88,13 @@ export async function startVisualisationContainer(env: VisualisationUIConfig): P
   logger.info(`Started container ${containerName}`)
   logger.info(`Started container on port ${visualisationUIContainer.getMappedPort(containerPort)}`)
   return visualisationUIContainer
+}
+
+export async function stopAllContainers() {
+  if (visualisationUIContainer) {
+    await visualisationUIContainer.stop()
+  }
+  if (postgresContainer) {
+    await postgresContainer.stop()
+  }
 }
