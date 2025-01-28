@@ -59,7 +59,7 @@ test.describe('Upload ontology from local drive', () => {
     // Check classDiagram functionality
     await Promise.all([
       page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200),
-      await page.getByLabel('Diagram Type').selectOption('classDiagram'),
+        page.getByLabel('Diagram Type').selectOption('classDiagram'),
     ])
     await page.waitForTimeout(5000)
     expect(await page.isVisible("text='mRID'")).toBe(true)
