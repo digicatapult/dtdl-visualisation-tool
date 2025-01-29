@@ -60,42 +60,6 @@ interface databaseConfig {
   dbPassword: string
 }
 
-const network = await new Network().start()
-
-let postgresContainer: StartedTestContainer
-let visualisationUIContainer: StartedTestContainer
-
-export async function bringUpDatabaseContainer(): Promise<StartedTestContainer> {
-  const postgresConfig: databaseConfig = {
-    containerName: 'postgres-dtdl-visualisation-tool',
-    hostPort: 5432,
-    containerPort: 5432,
-    db: 'dtdl-visualisation-tool',
-    dbUsername: 'postgres',
-    dbPassword: 'postgres',
-  }
-  postgresContainer = await startDatabaseContainer(postgresConfig)
-  return postgresContainer
-}
-
-export async function startDatabaseContainer(env: databaseConfig): Promise<StartedTestContainer> {
-  const postgresContainer = await new GenericContainer('postgres:17.2-alpine')
-    .withName(env.containerName)
-    .withExposedPorts({
-      container: env.containerPort,
-      host: env.hostPort,
-    })
-    .withEnvironment({
-      POSTGRES_PASSWORD: env.dbPassword,
-      POSTGRES_USER: env.dbUsername,
-      POSTGRES_DB: env.db,
-    })
-    .withNetwork(network)
-    .withWaitStrategy(Wait.forLogMessage('database system is ready to accept connections'))
-    .start()
-  return postgresContainer
-}
-
 export async function bringUpVisualisationContainer(): Promise<StartedTestContainer> {
   const visualisationUIConfig: VisualisationUIConfig = {
     containerName: 'dtdl-visualiser',
