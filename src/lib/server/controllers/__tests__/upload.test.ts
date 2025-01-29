@@ -13,6 +13,7 @@ const { expect } = chai
 
 const __filename = new URL(import.meta.url).pathname
 const __dirname = path.dirname(__filename)
+const sessionId = 'sessionId'
 
 describe('UploadController', async () => {
   const controller = new UploadController(mockDb)
@@ -31,11 +32,11 @@ describe('UploadController', async () => {
         buffer: readFileSync(path.resolve(__dirname, './simple.zip')),
         originalname,
       }
-      await controller.uploadZip(mockFile as Express.Multer.File)
+      await controller.uploadZip(mockFile as Express.Multer.File, sessionId)
       const hxRedirectHeader = setHeaderSpy.firstCall.args[1]
 
       expect(insertDb.calledOnce).to.equal(true)
-      expect(hxRedirectHeader).to.equal(`/ontology/1/view`)
+      expect(hxRedirectHeader).to.equal(`/ontology/1/view?sessionId=${sessionId}`)
     })
 
     it(`should error on non-'application/zip' mimetype`, async () => {
@@ -43,7 +44,7 @@ describe('UploadController', async () => {
         mimetype: 'application/json',
       }
 
-      await expect(controller.uploadZip(mockFile as Express.Multer.File)).to.be.rejectedWith(
+      await expect(controller.uploadZip(mockFile as Express.Multer.File, sessionId)).to.be.rejectedWith(
         UploadError,
         'File must be a .zip'
       )
@@ -55,7 +56,7 @@ describe('UploadController', async () => {
         mimetype: 'application/zip',
         buffer: readFileSync(path.resolve(__dirname, './simple.zip')),
       }
-      await expect(controller.uploadZip(mockFile as Express.Multer.File)).to.be.rejectedWith(
+      await expect(controller.uploadZip(mockFile as Express.Multer.File, sessionId)).to.be.rejectedWith(
         UploadError,
         'Uploaded zip file is not valid'
       )
@@ -66,7 +67,7 @@ describe('UploadController', async () => {
         mimetype: 'application/zip',
         buffer: readFileSync(path.resolve(__dirname, './error.zip')),
       }
-      await expect(controller.uploadZip(mockFile as Express.Multer.File)).to.be.rejectedWith(
+      await expect(controller.uploadZip(mockFile as Express.Multer.File, sessionId)).to.be.rejectedWith(
         DataError,
         'Failed to parse DTDL model'
       )
