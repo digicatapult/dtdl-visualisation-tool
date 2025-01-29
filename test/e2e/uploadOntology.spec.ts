@@ -16,12 +16,32 @@ test.describe('Upload ontology from local drive', () => {
     ])
     await expect(page.locator('#toolbar').getByText('Upload Ontology')).toBeVisible()
 
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes('/upload') && resp.status() === 200),
+      page.locator('#upload-button').click(),
+    ])
+
+    await expect(page.locator('#main-view').getByText('Upload New File')).toBeVisible()
+
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes('/uploadButton') && resp.status() === 200),
+      page.locator('#main-view').getByText('Upload New File').click(),
+    ])
+
+    await expect(page.locator('#main-view').getByText('Local Zip File')).toBeVisible()
+
     // Upload ontology and wait for file to load dtdl
     const filePath = path.join(__dirname, '../../src/lib/server/controllers/__tests__/error.zip')
+
+    const fileChooserPromise = page.waitForEvent('filechooser')
+    await page.locator('#main-view').getByText('Local Zip File').click()
+    const fileChooser = await fileChooserPromise
+    await fileChooser.setFiles(filePath)
+
     await Promise.all([
-      page.waitForResponse((resp) => resp.url().includes('/upload') && resp.status() === 400),
+      page.waitForResponse((resp) => resp.url().includes('/zip') && resp.status() === 400),
       page.waitForResponse((resp) => resp.url().includes('/warning.svg')),
-      page.getByLabel('Upload Ontology').setInputFiles(filePath),
+      page.getByLabel('Local Zip File').setInputFiles(filePath),
     ])
     await expect(page.getByText('Failed to parse DTDL model')).toBeVisible()
   })
@@ -36,12 +56,26 @@ test.describe('Upload ontology from local drive', () => {
     ])
     await expect(page.getByText('Upload Ontology')).toBeVisible()
 
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes('/upload') && resp.status() === 200),
+      page.locator('#upload-button').click(),
+    ])
+    await expect(page.locator('#main-view').getByText('Upload New File')).toBeVisible()
+
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes('/uploadButton') && resp.status() === 200),
+      page.locator('#main-view').getByText('Upload New File').click(),
+    ])
+    await expect(page.locator('#main-view').getByText('Local Zip File')).toBeVisible()
+
     // Upload ontology and wait for file to load dtdl
     const filePath = path.join(__dirname, '../../src/lib/server/controllers/__tests__/simple.zip')
-    await Promise.all([
-      page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200),
-      page.locator('#toolbar').getByLabel('Upload Ontology').setInputFiles(filePath),
-    ])
+
+    const fileChooserPromise = page.waitForEvent('filechooser')
+    await page.locator('#main-view').getByText('Local Zip File').click()
+    const fileChooser = await fileChooserPromise
+    await fileChooser.setFiles(filePath)
+
     await expect(page.locator('#mermaid-output').getByText('dtmi:com:example;1')).toBeVisible()
 
     // Check classDiagram functionality
@@ -56,7 +90,6 @@ test.describe('Upload ontology from local drive', () => {
       page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200),
       page.goto('./'),
     ])
-
     await expect(page.locator('#mermaid-output').getByText('ConnectivityNode', { exact: true })).toBeVisible()
 
     // Check classDiagram functionality
@@ -67,24 +100,3 @@ test.describe('Upload ontology from local drive', () => {
     await expect(page.locator('#mermaid-output #mermaid-svg')).toHaveClass('classDiagram')
   })
 })
-
-// await page.click('id=upload-button')
-//     await page.waitForURL('**/upload')
-
-//     expect(await page.isVisible("text='Upload New File'")).toBe(true)
-
-//     await page.click('id=upload-file-button')
-
-//     expect(await page.isVisible("text='Local Zip File'")).toBe(true)
-
-//     const fileChooserPromise = page.waitForEvent('filechooser')
-//     await page.getByText('Local Zip File').click()
-//     const fileChooser = await fileChooserPromise
-//     const filePath = path.join(__dirname, '../../src/lib/server/controllers/__tests__/simple.zip')
-//       await Promise.all([
-//           page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200),
-//           fileChooser.setFiles(filePath),
-//       ])
-//       await page.waitForTimeout(1000)
-
-//     expect(await page.isVisible("text='dtmi:com:example;1'")).toBe(true)
