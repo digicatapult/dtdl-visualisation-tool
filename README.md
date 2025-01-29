@@ -109,6 +109,7 @@ The application can be run in Docker. `sample/energygrid` is automatically parse
 | UPLOAD_LIMIT_MB  | n        | `10`                      | Upload limit for DTDLs in MB                                                      |
 | GH_CLIENT_ID     | y        | -                         | See [GitHub Integration](#github-integration)                                     |
 | GH_CLIENT_SECRET | y        | -                         | See [GitHub Integration](#github-integration)                                     |
+| GH_PER_PAGE      | n        | `50`                      | The number of results per GitHub API request (max 100)                            |
 
 ## Database migrations
 

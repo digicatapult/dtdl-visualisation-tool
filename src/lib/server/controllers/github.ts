@@ -22,7 +22,7 @@ type listRepoContentsResponse = Endpoints['GET /repos/{owner}/{repo}/contents/{p
 
 const env = container.resolve(Env)
 
-const PER_PAGE = 50
+const perPage = env.get('GH_PER_PAGE')
 const uploadLimit = env.get('UPLOAD_LIMIT_MB') * 1024 * 1024
 
 @injectable()
@@ -39,7 +39,7 @@ export class GithubController extends HTMLController {
 
   @SuccessResponse(200, '')
   @Get('/')
-  public async githubCallback(@Query() code: string, @Query() sessionId: string): Promise<HTML> {
+  public async callback(@Query() code: string, @Query() sessionId: string): Promise<HTML> {
     const session = this.sessionStore.get(sessionId)
 
     const { access_token } = await this.fetchAccessToken({
@@ -57,7 +57,7 @@ export class GithubController extends HTMLController {
         search: undefined,
         sessionId,
       }),
-      this.templates.githubModal({ populateListLink: `/github/repos?per_page=${PER_PAGE}&page=1` })
+      this.templates.githubModal({ populateListLink: `/github/repos?per_page=${perPage}&page=1` })
     )
   }
 
@@ -78,7 +78,7 @@ export class GithubController extends HTMLController {
 
     const repos: ListItem[] = response.data.map(({ full_name, owner: { login: owner }, name }) => ({
       text: full_name,
-      link: `/github/branches?owner=${owner}&repo=${name}&per_page=${PER_PAGE}&page=1`,
+      link: `/github/branches?owner=${owner}&repo=${name}&per_page=${perPage}&page=1`,
     }))
 
     return this.html(
@@ -109,14 +109,14 @@ export class GithubController extends HTMLController {
 
     const branches: ListItem[] = response.data.map(({ name }) => ({
       text: name,
-      link: `/github/contents?owner=${owner}&repo=${repo}&path=.&ref=${name}&per_page=${PER_PAGE}&page=1`,
+      link: `/github/contents?owner=${owner}&repo=${repo}&path=.&ref=${name}&per_page=${perPage}&page=1`,
     }))
 
     return this.html(
       this.templates.githubListItems({
         list: branches,
         nextPageLink: `/github/branches?owner=${owner}&repo=${repo}&per_page=${per_page}&page=${page + 1}`,
-        ...(page === 1 && { backLink: `/github/repos?per_page=${PER_PAGE}&page=1` }),
+        ...(page === 1 && { backLink: `/github/repos?per_page=${perPage}&page=1` }),
       }),
       this.templates.selectFolder({
         swapOutOfBand: true,
@@ -156,7 +156,7 @@ export class GithubController extends HTMLController {
     // If the path is root link to branches otherwise link to the previous directory
     const backLink =
       path === '.'
-        ? `/github/branches?owner=${owner}&repo=${repo}&per_page=${PER_PAGE}&page=1`
+        ? `/github/branches?owner=${owner}&repo=${repo}&per_page=${perPage}&page=1`
         : `/github/contents?owner=${owner}&repo=${repo}&path=${dirname(path)}&ref=${ref}`
 
     return this.html(
@@ -198,7 +198,7 @@ export class GithubController extends HTMLController {
     return
   }
 
-  private async fetchAccessToken(body: Record<string, unknown>): Promise<OAuthToken> {
+  async fetchAccessToken(body: Record<string, unknown>): Promise<OAuthToken> {
     const url = `https://github.com/login/oauth/access_token`
     const response = await fetch(url, {
       method: 'POST',
