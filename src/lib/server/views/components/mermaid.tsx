@@ -438,6 +438,7 @@ export default class MermaidTemplates {
         hx-post="/upload"
         hx-encoding="multipart/form-data"
         hx-trigger="change from:#upload"
+        hx-include="#sessionId"
       >
         <label id="upload-button" for="upload">
           Upload Ontology

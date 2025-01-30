@@ -3,12 +3,12 @@ import os from 'node:os'
 
 import { getInterop, parseDirectories } from '@digicatapult/dtdl-parser'
 import { join } from 'node:path'
-import { Post, Produces, Route, SuccessResponse, UploadedFile } from 'tsoa'
+import { FormField, Post, Produces, Route, SuccessResponse, UploadedFile } from 'tsoa'
 import { injectable } from 'tsyringe'
 import unzipper from 'unzipper'
 import Database from '../../db/index.js'
 import { DataError, UploadError } from '../errors.js'
-
+import { type UUID } from '../models/strings.js'
 import { HTMLController } from './HTMLController.js'
 
 @injectable()
@@ -21,7 +21,7 @@ export class UploadController extends HTMLController {
 
   @SuccessResponse(302, 'File uploaded successfully')
   @Post('/')
-  public async uploadZip(@UploadedFile('file') file: Express.Multer.File): Promise<void> {
+  public async uploadZip(@UploadedFile('file') file: Express.Multer.File, @FormField() sessionId: UUID): Promise<void> {
     if (file.mimetype !== 'application/zip') {
       throw new UploadError('File must be a .zip')
     }
@@ -44,7 +44,7 @@ export class UploadController extends HTMLController {
 
     const [{ id }] = await this.db.insert('model', { name: file.originalname, parsed: parsedDtdl })
 
-    this.setHeader('HX-Redirect', `/ontology/${id}/view`)
+    this.setHeader('HX-Redirect', `/ontology/${id}/view?sessionId=${sessionId}`)
     return
   }
 

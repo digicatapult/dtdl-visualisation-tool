@@ -25,7 +25,7 @@ describe('GithubController', async () => {
   })
 
   describe('/', () => {
-    it.only('should handle callback', async () => {
+    it('should handle callback', async () => {
       const token = 'token'
       const mockToken: OAuthToken = {
         access_token: token,
