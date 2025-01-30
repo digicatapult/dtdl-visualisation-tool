@@ -10,9 +10,7 @@ COPY package*.json ./
 COPY tsconfig.json ./
 
 RUN npm ci 
-COPY public ./public
-COPY sample ./sample
-COPY src ./src
+COPY . .
 RUN npm run build
 
 # Service

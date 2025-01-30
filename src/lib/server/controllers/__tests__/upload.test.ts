@@ -11,9 +11,9 @@ import {
   mockDb,
   mockSearch,
   mockSession,
+  openOntologyMock,
   simpleMockDtdlLoader,
   templateMock,
-  openOntologyMock,
   toHTMLString,
 } from './helpers.js'
 import { validSessionId } from './sessionFixtures.js'
@@ -32,7 +32,7 @@ describe('UploadController', async () => {
     openOntologyMock,
     mockSearch,
     mockCache,
-    mockSession,
+    mockSession
   )
 
   afterEach(() => {
