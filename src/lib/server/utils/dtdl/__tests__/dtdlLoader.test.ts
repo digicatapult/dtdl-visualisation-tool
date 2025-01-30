@@ -16,15 +16,11 @@ const mockDb = {
     return Promise.resolve([])
   }),
 } as unknown as Database
-const dtdlLoader = new DtdlLoader(mockDb, defaultModel)
+const dtdlLoader = new DtdlLoader(mockDb, '1')
 
 describe('dtdlLoader', function () {
-  it('should return default model if given ID not found', async () => {
-    expect(await dtdlLoader.getDtdlModel('1')).to.equal(multipleInterfaces)
-  })
-
-  it('should return default model if no ID given', async () => {
-    expect(await dtdlLoader.getDtdlModel()).to.equal(defaultModel)
+  it('should return default model id from when dtdlLoader was instantiated', async () => {
+    expect(dtdlLoader.getDefaultId()).to.equal('1')
   })
 
   it('should throw error if given ID not found', async () => {
