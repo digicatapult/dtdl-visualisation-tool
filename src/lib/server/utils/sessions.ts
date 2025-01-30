@@ -11,6 +11,7 @@ export type Session = {
   highlightNodeId?: string
   expandedIds: string[]
   octokitToken?: string
+  returnUrl?: string
 }
 
 @singleton()

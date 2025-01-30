@@ -3,8 +3,7 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
 import { randomUUID } from 'crypto'
-import { container, singleton } from 'tsyringe'
-import { Env } from '../../env.js'
+import { singleton } from 'tsyringe'
 import { ListItem } from '../../models/github.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { Layout, layoutEntries } from '../../models/mermaidLayouts.js'
@@ -20,10 +19,6 @@ const commonUpdateAttrs = {
   'hx-indicator': '#spinner',
   'hx-disabled-elt': 'select',
 }
-
-const env = container.resolve(Env)
-
-const clientId = env.get('GH_CLIENT_ID')
 
 function maybeNumberToAttr(value: number | undefined, defaultValue: number) {
   return `${value === undefined ? defaultValue : value}`
@@ -59,11 +54,7 @@ export default class MermaidTemplates {
           svgHeight={svgHeight}
         />
         <this.uploadForm />
-        <a
-          href={`https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=http://localhost:3000/github?sessionId=${sessionId}`}
-        >
-          GitHub
-        </a>
+        <a href={`/github/picker?sessionId=${sessionId}`}>GitHub</a>
       </section>
 
       <div id="mermaid-wrapper">
@@ -76,24 +67,28 @@ export default class MermaidTemplates {
     </Page>
   )
 
-  public githubModal = ({ populateListLink }: { populateListLink: string }) => {
+  public githubModal = ({ populateListLink, sessionId }: { populateListLink: string; sessionId: string }) => {
     return (
-      <dialog id="github-modal" hx-swap-oob="true">
-        <div id="modal-wrapper">
-          <div id="spin" class="spinner" />
-          <ul
-            class="github-list"
-            hx-indicator="#spin"
-            hx-get={populateListLink}
-            hx-trigger="load"
-            hx-include="#sessionId"
-          ></ul>
-          <this.selectFolder />
-        </div>
-        <form method="dialog">
-          <button class="modal-button" />
-        </form>
-      </dialog>
+      <Page title={'UKDTC'}>
+        <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
+
+        <dialog id="github-modal">
+          <div id="modal-wrapper">
+            <div id="spin" class="spinner" />
+            <ul
+              class="github-list"
+              hx-indicator="#spin"
+              hx-get={populateListLink}
+              hx-trigger="load"
+              hx-include="#sessionId"
+            ></ul>
+            <this.selectFolder />
+          </div>
+          <form method="dialog">
+            <button class="modal-button" />
+          </form>
+        </dialog>
+      </Page>
     )
   }
 

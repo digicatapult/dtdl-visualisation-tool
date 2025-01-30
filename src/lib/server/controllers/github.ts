@@ -38,10 +38,31 @@ export class GithubController extends HTMLController {
   }
 
   @SuccessResponse(200, '')
-  @Get('/')
-  public async callback(@Query() code: string, @Query() sessionId: string): Promise<HTML> {
+  @Get('/picker')
+  public async picker(@Query() sessionId: string): Promise<HTML | void> {
     const session = this.sessionStore.get(sessionId)
+    if (!session.octokitToken) {
+      return this.getOctokitToken(sessionId, `/github/picker?sessionId=${sessionId}`)
+    }
 
+    return this.html(
+      this.templates.githubModal({ populateListLink: `/github/repos?per_page=${perPage}&page=1`, sessionId })
+    )
+  }
+
+  async getOctokitToken(sessionId: string, returnUrl: string): Promise<void> {
+    this.sessionStore.update(sessionId, { returnUrl })
+
+    this.setHeader(
+      'Location',
+      `https://github.com/login/oauth/authorize?client_id=${env.get('GH_CLIENT_ID')}&redirect_uri=http://localhost:3000/github/callback?sessionId=${sessionId}`
+    )
+    return
+  }
+
+  @SuccessResponse(200, '')
+  @Get('/callback')
+  public async callback(@Query() code: string, @Query() sessionId: string): Promise<void> {
     const { access_token } = await this.fetchAccessToken({
       client_id: env.get('GH_CLIENT_ID'),
       client_secret: env.get('GH_CLIENT_SECRET'),
@@ -50,15 +71,8 @@ export class GithubController extends HTMLController {
 
     this.sessionStore.update(sessionId, { octokitToken: access_token })
 
-    return this.html(
-      this.templates.MermaidRoot({
-        layout: session.layout,
-        diagramType: session.diagramType,
-        search: undefined,
-        sessionId,
-      }),
-      this.templates.githubModal({ populateListLink: `/github/repos?per_page=${perPage}&page=1` })
-    )
+    this.setHeader('Location', this.sessionStore.get(sessionId).returnUrl || '/')
+    return
   }
 
   @SuccessResponse(200, '')
@@ -242,8 +256,6 @@ export class GithubController extends HTMLController {
         const fileBuffer = await fileResponse.arrayBuffer()
 
         totalUploadedRef.total += fileBuffer.byteLength
-        console.log(fileBuffer.byteLength)
-        console.log(totalUploadedRef.total)
 
         if (totalUploadedRef.total > uploadLimit) {
           throw new UploadError(`Total upload must be less than ${env.get('UPLOAD_LIMIT_MB')}MB`)

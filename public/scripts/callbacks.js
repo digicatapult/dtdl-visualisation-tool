@@ -1,8 +1,5 @@
 let panZoom = null
 
-const minimapStyles = window.getComputedStyle(document.getElementById('minimap'))
-const desiredAspectRatio = parseFloat(minimapStyles.width) / parseFloat(minimapStyles.height)
-
 globalThis.toggleAccordion = (event) => {
   const content = event.target.closest('section')?.querySelector('.accordion-content')
 
@@ -105,7 +102,7 @@ globalThis.setMermaidListeners = function setMermaidListeners() {
 function setSizes() {
   const wrapper = document.getElementById('mermaid-wrapper')
   if (!wrapper) {
-    throw new Error('Could not find mermaid-wrapper element')
+    return
   }
   const boundingRec = wrapper.getBoundingClientRect()
   document.getElementById('svgWidth')?.setAttribute('value', `${boundingRec.width}`)
@@ -123,8 +120,12 @@ function setMinimap() {
   const contentMain = document.querySelector('#content-main')
   const mainSvg = document.querySelector('#mermaid-output #mermaid-svg')
   const mainViewport = document.querySelector('#mermaid-output .svg-pan-zoom_viewport')
+  const minimap = document.getElementById('minimap')
 
-  if (!(contentMain && mainSvg && mainViewport)) return
+  if (!(contentMain && mainSvg && mainViewport && minimap)) return
+
+  const minimapStyles = window.getComputedStyle(minimap)
+  const desiredAspectRatio = parseFloat(minimapStyles.width) / parseFloat(minimapStyles.height)
 
   const { width: viewportSvgWidth, height: viewportSvgHeight } = mainSvg.getBoundingClientRect()
   const { width: rawSvgWidth, height: rawSvgHeight } = mainViewport.getBBox()
@@ -156,7 +157,6 @@ function setMinimap() {
   contentMain.style.setProperty('--minimap-lens-left', lensLeft)
   contentMain.style.setProperty('--minimap-lens-top', lensTop)
 
-  const minimap = document.getElementById('minimap')
   const minimapSvg = document.getElementById('minimap-svg')
   if (!minimap || !minimapSvg) return
 
