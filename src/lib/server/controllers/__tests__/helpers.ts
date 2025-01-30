@@ -36,6 +36,8 @@ export const templateMock = {
     `navigationPanel_${swapOutOfBand || false}_${content || ''}_navigationPanel`,
   svgControls: ({ generatedOutput }: { generatedOutput?: JSX.Element }): JSX.Element =>
     `svgControls_${generatedOutput}_svgControls`,
+  githubModal: ({ populateListLink }: { populateListLink: string }): JSX.Element =>
+    `githubModal_${populateListLink}_githubModal`,
 } as unknown as MermaidTemplates
 export const mockLogger = pino({ level: 'silent' })
 export const mockCache = new LRUCache(10, 1000 * 60)
@@ -48,9 +50,11 @@ export const mockDb = {
 } as unknown as Database
 
 export const sessionSetStub = sinon.stub()
+export const sessionUpdateStub = sinon.stub()
 export const mockSession = {
   get: sinon.stub().callsFake((id) => sessionMap[id]),
   set: sessionSetStub,
+  update: sessionUpdateStub,
 } as unknown as SessionStore
 
 export const mockSearch = new FuseSearch<EntityType>(Object.values(simpleMockDtdlObjectModel))
