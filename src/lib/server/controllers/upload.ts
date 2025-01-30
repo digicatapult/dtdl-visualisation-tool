@@ -1,7 +1,7 @@
 import { mkdtemp, rm } from 'node:fs/promises'
 import os from 'node:os'
 
-import { EntityType, getInterop, parseDirectories } from '@digicatapult/dtdl-parser'
+import { getInterop, parseDirectories } from '@digicatapult/dtdl-parser'
 import { join } from 'node:path'
 import { FormField, Get, Post, Produces, Query, Route, SuccessResponse, UploadedFile } from 'tsoa'
 import { inject, injectable } from 'tsyringe'
@@ -13,7 +13,6 @@ import { Cache, type ICache } from '../utils/cache.js'
 import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import { Search, type ISearch } from '../utils/search.js'
 import SessionStore from '../utils/sessions.js'
-import MermaidTemplates from '../views/components/mermaid.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
@@ -24,7 +23,6 @@ export class UploadController extends HTMLController {
   constructor(
     private dtdlLoader: DtdlLoader,
     private db: Database,
-    private templates: MermaidTemplates,
     private openOntologyTemplates: OpenOntologyTemplates,
     @inject(Search) private search: ISearch<EntityType>,
     @inject(Cache) private cache: ICache,
@@ -51,7 +49,7 @@ export class UploadController extends HTMLController {
 
   @SuccessResponse(200, 'File uploaded successfully')
   @Post('/zip')
-  public async uploadZip(@UploadedFile('file') file: Express.Multer.File, @FormField() sessionId: UUID): Promise<HTML> {
+  public async uploadZip(@UploadedFile('file') file: Express.Multer.File, @FormField() sessionId: UUID): Promise<void> {
     if (file.mimetype !== 'application/zip') {
       throw new UploadError('File must be a .zip')
     }
@@ -89,21 +87,13 @@ export class UploadController extends HTMLController {
       search: undefined,
       highlightNodeId: undefined,
       expandedIds: [],
-      dtdlModelId: id,
     })
 
     this.search.setCollection(this.dtdlLoader.getCollection(parsedDtdl))
     this.cache.clear()
-    this.setHeader('HX-Push-Url', `/`)
 
-    return this.html(
-      this.templates.MermaidRoot({
-        layout: session.layout,
-        diagramType: session.diagramType,
-        search: undefined,
-        sessionId,
-      })
-    )
+    this.setHeader('HX-Redirect', `/ontology/${id}/view?sessionId=${sessionId}`)
+    return
   }
 
   public async unzip(file: Buffer): Promise<string> {

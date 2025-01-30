@@ -1,5 +1,5 @@
 document.body.addEventListener('htmx:configRequest', (ev) => {
-  if (ev?.detail?.path !== '/update-layout') {
+  if (ev?.detail?.path !== 'update-layout') {
     return
   }
   const a11y = []

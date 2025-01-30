@@ -12,7 +12,7 @@ import { AccordionSection, Page } from '../common.js'
 
 const commonUpdateAttrs = {
   'hx-target': '#mermaid-output',
-  'hx-get': '/update-layout',
+  'hx-get': 'update-layout',
   'hx-swap': 'outerHTML  transition:true',
   'hx-include': '#sessionId, #search-panel',
   'hx-indicator': '#spinner',

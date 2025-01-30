@@ -33,7 +33,7 @@ export class SvgMutator {
 
   generateHxAttributes(highlightNodeId: string): Record<string, string> {
     return {
-      'hx-get': '/update-layout',
+      'hx-get': 'update-layout',
       'hx-target': '#mermaid-output',
       'hx-swap': 'outerHTML transition:true',
       'hx-indicator': '#spinner',
