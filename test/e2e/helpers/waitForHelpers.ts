@@ -22,15 +22,8 @@ export async function waitForUploadFile<T>(page: Page, action: () => Promise<T>,
 }
 
 export async function waitForUploadFileFromRoot<T>(page: Page, action: () => Promise<T>, filePath: string) {
-  await waitForSuccessResponse(page, () => page.locator('#upload-button').click(), '/upload')
-  await waitForSuccessResponse(
-    page,
-    () => page.locator('#main-view').getByText('Upload New File').click(),
-    '/uploadButton'
-  )
+  await waitForSuccessResponse(page, () => page.locator('#open-button').click(), '/open')
+  await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('Upload New File').click(), '/menu')
 
-  const fileChooserPromise = page.waitForEvent('filechooser')
-  await action()
-  const fileChooser = await fileChooserPromise
-  await fileChooser.setFiles(filePath)
+  await waitForUploadFile(page, action, filePath)
 }

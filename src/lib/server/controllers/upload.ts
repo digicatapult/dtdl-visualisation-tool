@@ -4,32 +4,28 @@ import os from 'node:os'
 import { getInterop, parseDirectories } from '@digicatapult/dtdl-parser'
 import { join } from 'node:path'
 import { FormField, Get, Post, Produces, Query, Route, SuccessResponse, UploadedFile } from 'tsoa'
-import { inject, injectable } from 'tsyringe'
+import { injectable } from 'tsyringe'
 import unzipper from 'unzipper'
 import Database from '../../db/index.js'
-import { DataError, InvalidQueryError, SessionError, UploadError } from '../errors.js'
+import { DataError, SessionError, UploadError } from '../errors.js'
 import { type UUID } from '../models/strings.js'
-import { Cache, type ICache } from '../utils/cache.js'
-import SessionStore from '../utils/sessions.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
 @injectable()
-@Route('/upload')
+@Route('/open')
 @Produces('text/html')
-export class UploadController extends HTMLController {
+export class OpenOntologyController extends HTMLController {
   constructor(
     private db: Database,
-    private openOntologyTemplates: OpenOntologyTemplates,
-    @inject(Cache) private cache: ICache,
-    private sessionStore: SessionStore
+    private openOntologyTemplates: OpenOntologyTemplates
   ) {
     super()
   }
 
   @SuccessResponse(200)
   @Get('/')
-  public async uploadForm(@Query() sessionId?: UUID): Promise<HTML> {
+  public async open(@Query() sessionId?: UUID): Promise<HTML> {
     if (!sessionId) {
       throw new SessionError('No session ID provided')
     }
@@ -38,13 +34,13 @@ export class UploadController extends HTMLController {
   }
 
   @SuccessResponse(200)
-  @Get('/uploadButton')
-  public async getLegend(@Query() showContent: boolean): Promise<HTML> {
-    return this.html(this.openOntologyTemplates.uploadMethod({ showContent }))
+  @Get('/menu')
+  public async getMenu(@Query() showContent: boolean): Promise<HTML> {
+    return this.html(this.openOntologyTemplates.getMenu({ showContent }))
   }
 
-  @SuccessResponse(200, 'File uploaded successfully')
-  @Post('/zip')
+  @SuccessResponse(302, 'File uploaded successfully')
+  @Post('/')
   public async uploadZip(@UploadedFile('file') file: Express.Multer.File, @FormField() sessionId: UUID): Promise<void> {
     if (file.mimetype !== 'application/zip') {
       throw new UploadError('File must be a .zip')
@@ -67,25 +63,6 @@ export class UploadController extends HTMLController {
     }
 
     const [{ id }] = await this.db.insert('model', { name: file.originalname, parsed: parsedDtdl })
-
-    const session = this.sessionStore.get(sessionId)
-    if (!session) {
-      throw new InvalidQueryError(
-        'Session Error',
-        'Please refresh the page or try again later',
-        `Session ${sessionId} not found in session store`,
-        false
-      )
-    }
-    this.sessionStore.set(sessionId, {
-      layout: session.layout,
-      diagramType: session.diagramType,
-      search: undefined,
-      highlightNodeId: undefined,
-      expandedIds: [],
-    })
-
-    this.cache.clear()
 
     this.setHeader('HX-Redirect', `/ontology/${id}/view?sessionId=${sessionId}`)
     return

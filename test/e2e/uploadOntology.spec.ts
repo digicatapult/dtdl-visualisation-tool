@@ -13,16 +13,12 @@ test.describe('Upload ontology from local drive', () => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     await page.setViewportSize({ width: 1920, height: 1080 })
     await waitForUpdateLayout(page, () => page.goto('./'))
-    await expect(page.locator('#toolbar').getByText('Upload Ontology')).toBeVisible()
+    await expect(page.locator('#toolbar').getByText('Open Ontology')).toBeVisible()
 
-    await waitForSuccessResponse(page, () => page.locator('#upload-button').click(), '/upload')
+    await waitForSuccessResponse(page, () => page.locator('#open-button').click(), '/open')
     await expect(page.locator('#main-view').getByText('Upload New File')).toBeVisible()
 
-    await waitForSuccessResponse(
-      page,
-      () => page.locator('#main-view').getByText('Upload New File').click(),
-      '/uploadButton'
-    )
+    await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('Upload New File').click(), '/menu')
     await expect(page.locator('#main-view').getByText('Local Zip File')).toBeVisible()
 
     // Upload ontology and wait for file to load dtdl

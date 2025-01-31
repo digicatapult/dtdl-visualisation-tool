@@ -51,15 +51,6 @@ export async function startDatabaseContainer(env: databaseConfig): Promise<Start
   return postgresContainer
 }
 
-interface databaseConfig {
-  containerName: string
-  hostPort: number
-  containerPort: number
-  db: string
-  dbUsername: string
-  dbPassword: string
-}
-
 export async function bringUpVisualisationContainer(): Promise<StartedTestContainer> {
   const visualisationUIConfig: VisualisationUIConfig = {
     containerName: 'dtdl-visualiser',

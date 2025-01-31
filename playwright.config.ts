@@ -5,9 +5,7 @@ export default defineConfig({
   globalTeardown: './test/globalTeardown.ts',
   testDir: './test/e2e',
   /* Run tests in files in parallel */
-  fullyParallel: false,
-  /* Opt out of parallel tests on CI. */
-  workers: 1,
+  fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */

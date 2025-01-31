@@ -4,9 +4,9 @@ import { readFileSync } from 'fs'
 import { describe, it } from 'mocha'
 import path from 'path'
 import sinon from 'sinon'
-import { DataError, UploadError } from '../../errors.js'
-import { UploadController } from '../upload.js'
-import { mockCache, mockDb, mockSession, openOntologyMock } from './helpers.js'
+import { DataError, SessionError, UploadError } from '../../errors.js'
+import { OpenOntologyController } from '../upload.js'
+import { mockDb, openOntologyMock, toHTMLString } from './helpers.js'
 import { validSessionId } from './sessionFixtures.js'
 
 chai.use(chaiAsPromised)
@@ -16,14 +16,35 @@ const __filename = new URL(import.meta.url).pathname
 const __dirname = path.dirname(__filename)
 const sessionId = validSessionId
 
-describe('UploadController', async () => {
-  const controller = new UploadController(mockDb, openOntologyMock, mockCache, mockSession)
+describe('OpenOntologyController', async () => {
+  const controller = new OpenOntologyController(mockDb, openOntologyMock)
 
   afterEach(() => {
     sinon.restore()
   })
 
   describe('/', () => {
+    it('Should throw an error if no session is provided', async () => {
+      await expect(controller.open()).to.be.rejectedWith(SessionError, 'No session ID provided')
+    })
+    it('Should return rendered open ontology template', async () => {
+      const result = await controller.open(sessionId).then(toHTMLString)
+      expect(result).to.equal(`root_${sessionId}_root`)
+    })
+    it('Should set HX-Push-Url header when session ID is provided', async () => {
+      const setHeaderSpy = sinon.spy(controller, 'setHeader')
+      await controller.open(sessionId)
+      expect(setHeaderSpy.calledWith('HX-Push-Url', `/upload`)).to.equal(true)
+    })
+  })
+  describe('menu', () => {
+    it('Should return rendered upload method template', async () => {
+      const result = await controller.getMenu(true).then(toHTMLString)
+      expect(result).to.equal(`uploadMethod_${true}_uploadMethod`)
+    })
+  })
+
+  describe('zip upload', () => {
     it('should insert to db and redirect to view on success', async () => {
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
       const insertDb = sinon.spy(mockDb, 'insert')

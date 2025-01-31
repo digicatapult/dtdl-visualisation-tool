@@ -339,19 +339,11 @@ label[for='diagramType'] {
   grid-template-columns: 1fr 1fr;
 }
 
-#upload-form {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  width: 20ch;
-  padding: 10px;
-}
-
 #zip {
   display: none;
 }
 
-#upload-button {
+#open-button {
   display: flex;
   border-color: #e3e3e4;
   border-style: solid;
@@ -361,9 +353,13 @@ label[for='diagramType'] {
   cursor: pointer;
   background-color: var(--background-color);
   justify-content: center;
+  width: 20ch;
+  padding: 10px;
+  height: fit-content;
+  align-self: center;
 }
 
-#upload-button:hover {
+#open-button:hover {
   background-color: #e9e9ed;
 }
 

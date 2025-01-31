@@ -41,7 +41,7 @@ export const templateMock = {
 export const openOntologyMock = {
   OpenOntologyRoot: ({ sessionId }: { sessionId: UUID }) => `root_${sessionId}_root`,
   mainView: (): JSX.Element => `mainView_SomethingHere_mainView`,
-  uploadMethod: ({ showContent }: { showContent: boolean }) => `uploadMethod_${showContent}_uploadMethod`,
+  getMenu: ({ showContent }: { showContent: boolean }) => `uploadMethod_${showContent}_uploadMethod`,
   uploadZip: () => `uploadZip_Zip_uploadZip`,
   uploadGithub: (): JSX.Element => `uploadGithub_Github_uploadGithub`,
 } as unknown as OpenOntologyTemplates

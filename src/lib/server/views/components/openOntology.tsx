@@ -25,18 +25,18 @@ export default class OpenOntologyTemplates {
     return (
       <div id="main-view">
         <h1>Open Ontology</h1>
-        <this.uploadMethod showContent={false} />
+        <this.getMenu showContent={false} />
       </div>
     )
   }
-  public uploadMethod = ({ showContent }: { showContent: boolean }) => {
+  public getMenu = ({ showContent }: { showContent: boolean }) => {
     return (
       <section id="upload-method">
         <label
           id="upload-file-button"
           hx-swap="outerHTML"
           hx-target="#upload-method"
-          hx-get={`/upload/uploadButton?showContent=${!showContent}`}
+          hx-get={`/open/menu?showContent=${!showContent}`}
         >
           Upload New File <div class={showContent ? 'toggle-icon show-content' : 'toggle-icon'}>^</div>
         </label>
@@ -44,7 +44,7 @@ export default class OpenOntologyTemplates {
           <div id="zip-upload">
             <this.uploadZip />
           </div>
-          <div id="bitbucket">
+          <div id="github">
             <this.uploadGithub />
           </div>
         </div>
@@ -59,7 +59,7 @@ export default class OpenOntologyTemplates {
         hx-ext="ignore:json-enc"
         hx-target="#content-main"
         hx-select="#content-main"
-        hx-post="/upload/zip"
+        hx-post="/open/"
         hx-encoding="multipart/form-data"
         hx-trigger="change from:#zip"
         hx-include="#sessionId"
