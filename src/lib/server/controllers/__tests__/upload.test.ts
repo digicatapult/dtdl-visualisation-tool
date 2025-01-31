@@ -6,33 +6,18 @@ import path from 'path'
 import sinon from 'sinon'
 import { DataError, UploadError } from '../../errors.js'
 import { UploadController } from '../upload.js'
-import {
-  mockCache,
-  mockDb,
-  mockSearch,
-  mockSession,
-  openOntologyMock,
-  simpleMockDtdlLoader,
-  templateMock,
-} from './helpers.js'
+import { mockCache, mockDb, mockSession, openOntologyMock } from './helpers.js'
+import { validSessionId } from './sessionFixtures.js'
 
 chai.use(chaiAsPromised)
 const { expect } = chai
 
 const __filename = new URL(import.meta.url).pathname
 const __dirname = path.dirname(__filename)
-const sessionId = 'sessionId'
+const sessionId = validSessionId
 
 describe('UploadController', async () => {
-  const controller = new UploadController(
-    simpleMockDtdlLoader,
-    mockDb,
-    templateMock,
-    openOntologyMock,
-    mockSearch,
-    mockCache,
-    mockSession
-  )
+  const controller = new UploadController(mockDb, openOntologyMock, mockCache, mockSession)
 
   afterEach(() => {
     sinon.restore()
