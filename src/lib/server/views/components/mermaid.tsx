@@ -348,6 +348,8 @@ export default class MermaidTemplates {
         id="open-button"
         hx-target="#content-main"
         hx-select="#content-main"
+        hx-swap="outerHTML transition: true"
+        hx-push-url="true"
         hx-get="/open"
         hx-trigger="click"
         hx-include="#sessionId"

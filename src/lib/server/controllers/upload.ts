@@ -29,7 +29,7 @@ export class OpenOntologyController extends HTMLController {
     if (!sessionId) {
       throw new SessionError('No session ID provided')
     }
-    this.setHeader('HX-Push-Url', `/upload`)
+    this.setHeader('HX-Push-Url', `/open`)
     return this.html(this.openOntologyTemplates.OpenOntologyRoot({ sessionId }))
   }
 

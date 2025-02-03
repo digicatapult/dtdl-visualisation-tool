@@ -1,6 +1,7 @@
 /* styling for top level elements that appear on all pages */
 
 @import url('/public/styles/reset.css'); /* generics/defaults */
+@import url('/public/styles/mpa.css'); /* X-document view transition support */
 
 body {
   display: grid;
@@ -44,6 +45,7 @@ button.highlighted {
   --navigation-panel-width: 400px;
   --navigation-panel-translate-x: calc(0.9 * var(--navigation-panel-width));
   --background-color: #f5f6fa;
+  view-transition-name: main;
 }
 
 #search-panel {
@@ -432,6 +434,33 @@ label[for='diagramType'] {
   to {
     opacity: 1;
   }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
+}
+
+@keyframes slide-down {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+::view-transition-old(content-main), 
+::view-transition-new(content-main) {
+  animation-duration: 0.5s;
+  animation-timing-function: ease-in-out;
+}
+
+/* Define fade-out for the old content */
+::view-transition-old(content-main) {
+  animation-name: fade-out;
+}
+
+/* Define fade-in for the new content */
+
+::view-transition-new(content-main) {
+  animation-name: fade-in;
 }
 
 #toast-container dialog {

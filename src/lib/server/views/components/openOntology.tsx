@@ -34,7 +34,7 @@ export default class OpenOntologyTemplates {
       <section id="upload-method">
         <label
           id="upload-file-button"
-          hx-swap="outerHTML"
+          hx-swap="outerHTML transition:true"
           hx-target="#upload-method"
           hx-get={`/open/menu?showContent=${!showContent}`}
         >
