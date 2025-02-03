@@ -1,6 +1,7 @@
-import { expect, Page, test } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { waitForUpdateLayout, waitForUploadFileFromRoot } from './helpers/waitForHelpers.js'
 
 // Convert import.meta.url to __dirname equivalent
 const __filename = fileURLToPath(import.meta.url)
@@ -14,7 +15,7 @@ test.describe('multiple sessions', () => {
     const pages = context.pages()
 
     // load both pages
-    await Promise.all(
+    await Promise.allSettled(
       pages.map(async (page) => {
         await waitForUpdateLayout(page, () => page.goto('./'))
       })
@@ -22,9 +23,10 @@ test.describe('multiple sessions', () => {
 
     // Upload ontology to second page
     const filePath = path.join(__dirname, '../../src/lib/server/controllers/__tests__/simple.zip')
-
-    await waitForUpdateLayout(pageTwo, () =>
-      pageTwo.locator('#toolbar').getByLabel('Upload Ontology').setInputFiles(filePath)
+    await waitForUploadFileFromRoot(
+      pageTwo,
+      () => pageTwo.locator('#main-view').getByText('Local Zip File').click(),
+      filePath
     )
 
     // change to class diagram type on both pages
@@ -50,11 +52,3 @@ test.describe('multiple sessions', () => {
     await expect(pageTwo.locator('#mermaid-output').getByText('dtmi:com:example;1')).toBeVisible()
   })
 })
-
-const waitForUpdateLayout = async <T>(page: Page, action: () => Promise<T>) => {
-  const updateLayoutResponse = page.waitForResponse(
-    (resp) => resp.url().includes('/update-layout') && resp.status() === 200
-  )
-  await action()
-  await updateLayoutResponse
-}

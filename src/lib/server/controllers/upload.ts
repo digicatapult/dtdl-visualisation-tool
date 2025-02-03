@@ -3,20 +3,40 @@ import os from 'node:os'
 
 import { getInterop, parseDirectories } from '@digicatapult/dtdl-parser'
 import { join } from 'node:path'
-import { FormField, Post, Produces, Route, SuccessResponse, UploadedFile } from 'tsoa'
+import { FormField, Get, Post, Produces, Query, Route, SuccessResponse, UploadedFile } from 'tsoa'
 import { injectable } from 'tsyringe'
 import unzipper from 'unzipper'
 import Database from '../../db/index.js'
-import { DataError, UploadError } from '../errors.js'
+import { DataError, SessionError, UploadError } from '../errors.js'
 import { type UUID } from '../models/strings.js'
-import { HTMLController } from './HTMLController.js'
+import OpenOntologyTemplates from '../views/components/openOntology.js'
+import { HTML, HTMLController } from './HTMLController.js'
 
 @injectable()
-@Route('/upload')
+@Route('/open')
 @Produces('text/html')
-export class UploadController extends HTMLController {
-  constructor(private db: Database) {
+export class OpenOntologyController extends HTMLController {
+  constructor(
+    private db: Database,
+    private openOntologyTemplates: OpenOntologyTemplates
+  ) {
     super()
+  }
+
+  @SuccessResponse(200)
+  @Get('/')
+  public async open(@Query() sessionId?: UUID): Promise<HTML> {
+    if (!sessionId) {
+      throw new SessionError('No session ID provided')
+    }
+    this.setHeader('HX-Push-Url', `/open`)
+    return this.html(this.openOntologyTemplates.OpenOntologyRoot({ sessionId }))
+  }
+
+  @SuccessResponse(200)
+  @Get('/menu')
+  public async getMenu(@Query() showContent: boolean): Promise<HTML> {
+    return this.html(this.openOntologyTemplates.getMenu({ showContent }))
   }
 
   @SuccessResponse(302, 'File uploaded successfully')

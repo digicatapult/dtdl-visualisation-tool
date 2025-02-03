@@ -6,7 +6,6 @@ interface VisualisationUIConfig {
   hostPort: number
   containerPort: number
 }
-
 interface databaseConfig {
   containerName: string
   hostPort: number
@@ -18,8 +17,8 @@ interface databaseConfig {
 
 const network = await new Network().start()
 
-let postgresContainer: StartedTestContainer
 let visualisationUIContainer: StartedTestContainer
+let postgresContainer: StartedTestContainer
 
 export async function bringUpDatabaseContainer(): Promise<StartedTestContainer> {
   const postgresConfig: databaseConfig = {

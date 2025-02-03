@@ -1,0 +1,4 @@
+/* enable cross-document view transitions (chrome only) */
+@view-transition {
+    navigation: auto;
+  }

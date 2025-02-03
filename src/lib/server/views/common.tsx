@@ -24,6 +24,7 @@ export const Page = (props: PropsWithChildren<{ title: string }>): JSX.Element =
         <link rel="stylesheet" type="text/css" href="/public/styles/main.css" />
         <link rel="stylesheet" type="text/css" href="/public/styles/mermaid.css" />
         <link rel="stylesheet" type="text/css" href="/public/styles/accordion.css" />
+        <link rel="stylesheet" type="text/css" href="/public/styles/openOntology.css" />
         <title>{escapeHtml(props.title)}</title>
       </head>
       <body hx-ext="json-enc, response-targets" hx-target-error=".toast-wrapper:empty">
