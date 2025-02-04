@@ -436,31 +436,25 @@ label[for='diagramType'] {
   }
 }
 
-@keyframes slide-up {
-  from { transform: translateY(0); }
-  to { transform: translateY(100%); }
+@keyframes slide-in-from-left {
+	from {
+		translate: -100vw 0;
+	}
 }
-
-@keyframes slide-down {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+@keyframes slide-in-from-right {
+	from {
+		translate: 100vw 0;
+	}
 }
-
-::view-transition-old(content-main), 
-::view-transition-new(content-main) {
-  animation-duration: 0.5s;
-  animation-timing-function: ease-in-out;
+@keyframes slide-out-to-left {
+	to {
+		translate: -100vw 0;
+	}
 }
-
-/* Define fade-out for the old content */
-::view-transition-old(content-main) {
-  animation-name: fade-out;
-}
-
-/* Define fade-in for the new content */
-
-::view-transition-new(content-main) {
-  animation-name: fade-in;
+@keyframes slide-out-to-right {
+	to {
+		translate: 100vw 0;
+	}
 }
 
 #toast-container dialog {

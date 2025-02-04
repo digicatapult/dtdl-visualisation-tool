@@ -52,7 +52,7 @@ export default class MermaidTemplates {
           svgWidth={svgWidth}
           svgHeight={svgHeight}
         />
-        <this.uploadForm />
+        <this.uploadForm sessionId={sessionId} />
       </section>
 
       <div id="mermaid-wrapper">
@@ -342,19 +342,10 @@ export default class MermaidTemplates {
     )
   }
 
-  private uploadForm = () => {
+  private uploadForm = ({ sessionId }: { sessionId: UUID }) => {
     return (
-      <button
-        id="open-button"
-        hx-target="#content-main"
-        hx-select="#content-main"
-        hx-swap="outerHTML transition: true"
-        hx-push-url="true"
-        hx-get="/open"
-        hx-trigger="click"
-        hx-include="#sessionId"
-      >
-        Open Ontology
+      <button id="open-button">
+        <a href={`/open?sessionId='${sessionId}'`}>Open Ontology</a>
       </button>
     )
   }
