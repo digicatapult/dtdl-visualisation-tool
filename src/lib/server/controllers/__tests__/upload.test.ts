@@ -34,7 +34,7 @@ describe('OpenOntologyController', async () => {
     it('Should set HX-Push-Url header when session ID is provided', async () => {
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
       await controller.open(sessionId)
-      expect(setHeaderSpy.calledWith('HX-Push-Url', `/upload`)).to.equal(true)
+      expect(setHeaderSpy.calledWith('HX-Push-Url', `/open`)).to.equal(true)
     })
   })
   describe('menu', () => {

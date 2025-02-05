@@ -36,9 +36,11 @@ export default class OpenOntologyTemplates {
           id="upload-file-button"
           hx-swap="outerHTML transition:true"
           hx-target="#upload-method"
+          hx-trigger="click"
           hx-get={`/open/menu?showContent=${!showContent}`}
         >
-          Upload New File <div class={showContent ? 'toggle-icon show-content' : 'toggle-icon'}>^</div>
+          Upload New File
+          <div class={showContent ? 'toggle-icon show-content' : 'toggle-icon'}>⋁</div>
         </label>
         <div id="upload-options" class={showContent ? 'show-content' : ''}>
           <div id="zip-upload">

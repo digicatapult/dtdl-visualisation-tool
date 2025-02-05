@@ -45,7 +45,6 @@ button.highlighted {
   --navigation-panel-width: 400px;
   --navigation-panel-translate-x: calc(0.9 * var(--navigation-panel-width));
   --background-color: #f5f6fa;
-  view-transition-name: main;
 }
 
 #search-panel {
@@ -100,6 +99,7 @@ label[for='diagramType'] {
   /* hide the overflow to prevent the svg even momentarily extending beyond the viewport */
   overflow: hidden;
   background-color: var(--background-color);
+  view-transition-name: main;
 }
 
 #mermaid-output {
