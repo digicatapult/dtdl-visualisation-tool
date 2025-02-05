@@ -10,10 +10,16 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_DB=dtdl-visualisation-tool
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   dtdl-visualiser:
     container_name: dtdl-visualiser
     depends_on:
-      - postgres-dtdl-visualisation-tool
+      postgres-dtdl-visualisation-tool:
+        condition: service_healthy
     ports:
       - 3000:3000
     build:

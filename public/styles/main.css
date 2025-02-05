@@ -1,6 +1,7 @@
 /* styling for top level elements that appear on all pages */
 
 @import url('/public/styles/reset.css'); /* generics/defaults */
+@import url('/public/styles/mpa.css'); /* X-document view transition support */
 
 body {
   display: grid;
@@ -92,6 +93,7 @@ label[for='diagramType'] {
   /* hide the overflow to prevent the svg even momentarily extending beyond the viewport */
   overflow: hidden;
   background-color: var(--background-color);
+  view-transition-name: main;
 }
 
 #mermaid-output {
@@ -333,19 +335,11 @@ label[for='diagramType'] {
   grid-template-columns: 1fr 1fr;
 }
 
-#upload-form {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  width: 20ch;
-  padding: 10px;
-}
-
-#upload {
+#zip {
   display: none;
 }
 
-#upload-button {
+#open-button {
   display: flex;
   border-color: #e3e3e4;
   border-style: solid;
@@ -355,9 +349,13 @@ label[for='diagramType'] {
   cursor: pointer;
   background-color: var(--background-color);
   justify-content: center;
+  width: 20ch;
+  padding: 10px;
+  height: fit-content;
+  align-self: center;
 }
 
-#upload-button:hover {
+#open-button:hover {
   background-color: #e9e9ed;
 }
 
@@ -430,6 +428,27 @@ label[for='diagramType'] {
   to {
     opacity: 1;
   }
+}
+
+@keyframes slide-in-from-left {
+	from {
+		translate: -100vw 0;
+	}
+}
+@keyframes slide-in-from-right {
+	from {
+		translate: 100vw 0;
+	}
+}
+@keyframes slide-out-to-left {
+	to {
+		translate: -100vw 0;
+	}
+}
+@keyframes slide-out-to-right {
+	to {
+		translate: 100vw 0;
+	}
 }
 
 #toast-container dialog {

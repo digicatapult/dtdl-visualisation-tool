@@ -7,7 +7,7 @@ import requestLogger from 'pino-http'
 import { ValidateError } from 'tsoa'
 import { container } from 'tsyringe'
 import { Env } from './env.js'
-import { HttpError, UploadError } from './errors.js'
+import { HttpError, SessionError, UploadError } from './errors.js'
 import { logger } from './logger.js'
 import { RegisterRoutes } from './routes.js'
 import { errorToast } from './views/components/errors.js'
@@ -70,6 +70,10 @@ export default async (): Promise<Express> => {
 
     if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
       err = new UploadError(`Zip file is too large. Must be less than ${env.get('UPLOAD_LIMIT_MB')}MB`)
+    }
+
+    if (err instanceof SessionError && err.code === 408) {
+      res.redirect('/')
     }
 
     const code = err instanceof HttpError ? err.code : 500

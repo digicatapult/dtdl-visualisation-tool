@@ -53,8 +53,7 @@ export default class MermaidTemplates {
           svgWidth={svgWidth}
           svgHeight={svgHeight}
         />
-        <this.uploadForm />
-        <a href={`/github/picker?sessionId=${sessionId}`}>GitHub</a>
+        <this.uploadForm sessionId={sessionId} />
       </section>
 
       <div id="mermaid-wrapper">
@@ -422,24 +421,11 @@ export default class MermaidTemplates {
     )
   }
 
-  private uploadForm = () => {
+  private uploadForm = ({ sessionId }: { sessionId: UUID }) => {
     return (
-      <form
-        id="upload-form"
-        hx-ext="ignore:json-enc"
-        hx-target="#content-main"
-        hx-select="#content-main"
-        hx-swap="outerHTML"
-        hx-post="/upload"
-        hx-encoding="multipart/form-data"
-        hx-trigger="change from:#upload"
-        hx-include="#sessionId"
-      >
-        <label id="upload-button" for="upload">
-          Upload Ontology
-        </label>
-        <input type="file" id="upload" name="file" accept=".zip" />
-      </form>
+      <button id="open-button">
+        <a href={`/open?sessionId='${sessionId}'`}>Open Ontology</a>
+      </button>
     )
   }
 }

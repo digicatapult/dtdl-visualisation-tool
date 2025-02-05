@@ -1,0 +1,7 @@
+node_modules
+test
+playwright-report
+.github
+.vscode
+test-results
+test-examples

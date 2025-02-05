@@ -61,3 +61,9 @@ export class DataError extends HttpError {
     super('User', 400, 'Invalid Data Error', userMessage, userMessage)
   }
 }
+
+export class SessionError extends HttpError {
+  constructor(userMessage: string) {
+    super('User', 408, 'Session Error', userMessage, userMessage)
+  }
+}
