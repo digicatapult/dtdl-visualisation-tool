@@ -14,11 +14,11 @@ globalThis.toggleNavPanel = (event) => {
 }
 
 htmx.on('htmx:load', (e) => {
-  if (e?.detail.elt.baseURI.includes('github')) {
+  if (e?.detail.elt.baseURI.includes('github/picker')) {
     document.getElementById('github-modal').showModal()
 
     // Update the browser history to remove query parameters
-    window.history.replaceState({}, '', '/')
+    window.history.replaceState({}, '', '/open')
   }
 })
 

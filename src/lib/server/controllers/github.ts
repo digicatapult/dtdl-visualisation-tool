@@ -13,7 +13,7 @@ import { DataError, InternalError, UploadError } from '../errors.js'
 import { ListItem, OAuthToken } from '../models/github.js'
 import { type UUID } from '../models/strings.js'
 import SessionStore from '../utils/sessions.js'
-import MermaidTemplates from '../views/components/mermaid.js'
+import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
 type listUserReposResponse = Endpoints['GET /user/repos']['response']
@@ -31,7 +31,7 @@ const uploadLimit = env.get('UPLOAD_LIMIT_MB') * 1024 * 1024
 export class GithubController extends HTMLController {
   constructor(
     private db: Database,
-    private templates: MermaidTemplates,
+    private templates: OpenOntologyTemplates,
     private sessionStore: SessionStore
   ) {
     super()
@@ -46,13 +46,14 @@ export class GithubController extends HTMLController {
     }
 
     return this.html(
-      this.templates.githubModal({ populateListLink: `/github/repos?per_page=${perPage}&page=1`, sessionId })
+      this.templates.OpenOntologyRoot({ sessionId, populateListLink: `/github/repos?per_page=${perPage}&page=1` })
     )
   }
 
   async getOctokitToken(sessionId: string, returnUrl: string): Promise<void> {
     this.sessionStore.update(sessionId, { returnUrl })
 
+    this.setStatus(302)
     this.setHeader(
       'Location',
       `https://github.com/login/oauth/authorize?client_id=${env.get('GH_CLIENT_ID')}&redirect_uri=http://localhost:3000/github/callback?sessionId=${sessionId}`
@@ -60,7 +61,7 @@ export class GithubController extends HTMLController {
     return
   }
 
-  @SuccessResponse(200, '')
+  @SuccessResponse(302, '')
   @Get('/callback')
   public async callback(@Query() code: string, @Query() sessionId: string): Promise<void> {
     const { access_token } = await this.fetchAccessToken({

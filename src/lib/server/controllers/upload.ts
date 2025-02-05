@@ -25,7 +25,7 @@ export class OpenOntologyController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('/')
-  public async open(@Query() sessionId?: UUID): Promise<HTML> {
+  public async open(@Query() sessionId: UUID): Promise<HTML> {
     if (!sessionId) {
       throw new SessionError('No session ID provided')
     }
@@ -35,8 +35,8 @@ export class OpenOntologyController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('/menu')
-  public async getMenu(@Query() showContent: boolean): Promise<HTML> {
-    return this.html(this.openOntologyTemplates.getMenu({ showContent }))
+  public async getMenu(@Query() showContent: boolean, @Query() sessionId: UUID): Promise<HTML> {
+    return this.html(this.openOntologyTemplates.getMenu({ showContent, sessionId }))
   }
 
   @SuccessResponse(302, 'File uploaded successfully')

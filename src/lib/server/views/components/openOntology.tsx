@@ -2,6 +2,7 @@
 
 import { escapeHtml } from '@kitajs/html'
 import { singleton } from 'tsyringe'
+import { ListItem } from '../../models/github.js'
 import { UUID } from '../../models/strings.js'
 import { Page } from '../common.js'
 
@@ -9,7 +10,7 @@ import { Page } from '../common.js'
 export default class OpenOntologyTemplates {
   constructor() {}
 
-  public OpenOntologyRoot = ({ sessionId }: { sessionId: UUID }) => (
+  public OpenOntologyRoot = ({ sessionId, populateListLink }: { sessionId: UUID; populateListLink?: string }) => (
     <Page title="UKDTC">
       <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
       <section id="upload-toolbar">
@@ -17,19 +18,15 @@ export default class OpenOntologyTemplates {
           <h2>UKDTC</h2>
         </a>
       </section>
-      <this.mainView />
+      <div id="main-view">
+        <h1>Open Ontology</h1>
+        <this.getMenu showContent={false} sessionId={sessionId} />
+        {populateListLink && <this.githubModal populateListLink={populateListLink} />}
+      </div>
     </Page>
   )
 
-  public mainView = () => {
-    return (
-      <div id="main-view">
-        <h1>Open Ontology</h1>
-        <this.getMenu showContent={false} />
-      </div>
-    )
-  }
-  public getMenu = ({ showContent }: { showContent: boolean }) => {
+  public getMenu = ({ showContent, sessionId }: { showContent: boolean; sessionId: UUID }) => {
     return (
       <section id="upload-method">
         <label
@@ -37,20 +34,89 @@ export default class OpenOntologyTemplates {
           hx-swap="outerHTML transition:true"
           hx-target="#upload-method"
           hx-trigger="click"
+          hx-include="#sessionId"
           hx-get={`/open/menu?showContent=${!showContent}`}
         >
           Upload New File
           <div class={showContent ? 'toggle-icon show-content' : 'toggle-icon'}>⋁</div>
         </label>
         <div id="upload-options" class={showContent ? 'show-content' : ''}>
-          <div id="zip-upload">
-            <this.uploadZip />
-          </div>
-          <div id="github">
-            <this.uploadGithub />
-          </div>
+          <this.uploadZip />
+          <this.uploadGithub sessionId={sessionId} />
         </div>
       </section>
+    )
+  }
+
+  public githubModal = ({ populateListLink }: { populateListLink: string }) => {
+    return (
+      <dialog id="github-modal">
+        <div id="modal-wrapper">
+          <div id="spin" class="spinner" />
+          <ul
+            class="github-list"
+            hx-indicator="#spin"
+            hx-get={populateListLink}
+            hx-trigger="load"
+            hx-include="#sessionId"
+          ></ul>
+          <this.selectFolder />
+        </div>
+        <form method="dialog">
+          <button class="modal-button" />
+        </form>
+      </dialog>
+    )
+  }
+
+  public selectFolder = ({ link, swapOutOfBand }: { link?: string; swapOutOfBand?: boolean }) => (
+    <button
+      id="select-folder"
+      hx-trigger="click"
+      hx-include="#sessionId"
+      hx-get={link}
+      hx-swap-oob={swapOutOfBand ? 'true' : undefined}
+      hx-swap="outerHTML"
+      hx-target="#content-main"
+      hx-select="#content-main"
+      disabled={!link}
+      onclick="document.getElementById('github-modal').close();"
+    >
+      Select Folder
+    </button>
+  )
+
+  public githubListItems = ({
+    list,
+    nextPageLink,
+    backLink,
+  }: {
+    list: ListItem[]
+    nextPageLink?: string
+    backLink?: string
+  }) => {
+    const nextPageAttributes = {
+      'hx-get': nextPageLink,
+      'hx-trigger': 'intersect once',
+      'hx-swap': 'afterend',
+      'hx-include': '#sessionId',
+      style: 'height: 1px; overflow: hidden',
+    }
+
+    return (
+      <>
+        {backLink && (
+          <li hx-trigger="click" hx-target="closest ul" hx-get={backLink}>
+            {`<`}
+          </li>
+        )}
+        {list.map((item) => (
+          <li hx-trigger="click" hx-target="closest ul" hx-get={item.link}>
+            {item.text}
+          </li>
+        ))}
+        {nextPageLink && list.length > 0 && <li {...nextPageAttributes}></li>}
+      </>
     )
   }
 
@@ -66,7 +132,7 @@ export default class OpenOntologyTemplates {
         hx-trigger="change from:#zip"
         hx-include="#sessionId"
       >
-        <label id="zip-button" for="zip" class="upload-option">
+        <label for="zip" class="upload-option">
           <img src="public/images/zip-folder.svg" alt="zip-folder" />
           <p>Local Zip File</p>
         </label>
@@ -74,13 +140,11 @@ export default class OpenOntologyTemplates {
       </form>
     )
   }
-  private uploadGithub = () => {
+  private uploadGithub = ({ sessionId }: { sessionId: UUID }) => {
     return (
-      <a href="/">
-        <label id="github-auth-button" class="upload-option">
-          <img src="public/images/github-mark.svg" alt="github" />
-          <p>GitHub</p>
-        </label>
+      <a class="upload-option" href={`/github/picker?sessionId=${sessionId}`}>
+        <img src="public/images/github-mark.svg" alt="github" />
+        <span>GitHub</span>
       </a>
     )
   }
