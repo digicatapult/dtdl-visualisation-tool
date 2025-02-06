@@ -1,5 +1,6 @@
 import * as envalid from 'envalid'
 import { singleton } from 'tsyringe'
+import { strArrayValidator } from './validators'
 
 const envConfig = {
   LOG_LEVEL: envalid.str({ default: 'info', devDefault: 'debug' }),
@@ -11,6 +12,7 @@ const envConfig = {
   DB_USERNAME: envalid.str({ default: 'postgres' }),
   DB_PASSWORD: envalid.str({ default: 'postgres' }),
   DB_PORT: envalid.port({ default: 5432 }),
+  COOKIE_SESSION_KEYS: strArrayValidator({ devDefault: ['secret'] }),
 }
 
 export type ENV_CONFIG = typeof envConfig

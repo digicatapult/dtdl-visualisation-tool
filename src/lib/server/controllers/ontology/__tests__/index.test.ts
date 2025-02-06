@@ -72,7 +72,8 @@ describe('OntologyController', async () => {
 
   describe('view', () => {
     it('should return rendered root template', async () => {
-      const result = await controller.view(simpleDtdlId, { ...defaultParams }).then(toHTMLString)
+      const req = mockReq({})
+      const result = await controller.view(simpleDtdlId, { ...defaultParams }, req).then(toHTMLString)
       expect(result).to.equal(`root_dagre-d3_undefined_root`)
     })
   })

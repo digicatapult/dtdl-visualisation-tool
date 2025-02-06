@@ -39,6 +39,11 @@ export interface UpdateParams extends RootParams {
   a11y?: A11yPreference[]
 }
 
+export interface CookieHistoryParams {
+  id: UUID
+  timestamp: number
+}
+
 export const relevantParams = ['search', 'diagramType', 'layout', 'expandedIds'] as const
 export type GenerateParamKeys = (typeof relevantParams)[number]
 export type GenerateParams = Pick<UpdateParams & Session, GenerateParamKeys>

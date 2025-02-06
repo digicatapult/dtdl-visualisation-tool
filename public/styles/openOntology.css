@@ -1,3 +1,7 @@
+:root {
+  interpolate-size: allow-keywords;
+}
+
 #main-view {
     grid-column: 1;
     grid-row: 2;
@@ -29,8 +33,10 @@
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
+  position: relative;
 }
 #upload-file-button {
+    display: inline-block;
     background-color: #397edd;
     transition: background-color 0.3s;
     color: white;
@@ -79,7 +85,7 @@
 }
 
 @keyframes open-menu {
-  100% {height:100%}
+  100% {height:auto}
   0% {height:0}
 }
 
@@ -90,7 +96,10 @@
   align-items: stretch; 
   overflow: hidden;
   width: 100%;
+  max-height: fit-content;
   height: 0;
+  position:absolute;
+  top:100%
 }
 
 #upload-options.show-content {
@@ -104,7 +113,6 @@
   color: black;
   padding-block: 10px;
   box-sizing: border-box;
-  width: 100%;
   cursor: pointer;
   border-top: 1px solid #f0f0f0;
 }
@@ -121,4 +129,48 @@
 .upload-option p {
   margin: 0px;
   width: 100%;
+}
+
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  padding-block: 10px;
+  gap:20px;
+}
+
+.file-card {
+  background-color: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease;
+  width: 350px;
+}
+
+.file-card:hover {
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+}
+
+.file-preview {
+  height: 200px;
+  background-color: #e57373;
+}
+
+.file-details {
+  padding: 16px;
+  text-align: center;
+}
+
+.file-name {
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin: 0;
+  color: #333;
+}
+
+.file-viewed {
+  font-size: 0.9rem;
+  color: #888;
+  margin: 8px 0 0 0;
 }

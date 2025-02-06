@@ -11,6 +11,7 @@ import {
   relevantParams,
   urlQueryKeys,
   UrlQueryKeys,
+  type CookieHistoryParams,
   type RootParams,
   type UpdateParams,
 } from '../../models/controllerTypes.js'
@@ -32,6 +33,14 @@ import { HTML, HTMLController } from '../HTMLController.js'
 @Route('/ontology')
 @Produces('text/html')
 export class OntologyController extends HTMLController {
+  private cookieOpts: express.CookieOptions = {
+    sameSite: true,
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+    httpOnly: true,
+    signed: true,
+    secure: process.env.NODE_ENV === 'production',
+  }
+
   constructor(
     private dtdlLoader: DtdlLoader,
     private generator: SvgGenerator,
@@ -47,7 +56,16 @@ export class OntologyController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('{dtdlModelId}/view')
-  public async view(@Path() dtdlModelId: UUID, @Queries() params: RootParams): Promise<HTML> {
+  public async view(
+    @Path() dtdlModelId: UUID,
+    @Queries() params: RootParams,
+    @Request() req: express.Request
+  ): Promise<HTML> {
+    const { res } = req
+    if (!res) {
+      throw new Error('Result not found on request')
+    }
+
     this.logger.debug(`model ${dtdlModelId} requested with search: %o`, {
       search: params.search,
       layout: params.layout,
@@ -66,6 +84,9 @@ export class OntologyController extends HTMLController {
       }
       this.sessionStore.set(sessionId, session)
     }
+
+    const cookieName = 'DTDL_MODEL_HISTORY'
+    res.cookie(cookieName, this.handleCookie(req.signedCookies, dtdlModelId, cookieName), this.cookieOpts)
 
     return this.html(
       this.templates.MermaidRoot({
@@ -388,5 +409,36 @@ export class OntologyController extends HTMLController {
       // Keep unrelated or earlier IDs
       return true
     })
+  }
+
+  private handleCookie(
+    cookies: Record<string, string | undefined>,
+    dtdlModelId: UUID,
+    cookieName: string
+  ): CookieHistoryParams[] {
+    const MAX_HISTORY = 6
+
+    let cookieHistory: CookieHistoryParams[] = []
+    try {
+      cookieHistory = cookies[cookieName] ? cookies[cookieName] : []
+    } catch (error) {
+      this.logger.warn('failed to parse cookieHistory cookie', error)
+    }
+
+    const timestamp = Date.now()
+
+    const existingIndex = cookieHistory.findIndex((item) => item.id === dtdlModelId)
+
+    if (existingIndex !== -1) {
+      cookieHistory[existingIndex].timestamp = timestamp
+    } else {
+      cookieHistory.push({ id: dtdlModelId, timestamp: timestamp })
+
+      if (cookieHistory.length > MAX_HISTORY) {
+        cookieHistory = cookieHistory.sort((a, b) => b.timestamp - a.timestamp).slice(0, MAX_HISTORY)
+      }
+    }
+
+    return cookieHistory
   }
 }

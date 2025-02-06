@@ -50,17 +50,18 @@ program
     const db = container.resolve(Database)
 
     logger.info(`Storing default model in db`)
-    const [{ id }] = await db.insert('model', { name: 'default', parsed: parsedDtdl })
+    const generator = container.resolve(SvgGenerator)
+    const output = await generator.run(minimumDtdl, 'flowchart', 'elk', {})
+    const [{ id }] = await db.insert('model', {
+      name: 'default',
+      parsed: parsedDtdl,
+      preview: output.renderForMinimap(),
+    })
 
     const dtdlLoader = new DtdlLoader(db, id)
     container.register(DtdlLoader, {
       useValue: dtdlLoader,
     })
-
-    logger.info(`Loading SVG generator...`)
-    const generator = container.resolve(SvgGenerator)
-    await generator.run(minimumDtdl, 'flowchart', 'elk', {})
-    logger.info(`Complete`)
 
     httpServer(options.port)
   })

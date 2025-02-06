@@ -1,14 +1,19 @@
 import bodyParser from 'body-parser'
 import compression from 'compression'
+import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express, { Express } from 'express'
 import multer from 'multer'
 import requestLogger from 'pino-http'
 import { ValidateError } from 'tsoa'
+import { container } from 'tsyringe'
+import { Env } from './env/index.js'
 import { HttpError, SessionError, UploadError } from './errors.js'
 import { logger } from './logger.js'
 import { RegisterRoutes } from './routes.js'
 import { errorToast } from './views/components/errors.js'
+
+const env = container.resolve(Env)
 
 const maxFileSizeMB = 10
 
@@ -30,6 +35,7 @@ export default async (): Promise<Express> => {
       fileSize: maxFileSizeMB * 1024 * 1024,
     },
   })
+  app.use(cookieParser(env.get('COOKIE_SESSION_KEYS')))
 
   RegisterRoutes(app, { multer: multerOptions })
 

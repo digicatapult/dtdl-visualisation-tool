@@ -2,6 +2,7 @@
 
 import { escapeHtml } from '@kitajs/html'
 import { singleton } from 'tsyringe'
+import { RecentFile } from '../../models/openTypes.js'
 import { UUID } from '../../models/strings.js'
 import { Page } from '../common.js'
 
@@ -9,7 +10,7 @@ import { Page } from '../common.js'
 export default class OpenOntologyTemplates {
   constructor() {}
 
-  public OpenOntologyRoot = ({ sessionId }: { sessionId: UUID }) => (
+  public OpenOntologyRoot = ({ sessionId, recentFiles }: { sessionId: UUID; recentFiles: RecentFile[] }) => (
     <Page title="UKDTC">
       <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
       <section id="upload-toolbar">
@@ -17,15 +18,16 @@ export default class OpenOntologyTemplates {
           <h2>UKDTC</h2>
         </a>
       </section>
-      <this.mainView />
+      <this.mainView recentFiles={recentFiles} />
     </Page>
   )
 
-  public mainView = () => {
+  public mainView = ({ recentFiles }: { recentFiles: RecentFile[] }) => {
     return (
       <div id="main-view">
         <h1>Open Ontology</h1>
         <this.getMenu showContent={false} />
+        <this.recentFiles recentFiles={recentFiles} />
       </div>
     )
   }
@@ -82,6 +84,28 @@ export default class OpenOntologyTemplates {
           <p>GitHub</p>
         </label>
       </a>
+    )
+  }
+
+  public recentFiles = ({ recentFiles }: { recentFiles: RecentFile[] }) => {
+    const length = recentFiles.length
+    return (
+      <>
+        <h4>Recent Files, {escapeHtml(length)}</h4>
+        <section id="recent-files" class="file-grid">
+          {recentFiles.map((recentFile) => (
+            <div class="file-card" hx-get={`/open/${recentFile.dtdlModelId}`} hx-include="#sessionId">
+              <div class="file-preview" style="background-color: #e57373;">
+                preview goes here
+              </div>
+              <div class="file-details">
+                <p class="file-name">{escapeHtml(recentFile.fileName)}</p>
+                <p class="file-viewed">Viewed {escapeHtml(recentFile.lastVisited)}</p>
+              </div>
+            </div>
+          ))}
+        </section>
+      </>
     )
   }
 }
