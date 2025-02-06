@@ -25,7 +25,7 @@ describe('OpenOntologyController', async () => {
 
   describe('/', () => {
     it('Should throw an error if no session is provided', async () => {
-      await expect(controller.open()).to.be.rejectedWith(SessionError, 'No session ID provided')
+      await expect(controller.open('')).to.be.rejectedWith(SessionError, 'No session ID provided')
     })
     it('Should return rendered open ontology template', async () => {
       const result = await controller.open(sessionId).then(toHTMLString)
@@ -39,7 +39,7 @@ describe('OpenOntologyController', async () => {
   })
   describe('menu', () => {
     it('Should return rendered upload method template', async () => {
-      const result = await controller.getMenu(true).then(toHTMLString)
+      const result = await controller.getMenu(true, sessionId).then(toHTMLString)
       expect(result).to.equal(`uploadMethod_${true}_uploadMethod`)
     })
   })

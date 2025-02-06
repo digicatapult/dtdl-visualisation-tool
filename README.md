@@ -97,6 +97,8 @@ The application can be run in Docker. `sample/energygrid` is automatically parse
 
 | variable name    | required | default                   | description                                                                       |
 | ---------------- | -------- | ------------------------- | --------------------------------------------------------------------------------- |
+| HOST             | n        | `127.0.01`                | The service hostname / host                                                       |
+| PORT             | n        | `3000`                    | The service port number                                                           |
 | LOG_LEVEL        | n        | info                      | Logging level. Valid values are [ trace , debug , info , warn , error , fatal ]   |
 | CACHE_TTL        | n        | `1000 * 60 * 5`           | Time to live (in seconds) for cached diagrams                                     |
 | CACHE_SIZE       | n        | `100`                     | Maximum number of diagrams to cache                                               |

@@ -18,6 +18,7 @@ const envConfig = {
   GH_CLIENT_SECRET: envalid.str(),
   GH_PER_PAGE: envalid.num({ default: 50 }),
   UPLOAD_LIMIT_MB: envalid.num({ default: 10 * 1024 * 1024 }),
+  REDIRECT_HOST: envalid.host({ default: 'localhost:3000' }),
 }
 
 export type ENV_CONFIG = typeof envConfig

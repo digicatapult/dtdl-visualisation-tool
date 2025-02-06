@@ -1,4 +1,3 @@
-import { Endpoints } from '@octokit/types'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 
@@ -12,13 +11,10 @@ import { Env } from '../env.js'
 import { DataError, InternalError, UploadError } from '../errors.js'
 import { ListItem, OAuthToken } from '../models/github.js'
 import { type UUID } from '../models/strings.js'
+import { GithubRequest } from '../utils/githubRequest.js'
 import SessionStore from '../utils/sessions.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
-
-type listUserReposResponse = Endpoints['GET /user/repos']['response']
-type listBranchesResponse = Endpoints['GET /repos/{owner}/{repo}/branches']['response']
-type listRepoContentsResponse = Endpoints['GET /repos/{owner}/{repo}/contents/{path}']['response']
 
 const env = container.resolve(Env)
 
@@ -32,7 +28,8 @@ export class GithubController extends HTMLController {
   constructor(
     private db: Database,
     private templates: OpenOntologyTemplates,
-    private sessionStore: SessionStore
+    private sessionStore: SessionStore,
+    private githubRequest: GithubRequest
   ) {
     super()
   }
@@ -45,9 +42,7 @@ export class GithubController extends HTMLController {
       return this.getOctokitToken(sessionId, `/github/picker?sessionId=${sessionId}`)
     }
 
-    return this.html(
-      this.templates.OpenOntologyRoot({ sessionId, populateListLink: `/github/repos?per_page=${perPage}&page=1` })
-    )
+    return this.html(this.templates.OpenOntologyRoot({ sessionId, populateListLink: `/github/repos?page=1` }))
   }
 
   async getOctokitToken(sessionId: string, returnUrl: string): Promise<void> {
@@ -56,11 +51,12 @@ export class GithubController extends HTMLController {
     this.setStatus(302)
     this.setHeader(
       'Location',
-      `https://github.com/login/oauth/authorize?client_id=${env.get('GH_CLIENT_ID')}&redirect_uri=http://localhost:3000/github/callback?sessionId=${sessionId}`
+      `https://github.com/login/oauth/authorize?client_id=${env.get('GH_CLIENT_ID')}&redirect_uri=http://${env.get('REDIRECT_HOST')}/github/callback?sessionId=${sessionId}`
     )
     return
   }
 
+  // Called by GitHub after external OAuth login
   @SuccessResponse(302, '')
   @Get('/callback')
   public async callback(@Query() code: string, @Query() sessionId: string): Promise<void> {
@@ -72,76 +68,60 @@ export class GithubController extends HTMLController {
 
     this.sessionStore.update(sessionId, { octokitToken: access_token })
 
+    this.setStatus(302)
     this.setHeader('Location', this.sessionStore.get(sessionId).returnUrl || '/')
     return
   }
 
   @SuccessResponse(200, '')
   @Get('/repos')
-  public async githubRepos(
-    @Query() per_page: number,
-    @Query() page: number,
-    @Query() sessionId: string
-  ): Promise<HTML> {
+  public async repos(@Query() page: number, @Query() sessionId: string): Promise<HTML> {
     const session = this.sessionStore.get(sessionId)
-    const octokit = new Octokit({ auth: session.octokitToken })
 
-    const response: listUserReposResponse = await octokit.request('GET /user/repos', {
-      per_page,
-      page,
-    })
+    const response = await this.githubRequest.getRepos(session.octokitToken, page)
 
     const repos: ListItem[] = response.data.map(({ full_name, owner: { login: owner }, name }) => ({
       text: full_name,
-      link: `/github/branches?owner=${owner}&repo=${name}&per_page=${perPage}&page=1`,
+      link: `/github/branches?owner=${owner}&repo=${name}&page=1`,
     }))
 
     return this.html(
       this.templates.githubListItems({
         list: repos,
-        nextPageLink: `/github/repos?per_page=${per_page}&page=${page + 1}`,
+        nextPageLink: `/github/repos?page=${page + 1}`,
       })
     )
   }
 
   @SuccessResponse(200, '')
   @Get('/branches')
-  public async githubBranches(
+  public async branches(
     @Query() owner: string,
     @Query() repo: string,
-    @Query() per_page: number,
     @Query() page: number,
     @Query() sessionId: string
   ): Promise<HTML> {
     const session = this.sessionStore.get(sessionId)
-    const octokit = new Octokit({ auth: session.octokitToken })
-    const response: listBranchesResponse = await octokit.request('GET /repos/{owner}/{repo}/branches', {
-      owner,
-      repo,
-      per_page,
-      page,
-    })
+
+    const response = await this.githubRequest.getBranches(session.octokitToken, owner, repo, page)
 
     const branches: ListItem[] = response.data.map(({ name }) => ({
       text: name,
-      link: `/github/contents?owner=${owner}&repo=${repo}&path=.&ref=${name}&per_page=${perPage}&page=1`,
+      link: `/github/contents?owner=${owner}&repo=${repo}&path=.&ref=${name}&page=1`,
     }))
 
     return this.html(
       this.templates.githubListItems({
         list: branches,
-        nextPageLink: `/github/branches?owner=${owner}&repo=${repo}&per_page=${per_page}&page=${page + 1}`,
-        ...(page === 1 && { backLink: `/github/repos?per_page=${perPage}&page=1` }),
-      }),
-      this.templates.selectFolder({
-        swapOutOfBand: true,
+        nextPageLink: `/github/branches?owner=${owner}&repo=${repo}&page=${page + 1}`,
+        ...(page === 1 && { backLink: `/github/repos?page=1` }),
       })
     )
   }
 
   @SuccessResponse(200, '')
   @Get('/contents')
-  public async githubContents(
+  public async contents(
     @Query() owner: string,
     @Query() repo: string,
     @Query() path: string,
@@ -149,14 +129,8 @@ export class GithubController extends HTMLController {
     @Query() sessionId: string
   ): Promise<HTML> {
     const session = this.sessionStore.get(sessionId)
-    const octokit = new Octokit({ auth: session.octokitToken })
 
-    const response: listRepoContentsResponse = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
-      owner,
-      repo,
-      path,
-      ref,
-    })
+    const response = await this.githubRequest.getContents(session.octokitToken, owner, repo, path, ref)
 
     if (!Array.isArray(response.data))
       throw new InternalError('Attempted to get contents of a file rather than directory from GitHub API')
@@ -171,7 +145,7 @@ export class GithubController extends HTMLController {
     // If the path is root link to branches otherwise link to the previous directory
     const backLink =
       path === '.'
-        ? `/github/branches?owner=${owner}&repo=${repo}&per_page=${perPage}&page=1`
+        ? `/github/branches?owner=${owner}&repo=${repo}&page=1`
         : `/github/contents?owner=${owner}&repo=${repo}&path=${dirname(path)}&ref=${ref}`
 
     return this.html(
