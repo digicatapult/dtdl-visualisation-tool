@@ -129,7 +129,7 @@ With GitHub integration, users can choose to upload directories of DTDL files to
 - Permissions: Contents (Read Only)
 - GitHub App name: `dtdl-visualisation-tool` (displayed to user when they authorise)
 - Homepage URL: `http://localhost:3000`
-- Callback URL: `http://localhost:3000/github`
+- Callback URL: `http://localhost:3000/github/callback`
 
 Create a `.env` at root and set:
 
