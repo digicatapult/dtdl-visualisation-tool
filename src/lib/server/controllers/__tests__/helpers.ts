@@ -38,8 +38,6 @@ export const templateMock = {
     `navigationPanel_${swapOutOfBand || false}_${content || ''}_navigationPanel`,
   svgControls: ({ generatedOutput }: { generatedOutput?: JSX.Element }): JSX.Element =>
     `svgControls_${generatedOutput}_svgControls`,
-  githubModal: ({ populateListLink }: { populateListLink: string }): JSX.Element =>
-    `githubModal_${populateListLink}_githubModal`,
 } as unknown as MermaidTemplates
 export const openOntologyMock = {
   OpenOntologyRoot: ({ sessionId, populateListLink }: { sessionId: UUID; populateListLink?: string }) =>
@@ -57,7 +55,8 @@ export const openOntologyMock = {
     list: ListItem[]
     nextPageLink?: string
     backLink?: string
-  }): JSX.Element => `githubListItems_${`${list[0].text}_${list[0].link}`}_${nextPageLink}_${backLink}_githubListItems`,
+  }): JSX.Element =>
+    `githubListItems_${list.map((item) => `${item.text}_${item.link}`).join('_')}_${nextPageLink}_${backLink}_githubListItems`,
   selectFolder: ({ link, swapOutOfBand }: { link?: string; swapOutOfBand?: boolean }): JSX.Element =>
     `selectFolder_${link}_${swapOutOfBand}_selectFolder`,
 } as unknown as OpenOntologyTemplates

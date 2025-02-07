@@ -5,10 +5,11 @@ import sinon from 'sinon'
 import { container } from 'tsyringe'
 
 import { Env } from '../../env.js'
+import { UploadError } from '../../errors.js'
 import { OAuthToken } from '../../models/github.js'
 import { GithubRequest } from '../../utils/githubRequest.js'
 import { GithubController } from '../github.js'
-import { mockDb, mockSession, openOntologyMock, sessionUpdateStub, toHTMLString } from './helpers.js'
+import { mockDb, mockLogger, mockSession, openOntologyMock, sessionUpdateStub, toHTMLString } from './helpers.js'
 import {
   validSessionId as noOctokitSessionId,
   validSessionOctokitId,
@@ -24,53 +25,71 @@ const mockOwner = 'owner'
 const mockRepo = 'repo'
 const mockFullName = `${mockOwner}/${mockRepo}`
 const mockBranch = 'branch'
+const mockRootPath = '.'
+const mockFile = 'someFile.json'
+const mockDir = 'someDir'
+const mockDirPath = 'dir'
 
-const repos = {
-  data: [
-    {
-      name: mockRepo,
-      full_name: mockFullName,
-      owner: {
-        login: mockOwner,
-      },
+const repos = [
+  {
+    name: mockRepo,
+    full_name: mockFullName,
+    owner: {
+      login: mockOwner,
     },
-  ],
-}
+  },
+]
 
-const branches = {
-  data: [
-    {
-      name: mockBranch,
-    },
-  ],
-}
+const branches = [
+  {
+    name: mockBranch,
+  },
+]
 
-const contents = {
-  data: [
-    {
-      name: 'someFile',
-      path: 'path',
-      type: 'file',
-    },
-    {
-      name: 'someDirectory',
-      path: 'path',
-      type: 'dir',
-    },
-  ],
-}
+const contents = [
+  {
+    name: mockFile,
+    path: 'file.json',
+    type: 'file',
+    download_url: 'https://raw.githubusercontent.com/file.json',
+  },
+  {
+    name: mockDir,
+    path: mockDirPath,
+    type: 'dir',
+  },
+]
+
+const nestedContents = [
+  {
+    name: mockFile,
+    path: `${mockDirPath}/file.json`,
+    type: 'file',
+    download_url: `https://raw.githubusercontent.com/${mockDirPath}/file.json`,
+  },
+]
+
+const dtdl = (id: string) =>
+  JSON.stringify({
+    '@context': ['dtmi:dtdl:context;3'],
+    '@id': `dtmi:com:${id};1`,
+    '@type': 'Interface',
+  })
+
+const getContentsStub = sinon.stub()
 
 export const mockGithubRequest = {
   getRepos: () => Promise.resolve(repos),
   getBranches: () => Promise.resolve(branches),
-  getContents: () => Promise.resolve(contents),
+  getContents: getContentsStub,
 } as unknown as GithubRequest
 
-describe.only('GithubController', async () => {
-  const controller = new GithubController(mockDb, openOntologyMock, mockSession, mockGithubRequest)
+describe('GithubController', async () => {
+  const controller = new GithubController(mockDb, openOntologyMock, mockSession, mockGithubRequest, mockLogger)
 
   afterEach(() => {
     sinon.restore()
+    getContentsStub.reset()
   })
 
   describe('/picker', () => {
@@ -92,7 +111,7 @@ describe.only('GithubController', async () => {
       expect(
         setHeaderSpy.calledWith(
           'Location',
-          `https://github.com/login/oauth/authorize?client_id=${env.get('GH_CLIENT_ID')}&redirect_uri=http://${env.get('REDIRECT_HOST')}/github/callback?sessionId=${noOctokitSessionId}`
+          `https://github.com/login/oauth/authorize?client_id=${env.get('GH_CLIENT_ID')}&redirect_uri=http://${env.get('GH_REDIRECT_HOST')}/github/callback?sessionId=${noOctokitSessionId}`
         )
       ).to.equal(true)
       expect(setStatusSpy.calledWith(302)).to.equal(true)
@@ -127,9 +146,9 @@ describe.only('GithubController', async () => {
   describe('/repos', () => {
     it('should return repo full names in list', async () => {
       const page = 1
+      const onClickLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=1`
       const nextPageLink = `/github/repos?page=${page + 1}`
       const backLink = undefined
-      const onClickLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=1`
       const result = await controller.repos(page, validSessionOctokitId).then(toHTMLString)
 
       expect(result).to.equal(
@@ -141,29 +160,104 @@ describe.only('GithubController', async () => {
   describe('/branches', () => {
     it('should return branch names in list', async () => {
       const page = 1
+      const onClickLink = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=.&ref=${mockBranch}&page=1`
       const nextPageLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=${page + 1}`
       const backLink = `/github/repos?page=1`
       const result = await controller.branches(mockOwner, mockRepo, page, validSessionOctokitId).then(toHTMLString)
 
       expect(result).to.equal(
-        `githubListItems_${branches.data.map(({ name }) => name)}_${nextPageLink}_${backLink}_githubListItems`
+        `githubListItems_${mockBranch}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`
       )
     })
   })
 
   describe('/contents', () => {
-    it('should return branch contents in list', async () => {
-      const owner = 'owner'
-      const repo = 'repo'
-      const path = 'path'
-      const ref = 'ref'
-      const page = 1
-      const nextPageLink = `/github/branches?owner=${owner}&repo=${repo}&page=${page + 1}`
-      const backLink = `/github/repos?page=1`
-      const result = await controller.contents(owner, repo, path, ref, validSessionOctokitId).then(toHTMLString)
+    it('should return contents of branch at root path in list', async () => {
+      getContentsStub.resolves(contents)
+      const nextPageLink = undefined
+      const onClickLinkFile = undefined
+      const onClickLinkDir = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=${mockDirPath}&ref=${mockBranch}`
+      const backLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=1`
+      const selectFolderLink = `/github/directory?owner=${mockOwner}&repo=${mockRepo}&path=${mockRootPath}&ref=${mockBranch}`
+      const result = await controller
+        .contents(mockOwner, mockRepo, mockRootPath, mockBranch, validSessionOctokitId)
+        .then(toHTMLString)
 
       expect(result).to.equal(
-        `githubListItems_${contents.data.map(({ name }) => name)}_${nextPageLink}_${backLink}_githubListItems`
+        [
+          `githubListItems_📄 ${mockFile}_${onClickLinkFile}_📂 ${mockDir}_${onClickLinkDir}_${nextPageLink}_${backLink}_githubListItems`,
+          `selectFolder_${selectFolderLink}_true_selectFolder`,
+        ].join('')
+      )
+    })
+
+    it('should return contents of branch at a nested path in list', async () => {
+      getContentsStub.resolves(nestedContents)
+      const nextPageLink = undefined
+      const onClickLinkFile = undefined
+      const backLink = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=${mockRootPath}&ref=${mockBranch}`
+      const selectFolderLink = `/github/directory?owner=${mockOwner}&repo=${mockRepo}&path=${mockDirPath}&ref=${mockBranch}`
+      const result = await controller
+        .contents(mockOwner, mockRepo, mockDirPath, mockBranch, validSessionOctokitId)
+        .then(toHTMLString)
+
+      expect(result).to.equal(
+        [
+          `githubListItems_📄 ${mockFile}_${onClickLinkFile}_${nextPageLink}_${backLink}_githubListItems`,
+          `selectFolder_${selectFolderLink}_true_selectFolder`,
+        ].join('')
+      )
+    })
+  })
+
+  describe('/directory', () => {
+    it('should return branch names in list', async () => {
+      const setHeaderSpy = sinon.spy(controller, 'setHeader')
+      const insertDb = sinon.spy(mockDb, 'insert')
+
+      // get root then nested contents
+      getContentsStub.onCall(0).resolves(contents)
+      getContentsStub.onCall(1).resolves(nestedContents)
+
+      // mock file download
+      const fetchStub = sinon.stub(global, 'fetch')
+      fetchStub.onCall(0).resolves({
+        arrayBuffer: () => Promise.resolve(Buffer.from(dtdl('example0'))),
+      } as unknown as Response)
+      fetchStub.onCall(1).resolves({
+        arrayBuffer: () => Promise.resolve(Buffer.from(dtdl('example1'))),
+      } as unknown as Response)
+
+      await controller.directory(mockOwner, mockRepo, mockRootPath, mockBranch, validSessionOctokitId)
+
+      expect(insertDb.calledOnce).to.equal(true)
+      expect(setHeaderSpy.calledWith('HX-Redirect', `/ontology/1/view?sessionId=${validSessionOctokitId}`)).to.equal(
+        true
+      )
+    })
+
+    it('should throw error if no json files found', async () => {
+      getContentsStub.resolves([])
+      await expect(controller.directory('', '', '', '', validSessionOctokitId)).to.be.rejectedWith(
+        UploadError,
+        `No '.json' files found`
+      )
+    })
+
+    it('should throw error if sum of file sizes is over upload size limit', async () => {
+      // get root then nested contents
+      getContentsStub.onCall(0).resolves(contents)
+      getContentsStub.onCall(1).resolves(nestedContents)
+
+      const fileSize = (env.get('UPLOAD_LIMIT_MB') / 2) * 1024 * 1024 + 1 // two files of this size is just over limit
+
+      sinon.stub(global, 'fetch').resolves({
+        arrayBuffer: () => Promise.resolve(new ArrayBuffer(fileSize)),
+      } as unknown as Response)
+
+      await expect(controller.directory('', '', '', '', validSessionOctokitId)).to.be.rejectedWith(
+        UploadError,
+        `Total upload must be less than ${env.get('UPLOAD_LIMIT_MB')}MB`
       )
     })
   })

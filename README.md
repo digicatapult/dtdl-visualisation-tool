@@ -95,23 +95,22 @@ The application can be run in Docker. `sample/energygrid` is automatically parse
 
 ## Environment variables
 
-| variable name    | required | default                   | description                                                                       |
-| ---------------- | -------- | ------------------------- | --------------------------------------------------------------------------------- |
-| HOST             | n        | `127.0.01`                | The service hostname / host                                                       |
-| PORT             | n        | `3000`                    | The service port number                                                           |
-| LOG_LEVEL        | n        | info                      | Logging level. Valid values are [ trace , debug , info , warn , error , fatal ]   |
-| CACHE_TTL        | n        | `1000 * 60 * 5`           | Time to live (in seconds) for cached diagrams                                     |
-| CACHE_SIZE       | n        | `100`                     | Maximum number of diagrams to cache                                               |
-| SEARCH_THRESHOLD | n        | `0.4`                     | Threshold for a fuzzy search match. 0.0 is a perfect match, 1.0 matches anything. |
-| DB_HOST          | n        | `localhost`               | The database hostname / host                                                      |
-| DB_NAME          | n        | `dtdl-visualisation-tool` | The database name                                                                 |
-| DB_USERNAME      | n        | `postgres`                | The database username                                                             |
-| DB_PASSWORD      | n        | `postgres`                | The database password                                                             |
-| DB_PORT          | n        | `5432`                    | The database port number                                                          |
-| UPLOAD_LIMIT_MB  | n        | `10`                      | Upload limit for DTDLs in MB                                                      |
-| GH_CLIENT_ID     | y        | -                         | See [GitHub Integration](#github-integration)                                     |
-| GH_CLIENT_SECRET | y        | -                         | See [GitHub Integration](#github-integration)                                     |
-| GH_PER_PAGE      | n        | `50`                      | The number of results per GitHub API request (max 100)                            |
+| variable name    | required | default                   | description                                                                                  |
+| ---------------- | -------- | ------------------------- | -------------------------------------------------------------------------------------------- |
+| LOG_LEVEL        | n        | info                      | Logging level. Valid values are [ trace , debug , info , warn , error , fatal ]              |
+| CACHE_TTL        | n        | `1000 * 60 * 5`           | Time to live (in seconds) for cached diagrams                                                |
+| CACHE_SIZE       | n        | `100`                     | Maximum number of diagrams to cache                                                          |
+| SEARCH_THRESHOLD | n        | `0.4`                     | Threshold for a fuzzy search match. 0.0 is a perfect match, 1.0 matches anything.            |
+| DB_HOST          | n        | `localhost`               | The database hostname / host                                                                 |
+| DB_NAME          | n        | `dtdl-visualisation-tool` | The database name                                                                            |
+| DB_USERNAME      | n        | `postgres`                | The database username                                                                        |
+| DB_PASSWORD      | n        | `postgres`                | The database password                                                                        |
+| DB_PORT          | n        | `5432`                    | The database port number                                                                     |
+| UPLOAD_LIMIT_MB  | n        | `10`                      | Upload limit for DTDLs in MB                                                                 |
+| GH_CLIENT_ID     | y        | -                         | See [GitHub Integration](#github-integration)                                                |
+| GH_CLIENT_SECRET | y        | -                         | See [GitHub Integration](#github-integration)                                                |
+| GH_PER_PAGE      | n        | `50`                      | The number of results per GitHub API request (max 100)                                       |
+| GH_REDIRECT_HOST | n        | `localhost:3000`          | Host to redirect to for GitHub OAuth callback. See [GitHub Integration](#github-integration) |
 
 ## Database migrations
 

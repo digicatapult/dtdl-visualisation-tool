@@ -80,6 +80,8 @@ export async function startVisualisationContainer(env: VisualisationUIConfig): P
       DB_USERNAME: 'postgres',
       DB_PASSWORD: 'postgres',
       DB_PORT: '5432',
+      GH_CLIENT_ID: '',
+      GH_CLIENT_SECRET: '',
     })
     .withAddedCapabilities('SYS_ADMIN')
     .withCommand(['sh', '-c', 'npx knex migrate:latest --env production; dtdl-visualiser parse -p /sample/energygrid'])

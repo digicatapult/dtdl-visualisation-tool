@@ -10,21 +10,24 @@ import { Page } from '../common.js'
 export default class OpenOntologyTemplates {
   constructor() {}
 
-  public OpenOntologyRoot = ({ sessionId, populateListLink }: { sessionId: UUID; populateListLink?: string }) => (
-    <Page title="UKDTC">
-      <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
-      <section id="upload-toolbar">
-        <a href="/">
-          <h2>UKDTC</h2>
-        </a>
-      </section>
-      <div id="main-view">
-        <h1>Open Ontology</h1>
-        <this.getMenu showContent={false} sessionId={sessionId} />
-        {populateListLink && <this.githubModal populateListLink={populateListLink} />}
-      </div>
-    </Page>
-  )
+  public OpenOntologyRoot = ({ sessionId, populateListLink }: { sessionId: UUID; populateListLink?: string }) => {
+    const showGithubModal = populateListLink !== undefined
+    return (
+      <Page title="UKDTC">
+        <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
+        <section id="upload-toolbar">
+          <a href="/">
+            <h2>UKDTC</h2>
+          </a>
+        </section>
+        <div id="main-view">
+          <h1>Open Ontology</h1>
+          <this.getMenu showContent={false} sessionId={sessionId} />
+          {showGithubModal && <this.githubModal populateListLink={populateListLink} />}
+        </div>
+      </Page>
+    )
+  }
 
   public getMenu = ({ showContent, sessionId }: { showContent: boolean; sessionId: UUID }) => {
     return (
@@ -103,19 +106,22 @@ export default class OpenOntologyTemplates {
       style: 'height: 1px; overflow: hidden',
     }
 
+    const includeBackLink = backLink !== undefined
+    const includeNextPageLink = nextPageLink !== undefined && list.length > 0
+
     return (
       <>
-        {backLink && (
+        {includeBackLink && (
           <li hx-trigger="click" hx-target="closest ul" hx-get={backLink}>
             {`<`}
           </li>
         )}
         {list.map((item) => (
           <li hx-trigger="click" hx-target="closest ul" hx-get={item.link}>
-            {item.text}
+            {escapeHtml(item.text)}
           </li>
         ))}
-        {nextPageLink && list.length > 0 && <li {...nextPageAttributes}></li>}
+        {includeNextPageLink && <li {...nextPageAttributes}></li>}
       </>
     )
   }

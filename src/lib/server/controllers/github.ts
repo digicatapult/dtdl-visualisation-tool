@@ -1,16 +1,16 @@
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 
-import { getInterop, parseDirectories } from '@digicatapult/dtdl-parser'
-import { Octokit } from '@octokit/core'
-import { basename, dirname, join } from 'node:path'
+import { randomUUID } from 'node:crypto'
+import { dirname, join } from 'node:path'
 import { Get, Produces, Query, Route, SuccessResponse } from 'tsoa'
-import { container, injectable } from 'tsyringe'
+import { container, inject, injectable } from 'tsyringe'
 import Database from '../../db/index.js'
 import { Env } from '../env.js'
-import { DataError, InternalError, UploadError } from '../errors.js'
+import { InternalError, UploadError } from '../errors.js'
+import { type ILogger, Logger } from '../logger.js'
 import { ListItem, OAuthToken } from '../models/github.js'
-import { type UUID } from '../models/strings.js'
+import { parseAndInsertDtdl } from '../utils/dtdl/parse.js'
 import { GithubRequest } from '../utils/githubRequest.js'
 import SessionStore from '../utils/sessions.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
@@ -18,7 +18,6 @@ import { HTML, HTMLController } from './HTMLController.js'
 
 const env = container.resolve(Env)
 
-const perPage = env.get('GH_PER_PAGE')
 const uploadLimit = env.get('UPLOAD_LIMIT_MB') * 1024 * 1024
 
 @injectable()
@@ -29,9 +28,11 @@ export class GithubController extends HTMLController {
     private db: Database,
     private templates: OpenOntologyTemplates,
     private sessionStore: SessionStore,
-    private githubRequest: GithubRequest
+    private githubRequest: GithubRequest,
+    @inject(Logger) private logger: ILogger
   ) {
     super()
+    this.logger = logger.child({ controller: '/github' })
   }
 
   @SuccessResponse(200, '')
@@ -51,7 +52,7 @@ export class GithubController extends HTMLController {
     this.setStatus(302)
     this.setHeader(
       'Location',
-      `https://github.com/login/oauth/authorize?client_id=${env.get('GH_CLIENT_ID')}&redirect_uri=http://${env.get('REDIRECT_HOST')}/github/callback?sessionId=${sessionId}`
+      `https://github.com/login/oauth/authorize?client_id=${env.get('GH_CLIENT_ID')}&redirect_uri=http://${env.get('GH_REDIRECT_HOST')}/github/callback?sessionId=${sessionId}`
     )
     return
   }
@@ -80,7 +81,7 @@ export class GithubController extends HTMLController {
 
     const response = await this.githubRequest.getRepos(session.octokitToken, page)
 
-    const repos: ListItem[] = response.data.map(({ full_name, owner: { login: owner }, name }) => ({
+    const repos: ListItem[] = response.map(({ full_name, owner: { login: owner }, name }) => ({
       text: full_name,
       link: `/github/branches?owner=${owner}&repo=${name}&page=1`,
     }))
@@ -105,7 +106,7 @@ export class GithubController extends HTMLController {
 
     const response = await this.githubRequest.getBranches(session.octokitToken, owner, repo, page)
 
-    const branches: ListItem[] = response.data.map(({ name }) => ({
+    const branches: ListItem[] = response.map(({ name }) => ({
       text: name,
       link: `/github/contents?owner=${owner}&repo=${repo}&path=.&ref=${name}&page=1`,
     }))
@@ -132,17 +133,15 @@ export class GithubController extends HTMLController {
 
     const response = await this.githubRequest.getContents(session.octokitToken, owner, repo, path, ref)
 
-    if (!Array.isArray(response.data))
-      throw new InternalError('Attempted to get contents of a file rather than directory from GitHub API')
-
-    const contents: ListItem[] = response.data.map(({ name, path: dirPath, type }) => ({
+    const contents: ListItem[] = response.map(({ name, path: dirPath, type }) => ({
       text: `${type === 'dir' ? '📂' : '📄'} ${name}`,
       ...(type === 'dir' && {
+        // directories are clickable to see their contents
         link: `/github/contents?owner=${owner}&repo=${repo}&path=${dirPath}&ref=${ref}`,
       }),
     }))
 
-    // If the path is root link to branches otherwise link to the previous directory
+    // If the path is root link back to branches otherwise link to the previous directory
     const backLink =
       path === '.'
         ? `/github/branches?owner=${owner}&repo=${repo}&page=1`
@@ -162,7 +161,7 @@ export class GithubController extends HTMLController {
 
   @SuccessResponse(200, '')
   @Get('/directory')
-  public async githubDirectory(
+  public async directory(
     @Query() owner: string,
     @Query() repo: string,
     @Query() path: string,
@@ -170,20 +169,19 @@ export class GithubController extends HTMLController {
     @Query() sessionId: string
   ): Promise<void> {
     const session = this.sessionStore.get(sessionId)
-    const octokit = new Octokit({ auth: session.octokitToken })
 
     const tmpDir = await mkdtemp(join(os.tmpdir(), 'dtdl-'))
 
     const totalUploaded = { total: 0 }
-    await this.fetchFiles(octokit, tmpDir, owner, repo, path, ref, totalUploaded)
+    await this.fetchFiles(session.octokitToken, tmpDir, owner, repo, path, ref, totalUploaded)
 
     if (totalUploaded.total === 0) {
       throw new UploadError(`No '.json' files found`)
     }
 
-    const id = await this.parseAndSetDtdlFromTmp(tmpDir, `${owner}/${repo}/${ref}/${path}`)
+    const id = await parseAndInsertDtdl(tmpDir, `${owner}/${repo}/${ref}/${path}`, this.db, false)
 
-    this.setHeader('HX-Redirect', `/ontology/${id}/view`)
+    this.setHeader('HX-Redirect', `/ontology/${id}/view?sessionId=${sessionId}`)
     return
   }
 
@@ -207,7 +205,7 @@ export class GithubController extends HTMLController {
   }
 
   private async fetchFiles(
-    octokit: Octokit,
+    githubToken: string | undefined,
     tempDir: string,
     owner: string,
     repo: string,
@@ -215,47 +213,24 @@ export class GithubController extends HTMLController {
     ref: string,
     totalUploadedRef: { total: number }
   ): Promise<void> {
-    const response: listRepoContentsResponse = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
-      owner,
-      repo,
-      path,
-      ref,
-    })
+    const response = await this.githubRequest.getContents(githubToken, owner, repo, path, ref)
 
-    if (!Array.isArray(response.data))
-      throw new InternalError('Attempted to upload file rather than directory from GitHub API')
-
-    for (const entry of response.data) {
+    for (const entry of response) {
       if (entry.type === 'file' && entry.name.endsWith('.json') && entry.download_url) {
         const fileResponse = await fetch(entry.download_url)
         const fileBuffer = await fileResponse.arrayBuffer()
 
         totalUploadedRef.total += fileBuffer.byteLength
-
         if (totalUploadedRef.total > uploadLimit) {
           throw new UploadError(`Total upload must be less than ${env.get('UPLOAD_LIMIT_MB')}MB`)
         }
 
-        const filePath = join(tempDir, basename(entry.name))
-        console.log('writing file', filePath)
+        const filePath = join(tempDir, `${randomUUID()}.json`)
+        this.logger.trace('writing file', entry.name, filePath)
         await writeFile(filePath, Buffer.from(fileBuffer))
       } else if (entry.type === 'dir') {
-        await this.fetchFiles(octokit, tempDir, owner, repo, entry.path, ref, totalUploadedRef)
+        await this.fetchFiles(githubToken, tempDir, owner, repo, entry.path, ref, totalUploadedRef)
       }
     }
-  }
-
-  private parseAndSetDtdlFromTmp = async (tmpPath: string, dtdlName: string): Promise<UUID> => {
-    const parser = await getInterop()
-    const parsedDtdl = parseDirectories(tmpPath, parser)
-
-    rm(tmpPath, { recursive: true })
-
-    if (!parsedDtdl) {
-      throw new DataError('Failed to parse DTDL model')
-    }
-
-    const [{ id }] = await this.db.insert('model', { name: dtdlName, parsed: parsedDtdl })
-    return id
   }
 }
