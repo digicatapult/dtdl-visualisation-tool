@@ -70,6 +70,6 @@ export class SessionError extends HttpError {
 
 export class GithubReqError extends HttpError {
   constructor(userMessage: string) {
-    super('User', 400, 'GitHub Auth Error', userMessage, userMessage)
+    super('User', 400, 'GitHub Request Error', userMessage, userMessage)
   }
 }

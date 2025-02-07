@@ -143,7 +143,7 @@ export default class OpenOntologyTemplates {
         hx-include="#sessionId"
       >
         <label for="zip" class="upload-option">
-          <img src="public/images/zip-folder.svg" alt="zip-folder" />
+          <img src="/public/images/zip-folder.svg" alt="zip-folder" />
           <p>Local Zip File</p>
         </label>
         <input type="file" id="zip" name="file" accept=".zip" />
@@ -153,7 +153,7 @@ export default class OpenOntologyTemplates {
   private uploadGithub = ({ sessionId }: { sessionId: UUID }) => {
     return (
       <a class="upload-option" href={`/github/picker?sessionId=${sessionId}`}>
-        <img src="public/images/github-mark.svg" alt="github" />
+        <img src="/public/images/github-mark.svg" alt="github" />
         <span>GitHub</span>
       </a>
     )

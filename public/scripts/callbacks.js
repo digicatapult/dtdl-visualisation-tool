@@ -16,9 +16,10 @@ globalThis.toggleNavPanel = (event) => {
 htmx.on('htmx:load', (e) => {
   if (e?.detail.elt.baseURI.includes('github/picker')) {
     document.getElementById('github-modal').showModal()
+    const sessionId = document.getElementById('sessionId').value
 
     // Update the browser history to hide GitHub callback parameters
-    window.history.replaceState({}, '', '/open')
+    window.history.replaceState({}, '', `/open?sessionId=${sessionId}`)
   }
 })
 

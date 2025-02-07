@@ -346,9 +346,9 @@ export default class MermaidTemplates {
 
   private uploadForm = ({ sessionId }: { sessionId: UUID }) => {
     return (
-      <button id="open-button">
-        <a href={`/open?sessionId=${sessionId}`}>Open Ontology</a>
-      </button>
+      <a id="open-button" href={`/open?sessionId=${sessionId}`} class="button">
+        Open Ontology
+      </a>
     )
   }
 }
