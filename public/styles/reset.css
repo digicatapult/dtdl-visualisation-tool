@@ -11,6 +11,13 @@ a:visited {
   text-decoration: none;
 }
 
+a:not(.button):visited,
+a:not(.button):hover,
+a:not(.button):focus-visible {
+  filter: brightness(115%);
+}
+
+
 input,
 button {
   font-family: inherit;

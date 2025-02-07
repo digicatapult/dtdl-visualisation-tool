@@ -152,7 +152,7 @@ export default class OpenOntologyTemplates {
   }
   private uploadGithub = ({ sessionId }: { sessionId: UUID }) => {
     return (
-      <a class="upload-option" href={`/github/picker?sessionId=${sessionId}`}>
+      <a class="upload-option button" href={`/github/picker?sessionId=${sessionId}`}>
         <img src="/public/images/github-mark.svg" alt="github" />
         <span>GitHub</span>
       </a>
