@@ -210,6 +210,7 @@ label[for='diagramType'] {
 .spinner.htmx-request {
   display: inline-block;
   opacity: 1;
+  z-index: 1;
 }
 
 .spinner {
@@ -570,7 +571,6 @@ label[for='diagramType'] {
   height: 100%;
   gap: 1rem;
   padding: 1rem 1rem 0 1rem;
-
 }
 
 .github-list li:nth-child(odd) { background: var(--background-color); }

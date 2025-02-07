@@ -24,6 +24,9 @@ export default class OpenOntologyTemplates {
           <h1>Open Ontology</h1>
           <this.getMenu showContent={false} sessionId={sessionId} />
           {showGithubModal && <this.githubModal populateListLink={populateListLink} />}
+          <div id="spinner-wrapper">
+            <div id="spinner" class="spinner" />
+          </div>
         </div>
       </Page>
     )
@@ -82,6 +85,7 @@ export default class OpenOntologyTemplates {
       hx-swap="outerHTML"
       hx-target="#content-main"
       hx-select="#content-main"
+      hx-indicator="#spinner"
       disabled={!link}
       onclick="document.getElementById('github-modal').close();"
     >

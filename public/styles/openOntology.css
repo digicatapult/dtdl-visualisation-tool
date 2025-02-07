@@ -122,3 +122,8 @@
   margin: 0px;
   width: 100%;
 }
+#spinner-wrapper{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+}
