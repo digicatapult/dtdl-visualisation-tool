@@ -30,6 +30,17 @@ const mockFile = 'someFile.json'
 const mockDir = 'someDir'
 const mockDirPath = 'dir'
 
+const mockToken = 'token'
+
+const token: OAuthToken = {
+  access_token: mockToken,
+  expires_in: 1,
+  refresh_token: '',
+  refresh_token_expires_in: 1,
+  token_type: '',
+  scope: '',
+}
+
 const repos = [
   {
     name: mockRepo,
@@ -82,6 +93,7 @@ export const mockGithubRequest = {
   getRepos: () => Promise.resolve(repos),
   getBranches: () => Promise.resolve(branches),
   getContents: getContentsStub,
+  getAccessToken: () => Promise.resolve(token),
 } as unknown as GithubRequest
 
 describe('GithubController', async () => {
@@ -106,12 +118,16 @@ describe('GithubController', async () => {
     it('should redirect if octokit token NOT present', async () => {
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
       const setStatusSpy = sinon.spy(controller, 'setStatus')
+      const redirect = encodeURIComponent(
+        `http://${env.get('GH_REDIRECT_HOST')}/github/callback?sessionId=${noOctokitSessionId}`
+      )
 
       await controller.picker(noOctokitSessionId)
+
       expect(
         setHeaderSpy.calledWith(
           'Location',
-          `https://github.com/login/oauth/authorize?client_id=${env.get('GH_CLIENT_ID')}&redirect_uri=http://${env.get('GH_REDIRECT_HOST')}/github/callback?sessionId=${noOctokitSessionId}`
+          `https://github.com/login/oauth/authorize?client_id=${env.get('GH_CLIENT_ID')}&redirect_uri=${redirect}`
         )
       ).to.equal(true)
       expect(setStatusSpy.calledWith(302)).to.equal(true)
@@ -122,22 +138,12 @@ describe('GithubController', async () => {
     it('should redirect to return url from session', async () => {
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
       const setStatusSpy = sinon.spy(controller, 'setStatus')
-      const token = 'token'
-      const mockToken: OAuthToken = {
-        access_token: token,
-        expires_in: 1,
-        refresh_token: '',
-        refresh_token_expires_in: 1,
-        token_type: '',
-        scope: '',
-      }
 
-      sinon.stub(controller, 'fetchAccessToken').resolves(mockToken)
       await controller.callback('', validSessionReturnUrlId)
 
       const sessionUpdate = sessionUpdateStub.lastCall.args[1]
 
-      expect(sessionUpdate).to.deep.equal({ octokitToken: token })
+      expect(sessionUpdate).to.deep.equal({ octokitToken: mockToken })
       expect(setHeaderSpy.calledWith('Location', `return.url`)).to.equal(true)
       expect(setStatusSpy.calledWith(302)).to.equal(true)
     })
@@ -160,13 +166,16 @@ describe('GithubController', async () => {
   describe('/branches', () => {
     it('should return branch names in list', async () => {
       const page = 1
-      const onClickLink = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=.&ref=${mockBranch}&page=1`
+      const onClickLink = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=.&ref=${mockBranch}`
       const nextPageLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=${page + 1}`
       const backLink = `/github/repos?page=1`
       const result = await controller.branches(mockOwner, mockRepo, page, validSessionOctokitId).then(toHTMLString)
 
       expect(result).to.equal(
-        `githubListItems_${mockBranch}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`
+        [
+          `githubListItems_${mockBranch}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`,
+          `selectFolder_undefined_true_selectFolder`,
+        ].join('')
       )
     })
   })
@@ -211,7 +220,7 @@ describe('GithubController', async () => {
   })
 
   describe('/directory', () => {
-    it('should return branch names in list', async () => {
+    it('should insert and redirect to valid ontology', async () => {
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
       const insertDb = sinon.spy(mockDb, 'insert')
 

@@ -7,12 +7,13 @@ import { Get, Produces, Query, Route, SuccessResponse } from 'tsoa'
 import { container, inject, injectable } from 'tsyringe'
 import Database from '../../db/index.js'
 import { Env } from '../env.js'
-import { InternalError, UploadError } from '../errors.js'
+import { UploadError } from '../errors.js'
 import { type ILogger, Logger } from '../logger.js'
-import { ListItem, OAuthToken } from '../models/github.js'
+import { ListItem } from '../models/github.js'
 import { parseAndInsertDtdl } from '../utils/dtdl/parse.js'
 import { GithubRequest } from '../utils/githubRequest.js'
 import SessionStore from '../utils/sessions.js'
+import { safeUrl } from '../utils/url.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
@@ -39,21 +40,25 @@ export class GithubController extends HTMLController {
   @Get('/picker')
   public async picker(@Query() sessionId: string): Promise<HTML | void> {
     const session = this.sessionStore.get(sessionId)
+    const returnUrl = safeUrl(`/github/picker`, { sessionId }) // where to redirect to from callback
     if (!session.octokitToken) {
-      return this.getOctokitToken(sessionId, `/github/picker?sessionId=${sessionId}`)
+      return this.getOctokitToken(sessionId, returnUrl)
     }
 
-    return this.html(this.templates.OpenOntologyRoot({ sessionId, populateListLink: `/github/repos?page=1` }))
+    const populateListLink = safeUrl(`/github/repos`, { page: '1' })
+    return this.html(this.templates.OpenOntologyRoot({ sessionId, populateListLink }))
   }
 
   async getOctokitToken(sessionId: string, returnUrl: string): Promise<void> {
     this.sessionStore.update(sessionId, { returnUrl })
 
+    const callback = safeUrl(`http://${env.get('GH_REDIRECT_HOST')}/github/callback`, { sessionId })
+    const githubAuthUrl = safeUrl(`https://github.com/login/oauth/authorize`, {
+      client_id: env.get('GH_CLIENT_ID'),
+      redirect_uri: callback,
+    })
     this.setStatus(302)
-    this.setHeader(
-      'Location',
-      `https://github.com/login/oauth/authorize?client_id=${env.get('GH_CLIENT_ID')}&redirect_uri=http://${env.get('GH_REDIRECT_HOST')}/github/callback?sessionId=${sessionId}`
-    )
+    this.setHeader('Location', githubAuthUrl)
     return
   }
 
@@ -61,11 +66,7 @@ export class GithubController extends HTMLController {
   @SuccessResponse(302, '')
   @Get('/callback')
   public async callback(@Query() code: string, @Query() sessionId: string): Promise<void> {
-    const { access_token } = await this.fetchAccessToken({
-      client_id: env.get('GH_CLIENT_ID'),
-      client_secret: env.get('GH_CLIENT_SECRET'),
-      code,
-    })
+    const { access_token } = await this.githubRequest.getAccessToken(code)
 
     this.sessionStore.update(sessionId, { octokitToken: access_token })
 
@@ -83,13 +84,13 @@ export class GithubController extends HTMLController {
 
     const repos: ListItem[] = response.map(({ full_name, owner: { login: owner }, name }) => ({
       text: full_name,
-      link: `/github/branches?owner=${owner}&repo=${name}&page=1`,
+      link: safeUrl(`/github/branches`, { owner, repo: name, page: '1' }),
     }))
 
     return this.html(
       this.templates.githubListItems({
         list: repos,
-        nextPageLink: `/github/repos?page=${page + 1}`,
+        nextPageLink: safeUrl(`/github/repos`, { page: `${page + 1}` }),
       })
     )
   }
@@ -108,14 +109,22 @@ export class GithubController extends HTMLController {
 
     const branches: ListItem[] = response.map(({ name }) => ({
       text: name,
-      link: `/github/contents?owner=${owner}&repo=${repo}&path=.&ref=${name}&page=1`,
+      link: safeUrl(`/github/contents`, { owner, repo, path: '.', ref: name }),
     }))
 
     return this.html(
       this.templates.githubListItems({
         list: branches,
-        nextPageLink: `/github/branches?owner=${owner}&repo=${repo}&page=${page + 1}`,
-        ...(page === 1 && { backLink: `/github/repos?page=1` }),
+        nextPageLink: safeUrl(`/github/branches`, {
+          owner,
+          repo,
+          page: `${page + 1}`,
+        }),
+        ...(page === 1 && { backLink: safeUrl(`/github/repos`, { page: '1' }) }),
+      }),
+      this.templates.selectFolder({
+        // disable the select folder button on branch view
+        swapOutOfBand: true,
       })
     )
   }
@@ -137,15 +146,25 @@ export class GithubController extends HTMLController {
       text: `${type === 'dir' ? '📂' : '📄'} ${name}`,
       ...(type === 'dir' && {
         // directories are clickable to see their contents
-        link: `/github/contents?owner=${owner}&repo=${repo}&path=${dirPath}&ref=${ref}`,
+        link: safeUrl(`/github/contents`, {
+          owner,
+          repo,
+          path: dirPath,
+          ref,
+        }),
       }),
     }))
 
     // If the path is root link back to branches otherwise link to the previous directory
     const backLink =
       path === '.'
-        ? `/github/branches?owner=${owner}&repo=${repo}&page=1`
-        : `/github/contents?owner=${owner}&repo=${repo}&path=${dirname(path)}&ref=${ref}`
+        ? safeUrl(`/github/branches`, { owner, repo, page: '1' })
+        : safeUrl(`/github/contents`, {
+            owner,
+            repo,
+            path: dirname(path),
+            ref,
+          })
 
     return this.html(
       this.templates.githubListItems({
@@ -153,7 +172,13 @@ export class GithubController extends HTMLController {
         backLink,
       }),
       this.templates.selectFolder({
-        link: `/github/directory?owner=${owner}&repo=${repo}&path=${path}&ref=${ref}`,
+        // make select folder button clickable
+        link: safeUrl(`/github/directory`, {
+          owner,
+          repo,
+          path,
+          ref,
+        }),
         swapOutOfBand: true,
       })
     )
@@ -181,27 +206,8 @@ export class GithubController extends HTMLController {
 
     const id = await parseAndInsertDtdl(tmpDir, `${owner}/${repo}/${ref}/${path}`, this.db, false)
 
-    this.setHeader('HX-Redirect', `/ontology/${id}/view?sessionId=${sessionId}`)
+    this.setHeader('HX-Redirect', safeUrl(`/ontology/${id}/view`, { sessionId }))
     return
-  }
-
-  async fetchAccessToken(body: Record<string, unknown>): Promise<OAuthToken> {
-    const url = `https://github.com/login/oauth/access_token`
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify(body),
-    })
-    const json = await response.json()
-
-    if (!response.ok || !json.access_token) {
-      throw new InternalError(`Unexpected error calling POST ${url}: ${json}`)
-    }
-
-    return json as OAuthToken
   }
 
   private async fetchFiles(
