@@ -1,4 +1,5 @@
 ignores: [
+    '@mermaid-js/mermaid-cli',
     '@swc-node/register',
     'prettier-plugin-organize-imports',
     'rimraf',

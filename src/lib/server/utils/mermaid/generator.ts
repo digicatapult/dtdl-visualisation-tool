@@ -2,7 +2,7 @@ import path from 'node:path'
 import url from 'node:url'
 
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
-import type { MermaidConfig } from 'mermaid'
+import type { LayoutLoaderDefinition, Mermaid, MermaidConfig } from 'mermaid'
 import puppeteer, { Browser, Page } from 'puppeteer'
 import { inject, singleton } from 'tsyringe'
 
@@ -24,6 +24,11 @@ const mermaidHTMLPath = path.resolve(
   'dist',
   'index.html'
 )
+
+type GlobalExtMermaidAndElk = {
+  mermaid: Mermaid
+  elkLayouts: LayoutLoaderDefinition[]
+}
 
 @singleton()
 export class SvgGenerator {
@@ -88,7 +93,7 @@ export class SvgGenerator {
     await page.addScriptTag({ path: mermaidJsPath })
     await page.evaluate(async () => {
       await Promise.all(Array.from(document.fonts, (font) => font.load()))
-      const { mermaid, elkLayouts } = globalThis as any
+      const { mermaid, elkLayouts } = globalThis as unknown as GlobalExtMermaidAndElk
       mermaid.registerLayoutLoaders(elkLayouts)
     })
 
@@ -112,7 +117,7 @@ export class SvgGenerator {
     const svg = await page.$eval(
       '#container',
       async (container, mermaidConfig, definition, svgId) => {
-        const { mermaid } = globalThis as any
+        const { mermaid } = globalThis as unknown as GlobalExtMermaidAndElk
 
         mermaid.initialize({ startOnLoad: false, ...mermaidConfig })
         const { svg: svgText } = await mermaid.render(svgId, definition, container)
