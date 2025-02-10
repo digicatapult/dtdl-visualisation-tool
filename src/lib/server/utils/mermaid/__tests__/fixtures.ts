@@ -56,11 +56,6 @@ dtmi:com:example:1 --- |A relationship| dtmi:com:example_related:1
 dtmi:com:example_related:1@{ shape: rect, label: "example related"}
 click dtmi:com:example_related:1 getEntity`
 
-export const flowchartFixtureSimple = `flowchart TD
-dtmi:com:example:1@{ shape: rect, label: "example 1"}
-click dtmi:com:example:1 getEntity
-class dtmi:com:example:1 search`
-
 export const classDiagramFixture = `classDiagram
  direction  TD
 class \`dtmi:com:example:1\`["example 1"] 
@@ -82,12 +77,6 @@ click dtmi:com:example:1 getEntity
 dtmi:com:example:1 --- |A relationship| dtmi:com:example_related:1
 dtmi:com:example_related:1@{ shape: rect, label: "example related"}
 click dtmi:com:example_related:1 getEntity`
-
-export const classDiagramFixtureSimple = `classDiagram
- direction  TD
-class \`dtmi:com:example:1\`["example 1"] 
-click \`dtmi:com:example:1\` call getEntity()
-class \`dtmi:com:example:1\`:::search`
 
 export const mockDtdlObjectModel = {
   'dtmi:com:example;1': {
