@@ -15,8 +15,6 @@ import { errorToast } from './views/components/errors.js'
 
 const env = container.resolve(Env)
 
-const maxFileSizeMB = 10
-
 export default async (): Promise<Express> => {
   const app: Express = express()
 
@@ -32,7 +30,7 @@ export default async (): Promise<Express> => {
   const multerOptions = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: maxFileSizeMB * 1024 * 1024,
+      fileSize: env.get('UPLOAD_LIMIT_MB') * 1024 * 1024,
     },
   })
   app.use(cookieParser(env.get('COOKIE_SESSION_KEYS')))
@@ -72,7 +70,7 @@ export default async (): Promise<Express> => {
     }
 
     if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
-      err = new UploadError(`Zip file is too large. Must be less than ${maxFileSizeMB}MB`)
+      err = new UploadError(`Zip file is too large. Must be less than ${env.get('UPLOAD_LIMIT_MB')}MB`)
     }
 
     if (err instanceof SessionError && err.code === 408) {

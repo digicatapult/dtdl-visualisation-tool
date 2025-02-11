@@ -5,6 +5,7 @@ import { pino } from 'pino'
 import { EntityType } from '@digicatapult/dtdl-parser'
 import sinon, { SinonStub } from 'sinon'
 import Database from '../../../db/index.js'
+import { ListItem } from '../../models/github.js'
 import { Layout } from '../../models/mermaidLayouts.js'
 import { type UUID } from '../../models/strings.js'
 import { DtdlLoader } from '../../utils/dtdl/dtdlLoader'
@@ -41,11 +42,25 @@ export const templateMock = {
     `svgControls_${generatedOutput}_svgControls`,
 } as unknown as MermaidTemplates
 export const openOntologyMock = {
-  OpenOntologyRoot: ({ sessionId }: { sessionId: UUID }) => `root_${sessionId}_root`,
+  OpenOntologyRoot: ({ sessionId, populateListLink }: { sessionId: UUID; populateListLink?: string }) =>
+    `root_${sessionId}_${populateListLink}_root`,
   mainView: (): JSX.Element => `mainView_SomethingHere_mainView`,
-  getMenu: ({ showContent }: { showContent: boolean }) => `uploadMethod_${showContent}_uploadMethod`,
+  getMenu: ({ showContent, sessionId }: { showContent: boolean; sessionId: UUID }) =>
+    `uploadMethod_${showContent}_${sessionId}_uploadMethod`,
   uploadZip: () => `uploadZip_Zip_uploadZip`,
   uploadGithub: (): JSX.Element => `uploadGithub_Github_uploadGithub`,
+  githubListItems: ({
+    list,
+    nextPageLink,
+    backLink,
+  }: {
+    list: ListItem[]
+    nextPageLink?: string
+    backLink?: string
+  }): JSX.Element =>
+    `githubListItems_${list.map((item) => `${item.text}_${item.link}`).join('_')}_${nextPageLink}_${backLink}_githubListItems`,
+  selectFolder: ({ link, swapOutOfBand }: { link?: string; swapOutOfBand?: boolean }): JSX.Element =>
+    `selectFolder_${link}_${swapOutOfBand}_selectFolder`,
 } as unknown as OpenOntologyTemplates
 export const mockLogger = pino({ level: 'silent' })
 export const mockCache = new LRUCache(10, 1000 * 60)
@@ -58,9 +73,11 @@ export const mockDb = {
 } as unknown as Database
 
 export const sessionSetStub = sinon.stub()
+export const sessionUpdateStub = sinon.stub()
 export const mockSession = {
   get: sinon.stub().callsFake((id) => sessionMap[id]),
   set: sessionSetStub,
+  update: sessionUpdateStub,
 } as unknown as SessionStore
 
 export const mockSearch = new FuseSearch<EntityType>(Object.values(simpleMockDtdlObjectModel))

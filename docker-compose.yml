@@ -31,6 +31,8 @@ services:
       - DB_USERNAME=postgres
       - DB_PASSWORD=postgres
       - DB_PORT=5432
+      - GH_CLIENT_ID=${GH_CLIENT_ID}
+      - GH_CLIENT_SECRET=${GH_CLIENT_SECRET}
     command: >
       sh -c "
         npx knex migrate:latest --env production

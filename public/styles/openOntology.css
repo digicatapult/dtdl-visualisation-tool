@@ -10,7 +10,6 @@
     flex-direction: column;
     justify-content: flex-start;
     align-items: flex-start;
-    height: 100vh;
     width: 100%;
     padding-inline: 100px;
 
@@ -120,6 +119,7 @@
 .upload-option:hover {
   background-color: #f0f0f0;
 }
+
 .upload-option img {
   float: left;
   width: 20px;
@@ -183,4 +183,8 @@
   font-size: 0.9rem;
   color: #888;
   margin: 8px 0 0 0;
+#spinner-wrapper{
+  position: absolute;
+  left: 50%;
+  top: 50%;
 }

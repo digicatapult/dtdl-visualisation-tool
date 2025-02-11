@@ -67,3 +67,9 @@ export class SessionError extends HttpError {
     super('User', 408, 'Session Error', userMessage, userMessage)
   }
 }
+
+export class GithubReqError extends HttpError {
+  constructor(userMessage: string) {
+    super('User', 400, 'GitHub Request Error', userMessage, userMessage)
+  }
+}

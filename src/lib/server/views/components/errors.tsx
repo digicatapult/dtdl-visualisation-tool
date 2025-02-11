@@ -36,7 +36,7 @@ export function errorToast(error: unknown) {
             <p>{escapeHtml(httpError.userMessage)}</p>
           </div>
           <form method="dialog">
-            <button />
+            <button class="modal-button" />
           </form>
         </dialog>
         <div class="toast-wrapper" />

@@ -82,8 +82,8 @@ describe('OpenOntologyController', async () => {
   })
   describe('menu', () => {
     it('Should return rendered upload method template', async () => {
-      const result = await controller.getMenu(true).then(toHTMLString)
-      expect(result).to.equal(`uploadMethod_${true}_uploadMethod`)
+      const result = await controller.getMenu(true, sessionId).then(toHTMLString)
+      expect(result).to.equal(`uploadMethod_${true}_${sessionId}_uploadMethod`)
     })
   })
 

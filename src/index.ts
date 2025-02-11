@@ -9,7 +9,9 @@ import { container } from 'tsyringe'
 import Database from './lib/db/index.js'
 import { httpServer } from './lib/server/index.js'
 import { logger } from './lib/server/logger.js'
+import { type UUID } from './lib/server/models/strings.js'
 import { DtdlLoader } from './lib/server/utils/dtdl/dtdlLoader.js'
+import { parseAndInsertDtdl } from './lib/server/utils/dtdl/parse.js'
 import { SvgGenerator } from './lib/server/utils/mermaid/generator.js'
 import version from './version.js'
 
@@ -31,10 +33,13 @@ program
   .option('-P, --port <port>', 'specify host port number if it is not a default, default - 3000', '3000')
   .requiredOption('-p --path <path/to/dir>', 'Path to dtdl ontology directory')
   .action(async (options) => {
-    const parser = await getInterop()
-    const parsedDtdl = parseDirectories(options.path, parser)
+    const db = container.resolve(Database)
+    logger.info(`Storing default model in db`)
 
-    if (!parsedDtdl) {
+    let id: UUID
+    try {
+      id = await parseAndInsertDtdl(options.path, `default`, db)
+    } catch {
       logger.error(`Error parsing DTDL`)
       process.exit(1)
     }
@@ -61,6 +66,11 @@ program
     container.register(DtdlLoader, {
       useValue: dtdlLoader,
     })
+
+    logger.info(`Loading SVG generator...`)
+    const generator = container.resolve(SvgGenerator)
+    await generator.run(minimumDtdl, 'flowchart', 'elk')
+    logger.info(`Complete`)
 
     httpServer(options.port)
   })
