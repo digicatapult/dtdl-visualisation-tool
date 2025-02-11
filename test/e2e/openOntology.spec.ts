@@ -8,15 +8,15 @@ import { waitForSuccessResponse, waitForUpdateLayout, waitForUploadFile } from '
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-test.describe('Upload ontology from local drive', () => {
-  test('Should error success path for uploading ontology from local zip file', async ({ page }) => {
+test.describe('Open Ontology from recently visited', () => {
+  test('File upload should result in a recent view', async ({ page }) => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     await page.setViewportSize({ width: 1920, height: 1080 })
     await waitForUpdateLayout(page, () => page.goto('./'))
     await expect(page.locator('#toolbar').getByText('Open Ontology')).toBeVisible()
 
     await waitForSuccessResponse(page, () => page.locator('#open-button').click(), '/open')
-    await expect(page.locator('#main-view').getByText('Upload New File')).toBeVisible()
+    await expect(page.locator('#main-view').getByText('Viewed Today at ')).toBeVisible()
 
     await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('Upload New File').click(), '/menu')
     await expect(page.locator('#main-view').getByText('Local Zip File')).toBeVisible()
@@ -33,6 +33,8 @@ test.describe('Upload ontology from local drive', () => {
 
     await waitForSuccessResponse(page, () => page.locator('#open-button').click(), '/open')
     await expect(page.locator('#main-view').getByText('simple.zip')).toBeVisible()
-    await expect(page.locator('#main-view').getByText('Viewed Today at')).toBeVisible()
+
+    await waitForUpdateLayout(page, () => page.locator('text=simple.zip').click())
+    await expect(page.locator('#mermaid-output').getByText('dtmi:com:example;1')).toBeVisible()
   })
 })
