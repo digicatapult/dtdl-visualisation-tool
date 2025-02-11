@@ -182,7 +182,9 @@ export default class OpenOntologyTemplates {
               hx-get={`/open/${recentFile.dtdlModelId}`}
               hx-include="#sessionId"
             >
-              <div class="file-preview">{recentFile.preview}</div>
+              <div class="file-preview" safe>
+                {recentFile.preview}
+              </div>
               <div class="file-details">
                 <p class="file-name">{escapeHtml(recentFile.fileName)}</p>
                 <p class="file-viewed">Viewed {escapeHtml(recentFile.lastVisited)}</p>
