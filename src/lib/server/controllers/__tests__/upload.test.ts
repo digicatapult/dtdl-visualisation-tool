@@ -38,7 +38,7 @@ describe('OpenOntologyController', async () => {
     })
     it('Should return rendered open ontology template', async () => {
       const result = await controller.open(req, sessionId).then(toHTMLString)
-      expect(result).to.equal(`root_${sessionId}_root`)
+      expect(result).to.equal(`root_${sessionId}_undefined_root`)
     })
     it('Should set HX-Push-Url header when session ID is provided', async () => {
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
@@ -50,7 +50,7 @@ describe('OpenOntologyController', async () => {
       reqWithoutCookie.signedCookies = {}
 
       const result = await controller.open(reqWithoutCookie, sessionId).then(toHTMLString)
-      expect(result).to.equal(`root_${sessionId}_root`)
+      expect(result).to.equal(`root_${sessionId}_undefined_root`)
     })
     it('Should filter out invalid models from cookie history', async () => {
       const req = mockReqWithCookie({

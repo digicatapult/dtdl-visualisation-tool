@@ -2,7 +2,7 @@
 
 import 'reflect-metadata'
 
-import { getInterop, parseDirectories, validateDirectories } from '@digicatapult/dtdl-parser'
+import { getInterop, validateDirectories } from '@digicatapult/dtdl-parser'
 import chalk from 'chalk'
 import { Command } from 'commander'
 import { container } from 'tsyringe'
@@ -34,32 +34,15 @@ program
   .requiredOption('-p --path <path/to/dir>', 'Path to dtdl ontology directory')
   .action(async (options) => {
     const db = container.resolve(Database)
+    const generator = container.resolve(SvgGenerator)
     logger.info(`Storing default model in db`)
 
     let id: UUID
     try {
-      id = await parseAndInsertDtdl(options.path, `default`, db)
+      id = await parseAndInsertDtdl(options.path, `default`, db, generator)
     } catch {
       logger.error(`Error parsing DTDL`)
       process.exit(1)
-    }
-
-    logger.info(`generating default dtdl output`)
-    const generator = container.resolve(SvgGenerator)
-    const output = await generator.run(parsedDtdl, 'flowchart', 'elk', {})
-
-    logger.info(`Storing default model in db`)
-    const db = container.resolve(Database)
-    const existingModel = await db.get('model', { parsed: parsedDtdl }, 1)
-    let id: string
-    if (existingModel.length > 0) {
-      id = existingModel[0].id
-    } else {
-      ;[{ id }] = await db.insert('model', {
-        name: 'default',
-        parsed: parsedDtdl,
-        preview: output.renderForMinimap(),
-      })
     }
 
     const dtdlLoader = new DtdlLoader(db, id)
@@ -67,9 +50,6 @@ program
       useValue: dtdlLoader,
     })
 
-    logger.info(`Loading SVG generator...`)
-    const generator = container.resolve(SvgGenerator)
-    await generator.run(minimumDtdl, 'flowchart', 'elk')
     logger.info(`Complete`)
 
     httpServer(options.port)

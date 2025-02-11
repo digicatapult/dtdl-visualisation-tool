@@ -8,16 +8,14 @@ import { inject, injectable } from 'tsyringe'
 import unzipper from 'unzipper'
 import Database from '../../db/index.js'
 import { SessionError, UploadError } from '../errors.js'
-import { type CookieHistoryParams } from '../models/controllerTypes.js'
 import { type UUID } from '../models/strings.js'
 import { parseAndInsertDtdl } from '../utils/dtdl/parse.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
-import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns'
 import { Logger, type ILogger } from '../logger.js'
-import { RecentFile } from '../models/openTypes.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
+import { recentFilesFromCookies } from './helpers.js'
 
 @injectable()
 @Route('/open')
@@ -40,36 +38,8 @@ export class OpenOntologyController extends HTMLController {
       throw new SessionError('No session ID provided')
     }
     this.setHeader('HX-Push-Url', `/open`)
-    const cookieName = 'DTDL_MODEL_HISTORY'
-    const cookieHistory: CookieHistoryParams[] = req.signedCookies[cookieName] ? req.signedCookies[cookieName] : []
-    const models = await Promise.all(
-      cookieHistory.flatMap(async (entry) => {
-        try {
-          const model = (await this.db.get('model', { id: entry.id }, 1))[0]
-          return model || null
-        } catch (error) {
-          this.logger.warn(`Failed to fetch model for ID ${entry.id}`, error)
-          return null
-        }
-      })
-    )
-    const validModels = models.filter((model) => model !== null)
-    const recentFiles: RecentFile[] = validModels
-      .map((validModel) => {
-        const svgElement = validModel.preview ? validModel.preview : 'No Preview'
-        const historyEntry = cookieHistory.find((entry) => entry.id === validModel.id)
-        const timestamp = historyEntry?.timestamp ?? 0
-        return {
-          fileName: validModel.name,
-          lastVisited: historyEntry ? this.formatLastVisited(timestamp) : 'Unknown',
-          preview: svgElement,
-          dtdlModelId: validModel.id,
-          rawTimestamp: timestamp,
-        }
-      })
-      .sort((a, b) => b.rawTimestamp - a.rawTimestamp)
-      .map(({ rawTimestamp, ...recentFile }) => recentFile)
 
+    const recentFiles = await recentFilesFromCookies(req.signedCookies, this.db, this.logger)
     return this.html(this.openOntologyTemplates.OpenOntologyRoot({ sessionId, recentFiles }))
   }
 
@@ -93,7 +63,7 @@ export class OpenOntologyController extends HTMLController {
       throw new UploadError('Uploaded zip file is not valid')
     }
 
-    const id = await parseAndInsertDtdl(unzippedPath, file.originalname, this.db, false)
+    const id = await parseAndInsertDtdl(unzippedPath, file.originalname, this.db, this.generator, false)
 
     this.setHeader('HX-Redirect', `/ontology/${id}/view?sessionId=${sessionId}`)
     return
@@ -114,12 +84,5 @@ export class OpenOntologyController extends HTMLController {
   public async loadFile(@Path() dtdlModelId: UUID, @Query() sessionId: UUID): Promise<void> {
     this.setHeader('HX-Redirect', `/ontology/${dtdlModelId}/view?sessionId=${sessionId}`)
     return
-  }
-
-  private formatLastVisited(timestamp: number): string {
-    const date = new Date(timestamp)
-    if (isToday(date)) return `Today at ${format(date, 'HH:mm')}`
-    if (isYesterday(date)) return `Yesterday at ${format(date, 'HH:mm')}`
-    return `${formatDistanceToNow(date, { addSuffix: true })}`
   }
 }

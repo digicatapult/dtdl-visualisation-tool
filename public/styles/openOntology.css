@@ -183,6 +183,8 @@
   font-size: 0.9rem;
   color: #888;
   margin: 8px 0 0 0;
+}
+
 #spinner-wrapper{
   position: absolute;
   left: 50%;
