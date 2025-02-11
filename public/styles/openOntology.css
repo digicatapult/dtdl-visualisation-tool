@@ -154,7 +154,17 @@
 
 .file-preview {
   height: 200px;
-  background-color: #e57373;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.file-preview svg {
+  max-width: 100%;
+  max-width: 100%;
+  width: auto;
+  height: auto;
 }
 
 .file-details {

@@ -412,7 +412,7 @@ export class OntologyController extends HTMLController {
   }
 
   private handleCookie(
-    cookies: Record<string, string | undefined>,
+    cookies: Record<string, CookieHistoryParams[]>,
     dtdlModelId: UUID,
     cookieName: string
   ): CookieHistoryParams[] {
@@ -420,7 +420,7 @@ export class OntologyController extends HTMLController {
 
     let cookieHistory: CookieHistoryParams[] = []
     try {
-      cookieHistory = cookies[cookieName] ? cookies[cookieName] : []
+      cookieHistory = cookies[cookieName] || []
     } catch (error) {
       this.logger.warn('failed to parse cookieHistory cookie', error)
     }

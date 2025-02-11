@@ -3,6 +3,6 @@ import { UUID } from './strings'
 export interface RecentFile {
   fileName: string
   lastVisited: string
-  preview: string
+  preview: JSX.Element
   dtdlModelId: UUID
 }

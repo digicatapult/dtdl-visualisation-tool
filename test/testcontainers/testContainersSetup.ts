@@ -5,6 +5,7 @@ interface VisualisationUIConfig {
   containerName: string
   hostPort: number
   containerPort: number
+  cookieSessionKeys: string
 }
 interface databaseConfig {
   containerName: string
@@ -56,13 +57,14 @@ export async function bringUpVisualisationContainer(): Promise<StartedTestContai
     containerName: 'dtdl-visualiser',
     hostPort: 3000,
     containerPort: 3000,
+    cookieSessionKeys: 'secret',
   }
   visualisationUIContainer = await startVisualisationContainer(visualisationUIConfig)
   return visualisationUIContainer
 }
 
 export async function startVisualisationContainer(env: VisualisationUIConfig): Promise<StartedTestContainer> {
-  const { containerName, containerPort, hostPort } = env
+  const { containerName, containerPort, hostPort, cookieSessionKeys } = env
   logger.info(`Building container...`)
   const containerBase = await GenericContainer.fromDockerfile('./').withCache(true).build()
   logger.info(`Built container.`)
@@ -80,6 +82,7 @@ export async function startVisualisationContainer(env: VisualisationUIConfig): P
       DB_USERNAME: 'postgres',
       DB_PASSWORD: 'postgres',
       DB_PORT: '5432',
+      COOKIE_SESSION_KEYS: cookieSessionKeys,
     })
     .withAddedCapabilities('SYS_ADMIN')
     .withCommand(['sh', '-c', 'npx knex migrate:latest --env production; dtdl-visualiser parse -p /sample/energygrid'])

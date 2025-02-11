@@ -43,10 +43,10 @@ export class OpenOntologyController extends HTMLController {
     const cookieName = 'DTDL_MODEL_HISTORY'
     const cookieHistory: CookieHistoryParams[] = req.signedCookies[cookieName] ? req.signedCookies[cookieName] : []
     const models = await Promise.all(
-      cookieHistory.map(async (entry) => {
+      cookieHistory.flatMap(async (entry) => {
         try {
-          const [model] = await this.db.get('model', { id: entry.id })
-          return model
+          const model = (await this.db.get('model', { id: entry.id }, 1))[0]
+          return model || null
         } catch (error) {
           this.logger.warn(`Failed to fetch model for ID ${entry.id}`, error)
           return null

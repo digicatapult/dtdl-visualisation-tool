@@ -2,7 +2,7 @@
 
 import 'reflect-metadata'
 
-import { DtdlObjectModel, getInterop, parseDirectories, validateDirectories } from '@digicatapult/dtdl-parser'
+import { getInterop, parseDirectories, validateDirectories } from '@digicatapult/dtdl-parser'
 import chalk from 'chalk'
 import { Command } from 'commander'
 import { container } from 'tsyringe'
@@ -18,14 +18,6 @@ const program = new Command()
 const { red: r } = {
   red: (txt: string) => chalk.redBright(txt),
 }
-
-const minimumDtdl = {
-  minimum: {
-    EntityKind: 'Interface',
-    Id: '0',
-    extends: [],
-  },
-} as unknown as DtdlObjectModel
 
 program
   .name('dtdl-visualiser')
@@ -47,16 +39,23 @@ program
       process.exit(1)
     }
 
-    const db = container.resolve(Database)
+    logger.info(`generating default dtdl output`)
+    const generator = container.resolve(SvgGenerator)
+    const output = await generator.run(parsedDtdl, 'flowchart', 'elk', {})
 
     logger.info(`Storing default model in db`)
-    const generator = container.resolve(SvgGenerator)
-    const output = await generator.run(minimumDtdl, 'flowchart', 'elk', {})
-    const [{ id }] = await db.insert('model', {
-      name: 'default',
-      parsed: parsedDtdl,
-      preview: output.renderForMinimap(),
-    })
+    const db = container.resolve(Database)
+    const existingModel = await db.get('model', { parsed: parsedDtdl }, 1)
+    let id: string
+    if (existingModel.length > 0) {
+      id = existingModel[0].id
+    } else {
+      ;[{ id }] = await db.insert('model', {
+        name: 'default',
+        parsed: parsedDtdl,
+        preview: output.renderForMinimap(),
+      })
+    }
 
     const dtdlLoader = new DtdlLoader(db, id)
     container.register(DtdlLoader, {

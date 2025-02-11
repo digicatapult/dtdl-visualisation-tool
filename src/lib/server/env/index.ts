@@ -1,6 +1,6 @@
 import * as envalid from 'envalid'
 import { singleton } from 'tsyringe'
-import { strArrayValidator } from './validators'
+import { strArrayValidator } from './validators.js'
 
 const envConfig = {
   LOG_LEVEL: envalid.str({ default: 'info', devDefault: 'debug' }),

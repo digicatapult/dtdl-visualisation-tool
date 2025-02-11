@@ -88,16 +88,20 @@ export default class OpenOntologyTemplates {
   }
 
   public recentFiles = ({ recentFiles }: { recentFiles: RecentFile[] }) => {
-    const length = recentFiles.length
     return (
       <>
-        <h4>Recent Files, {escapeHtml(length)}</h4>
+        <h4>Recent Files</h4>
         <section id="recent-files" class="file-grid">
-          {recentFiles.map((recentFile) => (
-            <div class="file-card" hx-get={`/open/${recentFile.dtdlModelId}`} hx-include="#sessionId">
-              <div class="file-preview" style="background-color: #e57373;">
-                preview goes here
-              </div>
+          {recentFiles.map((recentFile, index) => (
+            <div
+              class="file-card"
+              role="button"
+              tabindex={`${index + 1}`}
+              hx-get={`/open/${recentFile.dtdlModelId}`}
+              hx-include="#sessionId"
+              onkeydown="if (event.key === 'Enter') this.click()"
+            >
+              <div class="file-preview">{recentFile.preview}</div>
               <div class="file-details">
                 <p class="file-name">{escapeHtml(recentFile.fileName)}</p>
                 <p class="file-viewed">Viewed {escapeHtml(recentFile.lastVisited)}</p>
