@@ -1,12 +1,6 @@
 import { expect, test } from '@playwright/test'
-import path from 'path'
-import { fileURLToPath } from 'url'
 
 import { waitForSuccessResponse, waitForUpdateLayout } from './helpers/waitForHelpers'
-
-// Convert import.meta.url to __dirname equivalent
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
 
 const ghTestUser = process.env.GH_TEST_USER
 const ghTestPassword = process.env.GH_TEST_PASSWORD
