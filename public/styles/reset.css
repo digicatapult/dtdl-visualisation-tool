@@ -4,18 +4,6 @@
   box-sizing: border-box;
 }
 
-a,
-a:link,
-a:visited {
-  color: var(--text-color);
-  text-decoration: none;
-
-  &:hover,
-  &:focus-visible {
-    filter: brightness(115%);
-  }
-}
-
 input,
 button {
   font-family: inherit;

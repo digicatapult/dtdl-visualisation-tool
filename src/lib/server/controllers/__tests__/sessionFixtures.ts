@@ -7,6 +7,8 @@ export const validSessionExpanded759Id = '6cfacf2a-5058-4c20-95da-a7dc7659ea55' 
 export const validSessionExpanded9XId = '6cfacf2a-5058-4c20-95da-a7dc7659ea56' as const
 export const validSessionSomeSearchId = '6cfacf2a-5058-4c20-95da-a7dc7659ea57' as const
 export const validSessionSomeOtherSearchId = '6cfacf2a-5058-4c20-95da-a7dc7659ea58' as const
+export const validSessionOctokitId = '6cfacf2a-5058-4c20-95da-a7dc7659ea59' as const
+export const validSessionReturnUrlId = '6cfacf2a-5058-4c20-95da-a7dc7659ea60' as const
 
 export const invalidSessionId = '00000000-0000-0000-0000-000000000000' as const
 
@@ -28,4 +30,6 @@ export const sessionMap = {
   [validSessionExpanded9XId]: { ...validSession, expandedIds: ['9', '10'] },
   [validSessionSomeSearchId]: { ...validSession, search: 'someSearch' },
   [validSessionSomeOtherSearchId]: { ...validSession, search: 'someOtherSearch' },
+  [validSessionOctokitId]: { ...validSession, octokitToken: 'octokit' },
+  [validSessionReturnUrlId]: { ...validSession, returnUrl: 'return.url' },
 }

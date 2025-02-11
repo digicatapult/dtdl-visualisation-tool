@@ -1,14 +1,14 @@
-import { mkdtemp, rm } from 'node:fs/promises'
+import { mkdtemp } from 'node:fs/promises'
 import os from 'node:os'
 
-import { getInterop, parseDirectories } from '@digicatapult/dtdl-parser'
 import { join } from 'node:path'
 import { FormField, Get, Post, Produces, Query, Route, SuccessResponse, UploadedFile } from 'tsoa'
 import { injectable } from 'tsyringe'
 import unzipper from 'unzipper'
 import Database from '../../db/index.js'
-import { DataError, SessionError, UploadError } from '../errors.js'
+import { SessionError, UploadError } from '../errors.js'
 import { type UUID } from '../models/strings.js'
+import { parseAndInsertDtdl } from '../utils/dtdl/parse.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
@@ -25,7 +25,7 @@ export class OpenOntologyController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('/')
-  public async open(@Query() sessionId?: UUID): Promise<HTML> {
+  public async open(@Query() sessionId: UUID): Promise<HTML> {
     if (!sessionId) {
       throw new SessionError('No session ID provided')
     }
@@ -35,8 +35,8 @@ export class OpenOntologyController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('/menu')
-  public async getMenu(@Query() showContent: boolean): Promise<HTML> {
-    return this.html(this.openOntologyTemplates.getMenu({ showContent }))
+  public async getMenu(@Query() showContent: boolean, @Query() sessionId: UUID): Promise<HTML> {
+    return this.html(this.openOntologyTemplates.getMenu({ showContent, sessionId }))
   }
 
   @SuccessResponse(302, 'File uploaded successfully')
@@ -53,16 +53,7 @@ export class OpenOntologyController extends HTMLController {
       throw new UploadError('Uploaded zip file is not valid')
     }
 
-    const parser = await getInterop()
-    const parsedDtdl = parseDirectories(unzippedPath, parser)
-
-    rm(unzippedPath, { recursive: true })
-
-    if (!parsedDtdl) {
-      throw new DataError('Failed to parse DTDL model')
-    }
-
-    const [{ id }] = await this.db.insert('model', { name: file.originalname, parsed: parsedDtdl })
+    const id = await parseAndInsertDtdl(unzippedPath, file.originalname, this.db, false)
 
     this.setHeader('HX-Redirect', `/ontology/${id}/view?sessionId=${sessionId}`)
     return

@@ -1,0 +1,27 @@
+#github-modal {
+    height: 50%;
+    width: 50ch;
+    align-self: center;
+  }
+  
+.github-list {
+    overflow: auto;
+    list-style-type: none;
+    padding: 0;
+    border: 1px solid #e8e8e8;
+    line-height: 1.8rem;
+    height: 100%;
+    width: 100%;
+}
+
+#modal-wrapper {
+    justify-items: center;
+    align-items: center;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    height: 100%;
+    gap: 1rem;
+    padding: 1rem 1rem 0 1rem;
+}
+
+.github-list li:nth-child(odd) { background: var(--background-color); }

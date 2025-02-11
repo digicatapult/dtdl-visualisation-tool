@@ -1,5 +1,12 @@
+import dotenv from 'dotenv'
 import * as envalid from 'envalid'
 import { singleton } from 'tsyringe'
+
+if (process.env.NODE_ENV === 'test') {
+  dotenv.config({ path: 'test/test.env' })
+} else {
+  dotenv.config()
+}
 
 const envConfig = {
   LOG_LEVEL: envalid.str({ default: 'info', devDefault: 'debug' }),
@@ -11,6 +18,11 @@ const envConfig = {
   DB_USERNAME: envalid.str({ default: 'postgres' }),
   DB_PASSWORD: envalid.str({ default: 'postgres' }),
   DB_PORT: envalid.port({ default: 5432 }),
+  GH_CLIENT_ID: envalid.str(),
+  GH_CLIENT_SECRET: envalid.str(),
+  GH_PER_PAGE: envalid.num({ default: 50 }),
+  UPLOAD_LIMIT_MB: envalid.num({ default: 10 * 1024 * 1024 }),
+  GH_REDIRECT_HOST: envalid.host({ default: 'localhost:3000' }),
 }
 
 export type ENV_CONFIG = typeof envConfig

@@ -57,7 +57,7 @@ export default class MermaidTemplates {
 
       <div id="mermaid-wrapper">
         <this.mermaidTarget target="mermaid-output" />
-        <div id="spinner" />
+        <div id="spinner" class="spinner" />
       </div>
       <this.Legend showContent={false} />
       <this.navigationPanel expanded={false} />
@@ -242,7 +242,9 @@ export default class MermaidTemplates {
         hx-sync="this:replace"
         {...commonUpdateAttrs}
       >
-        <h2>UKDTC</h2>
+        <h2>
+          <a href="/">UKDTC</a>
+        </h2>
         <input
           id="search"
           name="search"
@@ -344,9 +346,9 @@ export default class MermaidTemplates {
 
   private uploadForm = ({ sessionId }: { sessionId: UUID }) => {
     return (
-      <button id="open-button">
-        <a href={`/open?sessionId='${sessionId}'`}>Open Ontology</a>
-      </button>
+      <a id="open-button" href={`/open?sessionId=${sessionId}`} class="button">
+        Open Ontology
+      </a>
     )
   }
 }
