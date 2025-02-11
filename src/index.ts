@@ -59,7 +59,7 @@ program
 
     logger.info(`Loading SVG generator...`)
     const generator = container.resolve(SvgGenerator)
-    await generator.run(minimumDtdl, 'flowchart', 'elk', {})
+    await generator.run(minimumDtdl, 'flowchart', 'elk')
     logger.info(`Complete`)
 
     httpServer(options.port)
