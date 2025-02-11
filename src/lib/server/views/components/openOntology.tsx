@@ -99,7 +99,6 @@ export default class OpenOntologyTemplates {
               tabindex={`${index + 1}`}
               hx-get={`/open/${recentFile.dtdlModelId}`}
               hx-include="#sessionId"
-              onkeydown="if (event.key === 'Enter') this.click()"
             >
               <div class="file-preview">{recentFile.preview}</div>
               <div class="file-details">
