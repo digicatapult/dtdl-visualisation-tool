@@ -113,7 +113,7 @@ The application can be run in Docker. `sample/energygrid` is automatically parse
 | GH_REDIRECT_HOST    | n        | `localhost:3000`          | Host to redirect to for GitHub OAuth callback. See [GitHub Integration](#github-integration) |
 | COOKIE_SESSION_KEYS | y        | -                         | Secret for signed cookies, devDefault `secret`                                               |
 
-## Database migrations COOKIE_SESSION_KEYS
+## Database migrations
 
 To migrate up the database started by `docker compose`, run locally
 
