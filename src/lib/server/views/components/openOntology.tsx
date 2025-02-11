@@ -174,23 +174,24 @@ export default class OpenOntologyTemplates {
       <>
         <h4>Recent Files</h4>
         <section id="recent-files" class="file-grid">
-          {recentFiles.map((recentFile, index) => (
-            <div
-              class="file-card"
-              role="button"
-              tabindex={`${index + 1}`}
-              hx-get={`/open/${recentFile.dtdlModelId}`}
-              hx-include="#sessionId"
-            >
-              <div class="file-preview" safe>
-                {recentFile.preview}
+          {recentFiles.map((recentFile, index) => {
+            const preview: JSX.Element = recentFile.preview
+            return (
+              <div
+                class="file-card"
+                role="button"
+                tabindex={`${index + 1}`}
+                hx-get={`/open/${recentFile.dtdlModelId}`}
+                hx-include="#sessionId"
+              >
+                <div class="file-preview">{preview}</div>
+                <div class="file-details">
+                  <p class="file-name">{escapeHtml(recentFile.fileName)}</p>
+                  <p class="file-viewed">Viewed {escapeHtml(recentFile.lastVisited)}</p>
+                </div>
               </div>
-              <div class="file-details">
-                <p class="file-name">{escapeHtml(recentFile.fileName)}</p>
-                <p class="file-viewed">Viewed {escapeHtml(recentFile.lastVisited)}</p>
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </section>
       </>
     )
