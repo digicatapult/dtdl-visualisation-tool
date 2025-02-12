@@ -1,6 +1,6 @@
 import { Octokit } from '@octokit/core'
 import { container, inject, singleton } from 'tsyringe'
-import { Env } from '../env.js'
+import { Env } from '../env/index.js'
 import { GithubReqError } from '../errors.js'
 
 import { Logger, type ILogger } from '../logger.js'

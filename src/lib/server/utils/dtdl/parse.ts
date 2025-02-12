@@ -4,11 +4,13 @@ import { rm } from 'node:fs/promises'
 import Database from '../../../db'
 import { DataError } from '../../errors.js'
 import { type UUID } from '../../models/strings.js'
+import { SvgGenerator } from '../mermaid/generator'
 
 export const parseAndInsertDtdl = async (
   localPath: string,
   dtdlName: string,
   db: Database,
+  generator: SvgGenerator,
   deleteLocal: boolean = false
 ): Promise<UUID> => {
   const parser = await getInterop()
@@ -20,6 +22,13 @@ export const parseAndInsertDtdl = async (
     throw new DataError('Failed to parse DTDL model')
   }
 
-  const [{ id }] = await db.insert('model', { name: dtdlName, parsed: parsedDtdl })
+  const output = await generator.run(parsedDtdl, 'flowchart', 'elk')
+
+  const [{ id }] = await db.insert('model', {
+    name: dtdlName,
+    parsed: parsedDtdl,
+    preview: output.renderForMinimap(),
+  })
+
   return id
 }

@@ -2,7 +2,7 @@
 
 import 'reflect-metadata'
 
-import { DtdlObjectModel, getInterop, validateDirectories } from '@digicatapult/dtdl-parser'
+import { getInterop, validateDirectories } from '@digicatapult/dtdl-parser'
 import chalk from 'chalk'
 import { Command } from 'commander'
 import { container } from 'tsyringe'
@@ -21,14 +21,6 @@ const { red: r } = {
   red: (txt: string) => chalk.redBright(txt),
 }
 
-const minimumDtdl = {
-  minimum: {
-    EntityKind: 'Interface',
-    Id: '0',
-    extends: [],
-  },
-} as unknown as DtdlObjectModel
-
 program
   .name('dtdl-visualiser')
   .description('A CLI tool for visualising digital twin ontologies')
@@ -42,11 +34,12 @@ program
   .requiredOption('-p --path <path/to/dir>', 'Path to dtdl ontology directory')
   .action(async (options) => {
     const db = container.resolve(Database)
+    const generator = container.resolve(SvgGenerator)
     logger.info(`Storing default model in db`)
 
     let id: UUID
     try {
-      id = await parseAndInsertDtdl(options.path, `default`, db)
+      id = await parseAndInsertDtdl(options.path, `default`, db, generator)
     } catch {
       logger.error(`Error parsing DTDL`)
       process.exit(1)
@@ -57,9 +50,6 @@ program
       useValue: dtdlLoader,
     })
 
-    logger.info(`Loading SVG generator...`)
-    const generator = container.resolve(SvgGenerator)
-    await generator.run(minimumDtdl, 'flowchart', 'elk')
     logger.info(`Complete`)
 
     httpServer(options.port)

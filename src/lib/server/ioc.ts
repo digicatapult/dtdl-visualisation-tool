@@ -1,7 +1,7 @@
 import { IocContainer } from '@tsoa/runtime'
 import { container } from 'tsyringe'
 
-import { Env } from './env.js'
+import { Env } from './env/index.js'
 import { logger, Logger, type ILogger } from './logger.js'
 import { Cache, type ICache } from './utils/cache.js'
 import { LRUCache } from './utils/lruCache.js'
