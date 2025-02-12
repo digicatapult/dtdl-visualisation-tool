@@ -1,3 +1,4 @@
+import { expect } from 'chai'
 import { JSDOM } from 'jsdom'
 import mermaid, { ParseResult } from 'mermaid'
 import path from 'path'
@@ -42,4 +43,9 @@ export function withPathElement(): Element {
   const dom = new JSDOM()
   const document = dom.window.document
   return document.createElement('path')
+}
+
+export const expectStringIsFiniteNumber = (x: string | null) => {
+  expect(x).to.be.a('string')
+  expect(Number.isFinite(parseFloat(x || 'NaN'))).to.equal(true)
 }
