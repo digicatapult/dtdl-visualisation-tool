@@ -96,6 +96,7 @@
     "eslint-plugin-prettier": "^5.2.3",
     "globals": "^15.14.0",
     "mocha": "^11.1.0",
+    "otpauth": "^9.3.6",
     "pino-colada": "^2.2.2",
     "playwright-ctrf-json-reporter": "^0.0.18",
     "prettier": "^3.4.2",

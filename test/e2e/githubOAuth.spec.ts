@@ -1,13 +1,24 @@
 import { expect, test } from '@playwright/test'
+import { TOTP } from 'otpauth'
 
 import { waitForSuccessResponse, waitForUpdateLayout } from './helpers/waitForHelpers'
 
 const ghTestUser = process.env.GH_TEST_USER
 const ghTestPassword = process.env.GH_TEST_PASSWORD
+const gh2faSecret = process.env.GH_TEST_2FA_SECRET
+
+if (!ghTestUser || !ghTestPassword || !gh2faSecret) throw new Error('Test GitHub user credentials required')
+
+const totp = new TOTP({
+  issuer: 'Raccoon',
+  label: 'GitHub',
+  algorithm: 'SHA1',
+  digits: 6,
+  period: 30,
+  secret: gh2faSecret,
+})
 
 test.describe('Upload ontology from GitHub via OAuth', () => {
-  if (!ghTestUser || !ghTestPassword) throw new Error('Test GitHub user credentials required')
-
   test('Success path for uploading ontology from Github', async ({ page }) => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     await page.setViewportSize({ width: 1920, height: 1080 })
@@ -27,7 +38,10 @@ test.describe('Upload ontology from GitHub via OAuth', () => {
     await page.fill('#login_field', ghTestUser)
     await page.fill('#password', ghTestPassword)
 
-    await waitForSuccessResponse(page, () => page.click('input[name="commit"]'), 'github.com/login/oauth')
+    await waitForSuccessResponse(page, () => page.click('input[name="commit"]'), 'github.com/sessions/two-factor/app')
+    await expect(page.locator('#app_totp')).toBeVisible()
+
+    await waitForSuccessResponse(page, () => page.fill('#app_totp', totp.generate()), 'github.com/login/oauth')
 
     await page.waitForTimeout(5000)
     // Click auth if page isn't redirected to callback
