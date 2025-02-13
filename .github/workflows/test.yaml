@@ -36,7 +36,7 @@ jobs:
         }
 
   e2e-tests-npm:
-    uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@chore/dtdl-secrets
+    uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
     with:
       docker_compose_file: ''
       pre_test_command: |
