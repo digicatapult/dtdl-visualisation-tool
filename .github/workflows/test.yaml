@@ -60,6 +60,7 @@ jobs:
       test_command: 'npm run test:playwright || exit 1'
     permissions:
       contents: write
+    secrets: inherit
 
   build-docker:
     uses: digicatapult/shared-workflows/.github/workflows/build-docker.yml@main
