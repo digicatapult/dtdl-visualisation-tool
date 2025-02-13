@@ -10,8 +10,8 @@ const gh2faSecret = process.env.GH_TEST_2FA_SECRET
 if (!ghTestUser || !ghTestPassword || !gh2faSecret) throw new Error('Test GitHub user credentials required')
 
 const totp = new TOTP({
-  issuer: 'Raccoon',
-  label: 'GitHub',
+  issuer: 'GitHub',
+  label: 'test',
   algorithm: 'SHA1',
   digits: 6,
   period: 30,
