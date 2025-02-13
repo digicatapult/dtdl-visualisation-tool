@@ -58,11 +58,6 @@ jobs:
         npx playwright install-deps
         npx playwright install
       test_command: 'npm run test:playwright || exit 1'
-      env_vars: |
-        {
-          "GH_CLIENT_ID": "",
-          "GH_CLIENT_SECRET": ""
-        }
     permissions:
       contents: write
 

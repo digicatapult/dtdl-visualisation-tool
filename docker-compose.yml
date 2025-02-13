@@ -33,8 +33,6 @@ services:
       - DB_PORT=5432
       - GH_CLIENT_ID=${GH_CLIENT_ID}
       - GH_CLIENT_SECRET=${GH_CLIENT_SECRET}
-      - GH_TEST_USER=${GH_TEST_USER}
-      - GH_TEST_PASSWORD=${GH_TEST_PASSWORD}
     command: >
       sh -c "
         npx knex migrate:latest --env production
