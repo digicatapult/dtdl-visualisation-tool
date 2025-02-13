@@ -5,10 +5,10 @@ import { waitForSuccessResponse, waitForUpdateLayout } from './helpers/waitForHe
 const ghTestUser = process.env.GH_TEST_USER
 const ghTestPassword = process.env.GH_TEST_PASSWORD
 
-test.describe.skip('Upload ontology from GitHub via OAuth', () => {
+test.describe('Upload ontology from GitHub via OAuth', () => {
   if (!ghTestUser || !ghTestPassword) throw new Error('Test GitHub user credentials required')
 
-  test.skip('Success path for uploading ontology from Github', async ({ page }) => {
+  test('Success path for uploading ontology from Github', async ({ page }) => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     await page.setViewportSize({ width: 1920, height: 1080 })
     await waitForUpdateLayout(page, () => page.goto('./'))
