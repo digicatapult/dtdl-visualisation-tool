@@ -4,6 +4,7 @@ import { singleton } from 'tsyringe'
 
 if (process.env.NODE_ENV === 'test') {
   dotenv.config({ path: 'test/test.env' })
+  dotenv.config()
 } else {
   dotenv.config()
 }
@@ -21,7 +22,7 @@ const envConfig = {
   GH_CLIENT_ID: envalid.str(),
   GH_CLIENT_SECRET: envalid.str(),
   GH_PER_PAGE: envalid.num({ default: 50 }),
-  UPLOAD_LIMIT_MB: envalid.num({ default: 10 * 1024 * 1024 }),
+  UPLOAD_LIMIT_MB: envalid.num({ default: 10 }),
   GH_REDIRECT_HOST: envalid.host({ default: 'localhost:3000' }),
 }
 
