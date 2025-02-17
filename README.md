@@ -176,7 +176,7 @@ Install dependencies for playwright with:
 npx playwright install
 ```
 
-See [GitHub Integration](#github-integration) for how to configure envs for GitHub e2e tests.
+See [GitHub Integration](#github-integration) for how to configure envs for GitHub e2e tests. All `GH_` envs must be set correctly for the tests to pass.
 
 Then run:
 
