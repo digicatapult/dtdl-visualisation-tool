@@ -6,6 +6,9 @@ import { DataError } from '../../errors.js'
 import { type UUID } from '../../models/strings.js'
 import { SvgGenerator } from '../mermaid/generator'
 
+import { container } from 'tsyringe'
+import { Cache, ICache } from '../cache.js'
+
 export const parseAndInsertDtdl = async (
   localPath: string,
   dtdlName: string,
@@ -29,6 +32,12 @@ export const parseAndInsertDtdl = async (
     parsed: parsedDtdl,
     preview: output.renderForMinimap(),
   })
+
+  const cache = container.resolve<ICache>(Cache)
+  const cacheKey = new URLSearchParams()
+  cacheKey.set('dtdlId', id)
+
+  cache.set(cacheKey.toString(), output.renderToString())
 
   return id
 }
