@@ -23,22 +23,10 @@ export default defineConfig({
     baseURL: 'http://127.0.0.1:3000',
     headless: !!process.env.CI,
   },
-  expect: {
-    timeout: 10 * 1000,
-  },
-  timeout: 60 * 1000,
+  expect: { timeout: 10 * 1000 },
   projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit', use: { ...devices['Desktop Safari'] } },
   ],
 })

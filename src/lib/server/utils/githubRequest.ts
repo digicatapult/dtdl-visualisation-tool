@@ -1,4 +1,5 @@
 import { Octokit } from '@octokit/core'
+import { RequestError } from '@octokit/request-error'
 import { container, inject, singleton } from 'tsyringe'
 import { Env } from '../env.js'
 import { GithubReqError } from '../errors.js'
@@ -19,10 +20,7 @@ export class GithubRequest {
 
     const octokit = new Octokit({ auth: token })
     const response = await this.requestWrapper(async () =>
-      octokit.request('GET /user/repos', {
-        per_page: perPage,
-        page,
-      })
+      octokit.request('GET /user/repos', { per_page: perPage, page })
     )
     return response.data
   }
@@ -32,12 +30,7 @@ export class GithubRequest {
 
     const octokit = new Octokit({ auth: token })
     const response = await this.requestWrapper(async () =>
-      octokit.request('GET /repos/{owner}/{repo}/branches', {
-        owner,
-        repo,
-        per_page: perPage,
-        page,
-      })
+      octokit.request('GET /repos/{owner}/{repo}/branches', { owner, repo, per_page: perPage, page })
     )
     return response.data
   }
@@ -47,12 +40,7 @@ export class GithubRequest {
 
     const octokit = new Octokit({ auth: token })
     const response = await this.requestWrapper(async () =>
-      octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
-        owner,
-        repo,
-        path,
-        ref,
-      })
+      octokit.request('GET /repos/{owner}/{repo}/contents/{path}', { owner, repo, path, ref })
     )
 
     if (!Array.isArray(response.data))
@@ -65,15 +53,8 @@ export class GithubRequest {
     const url = `https://github.com/login/oauth/access_token`
     const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({
-        client_id: env.get('GH_CLIENT_ID'),
-        client_secret: env.get('GH_CLIENT_SECRET'),
-        code,
-      }),
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ client_id: env.get('GH_CLIENT_ID'), client_secret: env.get('GH_CLIENT_SECRET'), code }),
     })
     const json = await response.json()
 
@@ -89,6 +70,11 @@ export class GithubRequest {
       return await request()
     } catch (err) {
       this.logger.debug('GitHub API request failed', err)
+
+      if (err instanceof RequestError && err.status === 404) {
+        throw new GithubReqError(`'${err.response?.url}' not found`)
+      }
+
       throw new GithubReqError('GitHub API request failed')
     }
   }
