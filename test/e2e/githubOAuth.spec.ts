@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, Page, test } from '@playwright/test'
 import { TOTP } from 'otpauth'
 
 import { waitForSuccessResponse, waitForUpdateLayout } from './helpers/waitForHelpers'
@@ -19,7 +19,8 @@ const totp = new TOTP({
 })
 
 test.describe('Upload ontology from GitHub via OAuth', () => {
-  test('Success path for uploading ontology from private Github repo', async ({ page }) => {
+  test('Success path for uploading ontology from private Github repo + from public Github repo', async ({ page }) => {
+    test.setTimeout(120000)
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     await page.setViewportSize({ width: 1920, height: 1080 })
     await waitForUpdateLayout(page, () => page.goto('./'))
@@ -41,9 +42,8 @@ test.describe('Upload ontology from GitHub via OAuth', () => {
     await waitForSuccessResponse(page, () => page.click('input[name="commit"]'), 'github.com/sessions/two-factor/app')
     await expect(page.locator('#app_totp')).toBeVisible()
 
-    await waitForSuccessResponse(page, () => page.fill('#app_totp', totp.generate()), 'github.com/login/oauth')
+    await attempt2fa(page)
 
-    await page.waitForTimeout(2000)
     // Click auth if page isn't redirected to callback
     if (!page.url().includes('/open')) {
       await waitForSuccessResponse(page, () => page.locator('button:has-text("authorize")').click(), '/repos')
@@ -60,37 +60,15 @@ test.describe('Upload ontology from GitHub via OAuth', () => {
     // get dtdl from github
     await waitForSuccessResponse(page, () => page.click('#select-folder'), '/ontology')
     await expect(page.locator('#mermaid-output').getByText('dtmi:com:example;1')).toBeVisible()
-  })
 
-  test('Success path for uploading ontology from public Github repo', async ({ page }) => {
-    // Set viewport and navigate to the page, smaller viewports hide UI elements
-    await page.setViewportSize({ width: 1920, height: 1080 })
-    await waitForUpdateLayout(page, () => page.goto('./'))
-    await expect(page.locator('#toolbar').getByText('Open Ontology')).toBeVisible()
-
+    // test public repo
     await waitForSuccessResponse(page, () => page.locator('#open-button').click(), '/open')
     await expect(page.locator('#main-view').getByText('Upload New File')).toBeVisible()
 
     await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('Upload New File').click(), '/menu')
     await expect(page.locator('#main-view').getByText('GitHub')).toBeVisible()
 
-    await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), 'github.com/login')
-    await expect(page.locator('#login')).toBeVisible()
-
-    // Sign in with Test GitHub user
-    await page.fill('#login_field', ghTestUser)
-    await page.fill('#password', ghTestPassword)
-
-    await waitForSuccessResponse(page, () => page.click('input[name="commit"]'), 'github.com/sessions/two-factor/app')
-    await expect(page.locator('#app_totp')).toBeVisible()
-
-    await waitForSuccessResponse(page, () => page.fill('#app_totp', totp.generate()), 'github.com/login/oauth')
-
-    await page.waitForTimeout(2000)
-    // Click auth if page isn't redirected to callback
-    if (!page.url().includes('/open')) {
-      await waitForSuccessResponse(page, () => page.locator('button:has-text("authorize")').click(), '/repos')
-    }
+    await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/repos')
 
     // enter a public repo
     await expect(page.locator('.github-list li').first()).toBeVisible()
@@ -122,3 +100,17 @@ test.describe('Upload ontology from GitHub via OAuth', () => {
     await expect(page.locator('#mermaid-output').getByText('IdentifiedObject')).toBeVisible()
   })
 })
+
+const attempt2fa = async (page: Page) => {
+  await page.fill('#app_totp', totp.generate())
+  await page.waitForTimeout(2000)
+
+  // Check if 2fa code already used
+  if (await page.locator('.js-flash-alert').isVisible()) {
+    const remaining = totp.period - (Math.floor(Date.now() / 1000) % totp.period)
+    await page.waitForTimeout(remaining * 1000)
+    return attempt2fa(page)
+  } else {
+    return
+  }
+}
