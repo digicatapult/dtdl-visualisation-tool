@@ -14,6 +14,7 @@ import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
 import { Logger, type ILogger } from '../logger.js'
+import { Cache, type ICache } from '../utils/cache.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
 import { recentFilesFromCookies } from './helpers.js'
 
@@ -25,7 +26,8 @@ export class OpenOntologyController extends HTMLController {
     private db: Database,
     private generator: SvgGenerator,
     private openOntologyTemplates: OpenOntologyTemplates,
-    @inject(Logger) private logger: ILogger
+    @inject(Logger) private logger: ILogger,
+    @inject(Cache) private cache: ICache
   ) {
     super()
     this.logger = logger.child({ controller: '/open' })
@@ -63,7 +65,7 @@ export class OpenOntologyController extends HTMLController {
       throw new UploadError('Uploaded zip file is not valid')
     }
 
-    const id = await parseAndInsertDtdl(unzippedPath, file.originalname, this.db, this.generator, false)
+    const id = await parseAndInsertDtdl(unzippedPath, file.originalname, this.db, this.generator, false, this.cache)
 
     this.setHeader('HX-Redirect', `/ontology/${id}/view?sessionId=${sessionId}`)
     return

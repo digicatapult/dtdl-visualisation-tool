@@ -10,6 +10,7 @@ import { Env } from '../env/index.js'
 import { UploadError } from '../errors.js'
 import { type ILogger, Logger } from '../logger.js'
 import { ListItem } from '../models/github.js'
+import { type ICache, Cache } from '../utils/cache.js'
 import { parseAndInsertDtdl } from '../utils/dtdl/parse.js'
 import { GithubRequest } from '../utils/githubRequest.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
@@ -33,7 +34,8 @@ export class GithubController extends HTMLController {
     private sessionStore: SessionStore,
     private githubRequest: GithubRequest,
     private generator: SvgGenerator,
-    @inject(Logger) private logger: ILogger
+    @inject(Logger) private logger: ILogger,
+    @inject(Cache) private cache: ICache
   ) {
     super()
     this.logger = logger.child({ controller: '/github' })
@@ -208,7 +210,14 @@ export class GithubController extends HTMLController {
       throw new UploadError(`No '.json' files found`)
     }
 
-    const id = await parseAndInsertDtdl(tmpDir, `${owner}/${repo}/${ref}/${path}`, this.db, this.generator, false)
+    const id = await parseAndInsertDtdl(
+      tmpDir,
+      `${owner}/${repo}/${ref}/${path}`,
+      this.db,
+      this.generator,
+      false,
+      this.cache
+    )
 
     this.setHeader('HX-Redirect', safeUrl(`/ontology/${id}/view`, { sessionId }))
     return

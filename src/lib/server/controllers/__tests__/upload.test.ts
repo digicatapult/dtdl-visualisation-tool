@@ -7,6 +7,7 @@ import sinon from 'sinon'
 import { DataError, SessionError, UploadError } from '../../errors.js'
 import { OpenOntologyController } from '../upload.js'
 import {
+  mockCache,
   mockDb,
   mockGenerator,
   mockLogger,
@@ -25,7 +26,7 @@ const __dirname = path.dirname(__filename)
 const sessionId = validSessionId
 
 describe('OpenOntologyController', async () => {
-  const controller = new OpenOntologyController(mockDb, mockGenerator, openOntologyMock, mockLogger)
+  const controller = new OpenOntologyController(mockDb, mockGenerator, openOntologyMock, mockLogger, mockCache)
 
   afterEach(() => {
     sinon.restore()

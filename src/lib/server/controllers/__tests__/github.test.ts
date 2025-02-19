@@ -10,6 +10,7 @@ import { OAuthToken } from '../../models/github.js'
 import { GithubRequest } from '../../utils/githubRequest.js'
 import { GithubController } from '../github.js'
 import {
+  mockCache,
   mockDb,
   mockGenerator,
   mockLogger,
@@ -112,7 +113,8 @@ describe('GithubController', async () => {
     mockSession,
     mockGithubRequest,
     mockGenerator,
-    mockLogger
+    mockLogger,
+    mockCache
   )
 
   afterEach(() => {
