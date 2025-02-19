@@ -9,7 +9,6 @@ import { container } from 'tsyringe'
 import Database from './lib/db/index.js'
 import { httpServer } from './lib/server/index.js'
 import { logger } from './lib/server/logger.js'
-import { type UUID } from './lib/server/models/strings.js'
 import { DtdlLoader } from './lib/server/utils/dtdl/dtdlLoader.js'
 import { parseAndInsertDtdl } from './lib/server/utils/dtdl/parse.js'
 import { SvgGenerator } from './lib/server/utils/mermaid/generator.js'
@@ -44,13 +43,7 @@ program
     const db = container.resolve(Database)
     logger.info(`Storing default model in db`)
 
-    let id: UUID
-    try {
-      id = await parseAndInsertDtdl(options.path, `default`, db)
-    } catch {
-      logger.error(`Error parsing DTDL`)
-      process.exit(1)
-    }
+    const id = await parseAndInsertDtdl(options.path, `default`, db)
 
     const dtdlLoader = new DtdlLoader(db, id)
     container.register(DtdlLoader, {
