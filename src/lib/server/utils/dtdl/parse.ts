@@ -34,7 +34,7 @@ export const parseAndInsertDtdl = async (
     preview: output.renderForMinimap(),
   })
   const defaultParams: GenerateParams = { layout: 'elk', diagramType: 'flowchart', expandedIds: [], search: '' }
-  cache.set(dtdlCacheKey(id, defaultParams), output.renderToString())
+  cache.set(dtdlCacheKey(id, defaultParams), output)
 
   return id
 }
