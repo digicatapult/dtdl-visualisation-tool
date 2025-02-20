@@ -401,15 +401,9 @@ export class OntologyController extends HTMLController {
     cookieName: string
   ): CookieHistoryParams[] {
     const MAX_HISTORY = 6
-
-    let cookieHistory: CookieHistoryParams[] = []
-    try {
-      cookieHistory = cookies[cookieName]
-    } catch (error) {
-      this.logger.warn(`Cookie ${cookieName} is missing`, error)
-    }
-
     const timestamp = Date.now()
+
+    let cookieHistory: CookieHistoryParams[] = cookies[cookieName] || []
 
     const existingIndex = cookieHistory.findIndex((item) => item.id === dtdlModelId)
 
