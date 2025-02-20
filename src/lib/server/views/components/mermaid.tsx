@@ -62,6 +62,7 @@ export default class MermaidTemplates {
       <this.Legend showContent={false} />
       <this.navigationPanel expanded={false} />
       <this.svgControls />
+      <></>
     </Page>
   )
 
@@ -345,6 +346,14 @@ export default class MermaidTemplates {
   }
 
   private uploadForm = ({ sessionId }: { sessionId: UUID }) => {
+    return (
+      <a id="open-button" href={`/open?sessionId=${sessionId}`} class="button">
+        Open Ontology
+      </a>
+    )
+  }
+
+  private editToggle = ({ sessionId }: { sessionId: UUID }) => {
     return (
       <a id="open-button" href={`/open?sessionId=${sessionId}`} class="button">
         Open Ontology
