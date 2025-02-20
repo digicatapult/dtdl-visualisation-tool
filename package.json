@@ -10,7 +10,7 @@
   "scripts": {
     "depcheck": "depcheck",
     "test:unit": "SWRC=true NODE_ENV=test ./node_modules/.bin/mocha --config ./test/mocharc.json ./src/**/*.test.ts",
-    "test:e2e": "DEBUG=testcontainers* NODE_ENV=test playwright test --ui",
+    "test:e2e": "NODE_ENV=test playwright test --ui",
     "test:playwright": "NODE_ENV=test playwright test --trace on --max-failures=1",
     "test:integration": "SWRC=true NODE_ENV=test ./node_modules/.bin/mocha --config ./test/mocharc.json --file ./test/integration/init.ts ./test/integration/*.test.ts",
     "build": "npm run tsoa:build && swc ./src ./package.json -d ./build --copy-files",
