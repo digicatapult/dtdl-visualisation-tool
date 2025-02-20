@@ -1,21 +1,24 @@
+import express from 'express'
+import { randomUUID } from 'node:crypto'
 import { mkdtemp, writeFile } from 'node:fs/promises'
 import os from 'node:os'
-
-import { randomUUID } from 'node:crypto'
 import { dirname, join } from 'node:path'
-import { Get, Produces, Query, Route, SuccessResponse } from 'tsoa'
+import { Get, Produces, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { container, inject, injectable } from 'tsyringe'
 import Database from '../../db/index.js'
-import { Env } from '../env.js'
+import { Env } from '../env/index.js'
 import { UploadError } from '../errors.js'
 import { type ILogger, Logger } from '../logger.js'
 import { ListItem } from '../models/github.js'
+import { type ICache, Cache } from '../utils/cache.js'
 import { parseAndInsertDtdl } from '../utils/dtdl/parse.js'
 import { GithubRequest } from '../utils/githubRequest.js'
+import { SvgGenerator } from '../utils/mermaid/generator.js'
 import SessionStore from '../utils/sessions.js'
 import { safeUrl } from '../utils/url.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
+import { recentFilesFromCookies } from './helpers.js'
 
 const env = container.resolve(Env)
 
@@ -30,7 +33,9 @@ export class GithubController extends HTMLController {
     private templates: OpenOntologyTemplates,
     private sessionStore: SessionStore,
     private githubRequest: GithubRequest,
-    @inject(Logger) private logger: ILogger
+    private generator: SvgGenerator,
+    @inject(Logger) private logger: ILogger,
+    @inject(Cache) private cache: ICache
   ) {
     super()
     this.logger = logger.child({ controller: '/github' })
@@ -38,7 +43,7 @@ export class GithubController extends HTMLController {
 
   @SuccessResponse(200, '')
   @Get('/picker')
-  public async picker(@Query() sessionId: string): Promise<HTML | void> {
+  public async picker(@Request() req: express.Request, @Query() sessionId: string): Promise<HTML | void> {
     const session = this.sessionStore.get(sessionId)
     const returnUrl = safeUrl(`/github/picker`, { sessionId }) // where to redirect to from callback
     if (!session.octokitToken) {
@@ -46,7 +51,8 @@ export class GithubController extends HTMLController {
     }
 
     const populateListLink = safeUrl(`/github/repos`, { page: '1' })
-    return this.html(this.templates.OpenOntologyRoot({ sessionId, populateListLink }))
+    const recentFiles = await recentFilesFromCookies(req.signedCookies, this.db, this.logger)
+    return this.html(this.templates.OpenOntologyRoot({ sessionId, populateListLink, recentFiles }))
   }
 
   async getOctokitToken(sessionId: string, returnUrl: string): Promise<void> {
@@ -204,7 +210,14 @@ export class GithubController extends HTMLController {
       throw new UploadError(`No '.json' files found`)
     }
 
-    const id = await parseAndInsertDtdl(tmpDir, `${owner}/${repo}/${ref}/${path}`, this.db, false)
+    const id = await parseAndInsertDtdl(
+      tmpDir,
+      `${owner}/${repo}/${ref}/${path}`,
+      this.db,
+      this.generator,
+      false,
+      this.cache
+    )
 
     this.setHeader('HX-Redirect', safeUrl(`/ontology/${id}/view`, { sessionId }))
     return

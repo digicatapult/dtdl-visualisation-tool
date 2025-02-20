@@ -6,6 +6,7 @@ export const tablesList = ['model'] as const
 const insertModel = z.object({
   name: z.string(),
   parsed: z.unknown(),
+  preview: z.string().nullable(),
 })
 
 const Zod = {

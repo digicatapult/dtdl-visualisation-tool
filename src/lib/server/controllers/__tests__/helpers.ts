@@ -3,7 +3,7 @@ import { Readable } from 'node:stream'
 import { pino } from 'pino'
 
 import { EntityType } from '@digicatapult/dtdl-parser'
-import sinon from 'sinon'
+import sinon, { SinonStub } from 'sinon'
 import Database from '../../../db/index.js'
 import { ListItem } from '../../models/github.js'
 import { Layout } from '../../models/mermaidLayouts.js'
@@ -22,10 +22,12 @@ import { sessionMap } from './sessionFixtures.js'
 
 export const simpleDtdlId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed7'
 export const complexDtdlId: UUID = 'e89f119a-fc3b-4ce8-8722-2000a7ebeeab'
+export const previewDtdlId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed8'
 
 const mockModelTable = {
-  [simpleDtdlId]: { parsed: simpleMockDtdlObjectModel },
-  [complexDtdlId]: { parsed: complexMockDtdlModel },
+  [simpleDtdlId]: { id: simpleDtdlId, name: 'Simple Model', parsed: simpleMockDtdlObjectModel },
+  [complexDtdlId]: { id: complexDtdlId, name: 'Complex Model', parsed: complexMockDtdlModel },
+  [previewDtdlId]: { id: previewDtdlId, name: 'Preview Model', parsed: simpleMockDtdlObjectModel, preview: 'Preview' },
 }
 
 export const templateMock = {
@@ -124,4 +126,17 @@ export const mockReq = (headers: Record<string, string>) => {
   return {
     header: (key: string) => headers[key],
   } as unknown as express.Request
+}
+
+export const mockReqWithCookie = (cookie: Record<string, unknown>) => {
+  return {
+    res: mockRes(),
+    signedCookies: cookie,
+  } as unknown as express.Request
+}
+
+export const mockRes = () => {
+  return {
+    cookie: sinon.stub() as SinonStub,
+  } as unknown as express.Response
 }

@@ -4,12 +4,22 @@ import { describe, it } from 'mocha'
 import sinon from 'sinon'
 import { container } from 'tsyringe'
 
-import { Env } from '../../env.js'
+import { Env } from '../../env/index.js'
 import { UploadError } from '../../errors.js'
 import { OAuthToken } from '../../models/github.js'
 import { GithubRequest } from '../../utils/githubRequest.js'
 import { GithubController } from '../github.js'
-import { mockDb, mockLogger, mockSession, openOntologyMock, sessionUpdateStub, toHTMLString } from './helpers.js'
+import {
+  mockCache,
+  mockDb,
+  mockGenerator,
+  mockLogger,
+  mockReqWithCookie,
+  mockSession,
+  openOntologyMock,
+  sessionUpdateStub,
+  toHTMLString,
+} from './helpers.js'
 import {
   validSessionId as noOctokitSessionId,
   validSessionOctokitId,
@@ -97,7 +107,15 @@ export const mockGithubRequest = {
 } as unknown as GithubRequest
 
 describe('GithubController', async () => {
-  const controller = new GithubController(mockDb, openOntologyMock, mockSession, mockGithubRequest, mockLogger)
+  const controller = new GithubController(
+    mockDb,
+    openOntologyMock,
+    mockSession,
+    mockGithubRequest,
+    mockGenerator,
+    mockLogger,
+    mockCache
+  )
 
   afterEach(() => {
     sinon.restore()
@@ -106,7 +124,7 @@ describe('GithubController', async () => {
 
   describe('/picker', () => {
     it('should return picker if octokit token present', async () => {
-      const result = await controller.picker(validSessionOctokitId)
+      const result = await controller.picker(mockReqWithCookie({}), validSessionOctokitId)
       if (!result) {
         throw new Error('Expected HTML response')
       }
@@ -122,7 +140,7 @@ describe('GithubController', async () => {
         `http://${env.get('GH_REDIRECT_HOST')}/github/callback?sessionId=${noOctokitSessionId}`
       )
 
-      await controller.picker(noOctokitSessionId)
+      await controller.picker(mockReqWithCookie({}), noOctokitSessionId)
 
       expect(
         setHeaderSpy.calledWith(
