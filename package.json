@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.4.16",
+  "version": "0.4.17",
   "description": "CLI tool for dtdl visualisation",
   "main": "src/index.js",
   "bin": {
@@ -96,7 +96,7 @@
     "eslint": "^9.20.1",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.3",
-    "globals": "^15.15.0",
+    "globals": "^16.0.0",
     "mocha": "^11.1.0",
     "pino-colada": "^2.2.2",
     "playwright-ctrf-json-reporter": "^0.0.18",
