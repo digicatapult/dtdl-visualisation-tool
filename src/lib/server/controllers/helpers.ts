@@ -1,8 +1,10 @@
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns'
 import Database from '../../db'
 import { ILogger } from '../logger'
-import { CookieHistoryParams } from '../models/controllerTypes'
+import { CookieHistoryParams, GenerateParams, relevantParams } from '../models/controllerTypes'
+import { modelHistoryCookie } from '../models/cookieNames'
 import { RecentFile } from '../models/openTypes'
+import { UUID } from '../models/strings'
 
 const formatLastVisited = (timestamp: number): string => {
   const date = new Date(timestamp)
@@ -16,8 +18,7 @@ export const recentFilesFromCookies = async (
   db: Database,
   logger: ILogger
 ) => {
-  const cookieName = 'DTDL_MODEL_HISTORY'
-  const cookieHistory: CookieHistoryParams[] = cookies[cookieName] ? cookies[cookieName] : []
+  const cookieHistory: CookieHistoryParams[] = cookies[modelHistoryCookie] ? cookies[modelHistoryCookie] : []
   const models = await Promise.all(
     cookieHistory.flatMap(async (entry) => {
       try {
@@ -46,4 +47,23 @@ export const recentFilesFromCookies = async (
     .sort((a, b) => b.rawTimestamp - a.rawTimestamp)
     .map(({ rawTimestamp, ...recentFile }) => recentFile)
   return recentFiles
+}
+export const dtdlCacheKey = (dtdlModelId: UUID, queryParams?: GenerateParams): string => {
+  const searchParams = new URLSearchParams()
+  for (const key of relevantParams) {
+    const value = queryParams?.[key]
+    if (value === undefined) {
+      continue
+    }
+
+    if (!Array.isArray(value)) {
+      searchParams.set(key, value)
+      continue
+    }
+    value.forEach((v) => searchParams.append(key, v))
+  }
+  searchParams.set('dtdlId', dtdlModelId)
+
+  searchParams.sort()
+  return searchParams.toString()
 }

@@ -2,6 +2,7 @@ import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import sinon, { SinonStub } from 'sinon'
 import { UpdateParams } from '../../../models/controllerTypes.js'
+import { modelHistoryCookie } from '../../../models/cookieNames.js'
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../../models/renderedDiagram/index.js'
 import { generatedSVGFixture } from '../../../utils/mermaid/__tests__/fixtures.js'
 import {
@@ -89,7 +90,7 @@ describe('OntologyController', async () => {
         const cookieStub = req.res.cookie as SinonStub
         expect(cookieStub.calledOnce).to.equal(true)
         const [cookieName, cookieValue] = cookieStub.firstCall.args
-        expect(cookieName).to.equal('DTDL_MODEL_HISTORY')
+        expect(cookieName).to.equal(modelHistoryCookie)
         expect(cookieValue).to.be.an('array')
         expect(cookieValue[0]).to.have.keys(['id', 'timestamp'])
       } else {

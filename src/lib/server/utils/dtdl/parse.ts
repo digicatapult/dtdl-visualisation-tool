@@ -2,6 +2,7 @@ import { getInterop, parseDirectories } from '@digicatapult/dtdl-parser'
 import { rm } from 'node:fs/promises'
 
 import Database from '../../../db'
+import { dtdlCacheKey } from '../../controllers/helpers'
 import { DataError } from '../../errors.js'
 import { type UUID } from '../../models/strings.js'
 import { ICache } from '../cache.js'
@@ -32,10 +33,7 @@ export const parseAndInsertDtdl = async (
     preview: output.renderForMinimap(),
   })
 
-  const cacheKey = new URLSearchParams()
-  cacheKey.set('dtdlId', id)
-
-  cache.set(cacheKey.toString(), output.renderToString())
+  cache.set(dtdlCacheKey(id), output.renderToString())
 
   return id
 }

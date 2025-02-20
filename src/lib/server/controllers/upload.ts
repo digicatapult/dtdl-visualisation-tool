@@ -3,7 +3,7 @@ import os from 'node:os'
 
 import express from 'express'
 import { join } from 'node:path'
-import { FormField, Get, Path, Post, Produces, Query, Request, Route, SuccessResponse, UploadedFile } from 'tsoa'
+import { FormField, Get, Post, Produces, Query, Request, Route, SuccessResponse, UploadedFile } from 'tsoa'
 import { inject, injectable } from 'tsyringe'
 import unzipper from 'unzipper'
 import Database from '../../db/index.js'
@@ -79,12 +79,5 @@ export class OpenOntologyController extends HTMLController {
     await directory.extract({ path: extractionPath })
 
     return extractionPath
-  }
-
-  @SuccessResponse(302, 'Redirect')
-  @Get('/{dtdlModelId}')
-  public async loadFile(@Path() dtdlModelId: UUID, @Query() sessionId: UUID): Promise<void> {
-    this.setHeader('HX-Redirect', `/ontology/${dtdlModelId}/view?sessionId=${sessionId}`)
-    return
   }
 }

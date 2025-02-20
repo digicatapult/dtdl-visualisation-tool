@@ -5,6 +5,7 @@ import { singleton } from 'tsyringe'
 import { ListItem } from '../../models/github.js'
 import { RecentFile } from '../../models/openTypes.js'
 import { UUID } from '../../models/strings.js'
+import { safeUrl } from '../../utils/url.js'
 import { Page } from '../common.js'
 
 @singleton()
@@ -32,7 +33,7 @@ export default class OpenOntologyTemplates {
         <div id="main-view">
           <h1>Open Ontology</h1>
           <this.getMenu showContent={false} sessionId={sessionId} />
-          <this.recentFiles recentFiles={recentFiles} />
+          <this.recentFiles recentFiles={recentFiles} sessionId={sessionId} />
           {showGithubModal && <this.githubModal populateListLink={populateListLink} />}
           <div id="spinner-wrapper">
             <div id="spinner" class="spinner" />
@@ -169,7 +170,7 @@ export default class OpenOntologyTemplates {
     )
   }
 
-  public recentFiles = ({ recentFiles }: { recentFiles: RecentFile[] }) => {
+  public recentFiles = ({ recentFiles, sessionId }: { recentFiles: RecentFile[]; sessionId: UUID }) => {
     return (
       <>
         <h4>Recent Files</h4>
@@ -177,19 +178,21 @@ export default class OpenOntologyTemplates {
           {recentFiles.map((recentFile, index) => {
             const preview: JSX.Element = recentFile.preview
             return (
-              <div
-                class="file-card"
-                role="button"
-                tabindex={`${index + 1}`}
-                hx-get={`/open/${recentFile.dtdlModelId}`}
-                hx-include="#sessionId"
-              >
-                <div class="file-preview">{preview}</div>
-                <div class="file-details">
-                  <p class="file-name">{escapeHtml(recentFile.fileName)}</p>
-                  <p class="file-viewed">Viewed {escapeHtml(recentFile.lastVisited)}</p>
+              <a href={safeUrl(`/ontology/${recentFile.dtdlModelId}/view`, { sessionId })}>
+                <div
+                  class="file-card"
+                  role="button"
+                  tabindex={`${index + 1}`}
+                  hx-get={`/open/${recentFile.dtdlModelId}`}
+                  hx-include="#sessionId"
+                >
+                  <div class="file-preview">{preview}</div>
+                  <div class="file-details">
+                    <p class="file-name">{escapeHtml(recentFile.fileName)}</p>
+                    <p class="file-viewed">Viewed {escapeHtml(recentFile.lastVisited)}</p>
+                  </div>
                 </div>
-              </div>
+              </a>
             )
           })}
         </section>
