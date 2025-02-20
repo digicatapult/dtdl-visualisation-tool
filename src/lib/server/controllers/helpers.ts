@@ -1,8 +1,8 @@
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns'
 import Database from '../../db'
 import { ILogger } from '../logger'
-import { CookieHistoryParams, GenerateParams, relevantParams } from '../models/controllerTypes'
-import { modelHistoryCookie } from '../models/cookieNames'
+import { CookieHistoryParams, GenerateParams, relevantParams } from '../models/controllerTypes.js'
+import { modelHistoryCookie } from '../models/cookieNames.js'
 import { RecentFile } from '../models/openTypes'
 import { UUID } from '../models/strings'
 

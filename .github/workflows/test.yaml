@@ -61,8 +61,7 @@ jobs:
       env_vars: |
         {
           "GH_CLIENT_ID": "",
-          "GH_CLIENT_SECRET": "",
-          "COOKIE_SESSION_KEYS": "secret"
+          "GH_CLIENT_SECRET": ""
         }
     permissions:
       contents: write
