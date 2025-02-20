@@ -62,7 +62,7 @@ jobs:
         {
           "GH_CLIENT_ID": "",
           "GH_CLIENT_SECRET": "",
-          "COOKIE_SESSION_KEYS": ""
+          "COOKIE_SESSION_KEYS": "secret"
         }
     permissions:
       contents: write
