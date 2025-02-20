@@ -4,6 +4,7 @@ import { rm } from 'node:fs/promises'
 import Database from '../../../db'
 import { dtdlCacheKey } from '../../controllers/helpers.js'
 import { DataError } from '../../errors.js'
+import { GenerateParams } from '../../models/controllerTypes'
 import { type UUID } from '../../models/strings.js'
 import { ICache } from '../cache.js'
 import { SvgGenerator } from '../mermaid/generator'
@@ -32,8 +33,8 @@ export const parseAndInsertDtdl = async (
     parsed: parsedDtdl,
     preview: output.renderForMinimap(),
   })
-
-  cache.set(dtdlCacheKey(id), output.renderToString())
+  const defaultParams: GenerateParams = { layout: 'elk', diagramType: 'flowchart', expandedIds: [], search: '' }
+  cache.set(dtdlCacheKey(id, defaultParams), output.renderToString())
 
   return id
 }
