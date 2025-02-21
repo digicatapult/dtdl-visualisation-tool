@@ -19,12 +19,12 @@ FROM node:lts-bookworm-slim AS service
 ENV PPTRUSER_UID=10042
 ENV NODE_OPTIONS="--no-warnings"
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
-ENV CHROME_PUPPETEER_PATH=/usr/bin/chromium
+ENV PUPPETEER_PRODUCT=firefox
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/firefox
 
 COPY sample ./sample
 
-RUN apt-get update && apt-get install -y chromium --no-install-recommends
+RUN apt-get update && apt-get install -y firefox-esr --no-install-recommends
 
 RUN groupadd -r pptruser && useradd -u $PPTRUSER_UID -rm -g pptruser -G audio,video pptruser
 

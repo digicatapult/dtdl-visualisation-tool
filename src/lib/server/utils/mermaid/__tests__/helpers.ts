@@ -19,7 +19,7 @@ export const checkIfStringIsSVG = (svgString: string): boolean => {
 }
 
 export const parseMermaid = async (markdown: string): Promise<ParseResult> => {
-  const browser = await puppeteer.launch({})
+  const browser = await puppeteer.launch({ browser: 'firefox' })
   const page = await browser.newPage()
 
   await page.addScriptTag({ path: mermaidPath })

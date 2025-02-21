@@ -82,7 +82,7 @@ export class SvgGenerator {
   }
 
   private async initialise() {
-    const browser = await puppeteer.launch({})
+    const browser = await puppeteer.launch({ browser: 'firefox' })
     const page = await browser.newPage()
 
     page.on('console', (msg) => {
