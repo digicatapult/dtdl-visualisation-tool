@@ -22,6 +22,7 @@ import {
 } from './helpers.js'
 import {
   validSessionId as noOctokitSessionId,
+  sessionMap,
   validSessionOctokitId,
   validSessionReturnUrlId,
 } from './sessionFixtures.js'
@@ -162,8 +163,10 @@ describe('GithubController', async () => {
       const sessionUpdate = sessionUpdateStub.lastCall.args[1]
 
       expect(sessionUpdate).to.deep.equal({ octokitToken: mockToken })
-      expect(setHeaderSpy.calledWith('Location', `return.url`)).to.equal(true)
-      expect(setStatusSpy.calledWith(302)).to.equal(true)
+      expect(setHeaderSpy.calledWith('Refresh', `0; url=${sessionMap[validSessionReturnUrlId].returnUrl}`)).to.equal(
+        true
+      )
+      expect(setStatusSpy.calledWith(204)).to.equal(true)
     })
   })
 
