@@ -16,6 +16,12 @@ npm i
 npm run build
 ```
 
+Install firefox for puppeteer:
+
+```shell
+npx puppeteer browsers install firefox
+```
+
 Start postgres and migrate to latest:
 
 ```sh
@@ -96,7 +102,7 @@ The application can be run in Docker. `sample/energygrid` is automatically parse
 ## Environment variables
 
 | variable name       | required | default                   | description                                                                                  |
-| ----------------    | -------- | ------------------------- | -------------------------------------------------------------------------------------------- |
+| ------------------- | -------- | ------------------------- | -------------------------------------------------------------------------------------------- |
 | LOG_LEVEL           | n        | info                      | Logging level. Valid values are [ trace , debug , info , warn , error , fatal ]              |
 | CACHE_TTL           | n        | `1000 * 60 * 5`           | Time to live (in seconds) for cached diagrams                                                |
 | CACHE_SIZE          | n        | `100`                     | Maximum number of diagrams to cache                                                          |
