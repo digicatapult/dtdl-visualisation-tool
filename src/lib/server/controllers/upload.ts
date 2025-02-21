@@ -1,9 +1,10 @@
 import { mkdtemp } from 'node:fs/promises'
 import os from 'node:os'
 
+import express from 'express'
 import { join } from 'node:path'
-import { FormField, Get, Post, Produces, Query, Route, SuccessResponse, UploadedFile } from 'tsoa'
-import { injectable } from 'tsyringe'
+import { FormField, Get, Post, Produces, Query, Request, Route, SuccessResponse, UploadedFile } from 'tsoa'
+import { inject, injectable } from 'tsyringe'
 import unzipper from 'unzipper'
 import Database from '../../db/index.js'
 import { SessionError, UploadError } from '../errors.js'
@@ -12,25 +13,36 @@ import { parseAndInsertDtdl } from '../utils/dtdl/parse.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
+import { Logger, type ILogger } from '../logger.js'
+import { Cache, type ICache } from '../utils/cache.js'
+import { SvgGenerator } from '../utils/mermaid/generator.js'
+import { recentFilesFromCookies } from './helpers.js'
+
 @injectable()
 @Route('/open')
 @Produces('text/html')
 export class OpenOntologyController extends HTMLController {
   constructor(
     private db: Database,
-    private openOntologyTemplates: OpenOntologyTemplates
+    private generator: SvgGenerator,
+    private openOntologyTemplates: OpenOntologyTemplates,
+    @inject(Logger) private logger: ILogger,
+    @inject(Cache) private cache: ICache
   ) {
     super()
+    this.logger = logger.child({ controller: '/open' })
   }
 
   @SuccessResponse(200)
   @Get('/')
-  public async open(@Query() sessionId: UUID): Promise<HTML> {
+  public async open(@Request() req: express.Request, @Query() sessionId?: UUID): Promise<HTML> {
     if (!sessionId) {
       throw new SessionError('No session ID provided')
     }
     this.setHeader('HX-Push-Url', `/open`)
-    return this.html(this.openOntologyTemplates.OpenOntologyRoot({ sessionId }))
+
+    const recentFiles = await recentFilesFromCookies(req.signedCookies, this.db, this.logger)
+    return this.html(this.openOntologyTemplates.OpenOntologyRoot({ sessionId, recentFiles }))
   }
 
   @SuccessResponse(200)
@@ -53,7 +65,7 @@ export class OpenOntologyController extends HTMLController {
       throw new UploadError('Uploaded zip file is not valid')
     }
 
-    const id = await parseAndInsertDtdl(unzippedPath, file.originalname, this.db, false)
+    const id = await parseAndInsertDtdl(unzippedPath, file.originalname, this.db, this.generator, false, this.cache)
 
     this.setHeader('HX-Redirect', `/ontology/${id}/view?sessionId=${sessionId}`)
     return

@@ -2,14 +2,14 @@
 
 import 'reflect-metadata'
 
-import { DtdlObjectModel, getInterop, validateDirectories } from '@digicatapult/dtdl-parser'
+import { getInterop, validateDirectories } from '@digicatapult/dtdl-parser'
 import chalk from 'chalk'
 import { Command } from 'commander'
 import { container } from 'tsyringe'
 import Database from './lib/db/index.js'
 import { httpServer } from './lib/server/index.js'
 import { logger } from './lib/server/logger.js'
-import { type UUID } from './lib/server/models/strings.js'
+import { Cache, ICache } from './lib/server/utils/cache.js'
 import { DtdlLoader } from './lib/server/utils/dtdl/dtdlLoader.js'
 import { parseAndInsertDtdl } from './lib/server/utils/dtdl/parse.js'
 import { SvgGenerator } from './lib/server/utils/mermaid/generator.js'
@@ -20,14 +20,6 @@ const program = new Command()
 const { red: r } = {
   red: (txt: string) => chalk.redBright(txt),
 }
-
-const minimumDtdl = {
-  minimum: {
-    EntityKind: 'Interface',
-    Id: '0',
-    extends: [],
-  },
-} as unknown as DtdlObjectModel
 
 program
   .name('dtdl-visualiser')
@@ -42,24 +34,17 @@ program
   .requiredOption('-p --path <path/to/dir>', 'Path to dtdl ontology directory')
   .action(async (options) => {
     const db = container.resolve(Database)
+    const generator = container.resolve(SvgGenerator)
+    const cache = container.resolve<ICache>(Cache)
     logger.info(`Storing default model in db`)
 
-    let id: UUID
-    try {
-      id = await parseAndInsertDtdl(options.path, `default`, db)
-    } catch {
-      logger.error(`Error parsing DTDL`)
-      process.exit(1)
-    }
+    const id = await parseAndInsertDtdl(options.path, `default`, db, generator, false, cache)
 
     const dtdlLoader = new DtdlLoader(db, id)
     container.register(DtdlLoader, {
       useValue: dtdlLoader,
     })
 
-    logger.info(`Loading SVG generator...`)
-    const generator = container.resolve(SvgGenerator)
-    await generator.run(minimumDtdl, 'flowchart', 'elk')
     logger.info(`Complete`)
 
     httpServer(options.port)

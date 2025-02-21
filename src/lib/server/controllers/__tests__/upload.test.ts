@@ -6,7 +6,16 @@ import path from 'path'
 import sinon from 'sinon'
 import { DataError, SessionError, UploadError } from '../../errors.js'
 import { OpenOntologyController } from '../upload.js'
-import { mockDb, openOntologyMock, toHTMLString } from './helpers.js'
+import {
+  mockCache,
+  mockDb,
+  mockGenerator,
+  mockLogger,
+  mockReqWithCookie,
+  openOntologyMock,
+  previewDtdlId,
+  toHTMLString,
+} from './helpers.js'
 import { validSessionId } from './sessionFixtures.js'
 
 chai.use(chaiAsPromised)
@@ -17,24 +26,59 @@ const __dirname = path.dirname(__filename)
 const sessionId = validSessionId
 
 describe('OpenOntologyController', async () => {
-  const controller = new OpenOntologyController(mockDb, openOntologyMock)
+  const controller = new OpenOntologyController(mockDb, mockGenerator, openOntologyMock, mockLogger, mockCache)
 
   afterEach(() => {
     sinon.restore()
   })
 
   describe('/', () => {
+    const req = mockReqWithCookie({})
     it('Should throw an error if no session is provided', async () => {
-      await expect(controller.open('')).to.be.rejectedWith(SessionError, 'No session ID provided')
+      await expect(controller.open(req)).to.be.rejectedWith(SessionError, 'No session ID provided')
     })
     it('Should return rendered open ontology template', async () => {
-      const result = await controller.open(sessionId).then(toHTMLString)
+      const result = await controller.open(req, sessionId).then(toHTMLString)
       expect(result).to.equal(`root_${sessionId}_undefined_root`)
     })
     it('Should set HX-Push-Url header when session ID is provided', async () => {
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
-      await controller.open(sessionId)
+      await controller.open(req, sessionId)
       expect(setHeaderSpy.calledWith('HX-Push-Url', `/open`)).to.equal(true)
+    })
+    it('Should handle missing cookie gracefully', async () => {
+      const reqWithoutCookie = mockReqWithCookie({})
+      reqWithoutCookie.signedCookies = {}
+
+      const result = await controller.open(reqWithoutCookie, sessionId).then(toHTMLString)
+      expect(result).to.equal(`root_${sessionId}_undefined_root`)
+    })
+    it('Should filter out invalid models from cookie history', async () => {
+      const req = mockReqWithCookie({
+        DTDL_MODEL_HISTORY: [
+          { id: previewDtdlId, timestamp: 1633024800000 },
+          { id: 'invalid', timestamp: 1633024800001 },
+        ],
+      })
+
+      const openOntologyRootSpy = sinon.spy(openOntologyMock, 'OpenOntologyRoot')
+
+      await controller.open(req, sessionId).then(toHTMLString)
+
+      expect(openOntologyRootSpy.calledOnce).to.equal(true)
+      expect(
+        openOntologyRootSpy.calledWithMatch({
+          sessionId: sessionId,
+          recentFiles: sinon.match.array.deepEquals([
+            {
+              fileName: 'Preview Model',
+              lastVisited: 'over 3 years ago',
+              preview: 'Preview',
+              dtdlModelId: previewDtdlId,
+            },
+          ]),
+        })
+      ).to.equal(true)
     })
   })
   describe('menu', () => {

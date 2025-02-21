@@ -1,7 +1,8 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
-import sinon from 'sinon'
+import sinon, { SinonStub } from 'sinon'
 import { UpdateParams } from '../../../models/controllerTypes.js'
+import { modelHistoryCookie } from '../../../models/cookieNames.js'
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../../models/renderedDiagram/index.js'
 import { generatedSVGFixture } from '../../../utils/mermaid/__tests__/fixtures.js'
 import {
@@ -13,6 +14,7 @@ import {
   mockLogger,
   mockMutator,
   mockReq,
+  mockReqWithCookie,
   mockSession,
   sessionSetStub,
   simpleDtdlId,
@@ -71,9 +73,29 @@ describe('OntologyController', async () => {
   )
 
   describe('view', () => {
+    afterEach(() => sinon.restore())
+
     it('should return rendered root template', async () => {
-      const result = await controller.view(simpleDtdlId, { ...defaultParams }).then(toHTMLString)
+      const req = mockReqWithCookie({})
+      const result = await controller.view(simpleDtdlId, { ...defaultParams }, req).then(toHTMLString)
       expect(result).to.equal(`root_dagre-d3_undefined_root`)
+    })
+
+    it('should set a cookie with model history', async () => {
+      const req = mockReqWithCookie({})
+
+      await controller.view(simpleDtdlId, { ...defaultParams }, req)
+
+      if (req.res) {
+        const cookieStub = req.res.cookie as SinonStub
+        expect(cookieStub.calledOnce).to.equal(true)
+        const [cookieName, cookieValue] = cookieStub.firstCall.args
+        expect(cookieName).to.equal(modelHistoryCookie)
+        expect(cookieValue).to.be.an('array')
+        expect(cookieValue[0]).to.have.keys(['id', 'timestamp'])
+      } else {
+        throw new Error('Response object is undefined')
+      }
     })
   })
 
