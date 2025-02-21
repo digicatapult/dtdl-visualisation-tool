@@ -166,7 +166,7 @@ describe('GithubController', async () => {
       expect(setHeaderSpy.calledWith('Refresh', `0; url=${sessionMap[validSessionReturnUrlId].returnUrl}`)).to.equal(
         true
       )
-      expect(setStatusSpy.calledWith(302)).to.equal(true)
+      expect(setStatusSpy.calledWith(204)).to.equal(true)
     })
   })
 
