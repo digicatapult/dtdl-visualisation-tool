@@ -15,6 +15,7 @@ jobs:
     with:
       docker_compose_file: ''
       npm_build_command: 'npm run build'
+      pre_test_command: 'npx puppeteer browsers install firefox'
       env_vars: |
         {
           "TMPDIR": "${{ github.workspace }}"
@@ -24,14 +25,11 @@ jobs:
     uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
     with:
       docker_compose_file: ''
+      pre_test_command: 'npx puppeteer browsers install firefox'
       test_command: 'npm run test:playwright || exit 1'
-      env_vars: |
-        {
-          "GH_CLIENT_ID": "",
-          "GH_CLIENT_SECRET": ""
-        }
     permissions:
       contents: write
+    secrets: inherit
 
   build-docker:
     uses: digicatapult/shared-workflows/.github/workflows/build-docker.yml@main
