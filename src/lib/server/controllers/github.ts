@@ -69,14 +69,13 @@ export class GithubController extends HTMLController {
   }
 
   // Called by GitHub after external OAuth login
-  @SuccessResponse(204)
+  @SuccessResponse(200)
   @Get('/callback')
   public async callback(@Query() code: string, @Query() sessionId: string): Promise<void> {
     const { access_token } = await this.githubRequest.getAccessToken(code)
 
     this.sessionStore.update(sessionId, { octokitToken: access_token })
 
-    this.setStatus(204)
     this.setHeader('Refresh', `0; url=${this.sessionStore.get(sessionId).returnUrl || '/'}`)
     return
   }

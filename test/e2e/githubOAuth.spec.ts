@@ -45,24 +45,9 @@ test.describe('Upload ontology from GitHub via OAuth', () => {
     await attempt2fa(page)
 
     await page.waitForTimeout(5000)
-    // Click auth if page isn't redirected to callback
-    if (page.url().includes('oauth/authorize')) {
-      const authorizeButton = page.locator('button:has-text("Authorize")')
 
-      if ((await authorizeButton.isVisible()) && (await authorizeButton.isEnabled())) {
-        await page.locator('button:has-text("authorize")').click()
-      }
-      await waitForUpdateLayout(page, () => page.goto('./'))
-      await expect(page.locator('#toolbar').getByText('Open Ontology')).toBeVisible()
-
-      await waitForSuccessResponse(page, () => page.locator('#open-button').click(), '/open')
-      await expect(page.locator('#main-view').getByText('Upload New File')).toBeVisible()
-
-      await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('Upload New File').click(), '/menu')
-      await expect(page.locator('#main-view').getByText('GitHub')).toBeVisible()
-
-      await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/callback')
-      await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/repos')
+    if (!page.url().includes('/open')) {
+      await waitForSuccessResponse(page, () => page.locator('button:has-text("authorize")').click(), '/repos')
     }
 
     // click first of test users repos

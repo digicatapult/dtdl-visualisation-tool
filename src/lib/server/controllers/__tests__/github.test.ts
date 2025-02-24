@@ -156,7 +156,6 @@ describe('GithubController', async () => {
   describe('/callback', () => {
     it('should redirect to return url from session', async () => {
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
-      const setStatusSpy = sinon.spy(controller, 'setStatus')
 
       await controller.callback('', validSessionReturnUrlId)
 
@@ -166,7 +165,6 @@ describe('GithubController', async () => {
       expect(setHeaderSpy.calledWith('Refresh', `0; url=${sessionMap[validSessionReturnUrlId].returnUrl}`)).to.equal(
         true
       )
-      expect(setStatusSpy.calledWith(204)).to.equal(true)
     })
   })
 
