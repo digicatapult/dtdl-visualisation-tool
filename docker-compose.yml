@@ -11,7 +11,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_DB=dtdl-visualisation-tool
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 10s
       timeout: 5s
       retries: 5
