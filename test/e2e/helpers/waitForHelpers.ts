@@ -9,7 +9,9 @@ export const waitForUpdateLayout = async <T>(page: Page, action: () => Promise<T
 }
 
 export const waitForSuccessResponse = async <T>(page: Page, action: () => Promise<T>, includeRoute: string) => {
-  const response = page.waitForResponse((resp) => resp.url().includes(includeRoute) && resp.status() === 200)
+  const response = page.waitForResponse((resp) => {
+    return resp.url().includes(includeRoute) && [200, 204].includes(resp.status())
+  })
   await action()
   await response
 }

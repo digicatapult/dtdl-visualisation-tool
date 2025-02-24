@@ -5,7 +5,7 @@ import { strArrayValidator } from './validators.js'
 
 if (process.env.NODE_ENV === 'test') {
   dotenv.config({ path: 'test/test.env' })
-  dotenv.config()
+  dotenv.config({ override: true })
 } else {
   dotenv.config()
 }
