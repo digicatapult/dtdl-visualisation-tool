@@ -46,7 +46,11 @@ test.describe('Upload ontology from GitHub via OAuth', () => {
 
     await page.waitForTimeout(5000)
 
+    // Sometimes GitHub requests to reauthorise the app
     if (!page.url().includes('/open')) {
+      if (await page.getByText('too many codes').isVisible())
+        throw new Error('GitHub login of test user requested too many times. Try again in a few minutes')
+
       await waitForSuccessResponse(page, () => page.locator('button:has-text("authorize")').click(), '/repos')
     }
 
