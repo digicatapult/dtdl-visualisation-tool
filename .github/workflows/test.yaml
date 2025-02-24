@@ -29,8 +29,6 @@ jobs:
       test_command: 'npm run test:playwright || exit 1'
       env_vars: |
         {
-          "GH_CLIENT_ID": "",
-          "GH_CLIENT_SECRET": "",
           "PUPPETEER_ARGS": "--no-sandbox,--disable-setuid-sandbox"
         }
     permissions:
