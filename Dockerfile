@@ -23,6 +23,7 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV CHROME_PUPPETEER_PATH=/usr/bin/chromium
 
 COPY sample ./sample
+COPY scripts ./scripts
 
 RUN apt-get update && apt-get install -y chromium --no-install-recommends
 
