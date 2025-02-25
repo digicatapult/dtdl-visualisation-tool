@@ -2,6 +2,10 @@ import { JSDOM } from 'jsdom'
 import mermaid, { ParseResult } from 'mermaid'
 import path from 'path'
 import puppeteer from 'puppeteer'
+import { container } from 'tsyringe'
+import { Env } from '../../../env/index.js'
+
+const env = container.resolve(Env)
 
 declare global {
   interface Window {
@@ -19,7 +23,9 @@ export const checkIfStringIsSVG = (svgString: string): boolean => {
 }
 
 export const parseMermaid = async (markdown: string): Promise<ParseResult> => {
-  const browser = await puppeteer.launch({})
+  const browser = await puppeteer.launch({
+    args: env.get('PUPPETEER_ARGS'),
+  })
   const page = await browser.newPage()
 
   await page.addScriptTag({ path: mermaidPath })
