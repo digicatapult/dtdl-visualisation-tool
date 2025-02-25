@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
+import { modelHistoryCookie } from '../../src/lib/server/models/cookieNames'
 import { waitForSuccessResponse, waitForUpdateLayout, waitForUploadFile } from './helpers/waitForHelpers'
 
 // Convert import.meta.url to __dirname equivalent
@@ -37,7 +38,7 @@ test.describe('Open Ontology from recently visited', () => {
     await waitForUpdateLayout(page, () => page.locator('text=simple.zip').click())
     await expect(page.locator('#mermaid-output').getByText('dtmi:com:example;1')).toBeVisible()
 
-    await context.clearCookies({ name: 'DTDL_MODEL_HISTORY' })
+    await context.clearCookies({ name: modelHistoryCookie })
     await waitForSuccessResponse(page, () => page.locator('#open-button').click(), '/open')
     await expect(page.locator('#main-view').getByText('simple.zip')).toHaveCount(0)
   })

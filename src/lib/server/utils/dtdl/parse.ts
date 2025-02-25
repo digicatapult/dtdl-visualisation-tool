@@ -2,7 +2,9 @@ import { getInterop, parseDirectories } from '@digicatapult/dtdl-parser'
 import { rm } from 'node:fs/promises'
 
 import Database from '../../../db'
+import { dtdlCacheKey } from '../../controllers/helpers.js'
 import { DataError } from '../../errors.js'
+import { GenerateParams } from '../../models/controllerTypes'
 import { FileSourceKeys } from '../../models/openTypes'
 import { type UUID } from '../../models/strings.js'
 import { ICache } from '../cache.js'
@@ -34,11 +36,8 @@ export const parseAndInsertDtdl = async (
     preview: output.renderForMinimap(),
     source: source,
   })
-
-  const cacheKey = new URLSearchParams()
-  cacheKey.set('dtdlId', id)
-
-  cache.set(cacheKey.toString(), output.renderToString())
+  const defaultParams: GenerateParams = { layout: 'elk', diagramType: 'flowchart', expandedIds: [], search: '' }
+  cache.set(dtdlCacheKey(id, defaultParams), output)
 
   return id
 }

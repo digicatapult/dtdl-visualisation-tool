@@ -8,6 +8,7 @@ import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { Layout, layoutEntries } from '../../models/mermaidLayouts.js'
 import { DtdlId, UUID } from '../../models/strings.js'
 import { getDisplayName, isInterface, isRelationship } from '../../utils/dtdl/extract.js'
+import { safeUrl } from '../../utils/url.js'
 import { AccordionSection, Page } from '../common.js'
 
 const commonUpdateAttrs = {
@@ -350,7 +351,7 @@ export default class MermaidTemplates {
 
   private uploadForm = ({ sessionId }: { sessionId: UUID }) => {
     return (
-      <a id="open-button" href={`/open?sessionId=${sessionId}`} class="button">
+      <a id="open-button" href={safeUrl(`/open`, { sessionId })} class="button">
         Open Ontology
       </a>
     )

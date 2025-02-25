@@ -9,13 +9,13 @@ import { Logger, type ILogger } from '../../logger.js'
 import {
   A11yPreference,
   GenerateParams,
-  relevantParams,
   urlQueryKeys,
   UrlQueryKeys,
   type CookieHistoryParams,
   type RootParams,
   type UpdateParams,
 } from '../../models/controllerTypes.js'
+import { modelHistoryCookie } from '../../models/cookieNames.js'
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../models/renderedDiagram/index.js'
 import { type UUID } from '../../models/strings.js'
 import { Cache, type ICache } from '../../utils/cache.js'
@@ -29,6 +29,7 @@ import { SvgMutator } from '../../utils/mermaid/svgMutator.js'
 import SessionStore, { Session } from '../../utils/sessions.js'
 import MermaidTemplates from '../../views/components/mermaid.js'
 import { HTML, HTMLController } from '../HTMLController.js'
+import { dtdlCacheKey } from '../helpers.js'
 
 @singleton()
 @injectable()
@@ -89,8 +90,11 @@ export class OntologyController extends HTMLController {
       this.sessionStore.set(sessionId, session)
     }
 
-    const cookieName = 'DTDL_MODEL_HISTORY'
-    res.cookie(cookieName, this.handleCookie(req.signedCookies, dtdlModelId, cookieName), this.cookieOpts)
+    res.cookie(
+      modelHistoryCookie,
+      this.handleCookie(req.signedCookies, dtdlModelId, modelHistoryCookie),
+      this.cookieOpts
+    )
 
     return this.html(
       this.templates.MermaidRoot({
@@ -241,26 +245,6 @@ export class OntologyController extends HTMLController {
     this.setHeader('HX-Push-Url', `${path}?${query}`)
   }
 
-  private createCacheKey(dtdlModelId: UUID, queryParams: GenerateParams): string {
-    const searchParams = new URLSearchParams()
-    for (const key of relevantParams) {
-      const value = queryParams[key]
-      if (value === undefined) {
-        continue
-      }
-
-      if (!Array.isArray(value)) {
-        searchParams.set(key, value)
-        continue
-      }
-      value.forEach((v) => searchParams.append(key, v))
-    }
-    searchParams.set('dtdlId', dtdlModelId)
-
-    searchParams.sort()
-    return searchParams.toString()
-  }
-
   private manipulateOutput(
     output: MermaidSvgRender | PlainTextRender,
     dtdlModelId: UUID,
@@ -325,7 +309,7 @@ export class OntologyController extends HTMLController {
     }
 
     // get the old svg from the cache
-    const cacheKey = this.createCacheKey(dtdlModelId, oldSession)
+    const cacheKey = dtdlCacheKey(dtdlModelId, oldSession)
     const oldOutput = this.cache.get(cacheKey, renderedDiagramParser)
 
     // on a cache miss skip animations so the render isn't twice as long
@@ -372,7 +356,7 @@ export class OntologyController extends HTMLController {
     model: DtdlObjectModel,
     session: GenerateParams
   ): Promise<MermaidSvgRender | PlainTextRender> {
-    const cacheKey = this.createCacheKey(dtdlModelId, session)
+    const cacheKey = dtdlCacheKey(dtdlModelId, session)
     const fromCache = this.cache.get(cacheKey, renderedDiagramParser)
     if (fromCache) {
       return fromCache
@@ -422,15 +406,9 @@ export class OntologyController extends HTMLController {
     cookieName: string
   ): CookieHistoryParams[] {
     const MAX_HISTORY = 6
-
-    let cookieHistory: CookieHistoryParams[] = []
-    try {
-      cookieHistory = cookies[cookieName] || []
-    } catch (error) {
-      this.logger.warn('failed to parse cookieHistory cookie', error)
-    }
-
     const timestamp = Date.now()
+
+    let cookieHistory: CookieHistoryParams[] = cookies[cookieName] || []
 
     const existingIndex = cookieHistory.findIndex((item) => item.id === dtdlModelId)
 
