@@ -138,6 +138,12 @@ Create a `.env` at root and set:
 - `GH_CLIENT_ID=` to the GitHub App's Client ID.
 - `GH_CLIENT_SECRET=` a generated token on the GitHub App.
 
+Additionally end to end tests for GitHub integration require envs from a test user in GitHub with a single repository that contains valid DTDL at root. [Example user and repo](https://github.com/jonathanmgray/dtdl).
+
+- `GH_TEST_USER=` the account email address.
+- `GH_TEST_PASSWORD=` the account password.
+- `GH_TEST_2FA_SECRET=` the secret shown by clicking `setup key` when [setting up 2FA](https://docs.github.com/en/authentication/securing-your-account-with-two-factor-authentication-2fa/configuring-two-factor-authentication) for the account.
+
 ## Testing
 
 This repository consists of two test types: [**e2e**, **unit**] and we are using a combination of `mocha`, `chai` and `sinon` frameworks.
@@ -171,6 +177,8 @@ Install dependencies for playwright with:
 ```sh
 npx playwright install
 ```
+
+See [GitHub Integration](#github-integration) for how to configure envs for GitHub e2e tests.
 
 Then run:
 

@@ -33,6 +33,7 @@ jobs:
         }
     permissions:
       contents: write
+    secrets: inherit
 
   build-docker:
     needs:
