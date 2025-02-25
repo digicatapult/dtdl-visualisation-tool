@@ -3,6 +3,7 @@ import express from 'express'
 import { randomUUID } from 'node:crypto'
 import { Get, Path, Produces, Queries, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
+import Database from '../../../db/index.js'
 import { InvalidQueryError } from '../../errors.js'
 import { Logger, type ILogger } from '../../logger.js'
 import {
@@ -21,6 +22,7 @@ import { Cache, type ICache } from '../../utils/cache.js'
 import { DtdlLoader } from '../../utils/dtdl/dtdlLoader.js'
 import { filterModelByDisplayName, getRelatedIdsById } from '../../utils/dtdl/filter.js'
 import { FuseSearch } from '../../utils/fuseSearch.js'
+import { GithubRequest } from '../../utils/githubRequest.js'
 import { SvgGenerator } from '../../utils/mermaid/generator.js'
 import { dtdlIdReinstateSemicolon } from '../../utils/mermaid/helpers.js'
 import { SvgMutator } from '../../utils/mermaid/svgMutator.js'
@@ -48,7 +50,9 @@ export class OntologyController extends HTMLController {
     private templates: MermaidTemplates,
     @inject(Logger) private logger: ILogger,
     @inject(Cache) private cache: ICache,
-    private sessionStore: SessionStore
+    private sessionStore: SessionStore,
+    private githubRequest: GithubRequest,
+    private db: Database
   ) {
     super()
     this.logger = logger.child({ controller: '/ontology' })
@@ -94,6 +98,7 @@ export class OntologyController extends HTMLController {
         search: params.search,
         sessionId,
         diagramType: params.diagramType,
+        canEdit: await this.canEdit(sessionId, dtdlModelId),
       })
     )
   }
@@ -440,5 +445,23 @@ export class OntologyController extends HTMLController {
     }
 
     return cookieHistory
+  }
+
+  private async canEdit(sessionId: string, dtdlModelId: UUID): Promise<boolean> {
+    let name: string
+    try {
+      const [model] = await this.db.get('model', { id: dtdlModelId })
+      if (model.source !== 'github') return false
+      name = model.name
+    } catch (error) {
+      this.logger.warn(`Failed to fetch model for ID ${dtdlModelId}`, error)
+      return false
+    }
+    if (!this.sessionStore.get(sessionId).octokitToken) return false
+    const token = this.sessionStore.get(sessionId).octokitToken
+    const owner = name.split('/')[0]
+    const repo = name.split('/')[1]
+    if (await this.githubRequest.getRepoPermissions(token, owner, repo)) return true
+    return false
   }
 }

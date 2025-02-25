@@ -84,6 +84,34 @@ export class GithubRequest {
     return json as OAuthToken
   }
 
+  getRepoPermissions = async (token: string | undefined, owner: string, repo: string): Promise<boolean> => {
+    if (!token) throw new GithubReqError('Missing GitHub token')
+
+    const octokit = new Octokit({ auth: token })
+    const username = await this.getUsername(token)
+    const response = await this.requestWrapper(async () =>
+      octokit.request('GET /repos/{owner}/{repo}/collaborators/{username}/permission', {
+        owner,
+        repo,
+        username,
+      })
+    )
+    const data = response.data
+    if (data.permission in ['admin', 'write']) {
+      return true
+    }
+    return false
+  }
+
+  getUsername = async (token: string | undefined): Promise<string> => {
+    if (!token) throw new GithubReqError('Missing GitHub token')
+
+    const octokit = new Octokit({ auth: token })
+    const response = await this.requestWrapper(async () => octokit.request('GET /user'))
+    const data = response.data
+    return data.login
+  }
+
   private async requestWrapper<T>(request: () => Promise<T>): Promise<T> {
     try {
       return await request()

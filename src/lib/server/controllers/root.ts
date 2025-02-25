@@ -34,4 +34,10 @@ export class RootController extends HTMLController {
   public async getLegend(@Query() showContent: boolean): Promise<HTML> {
     return this.html(this.templates.Legend({ showContent }))
   }
+
+  @SuccessResponse(200)
+  @Get('/edit-mode')
+  public async setEditMode(@Query() edit: boolean, @Query() canEdit: boolean): Promise<HTML> {
+    return this.html(this.templates.editToggle({ edit, canEdit }))
+  }
 }

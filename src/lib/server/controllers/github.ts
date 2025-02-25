@@ -216,7 +216,8 @@ export class GithubController extends HTMLController {
       this.db,
       this.generator,
       false,
-      this.cache
+      this.cache,
+      'github'
     )
 
     this.setHeader('HX-Redirect', safeUrl(`/ontology/${id}/view`, { sessionId }))

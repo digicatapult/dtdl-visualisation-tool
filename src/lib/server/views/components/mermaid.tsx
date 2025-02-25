@@ -34,6 +34,7 @@ export default class MermaidTemplates {
     diagramType,
     svgWidth,
     svgHeight,
+    canEdit,
   }: {
     search?: string
     layout: Layout
@@ -41,6 +42,7 @@ export default class MermaidTemplates {
     diagramType: DiagramType
     svgWidth?: number
     svgHeight?: number
+      canEdit: boolean
   }) => (
     <Page title={'UKDTC'}>
       <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
@@ -62,6 +64,7 @@ export default class MermaidTemplates {
       <this.Legend showContent={false} />
       <this.navigationPanel expanded={false} />
       <this.svgControls />
+      <this.editToggle edit={false} canEdit={canEdit} />
       <></>
     </Page>
   )
@@ -353,11 +356,28 @@ export default class MermaidTemplates {
     )
   }
 
-  private editToggle = ({ sessionId }: { sessionId: UUID }) => {
+  public editToggle = ({ edit, canEdit }: { edit: boolean; canEdit: boolean }) => {
     return (
-      <a id="open-button" href={`/open?sessionId=${sessionId}`} class="button">
-        Open Ontology
-      </a>
+      <div
+        id="edit-toggle"
+        hx-get={`/edit-mode?edit=${!edit}&canEdit=${canEdit}`}
+        hx-trigger="change from:input[type='checkbox']"
+        hx-swap="outerHTML"
+        className={canEdit ? '' : 'disabled'}
+        title={
+          canEdit
+            ? 'Click to edit ontology'
+            : 'Only Ontologies from github that you have write permissions on, can be edited'
+        }
+      >
+        <span id="edit-toggle-text" class="text edit-text">
+          {escapeHtml(`${edit ? 'Edit' : 'View'}`)}
+        </span>
+        <label class="switch">
+          <input type="checkbox" checked={edit} disabled={!canEdit} />
+          <span class="slider"></span>
+        </label>
+      </div>
     )
   }
 }

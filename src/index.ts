@@ -41,7 +41,7 @@ program
 
     let id: UUID
     try {
-      id = await parseAndInsertDtdl(options.path, `default`, db, generator, false, cache)
+      id = await parseAndInsertDtdl(options.path, `default`, db, generator, false, cache, 'default')
     } catch {
       logger.error(`Error parsing DTDL`)
       process.exit(1)

@@ -3,6 +3,7 @@ import { rm } from 'node:fs/promises'
 
 import Database from '../../../db'
 import { DataError } from '../../errors.js'
+import { FileSourceKeys } from '../../models/openTypes'
 import { type UUID } from '../../models/strings.js'
 import { ICache } from '../cache.js'
 import { SvgGenerator } from '../mermaid/generator'
@@ -13,7 +14,8 @@ export const parseAndInsertDtdl = async (
   db: Database,
   generator: SvgGenerator,
   deleteLocal: boolean = false,
-  cache: ICache
+  cache: ICache,
+  source: FileSourceKeys
 ): Promise<UUID> => {
   const parser = await getInterop()
   const parsedDtdl = parseDirectories(localPath, parser)
@@ -30,6 +32,7 @@ export const parseAndInsertDtdl = async (
     name: dtdlName,
     parsed: parsedDtdl,
     preview: output.renderForMinimap(),
+    source: source,
   })
 
   const cacheKey = new URLSearchParams()
