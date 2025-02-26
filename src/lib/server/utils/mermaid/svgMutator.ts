@@ -97,7 +97,7 @@ export class SvgMutator {
     relationshipMap: Map<string, string>,
     highlighNodeId?: string
   ) {
-    const labelText = labelElement.querySelector('.text-inner-tspan')?.innerHTML
+    const labelText = [...labelElement.querySelectorAll('.text-inner-tspan')].map((n) => n.innerHTML).join('')
     const relationshipId = relationshipMap.get(`${this.getMermaidIdFromId(lineElement.id, 'edge')}_${labelText}`)
 
     if (!relationshipId) {
