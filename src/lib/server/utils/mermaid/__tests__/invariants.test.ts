@@ -1,3 +1,9 @@
+/**
+ * These tests check that the SVG output of the Mermaid renderer is as expected.
+ * They are not exhaustive, but they should catch any major issues with the output and assumptions we're making about their structure.
+ * The tests are intentionally somewhat fragile to catch changes in the output that we might not expect.
+ */
+
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import { pino } from 'pino'
@@ -6,6 +12,16 @@ import { type MermaidSvgRender, PlainTextRender } from '../../../models/rendered
 import { SvgGenerator } from '../generator.js'
 import { mockDtdlObjectModel } from './fixtures.js'
 import { expectStringIsFiniteNumber } from './helpers.js'
+
+const getChildrenByClass = (element: Element, className: string): Element[] => {
+  return [...element.childNodes].filter((c) => {
+    if (!('classList' in c) || !c.classList) {
+      return false
+    }
+    const classSet = new Set(c.classList.toString().split(/\s+/))
+    return classSet.has(className)
+  }) as Element[]
+}
 
 describe('Mermaid Invariants', function () {
   describe('flowchart', function () {
@@ -83,6 +99,79 @@ describe('Mermaid Invariants', function () {
         ['L_dtmi:com:example:1_dtmi:com:example_related:1_1_0', 'A'],
       ])
     })
+
+    it('should have a class of flowchart', function () {
+      const svg = mermaidRender.svgElement
+      const classList = new Set(svg.classList.toString().split(/\s+/))
+      expect(classList.has('flowchart')).to.equal(true)
+    })
+
+    it('should have a `rect` within the `g` elements of class `node`', function () {
+      const svg = mermaidRender.svgElement
+      const nodes = [...svg.querySelectorAll('g.node')]
+
+      expect(nodes.length).to.equal(3)
+
+      const rects = nodes.map((n) => [...n.childNodes].filter((c) => 'tagName' in c && c.tagName === 'rect').length)
+      expect(rects).to.deep.equal([1, 1, 1])
+    })
+
+    it('should have a g with class edges', function () {
+      const svg = mermaidRender.svgElement
+      const edges = [...svg.querySelectorAll('g.edges')]
+
+      expect(edges.length).to.equal(1)
+    })
+
+    it('should have two path children in g.edges', function () {
+      const svg = mermaidRender.svgElement
+      const edges = [...svg.querySelectorAll('g.edges')]
+      const paths = edges.map((n) => [...n.childNodes].filter((c) => 'tagName' in c && c.tagName === 'path').length)
+
+      expect(paths).to.deep.equal([2])
+    })
+
+    it('should have a g with class edgePaths', function () {
+      const svg = mermaidRender.svgElement
+      const edges = [...svg.querySelectorAll('g.edgeLabels')]
+
+      expect(edges.length).to.equal(1)
+    })
+
+    it('should have two path children in g.edgePaths', function () {
+      const svg = mermaidRender.svgElement
+      const edgePaths = [...svg.querySelectorAll('g.edgePaths')]
+      const paths = edgePaths.map((n) => [...n.childNodes].filter((c) => 'tagName' in c && c.tagName === 'path').length)
+
+      expect(paths).to.deep.equal([2])
+    })
+
+    it('should have a g with class edgeLabel for each edge', function () {
+      const svg = mermaidRender.svgElement
+      const edges = [...svg.querySelectorAll('g.edgeLabel')]
+
+      expect(edges.length).to.equal(2)
+    })
+
+    it('should have some .text-inner-tspan within each .edgeLabel', function () {
+      const svg = mermaidRender.svgElement
+      const labels = [...svg.querySelectorAll('g.edgeLabel')]
+      const textSpans = labels.map((n) => [...n.querySelectorAll('.text-inner-tspan')].length)
+      expect(textSpans).to.deep.equal([1, 2])
+    })
+
+    it('should have a rect background within each label', function () {
+      const svg = mermaidRender.svgElement
+      const labels = [...svg.querySelectorAll('g.edgeLabel')]
+      const textSpans = labels.map((n) => [...n.querySelectorAll('.label rect')].length)
+      expect(textSpans).to.deep.equal([1, 1])
+    })
+
+    it('should contain marker elements within the svg', function () {
+      const svg = mermaidRender.svgElement
+      const markers = [...svg.querySelectorAll('.marker')]
+      expect(markers.length).to.equal(6)
+    })
   })
 
   describe('classDiagram', function () {
@@ -157,6 +246,103 @@ describe('Mermaid Invariants', function () {
         ['id_dtmi:com:example_extended:1_dtmi:com:example:1_1_0', 'extends'],
         ['id_dtmi:com:example:1_dtmi:com:example_related:1_2_0', 'A'],
       ])
+    })
+
+    it('should have a class of classDiagram', function () {
+      const svg = mermaidRender.svgElement
+      const classList = new Set(svg.classList.toString().split(/\s+/))
+      expect(classList.has('classDiagram')).to.equal(true)
+    })
+
+    it('should have a .label-container within the `g` elements of class `node`', function () {
+      const svg = mermaidRender.svgElement
+      const nodes = [...svg.querySelectorAll('g.node')]
+
+      expect(nodes.length).to.equal(3)
+
+      const paths = nodes.map((n) => getChildrenByClass(n, 'label-container').length)
+      expect(paths).to.deep.equal([1, 1, 1])
+    })
+
+    it('should have a .divider within the `g` elements of class `node`', function () {
+      const svg = mermaidRender.svgElement
+      const nodes = [...svg.querySelectorAll('g.node')]
+
+      expect(nodes.length).to.equal(3)
+
+      const paths = nodes.map((n) => getChildrenByClass(n, 'label-container').length)
+      expect(paths).to.deep.equal([1, 1, 1])
+    })
+
+    it('should have two paths within each .label-container', function () {
+      const svg = mermaidRender.svgElement
+      const nodes = [...svg.querySelectorAll('g.node > .label-container')]
+      const paths = nodes.map((n) => [...n.childNodes].filter((c) => 'tagName' in c && c.tagName === 'path').length)
+      expect(paths).to.deep.equal([2, 2, 2])
+    })
+
+    it('should have a path within each .divider', function () {
+      const svg = mermaidRender.svgElement
+      const nodes = [...svg.querySelectorAll('g.node > .divider')]
+      const paths = nodes.map((n) => [...n.childNodes].filter((c) => 'tagName' in c && c.tagName === 'path').length)
+      expect(paths).to.deep.equal([1, 1, 1, 1, 1, 1])
+    })
+
+    it('should have a g with class edges', function () {
+      const svg = mermaidRender.svgElement
+      const edges = [...svg.querySelectorAll('g.edges')]
+
+      expect(edges.length).to.equal(1)
+    })
+
+    it('should have two path children in g.edges', function () {
+      const svg = mermaidRender.svgElement
+      const edges = [...svg.querySelectorAll('g.edges')]
+      const paths = edges.map((n) => [...n.childNodes].filter((c) => 'tagName' in c && c.tagName === 'path').length)
+
+      expect(paths).to.deep.equal([2])
+    })
+
+    it('should have a g with class edgePaths', function () {
+      const svg = mermaidRender.svgElement
+      const edges = [...svg.querySelectorAll('g.edgeLabels')]
+
+      expect(edges.length).to.equal(1)
+    })
+
+    it('should have two path children in g.edgePaths', function () {
+      const svg = mermaidRender.svgElement
+      const edgePaths = [...svg.querySelectorAll('g.edgePaths')]
+      const paths = edgePaths.map((n) => [...n.childNodes].filter((c) => 'tagName' in c && c.tagName === 'path').length)
+
+      expect(paths).to.deep.equal([2])
+    })
+
+    it('should have a g with class edgeLabel for each edge', function () {
+      const svg = mermaidRender.svgElement
+      const edges = [...svg.querySelectorAll('g.edgeLabel')]
+
+      expect(edges.length).to.equal(2)
+    })
+
+    it('should have some .text-inner-tspan within each .edgeLabel', function () {
+      const svg = mermaidRender.svgElement
+      const labels = [...svg.querySelectorAll('g.edgeLabel')]
+      const textSpans = labels.map((n) => [...n.querySelectorAll('.text-inner-tspan')].length)
+      expect(textSpans).to.deep.equal([1, 2])
+    })
+
+    it('should have a rect background within each label', function () {
+      const svg = mermaidRender.svgElement
+      const labels = [...svg.querySelectorAll('g.edgeLabel')]
+      const textSpans = labels.map((n) => [...n.querySelectorAll('.label rect')].length)
+      expect(textSpans).to.deep.equal([1, 1])
+    })
+
+    it('should contain marker elements within the svg', function () {
+      const svg = mermaidRender.svgElement
+      const markers = [...svg.querySelectorAll('.marker')]
+      expect(markers.length).to.equal(10)
     })
   })
 })
