@@ -1,6 +1,6 @@
 #github-modal {
     height: 50%;
-    width: 50ch;
+    width: 60ch;
     align-self: center;
   }
   
@@ -18,10 +18,19 @@
     justify-items: center;
     align-items: center;
     display: grid;
-    grid-template-rows: 1fr auto;
+    grid-template-rows: auto 1fr auto;
     height: 100%;
-    gap: 1rem;
-    padding: 1rem 1rem 0 1rem;
+    gap: 2rem;
+    padding: 2rem 1rem 0 1rem;
+}
+
+#public-github-input-wrapper {
+    display: grid;
+    width: 100%;
+}
+
+#public-github-input {
+    font-size: 0.9rem;
 }
 
 .github-list li:nth-child(odd) { background: var(--background-color); }

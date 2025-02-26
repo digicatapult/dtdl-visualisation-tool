@@ -95,22 +95,24 @@ The application can be run in Docker. `sample/energygrid` is automatically parse
 
 ## Environment variables
 
-| variable name    | required | default                   | description                                                                                  |
-| ---------------- | -------- | ------------------------- | -------------------------------------------------------------------------------------------- |
-| LOG_LEVEL        | n        | info                      | Logging level. Valid values are [ trace , debug , info , warn , error , fatal ]              |
-| CACHE_TTL        | n        | `1000 * 60 * 5`           | Time to live (in seconds) for cached diagrams                                                |
-| CACHE_SIZE       | n        | `100`                     | Maximum number of diagrams to cache                                                          |
-| SEARCH_THRESHOLD | n        | `0.4`                     | Threshold for a fuzzy search match. 0.0 is a perfect match, 1.0 matches anything.            |
-| DB_HOST          | n        | `localhost`               | The database hostname / host                                                                 |
-| DB_NAME          | n        | `dtdl-visualisation-tool` | The database name                                                                            |
-| DB_USERNAME      | n        | `postgres`                | The database username                                                                        |
-| DB_PASSWORD      | n        | `postgres`                | The database password                                                                        |
-| DB_PORT          | n        | `5432`                    | The database port number                                                                     |
-| UPLOAD_LIMIT_MB  | n        | `10`                      | Upload limit for DTDLs in MB                                                                 |
-| GH_CLIENT_ID     | y        | -                         | See [GitHub Integration](#github-integration)                                                |
-| GH_CLIENT_SECRET | y        | -                         | See [GitHub Integration](#github-integration)                                                |
-| GH_PER_PAGE      | n        | `50`                      | The number of results per GitHub API request (max 100)                                       |
-| GH_REDIRECT_HOST | n        | `localhost:3000`          | Host to redirect to for GitHub OAuth callback. See [GitHub Integration](#github-integration) |
+| variable name       | required | default                   | description                                                                                                                                  |
+| ------------------- | -------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| LOG_LEVEL           | n        | info                      | Logging level. Valid values are [ trace , debug , info , warn , error , fatal ]                                                              |
+| CACHE_TTL           | n        | `1000 * 60 * 5`           | Time to live (in seconds) for cached diagrams                                                                                                |
+| CACHE_SIZE          | n        | `100`                     | Maximum number of diagrams to cache                                                                                                          |
+| SEARCH_THRESHOLD    | n        | `0.4`                     | Threshold for a fuzzy search match. 0.0 is a perfect match, 1.0 matches anything.                                                            |
+| DB_HOST             | n        | `localhost`               | The database hostname / host                                                                                                                 |
+| DB_NAME             | n        | `dtdl-visualisation-tool` | The database name                                                                                                                            |
+| DB_USERNAME         | n        | `postgres`                | The database username                                                                                                                        |
+| DB_PASSWORD         | n        | `postgres`                | The database password                                                                                                                        |
+| DB_PORT             | n        | `5432`                    | The database port number                                                                                                                     |
+| UPLOAD_LIMIT_MB     | n        | `10`                      | Upload limit for DTDLs in MB                                                                                                                 |
+| GH_CLIENT_ID        | y        | -                         | See [GitHub Integration](#github-integration)                                                                                                |
+| GH_CLIENT_SECRET    | y        | -                         | See [GitHub Integration](#github-integration)                                                                                                |
+| GH_PER_PAGE         | n        | `50`                      | The number of results per GitHub API request (max 100)                                                                                       |
+| GH_REDIRECT_HOST    | n        | `localhost:3000`          | Host to redirect to for GitHub OAuth callback. See [GitHub Integration](#github-integration)                                                 |
+| COOKIE_SESSION_KEYS | y        | -                         | Secret for signed cookies, devDefault `secret`                                                                                               |
+| PUPPETEER_ARGS      | n        | ''                        | Comma separated string of puppeteer [launch args](https://pptr.dev/api/puppeteer.launchoptions) e.g. `--no-sandbox,--disable-setuid-sandbox` |
 
 ## Database migrations
 
@@ -135,6 +137,12 @@ Create a `.env` at root and set:
 
 - `GH_CLIENT_ID=` to the GitHub App's Client ID.
 - `GH_CLIENT_SECRET=` a generated token on the GitHub App.
+
+Additionally end to end tests for GitHub integration require envs from a test user in GitHub with a single repository that contains valid DTDL at root. [Example user and repo](https://github.com/jonathanmgray/dtdl).
+
+- `GH_TEST_USER=` the account email address.
+- `GH_TEST_PASSWORD=` the account password.
+- `GH_TEST_2FA_SECRET=` the secret shown by clicking `setup key` when [setting up 2FA](https://docs.github.com/en/authentication/securing-your-account-with-two-factor-authentication-2fa/configuring-two-factor-authentication) for the account.
 
 ## Testing
 
@@ -169,6 +177,8 @@ Install dependencies for playwright with:
 ```sh
 npx playwright install
 ```
+
+See [GitHub Integration](#github-integration) for how to configure envs for GitHub e2e tests.
 
 Then run:
 

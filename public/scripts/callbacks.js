@@ -13,6 +13,14 @@ globalThis.toggleNavPanel = (event) => {
   panel?.toggleAttribute('aria-expanded')
 }
 
+globalThis.getOwnerRepoFromInput = (event) => {
+  const [owner, repo] = event.target.value.split('/')
+  return {
+    owner: owner || undefined,
+    repo: repo || undefined,
+  }
+}
+
 htmx.on('htmx:load', (e) => {
   if (e?.detail.elt.baseURI.includes('github/picker')) {
     document.getElementById('github-modal').showModal()

@@ -1,6 +1,6 @@
 import Fuse, { type IFuseOptions } from 'fuse.js'
 import { container, singleton } from 'tsyringe'
-import { Env } from '../../../lib/server/env.js'
+import { Env } from '../../../lib/server/env/index.js'
 import { ISearch } from './search.js'
 
 const env = container.resolve(Env)

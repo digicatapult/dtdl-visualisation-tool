@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.13
+# syntax=docker/dockerfile:1.14
 FROM node:lts-bookworm-slim AS builder
 
 WORKDIR /dtdl-visualisation-tool
@@ -23,6 +23,7 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV CHROME_PUPPETEER_PATH=/usr/bin/chromium
 
 COPY sample ./sample
+COPY scripts ./scripts
 
 RUN apt-get update && apt-get install -y chromium --no-install-recommends
 
