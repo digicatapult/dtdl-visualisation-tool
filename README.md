@@ -110,7 +110,7 @@ The application can be run in Docker. `sample/energygrid` is automatically parse
 | GH_CLIENT_ID        | y        | -                         | See [GitHub Integration](#github-integration)                                                                                                |
 | GH_CLIENT_SECRET    | y        | -                         | See [GitHub Integration](#github-integration)                                                                                                |
 | GH_PER_PAGE         | n        | `50`                      | The number of results per GitHub API request (max 100)                                                                                       |
-| GH_REDIRECT_URI     | n        | `http://localhost:3000`   | URI to redirect to for GitHub OAuth callback. See [GitHub Integration](#github-integration)                                                  |
+| GH_REDIRECT_ORIGIN  | n        | `http://localhost:3000`   | Origin to redirect to for GitHub OAuth callback. See [GitHub Integration](#github-integration)                                               |
 | COOKIE_SESSION_KEYS | y        | -                         | Secret for signed cookies, devDefault `secret`                                                                                               |
 | PUPPETEER_ARGS      | n        | ''                        | Comma separated string of puppeteer [launch args](https://pptr.dev/api/puppeteer.launchoptions) e.g. `--no-sandbox,--disable-setuid-sandbox` |
 

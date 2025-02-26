@@ -25,7 +25,7 @@ const envConfig = {
   GH_CLIENT_SECRET: envalid.str(),
   GH_PER_PAGE: envalid.num({ default: 50 }),
   UPLOAD_LIMIT_MB: envalid.num({ default: 10 }),
-  GH_REDIRECT_URI: envalid.host({ default: 'http://localhost:3000' }),
+  GH_REDIRECT_ORIGIN: envalid.str({ default: 'http://localhost:3000' }),
   PUPPETEER_ARGS: strArrayValidator({ default: [''] }),
 }
 
