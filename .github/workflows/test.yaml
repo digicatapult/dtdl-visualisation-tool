@@ -4,6 +4,10 @@ on:
   push:
     branches-ignore: ['main']
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   static-checks-npm:
     uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@main
@@ -23,6 +27,8 @@ jobs:
 
   e2e-tests-npm:
     uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
+    concurrency:
+      group: e2e-tests-npm
     with:
       docker_compose_file: ''
       pre_test_command: 'npm ci && npx playwright install-deps && npx playwright install'
