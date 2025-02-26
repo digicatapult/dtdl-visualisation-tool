@@ -138,7 +138,7 @@ describe('GithubController', async () => {
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
       const setStatusSpy = sinon.spy(controller, 'setStatus')
       const redirect = encodeURIComponent(
-        `http://${env.get('GH_REDIRECT_HOST')}/github/callback?sessionId=${noOctokitSessionId}`
+        `${env.get('GH_REDIRECT_URI')}/github/callback?sessionId=${noOctokitSessionId}`
       )
 
       await controller.picker(mockReqWithCookie({}), noOctokitSessionId)
