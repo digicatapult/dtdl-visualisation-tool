@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.4.27",
+  "version": "0.4.28",
   "description": "CLI tool for dtdl visualisation",
   "main": "src/index.js",
   "bin": {
@@ -88,7 +88,7 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.13.5",
     "@types/pino-http": "^5.8.4",
-    "@types/sinon": "^17.0.3",
+    "@types/sinon": "^17.0.4",
     "@types/unzipper": "^0.10.10",
     "@typescript-eslint/eslint-plugin": "^8.24.1",
     "@typescript-eslint/parser": "^8.24.1",
