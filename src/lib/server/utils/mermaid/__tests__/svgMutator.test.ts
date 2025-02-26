@@ -205,6 +205,34 @@ describe('Generator', function () {
       expect(label.hasAttribute('clickable')).to.equal(true)
     })
 
+    it('should return an element with htmx attributes if it is in the relationship map but with a long name', () => {
+      const labelInner1 = document.createElement('text')
+      const labelInner2 = document.createElement('text')
+      labelInner1.classList.add('text-inner-tspan')
+      labelInner2.classList.add('text-inner-tspan')
+      labelInner1.innerHTML = 'bar'
+      labelInner2.innerHTML = 'long'
+
+      const label = document.createElement('g')
+      label.appendChild(labelInner1)
+      label.appendChild(labelInner2)
+
+      const line = document.createElement('g')
+      line.id = 'test_foo_1_2_3'
+
+      const relationshipMap = new Map([['foo_barlong', 'baz']])
+
+      mutator.setEdgeAttributes(line, label, relationshipMap)
+
+      expect(label.getAttribute('hx-get')).to.equal('update-layout')
+      expect(label.getAttribute('hx-target')).to.equal('#mermaid-output')
+      expect(label.getAttribute('hx-swap')).to.equal('outerHTML transition:true')
+      expect(label.getAttribute('hx-indicator')).to.equal('#spinner')
+      expect(label.getAttribute('hx-vals')).to.equal(JSON.stringify({ highlightNodeId: 'baz' }))
+
+      expect(label.hasAttribute('clickable')).to.equal(true)
+    })
+
     it('should set highlighted node if it matches', () => {
       const labelInner = document.createElement('text')
       labelInner.classList.add('text-inner-tspan')
