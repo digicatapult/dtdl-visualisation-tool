@@ -11,17 +11,7 @@ import { pino } from 'pino'
 import { type MermaidSvgRender, PlainTextRender } from '../../../models/renderedDiagram/index.js'
 import { SvgGenerator } from '../generator.js'
 import { mockDtdlObjectModel } from './fixtures.js'
-import { expectStringIsFiniteNumber } from './helpers.js'
-
-const getChildrenByClass = (element: Element, className: string): Element[] => {
-  return [...element.childNodes].filter((c) => {
-    if (!('classList' in c) || !c.classList) {
-      return false
-    }
-    const classSet = new Set(c.classList.toString().split(/\s+/))
-    return classSet.has(className)
-  }) as Element[]
-}
+import { expectStringIsFiniteNumber, getChildrenByClass } from './helpers.js'
 
 describe('Mermaid Invariants', function () {
   describe('flowchart', function () {
