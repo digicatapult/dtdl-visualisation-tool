@@ -190,13 +190,7 @@ export default class OpenOntologyTemplates {
             const preview: JSX.Element = recentFile.preview
             return (
               <a href={safeUrl(`/ontology/${recentFile.dtdlModelId}/view`, { sessionId })}>
-                <div
-                  class="file-card"
-                  role="button"
-                  tabindex={`${index + 1}`}
-                  hx-get={`/open/${recentFile.dtdlModelId}`}
-                  hx-include="#sessionId"
-                >
+                <div class="file-card" role="button" tabindex={`${index + 1}`}>
                   <div class="file-preview">{preview}</div>
                   <div class="file-details">
                     <p class="file-name">{escapeHtml(recentFile.fileName)}</p>
