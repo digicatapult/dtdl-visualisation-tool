@@ -58,7 +58,7 @@ export class GithubController extends HTMLController {
   async getOctokitToken(sessionId: string, returnUrl: string): Promise<void> {
     this.sessionStore.update(sessionId, { returnUrl })
 
-    const callback = safeUrl(`${env.get('GH_REDIRECT_URI')}/github/callback`, { sessionId })
+    const callback = safeUrl(`${env.get('GH_REDIRECT_ORIGIN')}/github/callback`, { sessionId })
     const githubAuthUrl = safeUrl(`https://github.com/login/oauth/authorize`, {
       client_id: env.get('GH_CLIENT_ID'),
       redirect_uri: callback,
