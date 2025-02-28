@@ -569,20 +569,32 @@ label[for='diagramType'] {
 #edit-toggle {
   display: flex;
   align-items: center;
-  gap: 10px;
   position: absolute;
   top: 100px;
-  right: 100px;
+  right: 70px;
   transform: translateX(0);
   transition: transform 200ms;
   font-weight: 800;
+  background-color: #d5d5d5;
+  padding: 10px 20px;
+  border-radius: 7px;
+  width: 140px;
+}
+#edit-toggle.edit {
+  background-color: #00b79b;
+  color: white;
+  
+}
+#edit-toggle.disabled {
+  color: #83888b;
 }
 
 #edit-toggle > .switch {
   position: relative;
   display: inline-block;
+  margin-left: auto;
   width: 50px;
-  height: 24px;
+  height: 15px;
 }
 .switch input {
   opacity: 0;
@@ -596,24 +608,54 @@ label[for='diagramType'] {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: grey;
+  background-color: #e6e6e6;
   transition: .4s;
-  border-radius: 24px;
+  border-radius: 25px;
 }
 .slider:before {
   position: absolute;
-  content: url('../images/eye.svg');
-  height: 16px;
-  width: 16px;
-  left: 4px;
-  bottom: 4px;
-  transition: .4s;
+  content: "";
+  height: 25px;
+  width: 25px;
+  bottom: -5px;
+  transition: .4s transform;
   border-radius: 50%;
+  background: #bbc4cb center/contain no-repeat;
+  view-transition-name: toggle-view;
 }
+.slider:before {
+  background-image: url('../images/eye.svg');
+}
+
 input:checked + .slider {
-  background-color: green;
+  background-color: #65d4c3;
 }
 input:checked + .slider:before {
-  content: url('../images/pencil.svg');
-  transform: translateX(26px);
+  background-image: url('../images/pencil.svg');
+  background-color: white;
+  view-transition-name: toggle-edit;
+  transform: translateX(24px);
+}
+
+@keyframes slide-left{
+  100% {
+    transform: translateX(0px);
+  }
+}
+@keyframes slide-right{
+  100% {
+    transform: translateX(24px);
+  }
+}
+::view-transition-old(toggle-view) {
+  animation: slide-right;
+}
+::view-transition-new(toggle-view) {
+  animation: slide-left;
+}
+::view-transition-old(toggle-edit) {
+  animation: slide-left;
+}
+::view-transition-new(toggle-edit) {
+  animation: slide-right;
 }

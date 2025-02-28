@@ -6,6 +6,8 @@ import { Env } from '../env/index.js'
 import { GithubReqError } from '../errors.js'
 import { Logger, type ILogger } from '../logger.js'
 import { OAuthToken } from '../models/github.js'
+import SessionStore from './sessions.js'
+import { safeUrl } from './url.js'
 
 const env = container.resolve(Env)
 
@@ -89,28 +91,36 @@ export class GithubRequest {
     if (!token) throw new GithubReqError('Missing GitHub token')
 
     const octokit = new Octokit({ auth: token })
-    const username = await this.getUsername(token)
     const response = await this.requestWrapper(async () =>
-      octokit.request('GET /repos/{owner}/{repo}/collaborators/{username}/permission', {
+      octokit.request('GET /repos/{owner}/{repo}', {
         owner,
         repo,
-        username,
       })
     )
     const data = response.data
-    if (data.permission in ['admin', 'write']) {
+    if (data.permissions?.push) {
       return true
     }
     return false
   }
 
-  getUsername = async (token: string | undefined): Promise<string> => {
-    if (!token) throw new GithubReqError('Missing GitHub token')
+  getOctokitToken = async (
+    sessionId: string,
+    returnUrl: string,
+    sessionStore: SessionStore,
+    setStatus: (status: number) => void,
+    setHeader: (key: string, value: string) => void
+  ): Promise<void> => {
+    sessionStore.update(sessionId, { returnUrl })
 
-    const octokit = new Octokit({ auth: token })
-    const response = await this.requestWrapper(async () => octokit.request('GET /user'))
-    const data = response.data
-    return data.login
+    const callback = safeUrl(`http://${env.get('GH_REDIRECT_HOST')}/github/callback`, { sessionId })
+    const githubAuthUrl = safeUrl(`https://github.com/login/oauth/authorize`, {
+      client_id: env.get('GH_CLIENT_ID'),
+      redirect_uri: callback,
+    })
+
+    setStatus(302)
+    setHeader('Location', githubAuthUrl)
   }
 
   private async requestWrapper<T>(request: () => Promise<T>): Promise<T> {

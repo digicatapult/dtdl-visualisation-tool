@@ -27,6 +27,7 @@ import { SvgGenerator } from '../../utils/mermaid/generator.js'
 import { dtdlIdReinstateSemicolon } from '../../utils/mermaid/helpers.js'
 import { SvgMutator } from '../../utils/mermaid/svgMutator.js'
 import SessionStore, { Session } from '../../utils/sessions.js'
+import { safeUrl } from '../../utils/url.js'
 import MermaidTemplates from '../../views/components/mermaid.js'
 import { HTML, HTMLController } from '../HTMLController.js'
 import { dtdlCacheKey } from '../helpers.js'
@@ -65,7 +66,7 @@ export class OntologyController extends HTMLController {
     @Path() dtdlModelId: UUID,
     @Queries() params: RootParams,
     @Request() req: express.Request
-  ): Promise<HTML> {
+  ): Promise<HTML | void> {
     const { res } = req
     if (!res) {
       throw new Error('Result not found on request')
@@ -96,13 +97,31 @@ export class OntologyController extends HTMLController {
       this.cookieOpts
     )
 
+    const { name, source } = await this.getModelDetails(dtdlModelId)
+
+    let canEdit = false
+    if (source === 'github') {
+      const octokitToken = this.sessionStore.get(sessionId).octokitToken
+      if (!octokitToken) {
+        const returnUrl = safeUrl(`/ontology/${dtdlModelId}/view`, { sessionId })
+        return this.githubRequest.getOctokitToken(
+          sessionId,
+          returnUrl,
+          this.sessionStore,
+          this.setStatus.bind(this),
+          this.setHeader.bind(this)
+        )
+      }
+      canEdit = await this.canEdit(octokitToken, name)
+    }
+
     return this.html(
       this.templates.MermaidRoot({
         layout: params.layout,
         search: params.search,
         sessionId,
         diagramType: params.diagramType,
-        canEdit: await this.canEdit(sessionId, dtdlModelId),
+        canEdit: canEdit,
       })
     )
   }
@@ -425,21 +444,28 @@ export class OntologyController extends HTMLController {
     return cookieHistory
   }
 
-  private async canEdit(sessionId: string, dtdlModelId: UUID): Promise<boolean> {
-    let name: string
+  private async getModelDetails(dtdlModelId: UUID): Promise<{ name: string; source: string | null }> {
     try {
       const [model] = await this.db.get('model', { id: dtdlModelId })
-      if (model.source !== 'github') return false
-      name = model.name
+      return { name: model.name, source: model.source }
     } catch (error) {
       this.logger.warn(`Failed to fetch model for ID ${dtdlModelId}`, error)
+      return { name: '', source: null }
+    }
+  }
+
+  private async canEdit(token: string | undefined, name: string): Promise<boolean> {
+    if (!token || !name || !name.includes('/')) {
+      this.logger.warn(`Invalid repository name: "${name}"`)
       return false
     }
-    if (!this.sessionStore.get(sessionId).octokitToken) return false
-    const token = this.sessionStore.get(sessionId).octokitToken
-    const owner = name.split('/')[0]
-    const repo = name.split('/')[1]
-    if (await this.githubRequest.getRepoPermissions(token, owner, repo)) return true
-    return false
+
+    const [owner, repo] = name.split('/')
+    if (!owner || !repo) {
+      this.logger.warn(`Malformed repository name: "${name}"`)
+      return false
+    }
+
+    return await this.githubRequest.getRepoPermissions(token, owner, repo)
   }
 }

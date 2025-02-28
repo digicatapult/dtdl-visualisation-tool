@@ -5,11 +5,13 @@ import { UpdateParams } from '../../../models/controllerTypes.js'
 import { modelHistoryCookie } from '../../../models/cookieNames.js'
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../../models/renderedDiagram/index.js'
 import { generatedSVGFixture } from '../../../utils/mermaid/__tests__/fixtures.js'
+import { mockGithubRequest } from '../../__tests__/github.test.js'
 import {
   complexDtdlId,
   complexMockDtdlLoader,
   generatorRunStub,
   mockCache,
+  mockDb,
   mockGenerator,
   mockLogger,
   mockMutator,
@@ -60,7 +62,9 @@ describe('OntologyController', async () => {
     templateMock,
     mockLogger,
     mockCache,
-    mockSession
+    mockSession,
+    mockGithubRequest,
+    mockDb
   )
   const complexController = new OntologyController(
     complexMockDtdlLoader,
@@ -69,7 +73,9 @@ describe('OntologyController', async () => {
     templateMock,
     mockLogger,
     mockCache,
-    mockSession
+    mockSession,
+    mockGithubRequest,
+    mockDb
   )
 
   describe('view', () => {

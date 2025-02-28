@@ -45,27 +45,20 @@ export class GithubController extends HTMLController {
   @Get('/picker')
   public async picker(@Request() req: express.Request, @Query() sessionId: string): Promise<HTML | void> {
     const session = this.sessionStore.get(sessionId)
-    const returnUrl = safeUrl(`/github/picker`, { sessionId }) // where to redirect to from callback
     if (!session.octokitToken) {
-      return this.getOctokitToken(sessionId, returnUrl)
+      const returnUrl = safeUrl(`/github/picker`, { sessionId }) // where to redirect to from callback
+      return this.githubRequest.getOctokitToken(
+        sessionId,
+        returnUrl,
+        this.sessionStore,
+        this.setStatus.bind(this),
+        this.setHeader.bind(this)
+      )
     }
 
     const populateListLink = safeUrl(`/github/repos`, { page: '1' })
     const recentFiles = await recentFilesFromCookies(req.signedCookies, this.db, this.logger)
     return this.html(this.templates.OpenOntologyRoot({ sessionId, populateListLink, recentFiles }))
-  }
-
-  async getOctokitToken(sessionId: string, returnUrl: string): Promise<void> {
-    this.sessionStore.update(sessionId, { returnUrl })
-
-    const callback = safeUrl(`http://${env.get('GH_REDIRECT_HOST')}/github/callback`, { sessionId })
-    const githubAuthUrl = safeUrl(`https://github.com/login/oauth/authorize`, {
-      client_id: env.get('GH_CLIENT_ID'),
-      redirect_uri: callback,
-    })
-    this.setStatus(302)
-    this.setHeader('Location', githubAuthUrl)
-    return
   }
 
   // Called by GitHub after external OAuth login

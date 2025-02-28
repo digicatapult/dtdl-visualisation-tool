@@ -363,17 +363,15 @@ export default class MermaidTemplates {
         id="edit-toggle"
         hx-get={`/edit-mode?edit=${!edit}&canEdit=${canEdit}`}
         hx-trigger="change from:input[type='checkbox']"
-        hx-swap="outerHTML"
-        className={canEdit ? '' : 'disabled'}
+        hx-swap="outerHTML transition:true"
         title={
           canEdit
             ? 'Click to edit ontology'
             : 'Only Ontologies from github that you have write permissions on, can be edited'
         }
+        class={`${edit ? 'edit' : 'view'} ${canEdit ? '' : 'disabled'}`}
       >
-        <span id="edit-toggle-text" class="text edit-text">
-          {escapeHtml(`${edit ? 'Edit' : 'View'}`)}
-        </span>
+        <span>{escapeHtml(`${edit ? 'Edit' : 'View'}`)}</span>
         <label class="switch">
           <input type="checkbox" checked={edit} disabled={!canEdit} />
           <span class="slider"></span>
