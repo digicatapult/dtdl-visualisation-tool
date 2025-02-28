@@ -42,4 +42,17 @@ test.describe('Open Ontology from recently visited', () => {
     await waitForSuccessResponse(page, () => page.locator('#open-button').click(), '/open')
     await expect(page.locator('#main-view').getByText('simple.zip')).toHaveCount(0)
   })
+
+  test('Open default ontology from recent view', async ({ page, context }) => {
+    await context.clearCookies({ name: modelHistoryCookie })
+    await page.setViewportSize({ width: 1920, height: 1080 })
+    await waitForUpdateLayout(page, () => page.goto('./'))
+    await expect(page.locator('#toolbar').getByText('Open Ontology')).toBeVisible()
+
+    await waitForSuccessResponse(page, () => page.locator('#open-button').click(), '/open')
+    await expect(page.locator('#main-view').getByText('Viewed Today at ')).toBeVisible()
+
+    await waitForSuccessResponse(page, () => page.locator('.file-card').first().click(), '/view')
+    await expect(page.locator('#mermaid-output').getByText('ConnectivityNode', { exact: true })).toBeVisible()
+  })
 })
