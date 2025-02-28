@@ -36,6 +36,7 @@ export default class MermaidTemplates {
     svgWidth,
     svgHeight,
     canEdit,
+    edit,
   }: {
     search?: string
     layout: Layout
@@ -43,7 +44,8 @@ export default class MermaidTemplates {
     diagramType: DiagramType
     svgWidth?: number
     svgHeight?: number
-      canEdit: boolean
+    canEdit: boolean
+    edit: boolean
   }) => (
     <Page title={'UKDTC'}>
       <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
@@ -58,7 +60,7 @@ export default class MermaidTemplates {
         <this.uploadForm sessionId={sessionId} />
       </section>
 
-      <div id="mermaid-wrapper">
+      <div id="mermaid-wrapper" class={edit ? 'edit' : 'view'}>
         <this.mermaidTarget target="mermaid-output" />
         <div id="spinner" class="spinner" />
       </div>

@@ -113,7 +113,7 @@ export class GithubRequest {
   ): Promise<void> => {
     sessionStore.update(sessionId, { returnUrl })
 
-    const callback = safeUrl(`http://${env.get('GH_REDIRECT_HOST')}/github/callback`, { sessionId })
+    const callback = safeUrl(`${env.get('GH_REDIRECT_ORIGIN')}/github/callback`, { sessionId })
     const githubAuthUrl = safeUrl(`https://github.com/login/oauth/authorize`, {
       client_id: env.get('GH_CLIENT_ID'),
       redirect_uri: callback,

@@ -105,7 +105,7 @@ label[for='diagramType'] {
   align-items: center;
   /* hide the overflow to prevent the svg even momentarily extending beyond the viewport */
   overflow: hidden;
-  background-color: var(--background-color);
+  background-color: var(--background-color, initial);
 }
 
 #mermaid-output {
@@ -634,6 +634,10 @@ input:checked + .slider:before {
   background-color: white;
   view-transition-name: toggle-edit;
   transform: translateX(24px);
+}
+
+input:checked + #mermaid-wrapper {
+  background-color: #d0d1da; /* Set your desired background color */
 }
 
 @keyframes slide-left{
