@@ -106,7 +106,6 @@ label[for='diagramType'] {
   /* hide the overflow to prevent the svg even momentarily extending beyond the viewport */
   overflow: hidden;
   background-color: var(--background-color);
-  view-transition-name: main;
 }
 
 #mermaid-output {
@@ -449,24 +448,24 @@ label[for='diagramType'] {
 }
 
 @keyframes slide-in-from-left {
-	from {
-		translate: -100vw 0;
-	}
+  from {
+    translate: -100vw 0;
+  }
 }
 @keyframes slide-in-from-right {
-	from {
-		translate: 100vw 0;
-	}
+  from {
+    translate: 100vw 0;
+  }
 }
 @keyframes slide-out-to-left {
-	to {
-		translate: -100vw 0;
-	}
+  to {
+    translate: -100vw 0;
+  }
 }
 @keyframes slide-out-to-right {
-	to {
-		translate: 100vw 0;
-	}
+  to {
+    translate: 100vw 0;
+  }
 }
 
 #toast-container dialog {

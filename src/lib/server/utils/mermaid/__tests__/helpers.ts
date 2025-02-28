@@ -1,3 +1,4 @@
+import { expect } from 'chai'
 import { JSDOM } from 'jsdom'
 import mermaid, { ParseResult } from 'mermaid'
 import path from 'path'
@@ -48,4 +49,19 @@ export function withPathElement(): Element {
   const dom = new JSDOM()
   const document = dom.window.document
   return document.createElement('path')
+}
+
+export const expectStringIsFiniteNumber = (x: string | null) => {
+  expect(x).to.be.a('string')
+  expect(Number.isFinite(parseFloat(x || 'NaN'))).to.equal(true)
+}
+
+export const getChildrenByClass = (element: Element, className: string): Element[] => {
+  return [...element.childNodes].filter((c) => {
+    if (!('classList' in c) || !c.classList) {
+      return false
+    }
+    const classSet = new Set(c.classList.toString().split(/\s+/))
+    return classSet.has(className)
+  }) as Element[]
 }
