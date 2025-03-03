@@ -66,7 +66,6 @@ export default class MermaidTemplates {
       <this.navigationPanel expanded={false} />
       <this.svgControls />
       <this.editToggle canEdit={canEdit} />
-      <this.mermaidWindow />
       <></>
     </Page>
   )
@@ -376,8 +375,5 @@ export default class MermaidTemplates {
         </label>
       </div>
     )
-  }
-  private mermaidWindow = () => {
-    return <div id="mermaid-window"></div>
   }
 }
