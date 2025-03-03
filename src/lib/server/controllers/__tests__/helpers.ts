@@ -3,7 +3,7 @@ import { Readable } from 'node:stream'
 import { pino } from 'pino'
 
 import { EntityType } from '@digicatapult/dtdl-parser'
-import sinon, { SinonStub } from 'sinon'
+import sinon from 'sinon'
 import Database from '../../../db/index.js'
 import { ListItem } from '../../models/github.js'
 import { Layout } from '../../models/mermaidLayouts.js'
@@ -42,11 +42,9 @@ export const templateMock = {
     `svgControls_${generatedOutput}_svgControls`,
 } as unknown as MermaidTemplates
 export const openOntologyMock = {
-  OpenOntologyRoot: ({ sessionId, populateListLink }: { sessionId: UUID; populateListLink?: string }) =>
-    `root_${sessionId}_${populateListLink}_root`,
+  OpenOntologyRoot: ({ populateListLink }: { populateListLink?: string }) => `root_${populateListLink}_root`,
   mainView: (): JSX.Element => `mainView_SomethingHere_mainView`,
-  getMenu: ({ showContent, sessionId }: { showContent: boolean; sessionId: UUID }) =>
-    `uploadMethod_${showContent}_${sessionId}_uploadMethod`,
+  getMenu: ({ showContent }: { showContent: boolean }) => `uploadMethod_${showContent}_uploadMethod`,
   uploadZip: () => `uploadZip_Zip_uploadZip`,
   uploadGithub: (): JSX.Element => `uploadGithub_Github_uploadGithub`,
   githubListItems: ({
@@ -137,6 +135,6 @@ export const mockReqWithCookie = (cookie: Record<string, unknown>) => {
 
 export const mockRes = () => {
   return {
-    cookie: sinon.stub() as SinonStub,
+    cookie: sinon.spy(),
   } as unknown as express.Response
 }

@@ -9,12 +9,12 @@ import Database from '../../db/index.js'
 import { Env } from '../env/index.js'
 import { UploadError } from '../errors.js'
 import { type ILogger, Logger } from '../logger.js'
+import { octokitTokenCookie } from '../models/cookieNames.js'
 import { ListItem } from '../models/github.js'
 import { type ICache, Cache } from '../utils/cache.js'
 import { parseAndInsertDtdl } from '../utils/dtdl/parse.js'
 import { GithubRequest } from '../utils/githubRequest.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
-import SessionStore from '../utils/sessions.js'
 import { safeUrl } from '../utils/url.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
@@ -31,7 +31,6 @@ export class GithubController extends HTMLController {
   constructor(
     private db: Database,
     private templates: OpenOntologyTemplates,
-    private sessionStore: SessionStore,
     private githubRequest: GithubRequest,
     private generator: SvgGenerator,
     @inject(Logger) private logger: ILogger,
@@ -44,13 +43,11 @@ export class GithubController extends HTMLController {
   @SuccessResponse(200, '')
   @Get('/picker')
   public async picker(@Request() req: express.Request, @Query() sessionId: string): Promise<HTML | void> {
-    const session = this.sessionStore.get(sessionId)
-    if (!session.octokitToken) {
+    if (!req.signedCookies[octokitTokenCookie]) {
       const returnUrl = safeUrl(`/github/picker`, { sessionId }) // where to redirect to from callback
       return this.githubRequest.getOctokitToken(
         sessionId,
         returnUrl,
-        this.sessionStore,
         this.setStatus.bind(this),
         this.setHeader.bind(this)
       )
@@ -58,27 +55,40 @@ export class GithubController extends HTMLController {
 
     const populateListLink = safeUrl(`/github/repos`, { page: '1' })
     const recentFiles = await recentFilesFromCookies(req.signedCookies, this.db, this.logger)
-    return this.html(this.templates.OpenOntologyRoot({ sessionId, populateListLink, recentFiles }))
+    return this.html(this.templates.OpenOntologyRoot({ populateListLink, recentFiles }))
   }
 
   // Called by GitHub after external OAuth login
   @SuccessResponse(200)
   @Get('/callback')
-  public async callback(@Query() code: string, @Query() sessionId: string): Promise<void> {
-    const { access_token } = await this.githubRequest.getAccessToken(code)
+  public async callback(
+    @Query() code: string,
+    @Query() returnUrl: string,
+    @Request() req: express.Request
+  ): Promise<void> {
+    const { access_token, expires_in } = await this.githubRequest.getAccessToken(code)
 
-    this.sessionStore.update(sessionId, { octokitToken: access_token })
+    req.res?.cookie(octokitTokenCookie, access_token, {
+      sameSite: true,
+      maxAge: (expires_in - 5 * 60) * 1000, // 5 mins less than expiry
+      httpOnly: true,
+      signed: true,
+      secure: process.env.NODE_ENV === 'production',
+    })
 
-    this.setHeader('Refresh', `0; url=${this.sessionStore.get(sessionId).returnUrl || '/'}`)
+    this.setHeader('Refresh', `0; url=${returnUrl || '/'}`)
     return
   }
 
   @SuccessResponse(200, '')
   @Get('/repos')
-  public async repos(@Query() page: number, @Query() sessionId: string): Promise<HTML> {
-    const session = this.sessionStore.get(sessionId)
+  public async repos(@Query() page: number, @Request() req: express.Request): Promise<HTML | void> {
+    const octokitToken = req.signedCookies[octokitTokenCookie]
+    if (!octokitToken) {
+      return this.getOctokitToken(`/github/picker`)
+    }
 
-    const response = await this.githubRequest.getRepos(session.octokitToken, page)
+    const response = await this.githubRequest.getRepos(octokitToken, page)
 
     const repos: ListItem[] = response.map(({ full_name, owner: { login: owner }, name }) => ({
       text: full_name,
@@ -99,11 +109,14 @@ export class GithubController extends HTMLController {
     @Query() owner: string,
     @Query() repo: string,
     @Query() page: number,
-    @Query() sessionId: string
-  ): Promise<HTML> {
-    const session = this.sessionStore.get(sessionId)
+    @Request() req: express.Request
+  ): Promise<HTML | void> {
+    const octokitToken = req.signedCookies[octokitTokenCookie]
+    if (!octokitToken) {
+      return this.getOctokitToken(`/github/picker`)
+    }
 
-    const response = await this.githubRequest.getBranches(session.octokitToken, owner, repo, page)
+    const response = await this.githubRequest.getBranches(octokitToken, owner, repo, page)
 
     const branches: ListItem[] = response.map(({ name }) => ({
       text: name,
@@ -134,11 +147,14 @@ export class GithubController extends HTMLController {
     @Query() repo: string,
     @Query() path: string,
     @Query() ref: string,
-    @Query() sessionId: string
-  ): Promise<HTML> {
-    const session = this.sessionStore.get(sessionId)
+    @Request() req: express.Request
+  ): Promise<HTML | void> {
+    const octokitToken = req.signedCookies[octokitTokenCookie]
+    if (!octokitToken) {
+      return this.getOctokitToken(`/github/picker`)
+    }
 
-    const response = await this.githubRequest.getContents(session.octokitToken, owner, repo, path, ref)
+    const response = await this.githubRequest.getContents(octokitToken, owner, repo, path, ref)
 
     const contents: ListItem[] = response.map(({ name, path: dirPath, type }) => ({
       text: `${type === 'dir' ? '📂' : '📄'} ${name}`,
@@ -189,14 +205,17 @@ export class GithubController extends HTMLController {
     @Query() repo: string,
     @Query() path: string,
     @Query() ref: string,
-    @Query() sessionId: string
+    @Request() req: express.Request
   ): Promise<void> {
-    const session = this.sessionStore.get(sessionId)
+    const octokitToken = req.signedCookies[octokitTokenCookie]
+    if (!octokitToken) {
+      return this.getOctokitToken(`/github/picker`)
+    }
 
     const tmpDir = await mkdtemp(join(os.tmpdir(), 'dtdl-'))
 
     const totalUploaded = { total: 0 }
-    await this.fetchFiles(session.octokitToken, tmpDir, owner, repo, path, ref, totalUploaded)
+    await this.fetchFiles(octokitToken, tmpDir, owner, repo, path, ref, totalUploaded)
 
     if (totalUploaded.total === 0) {
       throw new UploadError(`No '.json' files found`)
@@ -212,7 +231,7 @@ export class GithubController extends HTMLController {
       'github'
     )
 
-    this.setHeader('HX-Redirect', safeUrl(`/ontology/${id}/view`, { sessionId }))
+    this.setHeader('HX-Redirect', `/ontology/${id}/view`)
     return
   }
 

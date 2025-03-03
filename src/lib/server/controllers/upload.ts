@@ -1,19 +1,19 @@
-import { mkdtemp } from 'node:fs/promises'
+ import { mkdtemp } from 'node:fs/promises'
 import os from 'node:os'
 
 import express from 'express'
 import { join } from 'node:path'
-import { FormField, Get, Path, Post, Produces, Query, Request, Route, SuccessResponse, UploadedFile } from 'tsoa'
+import { Get, Path, Post, Produces, Query, Request, Route, SuccessResponse, UploadedFile } from 'tsoa'
 import { inject, injectable } from 'tsyringe'
 import unzipper from 'unzipper'
 import Database from '../../db/index.js'
-import { SessionError, UploadError } from '../errors.js'
-import { type UUID } from '../models/strings.js'
+import { UploadError } from '../errors.js'
 import { parseAndInsertDtdl } from '../utils/dtdl/parse.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
 import { Logger, type ILogger } from '../logger.js'
+import { UUID } from '../models/strings.js'
 import { Cache, type ICache } from '../utils/cache.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
 import { recentFilesFromCookies } from './helpers.js'
@@ -35,25 +35,22 @@ export class OpenOntologyController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('/')
-  public async open(@Request() req: express.Request, @Query() sessionId?: UUID): Promise<HTML> {
-    if (!sessionId) {
-      throw new SessionError('No session ID provided')
-    }
+  public async open(@Request() req: express.Request): Promise<HTML> {
     this.setHeader('HX-Push-Url', `/open`)
 
     const recentFiles = await recentFilesFromCookies(req.signedCookies, this.db, this.logger)
-    return this.html(this.openOntologyTemplates.OpenOntologyRoot({ sessionId, recentFiles }))
+    return this.html(this.openOntologyTemplates.OpenOntologyRoot({ recentFiles }))
   }
 
   @SuccessResponse(200)
   @Get('/menu')
-  public async getMenu(@Query() showContent: boolean, @Query() sessionId: UUID): Promise<HTML> {
-    return this.html(this.openOntologyTemplates.getMenu({ showContent, sessionId }))
+  public async getMenu(@Query() showContent: boolean): Promise<HTML> {
+    return this.html(this.openOntologyTemplates.getMenu({ showContent }))
   }
 
   @SuccessResponse(302, 'File uploaded successfully')
   @Post('/')
-  public async uploadZip(@UploadedFile('file') file: Express.Multer.File, @FormField() sessionId: UUID): Promise<void> {
+  public async uploadZip(@UploadedFile('file') file: Express.Multer.File): Promise<void> {
     if (file.mimetype !== 'application/zip') {
       throw new UploadError('File must be a .zip')
     }
@@ -75,7 +72,7 @@ export class OpenOntologyController extends HTMLController {
       'zip'
     )
 
-    this.setHeader('HX-Redirect', `/ontology/${id}/view?sessionId=${sessionId}`)
+    this.setHeader('HX-Redirect', `/ontology/${id}/view`)
     return
   }
 

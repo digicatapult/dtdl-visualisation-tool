@@ -8,7 +8,6 @@ import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { Layout, layoutEntries } from '../../models/mermaidLayouts.js'
 import { DtdlId, UUID } from '../../models/strings.js'
 import { getDisplayName, isInterface, isRelationship } from '../../utils/dtdl/extract.js'
-import { safeUrl } from '../../utils/url.js'
 import { AccordionSection, Page } from '../common.js'
 
 const commonUpdateAttrs = {
@@ -55,7 +54,7 @@ export default class MermaidTemplates {
           svgWidth={svgWidth}
           svgHeight={svgHeight}
         />
-        <this.uploadForm sessionId={sessionId} />
+        <this.uploadForm />
       </section>
 
       <div id="mermaid-wrapper">
@@ -349,9 +348,9 @@ export default class MermaidTemplates {
     )
   }
 
-  private uploadForm = ({ sessionId }: { sessionId: UUID }) => {
+  private uploadForm = () => {
     return (
-      <a id="open-button" href={safeUrl(`/open`, { sessionId })} class="button">
+      <a id="open-button" href={`/open`} class="button">
         Open Ontology
       </a>
     )
