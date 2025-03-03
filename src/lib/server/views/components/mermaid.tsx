@@ -36,7 +36,6 @@ export default class MermaidTemplates {
     svgWidth,
     svgHeight,
     canEdit,
-    edit,
   }: {
     search?: string
     layout: Layout
@@ -44,8 +43,7 @@ export default class MermaidTemplates {
     diagramType: DiagramType
     svgWidth?: number
     svgHeight?: number
-    canEdit: boolean
-    edit: boolean
+      canEdit: boolean
   }) => (
     <Page title={'UKDTC'}>
       <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
@@ -60,14 +58,15 @@ export default class MermaidTemplates {
         <this.uploadForm sessionId={sessionId} />
       </section>
 
-      <div id="mermaid-wrapper" class={edit ? 'edit' : 'view'}>
+      <div id="mermaid-wrapper">
         <this.mermaidTarget target="mermaid-output" />
         <div id="spinner" class="spinner" />
       </div>
       <this.Legend showContent={false} />
       <this.navigationPanel expanded={false} />
       <this.svgControls />
-      <this.editToggle edit={false} canEdit={canEdit} />
+      <this.editToggle canEdit={canEdit} />
+      <this.mermaidWindow />
       <></>
     </Page>
   )
@@ -359,26 +358,26 @@ export default class MermaidTemplates {
     )
   }
 
-  public editToggle = ({ edit, canEdit }: { edit: boolean; canEdit: boolean }) => {
+  public editToggle = ({ canEdit }: { canEdit: boolean }) => {
     return (
       <div
         id="edit-toggle"
-        hx-get={`/edit-mode?edit=${!edit}&canEdit=${canEdit}`}
-        hx-trigger="change from:input[type='checkbox']"
-        hx-swap="outerHTML transition:true"
         title={
           canEdit
             ? 'Click to edit ontology'
             : 'Only Ontologies from github that you have write permissions on, can be edited'
         }
-        class={`${edit ? 'edit' : 'view'} ${canEdit ? '' : 'disabled'}`}
+        class={canEdit ? '' : 'disabled'}
       >
-        <span>{escapeHtml(`${edit ? 'Edit' : 'View'}`)}</span>
+        <span id="edit-toggle-text">View</span>
         <label class="switch">
-          <input type="checkbox" checked={edit} disabled={!canEdit} />
+          <input type="checkbox" disabled={!canEdit} onclick="globalThis.toggleEditSwitch(event)" />
           <span class="slider"></span>
         </label>
       </div>
     )
+  }
+  private mermaidWindow = () => {
+    return <div id="mermaid-window"></div>
   }
 }

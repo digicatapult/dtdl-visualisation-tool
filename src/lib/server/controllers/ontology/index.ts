@@ -122,7 +122,6 @@ export class OntologyController extends HTMLController {
         sessionId,
         diagramType: params.diagramType,
         canEdit: canEdit,
-        edit: false,
       })
     )
   }

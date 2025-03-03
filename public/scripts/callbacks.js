@@ -10,7 +10,15 @@ globalThis.toggleAccordion = (event) => {
 globalThis.toggleNavPanel = (event) => {
   const panel = event.target.parentElement
 
-  panel?.toggleAttribute('aria-expanded')
+  const isExpanded = panel?.toggleAttribute('aria-expanded')
+  document.getElementById('mermaid-wrapper').style.width = `calc(100vw - var(--navigation-panel-width) + ${isExpanded ? '0' : 'var(--navigation-panel-translate-x)'})`
+}
+
+globalThis.toggleEditSwitch = (event) => {
+  const isChecked = event.target.toggleAttribute('checked')
+  document.getElementById('edit-toggle').classList.toggle('edit', isChecked)
+  document.getElementById('edit-toggle-text').textContent = isChecked ? 'Edit' : 'View'
+  document.getElementById('mermaid-wrapper').classList.toggle('edit', isChecked)
 }
 
 globalThis.getOwnerRepoFromInput = (event) => {
