@@ -112,7 +112,7 @@ describe('GithubController', async () => {
     mockCache
   )
 
-  const assertNoTokenRedirect = async <T>(controllerFn: () => Promise<T>) => {
+  const assertRedirectOnNoToken = async <T>(controllerFn: () => Promise<T>, hxRidirect: boolean = true) => {
     const setHeaderSpy = sinon.spy(controller, 'setHeader')
     const setStatusSpy = sinon.spy(controller, 'setStatus')
 
@@ -120,7 +120,7 @@ describe('GithubController', async () => {
 
     const redirect = encodeURIComponent(`${env.get('GH_REDIRECT_ORIGIN')}/github/callback?returnUrl=/github/picker`)
 
-    expect(setHeaderSpy.firstCall.args[0]).to.equal('HX-Redirect')
+    expect(setHeaderSpy.firstCall.args[0]).to.equal(hxRidirect ? 'HX-Redirect' : 'Location')
     expect(setHeaderSpy.firstCall.args[1]).to.equal(
       `https://github.com/login/oauth/authorize?client_id=${env.get('GH_CLIENT_ID')}&redirect_uri=${redirect}`
     )
@@ -144,12 +144,12 @@ describe('GithubController', async () => {
     })
 
     it('should redirect if octokit token NOT present in cookies', async () => {
-      await assertNoTokenRedirect(() => controller.picker(mockReqWithCookie({})))
+      await assertRedirectOnNoToken(() => controller.picker(mockReqWithCookie({})), false)
     })
   })
 
   describe('/callback', () => {
-    it('should redirect to return url from session', async () => {
+    it('should set cookie and redirect to return url from session', async () => {
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
       const req = mockReqWithCookie({})
       const returnUrl = 'return.url'
@@ -186,7 +186,7 @@ describe('GithubController', async () => {
     })
 
     it('should redirect if octokit token NOT present in cookies', async () => {
-      await assertNoTokenRedirect(() => controller.repos(page, mockReqWithCookie({})))
+      await assertRedirectOnNoToken(() => controller.repos(page, mockReqWithCookie({})))
     })
   })
 
@@ -213,7 +213,7 @@ describe('GithubController', async () => {
     })
 
     it('should redirect if octokit token NOT present in cookies', async () => {
-      await assertNoTokenRedirect(() => controller.branches(mockOwner, mockRepo, page, mockReqWithCookie({})))
+      await assertRedirectOnNoToken(() => controller.branches(mockOwner, mockRepo, page, mockReqWithCookie({})))
     })
   })
 
@@ -264,7 +264,7 @@ describe('GithubController', async () => {
     })
 
     it('should redirect if octokit token NOT present in cookies', async () => {
-      await assertNoTokenRedirect(() =>
+      await assertRedirectOnNoToken(() =>
         controller.contents(mockOwner, mockRepo, mockDirPath, mockBranch, mockReqWithCookie({}))
       )
     })

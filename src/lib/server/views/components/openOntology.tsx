@@ -158,7 +158,7 @@ export default class OpenOntologyTemplates {
   }
   private uploadGithub = () => {
     return (
-      <a class="upload-option button" hx-get="/github/picker" hx-trigger="click">
+      <a class="upload-option button" href={`/github/picker`}>
         <img src="/public/images/github-mark.svg" alt="github" />
         <span>GitHub</span>
       </a>

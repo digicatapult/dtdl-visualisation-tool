@@ -44,7 +44,7 @@ export class GithubController extends HTMLController {
   @Get('/picker')
   public async picker(@Request() req: express.Request): Promise<HTML | void> {
     if (!req.signedCookies[octokitTokenCookie]) {
-      return this.getOctokitToken(`/github/picker`)
+      return this.getOctokitToken(`/github/picker`, false)
     }
 
     const populateListLink = safeUrl(`/github/repos`, { page: '1' })
@@ -52,13 +52,16 @@ export class GithubController extends HTMLController {
     return this.html(this.templates.OpenOntologyRoot({ populateListLink, recentFiles }))
   }
 
-  async getOctokitToken(returnUrl: string): Promise<void> {
+  async getOctokitToken(returnUrl: string, hxRidirect: boolean = true): Promise<void> {
     const githubAuthUrl = safeUrl(`https://github.com/login/oauth/authorize`, {
       client_id: env.get('GH_CLIENT_ID'),
       redirect_uri: `${env.get('GH_REDIRECT_ORIGIN')}/github/callback?returnUrl=${returnUrl}`,
     })
     this.setStatus(302)
-    this.setHeader('HX-Redirect', githubAuthUrl)
+
+    // if used as part of a htmx response, use HX-Redirect instead of location
+    if (hxRidirect) this.setHeader('HX-Redirect', githubAuthUrl)
+    else this.setHeader('Location', githubAuthUrl)
     return
   }
 
@@ -86,8 +89,8 @@ export class GithubController extends HTMLController {
 
   @SuccessResponse(200, '')
   @Get('/repos')
-  public async repos(@Query() page: number, @Request() { signedCookies }: express.Request): Promise<HTML | void> {
-    const octokitToken = signedCookies[octokitTokenCookie]
+  public async repos(@Query() page: number, @Request() req: express.Request): Promise<HTML | void> {
+    const octokitToken = req.signedCookies[octokitTokenCookie]
     if (!octokitToken) {
       return this.getOctokitToken(`/github/picker`)
     }
@@ -113,9 +116,9 @@ export class GithubController extends HTMLController {
     @Query() owner: string,
     @Query() repo: string,
     @Query() page: number,
-    @Request() { signedCookies }: express.Request
+    @Request() req: express.Request
   ): Promise<HTML | void> {
-    const octokitToken = signedCookies[octokitTokenCookie]
+    const octokitToken = req.signedCookies[octokitTokenCookie]
     if (!octokitToken) {
       return this.getOctokitToken(`/github/picker`)
     }
@@ -151,9 +154,9 @@ export class GithubController extends HTMLController {
     @Query() repo: string,
     @Query() path: string,
     @Query() ref: string,
-    @Request() { signedCookies }: express.Request
+    @Request() req: express.Request
   ): Promise<HTML | void> {
-    const octokitToken = signedCookies[octokitTokenCookie]
+    const octokitToken = req.signedCookies[octokitTokenCookie]
     if (!octokitToken) {
       return this.getOctokitToken(`/github/picker`)
     }
@@ -209,9 +212,9 @@ export class GithubController extends HTMLController {
     @Query() repo: string,
     @Query() path: string,
     @Query() ref: string,
-    @Request() { signedCookies }: express.Request
+    @Request() req: express.Request
   ): Promise<void> {
-    const octokitToken = signedCookies[octokitTokenCookie]
+    const octokitToken = req.signedCookies[octokitTokenCookie]
     if (!octokitToken) {
       return this.getOctokitToken(`/github/picker`)
     }

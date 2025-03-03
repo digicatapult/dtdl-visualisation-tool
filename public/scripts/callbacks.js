@@ -25,7 +25,7 @@ htmx.on('htmx:load', (e) => {
   if (e?.detail.elt.baseURI.includes('github/picker')) {
     document.getElementById('github-modal').showModal()
 
-    // Update the browser history to hide GitHub callback parameters
+    // Update the browser history so modal only opens once
     window.history.replaceState({}, '', `/open`)
   }
 })
