@@ -6,6 +6,7 @@ import { container } from 'tsyringe'
 
 import { Env } from '../../env/index.js'
 import { UploadError } from '../../errors.js'
+import { octokitTokenCookie } from '../../models/cookieNames.js'
 import { OAuthToken } from '../../models/github.js'
 import { GithubRequest } from '../../utils/githubRequest.js'
 import { GithubController } from '../github.js'
@@ -15,17 +16,9 @@ import {
   mockGenerator,
   mockLogger,
   mockReqWithCookie,
-  mockSession,
   openOntologyMock,
-  sessionUpdateStub,
   toHTMLString,
 } from './helpers.js'
-import {
-  validSessionId as noOctokitSessionId,
-  sessionMap,
-  validSessionOctokitId,
-  validSessionReturnUrlId,
-} from './sessionFixtures.js'
 
 chai.use(chaiAsPromised)
 const { expect } = chai
@@ -45,7 +38,7 @@ const mockToken = 'token'
 
 const token: OAuthToken = {
   access_token: mockToken,
-  expires_in: 1,
+  expires_in: 65 * 60, // 65 minutes
   refresh_token: '',
   refresh_token_expires_in: 1,
   token_type: '',
@@ -98,6 +91,8 @@ const dtdl = (id: string) =>
     '@type': 'Interface',
   })
 
+const cookie = { [octokitTokenCookie]: 'someToken' }
+
 const getContentsStub = sinon.stub()
 
 export const mockGithubRequest = {
@@ -111,12 +106,26 @@ describe('GithubController', async () => {
   const controller = new GithubController(
     mockDb,
     openOntologyMock,
-    mockSession,
     mockGithubRequest,
     mockGenerator,
     mockLogger,
     mockCache
   )
+
+  const assertNoTokenRedirect = async <T>(controllerFn: () => Promise<T>) => {
+    const setHeaderSpy = sinon.spy(controller, 'setHeader')
+    const setStatusSpy = sinon.spy(controller, 'setStatus')
+
+    await controllerFn()
+
+    const redirect = encodeURIComponent(`${env.get('GH_REDIRECT_ORIGIN')}/github/callback?returnUrl=/github/picker`)
+
+    expect(setHeaderSpy.firstCall.args[0]).to.equal('HX-Redirect')
+    expect(setHeaderSpy.firstCall.args[1]).to.equal(
+      `https://github.com/login/oauth/authorize?client_id=${env.get('GH_CLIENT_ID')}&redirect_uri=${redirect}`
+    )
+    expect(setStatusSpy.calledWith(302)).to.equal(true)
+  }
 
   afterEach(() => {
     sinon.restore()
@@ -124,78 +133,87 @@ describe('GithubController', async () => {
   })
 
   describe('/picker', () => {
-    it('should return picker if octokit token present', async () => {
-      const result = await controller.picker(mockReqWithCookie({}), validSessionOctokitId)
+    it('should return picker if octokit token present in cookies', async () => {
+      const result = await controller.picker(mockReqWithCookie(cookie))
       if (!result) {
         throw new Error('Expected HTML response')
       }
       const html = await toHTMLString(result)
 
-      expect(html).to.equal(`root_${validSessionOctokitId}_/github/repos?page=1_root`)
+      expect(html).to.equal(`root_/github/repos?page=1_root`)
     })
 
-    it('should redirect if octokit token NOT present', async () => {
-      const setHeaderSpy = sinon.spy(controller, 'setHeader')
-      const setStatusSpy = sinon.spy(controller, 'setStatus')
-      const redirect = encodeURIComponent(
-        `${env.get('GH_REDIRECT_ORIGIN')}/github/callback?sessionId=${noOctokitSessionId}`
-      )
-
-      await controller.picker(mockReqWithCookie({}), noOctokitSessionId)
-
-      expect(
-        setHeaderSpy.calledWith(
-          'Location',
-          `https://github.com/login/oauth/authorize?client_id=${env.get('GH_CLIENT_ID')}&redirect_uri=${redirect}`
-        )
-      ).to.equal(true)
-      expect(setStatusSpy.calledWith(302)).to.equal(true)
+    it('should redirect if octokit token NOT present in cookies', async () => {
+      await assertNoTokenRedirect(() => controller.picker(mockReqWithCookie({})))
     })
   })
 
   describe('/callback', () => {
     it('should redirect to return url from session', async () => {
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
+      const req = mockReqWithCookie({})
+      const returnUrl = 'return.url'
 
-      await controller.callback('', validSessionReturnUrlId)
+      await controller.callback('', returnUrl, req)
 
-      const sessionUpdate = sessionUpdateStub.lastCall.args[1]
+      const cookieSpy = req.res?.cookie as sinon.SinonSpy
 
-      expect(sessionUpdate).to.deep.equal({ octokitToken: mockToken })
-      expect(setHeaderSpy.calledWith('Refresh', `0; url=${sessionMap[validSessionReturnUrlId].returnUrl}`)).to.equal(
-        true
-      )
+      expect(cookieSpy.firstCall.args[0]).to.equal(octokitTokenCookie)
+      expect(cookieSpy.firstCall.args[1]).to.equal(mockToken)
+      expect(cookieSpy.firstCall.args[2]['maxAge']).to.equal((token.expires_in - 5 * 60) * 1000)
+
+      expect(setHeaderSpy.calledWith('Refresh', `0; url=${returnUrl}`)).to.equal(true)
     })
   })
 
   describe('/repos', () => {
+    const page = 1
     it('should return repo full names in list', async () => {
-      const page = 1
       const onClickLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=1`
       const nextPageLink = `/github/repos?page=${page + 1}`
       const backLink = undefined
-      const result = await controller.repos(page, validSessionOctokitId).then(toHTMLString)
+      const result = await controller.repos(page, mockReqWithCookie(cookie))
 
-      expect(result).to.equal(
+      if (!result) {
+        throw new Error('Expected HTML response')
+      }
+
+      const html = await toHTMLString(result)
+
+      expect(html).to.equal(
         `githubListItems_${mockFullName}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`
       )
+    })
+
+    it('should redirect if octokit token NOT present in cookies', async () => {
+      await assertNoTokenRedirect(() => controller.repos(page, mockReqWithCookie({})))
     })
   })
 
   describe('/branches', () => {
+    const page = 1
     it('should return branch names in list', async () => {
-      const page = 1
       const onClickLink = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=.&ref=${mockBranch}`
       const nextPageLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=${page + 1}`
       const backLink = `/github/repos?page=1`
-      const result = await controller.branches(mockOwner, mockRepo, page, validSessionOctokitId).then(toHTMLString)
+      const result = await controller.branches(mockOwner, mockRepo, page, mockReqWithCookie(cookie))
 
-      expect(result).to.equal(
+      if (!result) {
+        throw new Error('Expected HTML response')
+      }
+
+      const html = await toHTMLString(result)
+
+      expect(html).to.equal(
         [
           `githubListItems_${mockBranch}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`,
           `selectFolder_undefined_true_selectFolder`,
         ].join('')
       )
+    })
+
+    it('should redirect if octokit token NOT present in cookies', async () => {
+      await assertNoTokenRedirect(() => controller.branches(mockOwner, mockRepo, page, mockReqWithCookie({})))
     })
   })
 
@@ -207,11 +225,15 @@ describe('GithubController', async () => {
       const onClickLinkDir = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=${mockDirPath}&ref=${mockBranch}`
       const backLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=1`
       const selectFolderLink = `/github/directory?owner=${mockOwner}&repo=${mockRepo}&path=${mockRootPath}&ref=${mockBranch}`
-      const result = await controller
-        .contents(mockOwner, mockRepo, mockRootPath, mockBranch, validSessionOctokitId)
-        .then(toHTMLString)
+      const result = await controller.contents(mockOwner, mockRepo, mockRootPath, mockBranch, mockReqWithCookie(cookie))
 
-      expect(result).to.equal(
+      if (!result) {
+        throw new Error('Expected HTML response')
+      }
+
+      const html = await toHTMLString(result)
+
+      expect(html).to.equal(
         [
           `githubListItems_📄 ${mockFile}_${onClickLinkFile}_📂 ${mockDir}_${onClickLinkDir}_${nextPageLink}_${backLink}_githubListItems`,
           `selectFolder_${selectFolderLink}_true_selectFolder`,
@@ -225,15 +247,25 @@ describe('GithubController', async () => {
       const onClickLinkFile = undefined
       const backLink = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=${mockRootPath}&ref=${mockBranch}`
       const selectFolderLink = `/github/directory?owner=${mockOwner}&repo=${mockRepo}&path=${mockDirPath}&ref=${mockBranch}`
-      const result = await controller
-        .contents(mockOwner, mockRepo, mockDirPath, mockBranch, validSessionOctokitId)
-        .then(toHTMLString)
+      const result = await controller.contents(mockOwner, mockRepo, mockDirPath, mockBranch, mockReqWithCookie(cookie))
 
-      expect(result).to.equal(
+      if (!result) {
+        throw new Error('Expected HTML response')
+      }
+
+      const html = await toHTMLString(result)
+
+      expect(html).to.equal(
         [
           `githubListItems_📄 ${mockFile}_${onClickLinkFile}_${nextPageLink}_${backLink}_githubListItems`,
           `selectFolder_${selectFolderLink}_true_selectFolder`,
         ].join('')
+      )
+    })
+
+    it('should redirect if octokit token NOT present in cookies', async () => {
+      await assertNoTokenRedirect(() =>
+        controller.contents(mockOwner, mockRepo, mockDirPath, mockBranch, mockReqWithCookie({}))
       )
     })
   })
@@ -256,17 +288,15 @@ describe('GithubController', async () => {
         arrayBuffer: () => Promise.resolve(Buffer.from(dtdl('example1'))),
       } as unknown as Response)
 
-      await controller.directory(mockOwner, mockRepo, mockRootPath, mockBranch, validSessionOctokitId)
+      await controller.directory(mockOwner, mockRepo, mockRootPath, mockBranch, mockReqWithCookie(cookie))
 
       expect(insertDb.calledOnce).to.equal(true)
-      expect(setHeaderSpy.calledWith('HX-Redirect', `/ontology/1/view?sessionId=${validSessionOctokitId}`)).to.equal(
-        true
-      )
+      expect(setHeaderSpy.calledWith('HX-Redirect', `/ontology/1/view`)).to.equal(true)
     })
 
     it('should throw error if no json files found', async () => {
       getContentsStub.resolves([])
-      await expect(controller.directory('', '', '', '', validSessionOctokitId)).to.be.rejectedWith(
+      await expect(controller.directory('', '', '', '', mockReqWithCookie(cookie))).to.be.rejectedWith(
         UploadError,
         `No '.json' files found`
       )
@@ -283,7 +313,7 @@ describe('GithubController', async () => {
         arrayBuffer: () => Promise.resolve(new ArrayBuffer(fileSize)),
       } as unknown as Response)
 
-      await expect(controller.directory('', '', '', '', validSessionOctokitId)).to.be.rejectedWith(
+      await expect(controller.directory('', '', '', '', mockReqWithCookie(cookie))).to.be.rejectedWith(
         UploadError,
         `Total upload must be less than ${env.get('UPLOAD_LIMIT_MB')}MB`
       )

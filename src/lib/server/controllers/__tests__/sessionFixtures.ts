@@ -30,6 +30,4 @@ export const sessionMap = {
   [validSessionExpanded9XId]: { ...validSession, expandedIds: ['9', '10'] },
   [validSessionSomeSearchId]: { ...validSession, search: 'someSearch' },
   [validSessionSomeOtherSearchId]: { ...validSession, search: 'someOtherSearch' },
-  [validSessionOctokitId]: { ...validSession, octokitToken: 'octokit' },
-  [validSessionReturnUrlId]: { ...validSession, returnUrl: 'return.url' },
 }

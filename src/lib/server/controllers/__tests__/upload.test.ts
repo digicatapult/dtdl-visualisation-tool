@@ -4,7 +4,8 @@ import { readFileSync } from 'fs'
 import { describe, it } from 'mocha'
 import path from 'path'
 import sinon from 'sinon'
-import { DataError, SessionError, UploadError } from '../../errors.js'
+import { DataError, UploadError } from '../../errors.js'
+import { modelHistoryCookie } from '../../models/cookieNames.js'
 import { OpenOntologyController } from '../upload.js'
 import {
   mockCache,
@@ -16,14 +17,12 @@ import {
   previewDtdlId,
   toHTMLString,
 } from './helpers.js'
-import { validSessionId } from './sessionFixtures.js'
 
 chai.use(chaiAsPromised)
 const { expect } = chai
 
 const __filename = new URL(import.meta.url).pathname
 const __dirname = path.dirname(__filename)
-const sessionId = validSessionId
 
 describe('OpenOntologyController', async () => {
   const controller = new OpenOntologyController(mockDb, mockGenerator, openOntologyMock, mockLogger, mockCache)
@@ -34,28 +33,25 @@ describe('OpenOntologyController', async () => {
 
   describe('/', () => {
     const req = mockReqWithCookie({})
-    it('Should throw an error if no session is provided', async () => {
-      await expect(controller.open(req)).to.be.rejectedWith(SessionError, 'No session ID provided')
-    })
     it('Should return rendered open ontology template', async () => {
-      const result = await controller.open(req, sessionId).then(toHTMLString)
-      expect(result).to.equal(`root_${sessionId}_undefined_root`)
+      const result = await controller.open(req).then(toHTMLString)
+      expect(result).to.equal(`root_undefined_root`)
     })
     it('Should set HX-Push-Url header when session ID is provided', async () => {
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
-      await controller.open(req, sessionId)
+      await controller.open(req)
       expect(setHeaderSpy.calledWith('HX-Push-Url', `/open`)).to.equal(true)
     })
     it('Should handle missing cookie gracefully', async () => {
       const reqWithoutCookie = mockReqWithCookie({})
       reqWithoutCookie.signedCookies = {}
 
-      const result = await controller.open(reqWithoutCookie, sessionId).then(toHTMLString)
-      expect(result).to.equal(`root_${sessionId}_undefined_root`)
+      const result = await controller.open(reqWithoutCookie).then(toHTMLString)
+      expect(result).to.equal(`root_undefined_root`)
     })
     it('Should filter out invalid models from cookie history', async () => {
       const req = mockReqWithCookie({
-        DTDL_MODEL_HISTORY: [
+        [modelHistoryCookie]: [
           { id: previewDtdlId, timestamp: 1633024800000 },
           { id: 'invalid', timestamp: 1633024800001 },
         ],
@@ -63,12 +59,11 @@ describe('OpenOntologyController', async () => {
 
       const openOntologyRootSpy = sinon.spy(openOntologyMock, 'OpenOntologyRoot')
 
-      await controller.open(req, sessionId).then(toHTMLString)
+      await controller.open(req).then(toHTMLString)
 
       expect(openOntologyRootSpy.calledOnce).to.equal(true)
       expect(
         openOntologyRootSpy.calledWithMatch({
-          sessionId: sessionId,
           recentFiles: sinon.match.array.deepEquals([
             {
               fileName: 'Preview Model',
@@ -83,8 +78,8 @@ describe('OpenOntologyController', async () => {
   })
   describe('menu', () => {
     it('Should return rendered upload method template', async () => {
-      const result = await controller.getMenu(true, sessionId).then(toHTMLString)
-      expect(result).to.equal(`uploadMethod_${true}_${sessionId}_uploadMethod`)
+      const result = await controller.getMenu(true).then(toHTMLString)
+      expect(result).to.equal(`uploadMethod_${true}_uploadMethod`)
     })
   })
 
@@ -98,11 +93,11 @@ describe('OpenOntologyController', async () => {
         buffer: readFileSync(path.resolve(__dirname, './simple.zip')),
         originalname,
       }
-      await controller.uploadZip(mockFile as Express.Multer.File, sessionId)
+      await controller.uploadZip(mockFile as Express.Multer.File)
       const hxRedirectHeader = setHeaderSpy.firstCall.args[1]
 
       expect(insertDb.calledOnce).to.equal(true)
-      expect(hxRedirectHeader).to.equal(`/ontology/1/view?sessionId=${sessionId}`)
+      expect(hxRedirectHeader).to.equal(`/ontology/1/view`)
     })
 
     it(`should error on non-'application/zip' mimetype`, async () => {
@@ -110,7 +105,7 @@ describe('OpenOntologyController', async () => {
         mimetype: 'application/json',
       }
 
-      await expect(controller.uploadZip(mockFile as Express.Multer.File, sessionId)).to.be.rejectedWith(
+      await expect(controller.uploadZip(mockFile as Express.Multer.File)).to.be.rejectedWith(
         UploadError,
         'File must be a .zip'
       )
@@ -122,7 +117,7 @@ describe('OpenOntologyController', async () => {
         mimetype: 'application/zip',
         buffer: readFileSync(path.resolve(__dirname, './simple.zip')),
       }
-      await expect(controller.uploadZip(mockFile as Express.Multer.File, sessionId)).to.be.rejectedWith(
+      await expect(controller.uploadZip(mockFile as Express.Multer.File)).to.be.rejectedWith(
         UploadError,
         'Uploaded zip file is not valid'
       )
@@ -133,7 +128,7 @@ describe('OpenOntologyController', async () => {
         mimetype: 'application/zip',
         buffer: readFileSync(path.resolve(__dirname, './error.zip')),
       }
-      await expect(controller.uploadZip(mockFile as Express.Multer.File, sessionId)).to.be.rejectedWith(
+      await expect(controller.uploadZip(mockFile as Express.Multer.File)).to.be.rejectedWith(
         DataError,
         'Failed to parse DTDL model'
       )
