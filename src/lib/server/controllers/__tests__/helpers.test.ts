@@ -2,6 +2,7 @@ import * as chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import { afterEach, describe, it } from 'mocha'
 import sinon from 'sinon'
+import { modelHistoryCookie } from '../../models/cookieNames.js'
 import { recentFilesFromCookies } from '../helpers.js'
 import { mockDb, mockLogger, previewDtdlId, simpleDtdlId } from './helpers.js'
 
@@ -26,7 +27,7 @@ describe('recentFilesFromCookies', () => {
 
   it('should return recent files for valid cookie history', async () => {
     const cookies = {
-      DTDL_MODEL_HISTORY: [{ id: previewDtdlId, timestamp: validTimestamp.getTime() }],
+      [modelHistoryCookie]: [{ id: previewDtdlId, timestamp: validTimestamp.getTime() }],
     }
 
     const result = await recentFilesFromCookies(cookies, mockDb, mockLogger)
@@ -43,7 +44,7 @@ describe('recentFilesFromCookies', () => {
 
   it('should filter out invalid models from cookie history', async () => {
     const cookies = {
-      DTDL_MODEL_HISTORY: [
+      [modelHistoryCookie]: [
         { id: previewDtdlId, timestamp: validTimestamp.getTime() },
         { id: invalidModelId, timestamp: validTimestamp.getTime() },
       ],
@@ -71,7 +72,7 @@ describe('recentFilesFromCookies', () => {
     previewModelTimestamp.setHours(15, 0, 0, 0)
 
     const cookies = {
-      DTDL_MODEL_HISTORY: [
+      [modelHistoryCookie]: [
         { id: previewDtdlId, timestamp: previewModelTimestamp.getTime() },
         { id: simpleDtdlId, timestamp: simpleModelTimestamp },
       ],

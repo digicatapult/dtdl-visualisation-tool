@@ -10,7 +10,6 @@ export type Session = {
   search?: string
   highlightNodeId?: string
   expandedIds: string[]
-  octokitToken?: string
   returnUrl?: string
 }
 
