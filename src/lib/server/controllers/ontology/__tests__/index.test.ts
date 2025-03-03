@@ -1,5 +1,6 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
+import { Readable } from 'node:stream'
 import sinon, { SinonStub } from 'sinon'
 import { UpdateParams } from '../../../models/controllerTypes.js'
 import { modelHistoryCookie } from '../../../models/cookieNames.js'
@@ -83,7 +84,12 @@ describe('OntologyController', async () => {
 
     it('should return rendered root template', async () => {
       const req = mockReqWithCookie({})
-      const result = await controller.view(simpleDtdlId, { ...defaultParams }, req).then(toHTMLString)
+      const result = await controller.view(simpleDtdlId, { ...defaultParams }, req).then((value: void | Readable) => {
+        if (value instanceof Readable) {
+          return true
+        }
+        throw new Error('Expected Readable')
+      })
       expect(result).to.equal(`root_dagre-d3_undefined_root`)
     })
 

@@ -43,7 +43,7 @@ export default class MermaidTemplates {
     diagramType: DiagramType
     svgWidth?: number
     svgHeight?: number
-      canEdit: boolean
+    canEdit: boolean
   }) => (
     <Page title={'UKDTC'}>
       <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
