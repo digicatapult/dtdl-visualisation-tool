@@ -42,14 +42,13 @@ export class GithubController extends HTMLController {
 
   @SuccessResponse(200, '')
   @Get('/picker')
-  public async picker(@Request() req: express.Request, @Query() sessionId: string): Promise<HTML | void> {
+  public async picker(@Request() req: express.Request): Promise<HTML | void> {
     if (!req.signedCookies[octokitTokenCookie]) {
-      const returnUrl = safeUrl(`/github/picker`, { sessionId }) // where to redirect to from callback
       return this.githubRequest.getOctokitToken(
-        sessionId,
-        returnUrl,
+        `/github/picker`,
         this.setStatus.bind(this),
-        this.setHeader.bind(this)
+        this.setHeader.bind(this),
+        false
       )
     }
 
@@ -85,7 +84,7 @@ export class GithubController extends HTMLController {
   public async repos(@Query() page: number, @Request() req: express.Request): Promise<HTML | void> {
     const octokitToken = req.signedCookies[octokitTokenCookie]
     if (!octokitToken) {
-      return this.getOctokitToken(`/github/picker`)
+      return this.githubRequest.getOctokitToken(`/github/picker`, this.setStatus.bind(this), this.setHeader.bind(this))
     }
 
     const response = await this.githubRequest.getRepos(octokitToken, page)
@@ -113,7 +112,7 @@ export class GithubController extends HTMLController {
   ): Promise<HTML | void> {
     const octokitToken = req.signedCookies[octokitTokenCookie]
     if (!octokitToken) {
-      return this.getOctokitToken(`/github/picker`)
+      return this.githubRequest.getOctokitToken(`/github/picker`, this.setStatus.bind(this), this.setHeader.bind(this))
     }
 
     const response = await this.githubRequest.getBranches(octokitToken, owner, repo, page)
@@ -151,7 +150,7 @@ export class GithubController extends HTMLController {
   ): Promise<HTML | void> {
     const octokitToken = req.signedCookies[octokitTokenCookie]
     if (!octokitToken) {
-      return this.getOctokitToken(`/github/picker`)
+      return this.githubRequest.getOctokitToken(`/github/picker`, this.setStatus.bind(this), this.setHeader.bind(this))
     }
 
     const response = await this.githubRequest.getContents(octokitToken, owner, repo, path, ref)
@@ -209,7 +208,7 @@ export class GithubController extends HTMLController {
   ): Promise<void> {
     const octokitToken = req.signedCookies[octokitTokenCookie]
     if (!octokitToken) {
-      return this.getOctokitToken(`/github/picker`)
+      return this.githubRequest.getOctokitToken(`/github/picker`, this.setStatus.bind(this), this.setHeader.bind(this))
     }
 
     const tmpDir = await mkdtemp(join(os.tmpdir(), 'dtdl-'))

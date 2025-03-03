@@ -15,7 +15,7 @@ import {
   type RootParams,
   type UpdateParams,
 } from '../../models/controllerTypes.js'
-import { modelHistoryCookie } from '../../models/cookieNames.js'
+import { modelHistoryCookie, octokitTokenCookie } from '../../models/cookieNames.js'
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../models/renderedDiagram/index.js'
 import { type UUID } from '../../models/strings.js'
 import { Cache, type ICache } from '../../utils/cache.js'
@@ -27,7 +27,6 @@ import { SvgGenerator } from '../../utils/mermaid/generator.js'
 import { dtdlIdReinstateSemicolon } from '../../utils/mermaid/helpers.js'
 import { SvgMutator } from '../../utils/mermaid/svgMutator.js'
 import SessionStore, { Session } from '../../utils/sessions.js'
-import { safeUrl } from '../../utils/url.js'
 import MermaidTemplates from '../../views/components/mermaid.js'
 import { HTML, HTMLController } from '../HTMLController.js'
 import { dtdlCacheKey } from '../helpers.js'
@@ -101,15 +100,13 @@ export class OntologyController extends HTMLController {
 
     let canEdit = false
     if (source === 'github') {
-      const octokitToken = this.sessionStore.get(sessionId).octokitToken
+      const octokitToken = req.signedCookies[octokitTokenCookie]
       if (!octokitToken) {
-        const returnUrl = safeUrl(`/ontology/${dtdlModelId}/view`, { sessionId })
         return this.githubRequest.getOctokitToken(
-          sessionId,
-          returnUrl,
-          this.sessionStore,
+          `/ontology/${dtdlModelId}/view`,
           this.setStatus.bind(this),
-          this.setHeader.bind(this)
+          this.setHeader.bind(this),
+          false
         )
       }
       canEdit = await this.canEdit(octokitToken, name)

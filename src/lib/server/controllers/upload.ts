@@ -1,9 +1,9 @@
- import { mkdtemp } from 'node:fs/promises'
+import { mkdtemp } from 'node:fs/promises'
 import os from 'node:os'
 
 import express from 'express'
 import { join } from 'node:path'
-import { Get, Path, Post, Produces, Query, Request, Route, SuccessResponse, UploadedFile } from 'tsoa'
+import { Get, Post, Produces, Query, Request, Route, SuccessResponse, UploadedFile } from 'tsoa'
 import { inject, injectable } from 'tsyringe'
 import unzipper from 'unzipper'
 import Database from '../../db/index.js'
@@ -13,7 +13,6 @@ import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
 import { Logger, type ILogger } from '../logger.js'
-import { UUID } from '../models/strings.js'
 import { Cache, type ICache } from '../utils/cache.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
 import { recentFilesFromCookies } from './helpers.js'
@@ -84,12 +83,5 @@ export class OpenOntologyController extends HTMLController {
     await directory.extract({ path: extractionPath })
 
     return extractionPath
-  }
-
-  @SuccessResponse(302, 'Redirect')
-  @Get('/{dtdlModelId}')
-  public async loadFile(@Path() dtdlModelId: UUID, @Query() sessionId: UUID): Promise<void> {
-    this.setHeader('HX-Redirect', `/ontology/${dtdlModelId}/view?sessionId=${sessionId}`)
-    return
   }
 }

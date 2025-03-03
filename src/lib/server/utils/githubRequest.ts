@@ -6,7 +6,6 @@ import { Env } from '../env/index.js'
 import { GithubReqError } from '../errors.js'
 import { Logger, type ILogger } from '../logger.js'
 import { OAuthToken } from '../models/github.js'
-import SessionStore from './sessions.js'
 import { safeUrl } from './url.js'
 
 const env = container.resolve(Env)
@@ -105,22 +104,21 @@ export class GithubRequest {
   }
 
   getOctokitToken = async (
-    sessionId: string,
     returnUrl: string,
-    sessionStore: SessionStore,
     setStatus: (status: number) => void,
-    setHeader: (key: string, value: string) => void
+    setHeader: (key: string, value: string) => void,
+    hxRedirect: boolean = true
   ): Promise<void> => {
-    sessionStore.update(sessionId, { returnUrl })
-
-    const callback = safeUrl(`${env.get('GH_REDIRECT_ORIGIN')}/github/callback`, { sessionId })
+    const callback = safeUrl(`${env.get('GH_REDIRECT_ORIGIN')}/github/callback`, { returnUrl })
     const githubAuthUrl = safeUrl(`https://github.com/login/oauth/authorize`, {
       client_id: env.get('GH_CLIENT_ID'),
       redirect_uri: callback,
     })
 
     setStatus(302)
-    setHeader('Location', githubAuthUrl)
+    if (hxRedirect) setHeader('HX-Redirect', githubAuthUrl)
+    else setHeader('Location', githubAuthUrl)
+    return
   }
 
   private async requestWrapper<T>(request: () => Promise<T>): Promise<T> {

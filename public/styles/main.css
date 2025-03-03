@@ -221,6 +221,14 @@ label[for='diagramType'] {
   font-size: 0.6rem;
 }
 
+#navigation-panel.edit section h3::after {
+  content: url('../images/pencil.svg');
+  display: inline-block;
+  width: 25px; 
+  height: 25px;
+  margin-left: 5px; 
+}
+
 #svg-controls {
   display: grid;
   grid-template-columns: auto auto;
