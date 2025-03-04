@@ -1,6 +1,6 @@
 import express from 'express'
 import { randomUUID } from 'node:crypto'
-import { mkdtemp, writeFile } from 'node:fs/promises'
+import { mkdir, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import { dirname, join } from 'node:path'
 import { Get, Produces, Query, Request, Route, SuccessResponse } from 'tsoa'
@@ -11,6 +11,7 @@ import { UploadError } from '../errors.js'
 import { type ILogger, Logger } from '../logger.js'
 import { octokitTokenCookie } from '../models/cookieNames.js'
 import { ListItem } from '../models/github.js'
+import { UUID } from '../models/strings.js'
 import { type ICache, Cache } from '../utils/cache.js'
 import { parseAndInsertDtdl } from '../utils/dtdl/parse.js'
 import { GithubRequest } from '../utils/githubRequest.js'
@@ -219,10 +220,12 @@ export class GithubController extends HTMLController {
       return this.getOctokitToken(`/github/picker`)
     }
 
-    const tmpDir = await mkdtemp(join(os.tmpdir(), 'dtdl-'))
+    const modelId = randomUUID()
+    const tmpDir = join(os.tmpdir(), modelId)
+    await mkdir(tmpDir)
 
     const totalUploaded = { total: 0 }
-    await this.fetchFiles(octokitToken, tmpDir, owner, repo, path, ref, totalUploaded)
+    await this.fetchFiles(octokitToken, tmpDir, owner, repo, path, ref, this.db, modelId, totalUploaded)
 
     if (totalUploaded.total === 0) {
       throw new UploadError(`No '.json' files found`)
@@ -234,7 +237,8 @@ export class GithubController extends HTMLController {
       this.db,
       this.generator,
       false,
-      this.cache
+      this.cache,
+      modelId
     )
 
     this.setHeader('HX-Redirect', `/ontology/${id}/view`)
@@ -243,16 +247,19 @@ export class GithubController extends HTMLController {
 
   private async fetchFiles(
     githubToken: string | undefined,
-    tempDir: string,
+    parentDir: string,
     owner: string,
     repo: string,
     path: string,
     ref: string,
+    db: Database,
+    modelId: UUID,
     totalUploadedRef: { total: number }
   ): Promise<void> {
     const response = await this.githubRequest.getContents(githubToken, owner, repo, path, ref)
 
     for (const entry of response) {
+      const entryPath = join(parentDir, entry.name)
       if (entry.type === 'file' && entry.name.endsWith('.json') && entry.download_url) {
         const fileResponse = await fetch(entry.download_url)
         const fileBuffer = await fileResponse.arrayBuffer()
@@ -262,11 +269,26 @@ export class GithubController extends HTMLController {
           throw new UploadError(`Total upload must be less than ${env.get('UPLOAD_LIMIT_MB')}MB`)
         }
 
-        const filePath = join(tempDir, `${randomUUID()}.json`)
-        this.logger.trace('writing file', entry.name, filePath)
-        await writeFile(filePath, Buffer.from(fileBuffer))
+        this.logger.trace('writing file', entry.name, entryPath)
+        await writeFile(entryPath, Buffer.from(fileBuffer))
+        const fileString = Buffer.from(fileBuffer).toString()
+        const dtdl = JSON.parse(fileString)
+        let entityIds: string[] = []
+        if (Array.isArray(dtdl)) {
+          entityIds = dtdl.map((entity) => entity['@id'])
+        } else {
+          entityIds = [dtdl['@id']]
+        }
+
+        await db.insert('dtdl', {
+          path: entryPath,
+          contents: fileString,
+          model_id: modelId,
+          entity_ids: entityIds,
+        })
       } else if (entry.type === 'dir') {
-        await this.fetchFiles(githubToken, tempDir, owner, repo, entry.path, ref, totalUploadedRef)
+        await mkdir(entryPath)
+        await this.fetchFiles(githubToken, entryPath, owner, repo, entry.path, ref, db, modelId, totalUploadedRef)
       }
     }
   }

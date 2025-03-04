@@ -1,18 +1,32 @@
 import { Knex } from 'knex'
 import { z } from 'zod'
 
-export const tablesList = ['model'] as const
+export const tablesList = ['model', 'dtdl'] as const
 
 const insertModel = z.object({
+  id: z.string(),
   name: z.string(),
   parsed: z.unknown(),
   preview: z.string().nullable(),
+})
+
+const insertDtdl = z.object({
+  path: z.string(),
+  model_id: z.string(),
+  entity_ids: z.array(z.string()),
+  contents: z.unknown(),
 })
 
 const Zod = {
   model: {
     insert: insertModel,
     get: insertModel.extend({
+      created_at: z.date(),
+    }),
+  },
+  dtdl: {
+    insert: insertDtdl,
+    get: insertDtdl.extend({
       id: z.string(),
       created_at: z.date(),
     }),
@@ -21,6 +35,9 @@ const Zod = {
 
 export type InsertModel = z.infer<typeof Zod.model.insert>
 export type ModelRow = z.infer<typeof Zod.model.get>
+
+export type InsertDtdl = z.infer<typeof Zod.dtdl.insert>
+export type DtdlRow = z.infer<typeof Zod.dtdl.get>
 
 export type TABLES_TUPLE = typeof tablesList
 export type TABLE = TABLES_TUPLE[number]

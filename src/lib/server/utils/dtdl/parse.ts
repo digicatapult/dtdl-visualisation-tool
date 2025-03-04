@@ -15,7 +15,8 @@ export const parseAndInsertDtdl = async (
   db: Database,
   generator: SvgGenerator,
   deleteLocal: boolean = false,
-  cache: ICache
+  cache: ICache,
+  modelId: UUID
 ): Promise<UUID> => {
   const parser = await getInterop()
   const parsedDtdl = parseDirectories(localPath, parser)
@@ -28,13 +29,15 @@ export const parseAndInsertDtdl = async (
 
   const output = await generator.run(parsedDtdl, 'flowchart', 'elk')
 
-  const [{ id }] = await db.insert('model', {
+  await db.insert('model', {
+    id: modelId,
     name: dtdlName,
     parsed: parsedDtdl,
     preview: output.renderForMinimap(),
   })
-  const defaultParams: GenerateParams = { layout: 'elk', diagramType: 'flowchart', expandedIds: [], search: '' }
-  cache.set(dtdlCacheKey(id, defaultParams), output)
 
-  return id
+  const defaultParams: GenerateParams = { layout: 'elk', diagramType: 'flowchart', expandedIds: [], search: '' }
+  cache.set(dtdlCacheKey(modelId, defaultParams), output)
+
+  return modelId
 }
