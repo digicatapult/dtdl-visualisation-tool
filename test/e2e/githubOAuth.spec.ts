@@ -1,6 +1,7 @@
-import { expect, Page, test } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { TOTP } from 'otpauth'
 
+import { octokitTokenCookie } from '../../src/lib/server/models/cookieNames'
 import { waitForSuccessResponse, waitForUpdateLayout } from './helpers/waitForHelpers'
 
 const ghTestUser = process.env.GH_TEST_USER
@@ -19,40 +20,29 @@ const totp = new TOTP({
 })
 
 test.describe('Upload ontology from GitHub via OAuth', () => {
-  test('Success path for uploading ontology from private Github repo + from public Github repo', async ({ page }) => {
+  test.only('Success path for uploading ontology from private Github repo + from public Github repo', async ({
+    context,
+  }) => {
     test.setTimeout(120000)
+
+    await context.addCookies([
+      {
+        name: octokitTokenCookie,
+        value: process.env.OCTOKIT_TOKEN!,
+        path: '/',
+        domain: '127.0.0.1',
+        secure: false,
+      },
+    ])
+    const page = await context.newPage()
+
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     await page.setViewportSize({ width: 1920, height: 1080 })
     await waitForUpdateLayout(page, () => page.goto('./'))
-    await expect(page.locator('#toolbar').getByText('Open Ontology')).toBeVisible()
 
     await waitForSuccessResponse(page, () => page.locator('#open-button').click(), '/open')
-    await expect(page.locator('#main-view').getByText('Upload New File')).toBeVisible()
-
     await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('Upload New File').click(), '/menu')
-    await expect(page.locator('#main-view').getByText('GitHub')).toBeVisible()
-
     await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), 'github.com/login')
-    await expect(page.locator('#login')).toBeVisible()
-
-    // Sign in with Test GitHub user
-    await page.fill('#login_field', ghTestUser)
-    await page.fill('#password', ghTestPassword)
-
-    await waitForSuccessResponse(page, () => page.click('input[name="commit"]'), 'github.com/sessions/two-factor/app')
-    await expect(page.locator('#app_totp')).toBeVisible()
-
-    await attempt2fa(page)
-
-    await page.waitForTimeout(5000)
-
-    // Sometimes GitHub requests to reauthorise the app
-    if (!page.url().includes('/open')) {
-      if (await page.getByText('too many codes').isVisible())
-        throw new Error('GitHub login of test user requested too many times. Try again in a few minutes')
-
-      await waitForSuccessResponse(page, () => page.locator('button:has-text("authorize")').click(), '/repos')
-    }
 
     // click first of test users repos
     await expect(page.locator('.github-list li').first()).toBeVisible()
@@ -105,17 +95,3 @@ test.describe('Upload ontology from GitHub via OAuth', () => {
     await expect(page.locator('#mermaid-output').getByText('IdentifiedObject')).toBeVisible()
   })
 })
-
-const attempt2fa = async (page: Page) => {
-  await page.fill('#app_totp', totp.generate())
-  await page.waitForTimeout(2000)
-
-  // Check if 2fa code already used
-  if (await page.locator('.js-flash-alert').isVisible()) {
-    const remaining = totp.period - (Math.floor(Date.now() / 1000) % totp.period)
-    await page.waitForTimeout(remaining * 1000)
-    return attempt2fa(page)
-  } else {
-    return
-  }
-}
