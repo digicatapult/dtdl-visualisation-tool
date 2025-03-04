@@ -4,8 +4,6 @@ import { waitForSuccessResponse, waitForUpdateLayout } from './helpers/waitForHe
 
 test.describe('Upload ontology from GitHub via OAuth', () => {
   test('Success path for uploading ontology from private Github repo + from public Github repo', async ({ page }) => {
-    test.setTimeout(120000)
-
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     await page.setViewportSize({ width: 1920, height: 1080 })
     await waitForUpdateLayout(page, () => page.goto('./'))
