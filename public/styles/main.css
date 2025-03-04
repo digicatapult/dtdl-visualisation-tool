@@ -624,12 +624,12 @@ label[for='diagramType'] {
   width: 50px;
   height: 15px;
 }
-.switch input {
+#edit-toggle > .switch input {
   opacity: 0;
   width: 0;
   height: 0;
 }
-.slider {
+#edit-toggle .slider {
   position: absolute;
   cursor: pointer;
   top: 0;
@@ -640,7 +640,7 @@ label[for='diagramType'] {
   transition: .4s;
   border-radius: 25px;
 }
-.slider:before {
+#edit-toggle .slider:before {
   position: absolute;
   content: "";
   height: 25px;
@@ -650,14 +650,14 @@ label[for='diagramType'] {
   border-radius: 50%;
   background: #bbc4cb center/contain no-repeat;
 }
-.slider:before {
+#edit-toggle .slider:before {
   background-image: url('../images/eye.svg');
 }
 
-input:checked + .slider {
+#edit-toggle input[checked] + .slider {
   background-color: #65d4c3;
 }
-input:checked + .slider:before {
+#edit-toggle input[checked] + .slider:before {
   background-image: url('../images/pencil.svg');
   background-color: white;
   transform: translateX(25px);

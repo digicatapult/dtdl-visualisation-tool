@@ -9,7 +9,6 @@ import { UploadError } from '../../errors.js'
 import { octokitTokenCookie } from '../../models/cookieNames.js'
 import { OAuthToken } from '../../models/github.js'
 import { GithubRequest } from '../../utils/githubRequest.js'
-import SessionStore from '../../utils/sessions.js'
 import { GithubController } from '../github.js'
 import {
   mockCache,
@@ -102,17 +101,16 @@ export const mockGithubRequest = {
   getContents: getContentsStub,
   getAccessToken: () => Promise.resolve(token),
   getOctokitToken: async (
-    sessionId: string,
-    _returnUrl: string,
-    _sessionStore: SessionStore,
+    returnUrl: string,
     setStatus: (status: number) => void,
-    setHeader: (key: string, value: string) => void
+    setHeader: (key: string, value: string) => void,
+    hxRedirect: boolean = true
   ) => {
     setStatus(302)
     setHeader(
-      'Location',
+      hxRedirect ? 'HX-Redirect' : 'Location',
       `https://github.com/login/oauth/authorize?client_id=${env.get('GH_CLIENT_ID')}&redirect_uri=${encodeURIComponent(
-        `${env.get('GH_REDIRECT_ORIGIN')}/github/callback?sessionId=${sessionId}`
+        `${env.get('GH_REDIRECT_ORIGIN')}/github/callback?returnUrl=${returnUrl}`
       )}`
     )
   },

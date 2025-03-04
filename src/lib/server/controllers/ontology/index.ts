@@ -229,6 +229,42 @@ export class OntologyController extends HTMLController {
     )
   }
 
+  @SuccessResponse(200)
+  @Get('{dtdlModelId}/edit-model')
+  public async editModel(@Path() dtdlModelId: UUID, @Queries() params: UpdateParams): Promise<HTML> {
+    // pull out the stored session. If this is invalid the request is invalid
+    const session = this.sessionStore.get(params.sessionId)
+    if (!session) {
+      throw new InvalidQueryError(
+        'Session Error',
+        'Please refresh the page or try again later',
+        `Session ${params.sessionId} not found in session store`,
+        false
+      )
+    }
+
+    // get the base dtdl model that we will derive the graph from
+    const baseModel = await this.dtdlLoader.getDtdlModel(dtdlModelId)
+
+    const newSession: Session = {
+      diagramType: params.diagramType,
+      layout: params.layout,
+      search: params.search,
+      expandedIds: [...session.expandedIds],
+      highlightNodeId: params.highlightNodeId ?? session.highlightNodeId,
+    }
+
+    return this.html(
+      this.templates.navigationPanel({
+        swapOutOfBand: false,
+        entityId: dtdlIdReinstateSemicolon(newSession.highlightNodeId ?? ''),
+        model: baseModel,
+        expanded: newSession.highlightNodeId !== undefined,
+        edit: params.editMode ?? false,
+      })
+    )
+  }
+
   private getCurrentPathQuery(req: express.Request): { path: string; query: URLSearchParams } | undefined {
     const currentUrl = req.header('hx-current-url')
     if (!currentUrl) {
