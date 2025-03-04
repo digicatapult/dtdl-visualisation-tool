@@ -100,6 +100,7 @@ test.describe('Open Ontology from recently visited', () => {
     )
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page.locator('#edit-toggle').getByText('Edit')).toBeVisible()
+
     const navigationAfterContent = await page.evaluate(() => {
       const element = document.querySelector('#navigation-panel h3:first-of-type')
       const style = element ? window.getComputedStyle(element, '::after') : null
@@ -131,12 +132,4 @@ const attempt2fa = async (page: Page) => {
   } else {
     return
   }
-}
-
-const getComputedStyle = async (page: Page, selector: string, pseudoElement: string) => {
-  return await page.evaluate(() => {
-    const element = document.querySelector(selector)
-    const style = element ? window.getComputedStyle(element, pseudoElement) : null
-    return style ? style : null
-  })
 }
