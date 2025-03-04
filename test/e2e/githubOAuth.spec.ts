@@ -54,6 +54,8 @@ test.describe('Upload ontology from GitHub via OAuth', () => {
       await waitForSuccessResponse(page, () => page.locator('button:has-text("authorize")').click(), '/repos')
     }
 
+    await page.context().storageState({ path: 'auth.json' })
+
     // click first of test users repos
     await expect(page.locator('.github-list li').first()).toBeVisible()
     await waitForSuccessResponse(page, () => page.locator('.github-list li').first().click(), '/branches')
