@@ -1,40 +1,10 @@
 import { expect, test } from '@playwright/test'
-import { TOTP } from 'otpauth'
 
-import { octokitTokenCookie } from '../../src/lib/server/models/cookieNames'
 import { waitForSuccessResponse, waitForUpdateLayout } from './helpers/waitForHelpers'
 
-const ghTestUser = process.env.GH_TEST_USER
-const ghTestPassword = process.env.GH_TEST_PASSWORD
-const gh2faSecret = process.env.GH_TEST_2FA_SECRET
-
-if (!ghTestUser || !ghTestPassword || !gh2faSecret) throw new Error('Test GitHub user credentials required')
-
-const totp = new TOTP({
-  issuer: 'GitHub',
-  label: 'test',
-  algorithm: 'SHA1',
-  digits: 6,
-  period: 30,
-  secret: gh2faSecret,
-})
-
 test.describe('Upload ontology from GitHub via OAuth', () => {
-  test.only('Success path for uploading ontology from private Github repo + from public Github repo', async ({
-    context,
-  }) => {
+  test('Success path for uploading ontology from private Github repo + from public Github repo', async ({ page }) => {
     test.setTimeout(120000)
-
-    await context.addCookies([
-      {
-        name: octokitTokenCookie,
-        value: process.env.OCTOKIT_TOKEN!,
-        path: '/',
-        domain: '127.0.0.1',
-        secure: false,
-      },
-    ])
-    const page = await context.newPage()
 
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     await page.setViewportSize({ width: 1920, height: 1080 })
@@ -42,7 +12,7 @@ test.describe('Upload ontology from GitHub via OAuth', () => {
 
     await waitForSuccessResponse(page, () => page.locator('#open-button').click(), '/open')
     await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('Upload New File').click(), '/menu')
-    await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), 'github.com/login')
+    await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/repos')
 
     // click first of test users repos
     await expect(page.locator('.github-list li').first()).toBeVisible()

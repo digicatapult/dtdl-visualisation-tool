@@ -42,7 +42,7 @@ async function getGithubToken(config: FullConfig) {
   if (!ghTestUser || !ghTestPassword || !gh2faSecret) {
     throw new Error('Test GitHub user credentials required')
   }
-  const { baseURL } = config.projects[0].use
+  const { baseURL, storageState } = config.projects[0].use
 
   const browser = await chromium.launch()
   const context = await browser.newContext()
@@ -86,6 +86,7 @@ async function getGithubToken(config: FullConfig) {
   }
 
   process.env.OCTOKIT_TOKEN = tokenCookie.value
+  await page.context().storageState({ path: storageState as string })
 
   await browser.close()
 }
