@@ -8,6 +8,8 @@ const insertModel = z.object({
   parsed: z.unknown(),
   preview: z.string().nullable(),
   source: z.union([z.literal('default'), z.literal('zip'), z.literal('github')]).nullable(),
+  owner: z.string().nullable(),
+  repo: z.string().nullable(),
 })
 
 const Zod = {

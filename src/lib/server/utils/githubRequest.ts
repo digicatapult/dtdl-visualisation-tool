@@ -2,6 +2,7 @@ import { Octokit } from '@octokit/core'
 import { RequestError } from '@octokit/request-error'
 import { container, inject, singleton } from 'tsyringe'
 
+import express from 'express'
 import { Env } from '../env/index.js'
 import { GithubReqError } from '../errors.js'
 import { Logger, type ILogger } from '../logger.js'
@@ -103,22 +104,19 @@ export class GithubRequest {
     return false
   }
 
-  getOctokitToken = async (
-    returnUrl: string,
-    setStatus: (status: number) => void,
-    setHeader: (key: string, value: string) => void,
-    hxRedirect: boolean = true
-  ): Promise<void> => {
+  authRedirect = (returnUrl: string, req: express.Request, hxRedirect: boolean = true): void => {
+    if (!req.res || typeof req.res.setHeader !== 'function') {
+      throw new Error('Response object is missing or invalid')
+    }
+
     const callback = safeUrl(`${env.get('GH_REDIRECT_ORIGIN')}/github/callback`, { returnUrl })
     const githubAuthUrl = safeUrl(`https://github.com/login/oauth/authorize`, {
       client_id: env.get('GH_CLIENT_ID'),
       redirect_uri: callback,
     })
-
-    setStatus(302)
-    if (hxRedirect) setHeader('HX-Redirect', githubAuthUrl)
-    else setHeader('Location', githubAuthUrl)
-    return
+    if (hxRedirect) req.res.setHeader('HX-Redirect', githubAuthUrl)
+    else req.res.setHeader('Location', githubAuthUrl)
+    return req.res.redirect(302, githubAuthUrl)
   }
 
   private async requestWrapper<T>(request: () => Promise<T>): Promise<T> {

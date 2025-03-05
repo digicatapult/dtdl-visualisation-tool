@@ -17,7 +17,9 @@ export const parseAndInsertDtdl = async (
   generator: SvgGenerator,
   deleteLocal: boolean = false,
   cache: ICache,
-  source: FileSourceKeys
+  source: FileSourceKeys,
+  owner: string | null = null,
+  repo: string | null = null
 ): Promise<UUID> => {
   const parser = await getInterop()
   const parsedDtdl = parseDirectories(localPath, parser)
@@ -35,6 +37,8 @@ export const parseAndInsertDtdl = async (
     parsed: parsedDtdl,
     preview: output.renderForMinimap(),
     source: source,
+    owner: owner,
+    repo: repo,
   })
   const defaultParams: GenerateParams = { layout: 'elk', diagramType: 'flowchart', expandedIds: [], search: '' }
   cache.set(dtdlCacheKey(id, defaultParams), output)

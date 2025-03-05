@@ -25,7 +25,6 @@ import {
   toHTMLString,
 } from '../../__tests__/helpers.js'
 import {
-  invalidSessionId,
   validSessionExpanded11Id,
   validSessionExpanded12Id,
   validSessionExpanded2357Id,
@@ -486,23 +485,6 @@ describe('OntologyController', async () => {
       const result = await controller.editModel(simpleDtdlId, params).then(toHTMLString)
 
       expect(result).to.equal(mockHtmlOutput)
-    })
-
-    it('should throw an error if session is not found', async () => {
-      const params: UpdateParams = {
-        sessionId: invalidSessionId,
-        layout: 'dagre-d3',
-        diagramType: 'flowchart',
-        svgWidth: 0,
-        svgHeight: 0,
-        currentZoom: 0,
-        currentPanX: 0,
-        currentPanY: 0,
-      }
-
-      await expect(controller.editModel('some-id', params).then(toHTMLString)).to.be.rejectedWith(
-        `Session ${invalidSessionId} not found in session store`
-      )
     })
   })
 })

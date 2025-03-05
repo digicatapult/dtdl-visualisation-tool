@@ -96,20 +96,15 @@ export class OntologyController extends HTMLController {
       this.cookieOpts
     )
 
-    const { name, source } = await this.getModelDetails(dtdlModelId)
+    const { name, source, owner, repo } = await this.getModelDetails(dtdlModelId)
 
     let canEdit = false
     if (source === 'github') {
       const octokitToken = req.signedCookies[octokitTokenCookie]
       if (!octokitToken) {
-        return this.githubRequest.getOctokitToken(
-          `/ontology/${dtdlModelId}/view`,
-          this.setStatus.bind(this),
-          this.setHeader.bind(this),
-          false
-        )
+        return this.githubRequest.authRedirect(`/ontology/${dtdlModelId}/view`, req, false)
       }
-      canEdit = await this.canEdit(octokitToken, name)
+      canEdit = await this.canEdit(octokitToken, name, owner, repo)
     }
 
     return this.html(
@@ -232,34 +227,15 @@ export class OntologyController extends HTMLController {
   @SuccessResponse(200)
   @Get('{dtdlModelId}/edit-model')
   public async editModel(@Path() dtdlModelId: UUID, @Queries() params: UpdateParams): Promise<HTML> {
-    // pull out the stored session. If this is invalid the request is invalid
-    const session = this.sessionStore.get(params.sessionId)
-    if (!session) {
-      throw new InvalidQueryError(
-        'Session Error',
-        'Please refresh the page or try again later',
-        `Session ${params.sessionId} not found in session store`,
-        false
-      )
-    }
-
     // get the base dtdl model that we will derive the graph from
     const baseModel = await this.dtdlLoader.getDtdlModel(dtdlModelId)
-
-    const newSession: Session = {
-      diagramType: params.diagramType,
-      layout: params.layout,
-      search: params.search,
-      expandedIds: [...session.expandedIds],
-      highlightNodeId: params.highlightNodeId ?? session.highlightNodeId,
-    }
 
     return this.html(
       this.templates.navigationPanel({
         swapOutOfBand: false,
-        entityId: dtdlIdReinstateSemicolon(newSession.highlightNodeId ?? ''),
+        entityId: dtdlIdReinstateSemicolon(params.highlightNodeId ?? ''),
         model: baseModel,
-        expanded: newSession.highlightNodeId !== undefined,
+        expanded: params.highlightNodeId !== undefined,
         edit: params.editMode ?? false,
       })
     )
@@ -477,23 +453,34 @@ export class OntologyController extends HTMLController {
     return cookieHistory
   }
 
-  private async getModelDetails(dtdlModelId: UUID): Promise<{ name: string; source: string | null }> {
+  private async getModelDetails(
+    dtdlModelId: UUID
+  ): Promise<{ name: string; source: string | null; owner: string | null; repo: string | null }> {
     try {
       const [model] = await this.db.get('model', { id: dtdlModelId })
-      return { name: model.name, source: model.source }
+      return { name: model.name, source: model.source, owner: model.owner, repo: model.repo }
     } catch (error) {
       this.logger.warn(`Failed to fetch model for ID ${dtdlModelId}`, error)
-      return { name: '', source: null }
+      return { name: '', source: null, owner: null, repo: null }
     }
   }
 
-  private async canEdit(token: string | undefined, name: string): Promise<boolean> {
+  private async canEdit(
+    token: string | undefined,
+    name: string,
+    owner: string | null = null,
+    repo: string | null = null
+  ): Promise<boolean> {
     if (!token || !name || !name.includes('/')) {
       this.logger.warn(`Invalid repository name: "${name}"`)
       return false
     }
 
-    const [owner, repo] = name.split('/')
+    if (!owner || !repo) {
+      const [ownerName, repoName] = name.split('/')
+      owner = ownerName
+      repo = repoName
+    }
     if (!owner || !repo) {
       this.logger.warn(`Malformed repository name: "${name}"`)
       return false

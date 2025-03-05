@@ -100,20 +100,7 @@ export const mockGithubRequest = {
   getBranches: () => Promise.resolve(branches),
   getContents: getContentsStub,
   getAccessToken: () => Promise.resolve(token),
-  getOctokitToken: async (
-    returnUrl: string,
-    setStatus: (status: number) => void,
-    setHeader: (key: string, value: string) => void,
-    hxRedirect: boolean = true
-  ) => {
-    setStatus(302)
-    setHeader(
-      hxRedirect ? 'HX-Redirect' : 'Location',
-      `https://github.com/login/oauth/authorize?client_id=${env.get('GH_CLIENT_ID')}&redirect_uri=${encodeURIComponent(
-        `${env.get('GH_REDIRECT_ORIGIN')}/github/callback?returnUrl=${returnUrl}`
-      )}`
-    )
-  },
+  authRedirect: sinon.stub().resolves(),
 } as unknown as GithubRequest
 
 describe('GithubController', async () => {
@@ -126,7 +113,7 @@ describe('GithubController', async () => {
     mockCache
   )
 
-  const assertRedirectOnNoToken = async <T>(controllerFn: () => Promise<T>, hxRidirect: boolean = true) => {
+  const assertRedirectOnNoToken = async <T>(controllerFn: () => Promise<T>, hxRedirect: boolean = true) => {
     const setHeaderSpy = sinon.spy(controller, 'setHeader')
     const setStatusSpy = sinon.spy(controller, 'setStatus')
 
@@ -134,7 +121,7 @@ describe('GithubController', async () => {
 
     const redirect = encodeURIComponent(`${env.get('GH_REDIRECT_ORIGIN')}/github/callback?returnUrl=/github/picker`)
 
-    expect(setHeaderSpy.firstCall.args[0]).to.equal(hxRidirect ? 'HX-Redirect' : 'Location')
+    expect(setHeaderSpy.firstCall.args[0]).to.equal(hxRedirect ? 'HX-Redirect' : 'Location')
     expect(setHeaderSpy.firstCall.args[1]).to.equal(
       `https://github.com/login/oauth/authorize?client_id=${env.get('GH_CLIENT_ID')}&redirect_uri=${redirect}`
     )
@@ -157,8 +144,10 @@ describe('GithubController', async () => {
       expect(html).to.equal(`root_/github/repos?page=1_root`)
     })
 
+    const req = mockReqWithCookie({})
+
     it('should redirect if octokit token NOT present in cookies', async () => {
-      await assertRedirectOnNoToken(() => controller.picker(mockReqWithCookie({})), false)
+      await assertRedirectOnNoToken(() => controller.picker(req), false)
     })
   })
 

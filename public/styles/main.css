@@ -113,24 +113,25 @@ label[for='diagramType'] {
 #mermaid-wrapper.edit {
   background-color: #d0d1da;
 
-  &::before{
+  &::before,
+  &::after{
     border: 5px solid #00b79b;
     content: "";
     position: absolute;
-    left: 0px;
+    width: 100%;
     height: 100%;
     pointer-events: none;
   }
 }
 
-#content-main:has(#navigation-panel[aria-expanded]) #mermaid-wrapper.edit::before {
-  right: var(--navigation-panel-width);
-  transition: right var(--transition-delay);
+#content-main:has(#navigation-panel[aria-expanded]) #mermaid-wrapper.edit::after {
+  transform: translateX(calc(-1 * var(--navigation-panel-width)));
+  transition: transform var(--transition-delay);
 }
 
-#content-main:has(#navigation-panel:not([aria-expanded])) #mermaid-wrapper.edit::before {
-  right: calc(var(--navigation-panel-width) - var(--navigation-panel-translate-x));
-  transition: right var(--transition-delay);
+#content-main:has(#navigation-panel:not([aria-expanded])) #mermaid-wrapper.edit::after {
+  transform: translateX(calc(var(--navigation-panel-translate-x) - var(--navigation-panel-width)));
+  transition: transform var(--transition-delay);
 }
 
 #mermaid-output {
