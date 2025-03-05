@@ -1,9 +1,10 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import express from 'express'
 import { randomUUID } from 'node:crypto'
-import { Get, Path, Produces, Queries, Request, Route, SuccessResponse } from 'tsoa'
-import { inject, injectable, singleton } from 'tsyringe'
+import { Get, Path, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
+import { container, inject, injectable, singleton } from 'tsyringe'
 import Database from '../../../db/index.js'
+import { Env } from '../../env/index.js'
 import { InvalidQueryError } from '../../errors.js'
 import { Logger, type ILogger } from '../../logger.js'
 import {
@@ -30,6 +31,10 @@ import SessionStore, { Session } from '../../utils/sessions.js'
 import MermaidTemplates from '../../views/components/mermaid.js'
 import { HTML, HTMLController } from '../HTMLController.js'
 import { dtdlCacheKey } from '../helpers.js'
+
+const env = container.resolve(Env)
+
+const EDIT_ONTOLOGY = env.get('EDIT_ONTOLOGY')
 
 @singleton()
 @injectable()
@@ -96,16 +101,7 @@ export class OntologyController extends HTMLController {
       this.cookieOpts
     )
 
-    const { name, source, owner, repo } = await this.getModelDetails(dtdlModelId)
-
-    let canEdit = false
-    if (source === 'github') {
-      const octokitToken = req.signedCookies[octokitTokenCookie]
-      if (!octokitToken) {
-        return this.githubRequest.authRedirect(`/ontology/${dtdlModelId}/view`, req, false)
-      }
-      canEdit = await this.canEdit(octokitToken, name, owner, repo)
-    }
+    const canEdit = await this.checkEditPermissions(dtdlModelId, req)
 
     return this.html(
       this.templates.MermaidRoot({
@@ -113,7 +109,7 @@ export class OntologyController extends HTMLController {
         search: params.search,
         sessionId,
         diagramType: params.diagramType,
-        canEdit: canEdit,
+        canEdit,
       })
     )
   }
@@ -226,17 +222,23 @@ export class OntologyController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('{dtdlModelId}/edit-model')
-  public async editModel(@Path() dtdlModelId: UUID, @Queries() params: UpdateParams): Promise<HTML> {
+  public async editModel(
+    @Path() dtdlModelId: UUID,
+    @Query() sessionId: UUID,
+    @Query() editMode: boolean
+  ): Promise<HTML> {
+    const session = this.sessionStore.get(sessionId)
+
     // get the base dtdl model that we will derive the graph from
     const baseModel = await this.dtdlLoader.getDtdlModel(dtdlModelId)
 
     return this.html(
       this.templates.navigationPanel({
         swapOutOfBand: false,
-        entityId: dtdlIdReinstateSemicolon(params.highlightNodeId ?? ''),
+        entityId: dtdlIdReinstateSemicolon(session.highlightNodeId ?? ''),
         model: baseModel,
-        expanded: params.highlightNodeId !== undefined,
-        edit: params.editMode ?? false,
+        expanded: session.highlightNodeId !== undefined,
+        edit: editMode ?? false,
       })
     )
   }
@@ -465,27 +467,27 @@ export class OntologyController extends HTMLController {
     }
   }
 
-  private async canEdit(
-    token: string | undefined,
-    name: string,
-    owner: string | null = null,
-    repo: string | null = null
-  ): Promise<boolean> {
-    if (!token || !name || !name.includes('/')) {
-      this.logger.warn(`Invalid repository name: "${name}"`)
+  private async checkEditPermissions(dtdlModelId: UUID, req: express.Request): Promise<boolean> {
+    if (!EDIT_ONTOLOGY) return false
+
+    const { name, source, owner, repo } = await this.getModelDetails(dtdlModelId)
+    if (source !== 'github') return false
+
+    const octokitToken = req.signedCookies[octokitTokenCookie]
+    if (!octokitToken) {
+      this.githubRequest.authRedirect(`/ontology/${dtdlModelId}/view`, req)
       return false
     }
 
     if (!owner || !repo) {
-      const [ownerName, repoName] = name.split('/')
-      owner = ownerName
-      repo = repoName
-    }
-    if (!owner || !repo) {
-      this.logger.warn(`Malformed repository name: "${name}"`)
-      return false
+      const [extractedOwner, extractedRepo] = name.split('/')
+      if (!extractedOwner || !extractedRepo) {
+        this.logger.warn(`Malformed repository name: "${name}"`)
+        return false
+      }
+      return await this.githubRequest.getRepoPermissions(octokitToken, extractedOwner, extractedRepo)
     }
 
-    return await this.githubRequest.getRepoPermissions(token, owner, repo)
+    return await this.githubRequest.getRepoPermissions(octokitToken, owner, repo)
   }
 }

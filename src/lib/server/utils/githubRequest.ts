@@ -116,7 +116,7 @@ export class GithubRequest {
     })
     if (hxRedirect) req.res.setHeader('HX-Redirect', githubAuthUrl)
     else req.res.setHeader('Location', githubAuthUrl)
-    return req.res.redirect(302, githubAuthUrl)
+    req.res.sendStatus(302)
   }
 
   private async requestWrapper<T>(request: () => Promise<T>): Promise<T> {

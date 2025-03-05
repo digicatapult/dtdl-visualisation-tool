@@ -44,7 +44,7 @@ export class GithubController extends HTMLController {
   @Get('/picker')
   public async picker(@Request() req: express.Request): Promise<HTML | void> {
     if (!req.signedCookies[octokitTokenCookie]) {
-      return this.githubRequest.authRedirect(`/github/picker`, req, false)
+      return this.githubRequest.authRedirect(`/github/picker`, req)
     }
 
     const populateListLink = safeUrl(`/github/repos`, { page: '1' })
@@ -79,6 +79,7 @@ export class GithubController extends HTMLController {
   public async repos(@Query() page: number, @Request() req: express.Request): Promise<HTML | void> {
     const octokitToken = req.signedCookies[octokitTokenCookie]
     if (!octokitToken) {
+      // perform redirect
       return this.githubRequest.authRedirect(`/github/picker`, req)
     }
 

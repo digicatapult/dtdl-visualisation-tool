@@ -85,6 +85,7 @@ export async function startVisualisationContainer(env: VisualisationUIConfig): P
       GH_CLIENT_ID: process.env.GH_CLIENT_ID || '',
       GH_CLIENT_SECRET: process.env.GH_CLIENT_SECRET || '',
       COOKIE_SESSION_KEYS: cookieSessionKeys,
+      EDIT_ONTOLOGY: 'true',
     })
     .withAddedCapabilities('SYS_ADMIN')
     .withCommand(['sh', '-c', 'npx knex migrate:latest --env production; dtdl-visualiser parse -p /sample/energygrid'])

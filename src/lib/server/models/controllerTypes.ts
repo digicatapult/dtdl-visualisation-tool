@@ -37,7 +37,6 @@ export interface UpdateParams extends RootParams {
   currentPanX: number
   currentPanY: number
   a11y?: A11yPreference[]
-  editMode?: boolean
 }
 
 export interface CookieHistoryParams {

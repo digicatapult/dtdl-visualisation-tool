@@ -376,7 +376,7 @@ export default class MermaidTemplates {
             hx-get="edit-model"
             hx-target="#navigation-panel"
             hx-trigger="change"
-            hx-include="#sessionId, #search-panel"
+            hx-include="#sessionId"
             hx-swap="outerHTML"
             hx-vals="js:{ editMode: event.target.checked }"
           >
