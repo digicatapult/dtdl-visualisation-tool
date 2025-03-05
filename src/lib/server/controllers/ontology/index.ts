@@ -23,7 +23,7 @@ import { Cache, type ICache } from '../../utils/cache.js'
 import { DtdlLoader } from '../../utils/dtdl/dtdlLoader.js'
 import { filterModelByDisplayName, getRelatedIdsById } from '../../utils/dtdl/filter.js'
 import { FuseSearch } from '../../utils/fuseSearch.js'
-import { GithubRequest } from '../../utils/githubRequest.js'
+import { authRedirectURL, GithubRequest } from '../../utils/githubRequest.js'
 import { SvgGenerator } from '../../utils/mermaid/generator.js'
 import { dtdlIdReinstateSemicolon } from '../../utils/mermaid/helpers.js'
 import { SvgMutator } from '../../utils/mermaid/svgMutator.js'
@@ -101,7 +101,17 @@ export class OntologyController extends HTMLController {
       this.cookieOpts
     )
 
-    const canEdit = await this.checkEditPermissions(dtdlModelId, req)
+    const { name, source, owner, repo } = await this.getModelDetails(dtdlModelId)
+    let canEdit = false
+    if (source == 'github') {
+      const octokitToken = req.signedCookies[octokitTokenCookie]
+      if (!octokitToken) {
+        this.setStatus(302)
+        this.setHeader('Location', authRedirectURL(`/ontology/${dtdlModelId}/view`))
+        return
+      }
+      canEdit = await this.checkEditPermissions(octokitToken, owner, repo, name)
+    }
 
     return this.html(
       this.templates.MermaidRoot({
@@ -467,17 +477,13 @@ export class OntologyController extends HTMLController {
     }
   }
 
-  private async checkEditPermissions(dtdlModelId: UUID, req: express.Request): Promise<boolean> {
+  private async checkEditPermissions(
+    octokitToken: string,
+    owner: string | null,
+    repo: string | null,
+    name: string
+  ): Promise<boolean> {
     if (!EDIT_ONTOLOGY) return false
-
-    const { name, source, owner, repo } = await this.getModelDetails(dtdlModelId)
-    if (source !== 'github') return false
-
-    const octokitToken = req.signedCookies[octokitTokenCookie]
-    if (!octokitToken) {
-      this.githubRequest.authRedirect(`/ontology/${dtdlModelId}/view`, req)
-      return false
-    }
 
     if (!owner || !repo) {
       const [extractedOwner, extractedRepo] = name.split('/')

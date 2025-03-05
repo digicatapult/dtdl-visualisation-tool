@@ -2,7 +2,6 @@ import { Octokit } from '@octokit/core'
 import { RequestError } from '@octokit/request-error'
 import { container, inject, singleton } from 'tsyringe'
 
-import express from 'express'
 import { Env } from '../env/index.js'
 import { GithubReqError } from '../errors.js'
 import { Logger, type ILogger } from '../logger.js'
@@ -12,6 +11,13 @@ import { safeUrl } from './url.js'
 const env = container.resolve(Env)
 
 const perPage = env.get('GH_PER_PAGE')
+
+export const authRedirectURL = (returnUrl: string): string => {
+  return safeUrl(`https://github.com/login/oauth/authorize`, {
+    client_id: env.get('GH_CLIENT_ID'),
+    redirect_uri: `${env.get('GH_REDIRECT_ORIGIN')}/github/callback?returnUrl=${returnUrl}`,
+  })
+}
 
 @singleton()
 export class GithubRequest {
@@ -102,21 +108,6 @@ export class GithubRequest {
       return true
     }
     return false
-  }
-
-  authRedirect = (returnUrl: string, req: express.Request, hxRedirect: boolean = true): void => {
-    if (!req.res || typeof req.res.setHeader !== 'function') {
-      throw new Error('Response object is missing or invalid')
-    }
-
-    const callback = safeUrl(`${env.get('GH_REDIRECT_ORIGIN')}/github/callback`, { returnUrl })
-    const githubAuthUrl = safeUrl(`https://github.com/login/oauth/authorize`, {
-      client_id: env.get('GH_CLIENT_ID'),
-      redirect_uri: callback,
-    })
-    if (hxRedirect) req.res.setHeader('HX-Redirect', githubAuthUrl)
-    else req.res.setHeader('Location', githubAuthUrl)
-    req.res.sendStatus(302)
   }
 
   private async requestWrapper<T>(request: () => Promise<T>): Promise<T> {

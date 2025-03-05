@@ -100,7 +100,6 @@ export const mockGithubRequest = {
   getBranches: () => Promise.resolve(branches),
   getContents: getContentsStub,
   getAccessToken: () => Promise.resolve(token),
-  authRedirect: sinon.stub().resolves(),
 } as unknown as GithubRequest
 
 describe('GithubController', async () => {
@@ -144,10 +143,8 @@ describe('GithubController', async () => {
       expect(html).to.equal(`root_/github/repos?page=1_root`)
     })
 
-    const req = mockReqWithCookie({})
-
     it('should redirect if octokit token NOT present in cookies', async () => {
-      await assertRedirectOnNoToken(() => controller.picker(req), false)
+      await assertRedirectOnNoToken(() => controller.picker(mockReqWithCookie({})), false)
     })
   })
 

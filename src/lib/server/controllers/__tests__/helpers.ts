@@ -128,16 +128,12 @@ export const mockReq = (headers: Record<string, string>) => {
 
 export const mockReqWithCookie = (cookie: Record<string, unknown>) => {
   return {
-    res: mockRes(),
+    res: {
+      cookie: sinon.spy(),
+      setHeader: sinon.spy(),
+      statusCode: 200,
+      sendStatus: sinon.spy(),
+    },
     signedCookies: cookie,
   } as unknown as express.Request
-}
-
-export const mockRes = () => {
-  return {
-    cookie: sinon.spy(),
-    setHeader: sinon.spy(),
-    statusCode: 200,
-    redirect: sinon.spy(),
-  } as unknown as express.Response
 }
