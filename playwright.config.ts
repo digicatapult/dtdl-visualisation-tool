@@ -1,4 +1,6 @@
 import { defineConfig, devices } from '@playwright/test'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
 export default defineConfig({
   globalSetup: './test/globalSetup.ts',
@@ -22,7 +24,7 @@ export default defineConfig({
     trace: 'on-first-retry',
     baseURL: 'http://127.0.0.1:3000',
     headless: !!process.env.CI,
-    storageState: 'storage-state.json',
+    storageState: join(tmpdir(), 'storage-state.json'),
   },
   expect: {
     timeout: 10 * 1000,
