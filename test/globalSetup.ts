@@ -1,4 +1,4 @@
-import { chromium, FullConfig, Page } from '@playwright/test'
+import { FullConfig, Page, chromium } from '@playwright/test'
 import { TOTP } from 'otpauth'
 import 'reflect-metadata'
 import { waitForSuccessResponse, waitForUpdateLayout } from './e2e/helpers/waitForHelpers.js'
