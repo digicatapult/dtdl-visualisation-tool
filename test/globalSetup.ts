@@ -1,7 +1,6 @@
 import { chromium, FullConfig, Page } from '@playwright/test'
 import { TOTP } from 'otpauth'
 import 'reflect-metadata'
-import { octokitTokenCookie } from '../src/lib/server/models/cookieNames.js'
 import { waitForSuccessResponse, waitForUpdateLayout } from './e2e/helpers/waitForHelpers.js'
 import { bringUpDatabaseContainer, bringUpVisualisationContainer } from './testcontainers/testContainersSetup.js'
 
@@ -78,13 +77,7 @@ async function getGithubToken(config: FullConfig) {
     await waitForSuccessResponse(page, () => page.locator('button:has-text("authorize")').click(), '/repos')
   }
 
-  // Retrieve the token from cookies
-  const cookies = await context.cookies()
-  const tokenCookie = cookies.find((cookie) => cookie.name === octokitTokenCookie)
-  if (!tokenCookie) {
-    throw new Error(`${octokitTokenCookie} not found in cookies after login`)
-  }
-
+  // Store current state (cookies) for future tests
   await page.context().storageState({ path: storageState as string })
 
   await browser.close()
