@@ -1,8 +1,8 @@
 import { expect, Page, test } from '@playwright/test'
 import { waitForSuccessResponse, waitForUpdateLayout } from './helpers/waitForHelpers'
 
-test.describe('Open Ontology from recently visited', () => {
-  test('open ontology that can be edited', async ({ page, baseURL }) => {
+test.describe('Test edit ontology', () => {
+  test('open ontology that cant be edited and check that toggle is disabled', async ({ page, baseURL }) => {
     await page.setViewportSize({ width: 1920, height: 1080 })
     await waitForUpdateLayout(page, () => page.goto(baseURL!))
     await expect(page.locator('#toolbar').getByText('Open Ontology')).toBeVisible()
