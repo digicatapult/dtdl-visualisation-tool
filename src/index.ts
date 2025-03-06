@@ -38,6 +38,7 @@ program
     const cache = container.resolve<ICache>(Cache)
     logger.info(`Storing default model in db`)
 
+    // if default db not found, parse and insert default dtdl
     const id = await parseAndInsertDtdl(options.path, `default`, db, generator, false, cache)
 
     const dtdlLoader = new DtdlLoader(db, id)
