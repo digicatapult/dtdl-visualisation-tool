@@ -1,5 +1,6 @@
 import { Knex } from 'knex'
 import { z } from 'zod'
+import { fileSource } from '../server/models/openTypes.js'
 
 export const tablesList = ['model'] as const
 
@@ -7,7 +8,7 @@ const insertModel = z.object({
   name: z.string(),
   parsed: z.unknown(),
   preview: z.string().nullable(),
-  source: z.union([z.literal('default'), z.literal('zip'), z.literal('github')]).nullable(),
+  source: z.enum(fileSource).nullable(),
   owner: z.string().nullable(),
   repo: z.string().nullable(),
 })
