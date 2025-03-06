@@ -13,6 +13,14 @@ globalThis.toggleNavPanel = (event) => {
   panel?.toggleAttribute('aria-expanded')
 }
 
+globalThis.toggleEditSwitch = (event) => {
+  const isChecked = event.target.toggleAttribute('checked')
+  document.getElementById('edit-toggle').classList.toggle('edit', isChecked)
+  document.getElementById('edit-toggle-text').textContent = isChecked ? 'Edit' : 'View'
+  document.getElementById('mermaid-wrapper').classList.toggle('edit', isChecked)
+  document.getElementById('navigation-panel').classList.toggle('edit', isChecked)
+}
+
 globalThis.getOwnerRepoFromInput = (event) => {
   const [owner, repo] = event.target.value.split('/')
   return {

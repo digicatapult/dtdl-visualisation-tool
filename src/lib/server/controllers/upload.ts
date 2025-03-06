@@ -61,7 +61,15 @@ export class OpenOntologyController extends HTMLController {
       throw new UploadError('Uploaded zip file is not valid')
     }
 
-    const id = await parseAndInsertDtdl(unzippedPath, file.originalname, this.db, this.generator, false, this.cache)
+    const id = await parseAndInsertDtdl(
+      unzippedPath,
+      file.originalname,
+      this.db,
+      this.generator,
+      false,
+      this.cache,
+      'zip'
+    )
 
     this.setHeader('HX-Redirect', `/ontology/${id}/view`)
     return

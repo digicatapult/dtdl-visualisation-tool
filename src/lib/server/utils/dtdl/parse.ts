@@ -5,6 +5,7 @@ import Database from '../../../db'
 import { dtdlCacheKey } from '../../controllers/helpers.js'
 import { DataError } from '../../errors.js'
 import { GenerateParams } from '../../models/controllerTypes'
+import { FileSourceKeys } from '../../models/openTypes'
 import { type UUID } from '../../models/strings.js'
 import { ICache } from '../cache.js'
 import { SvgGenerator } from '../mermaid/generator'
@@ -15,7 +16,10 @@ export const parseAndInsertDtdl = async (
   db: Database,
   generator: SvgGenerator,
   deleteLocal: boolean = false,
-  cache: ICache
+  cache: ICache,
+  source: FileSourceKeys,
+  owner: string | null = null,
+  repo: string | null = null
 ): Promise<UUID> => {
   const parser = await getInterop()
   const parsedDtdl = parseDirectories(localPath, parser)
@@ -32,6 +36,9 @@ export const parseAndInsertDtdl = async (
     name: dtdlName,
     parsed: parsedDtdl,
     preview: output.renderForMinimap(),
+    source: source,
+    owner: owner,
+    repo: repo,
   })
   const defaultParams: GenerateParams = { layout: 'elk', diagramType: 'flowchart', expandedIds: [], search: '' }
   cache.set(dtdlCacheKey(id, defaultParams), output)

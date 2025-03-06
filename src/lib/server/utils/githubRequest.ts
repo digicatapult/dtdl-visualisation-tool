@@ -6,10 +6,18 @@ import { Env } from '../env/index.js'
 import { GithubReqError } from '../errors.js'
 import { Logger, type ILogger } from '../logger.js'
 import { OAuthToken } from '../models/github.js'
+import { safeUrl } from './url.js'
 
 const env = container.resolve(Env)
 
 const perPage = env.get('GH_PER_PAGE')
+
+export const authRedirectURL = (returnUrl: string): string => {
+  return safeUrl(`https://github.com/login/oauth/authorize`, {
+    client_id: env.get('GH_CLIENT_ID'),
+    redirect_uri: `${env.get('GH_REDIRECT_ORIGIN')}/github/callback?returnUrl=${returnUrl}`,
+  })
+}
 
 @singleton()
 export class GithubRequest {
@@ -83,6 +91,23 @@ export class GithubRequest {
     }
 
     return json as OAuthToken
+  }
+
+  getRepoPermissions = async (token: string | undefined, owner: string, repo: string): Promise<boolean> => {
+    if (!token) throw new GithubReqError('Missing GitHub token')
+
+    const octokit = new Octokit({ auth: token })
+    const response = await this.requestWrapper(async () =>
+      octokit.request('GET /repos/{owner}/{repo}', {
+        owner,
+        repo,
+      })
+    )
+    const data = response.data
+    if (data.permissions?.push) {
+      return true
+    }
+    return false
   }
 
   private async requestWrapper<T>(request: () => Promise<T>): Promise<T> {

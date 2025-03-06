@@ -112,7 +112,7 @@ describe('GithubController', async () => {
     mockCache
   )
 
-  const assertRedirectOnNoToken = async <T>(controllerFn: () => Promise<T>, hxRidirect: boolean = true) => {
+  const assertRedirectOnNoToken = async <T>(controllerFn: () => Promise<T>, hxRedirect: boolean = true) => {
     const setHeaderSpy = sinon.spy(controller, 'setHeader')
     const setStatusSpy = sinon.spy(controller, 'setStatus')
 
@@ -120,7 +120,7 @@ describe('GithubController', async () => {
 
     const redirect = encodeURIComponent(`${env.get('GH_REDIRECT_ORIGIN')}/github/callback?returnUrl=/github/picker`)
 
-    expect(setHeaderSpy.firstCall.args[0]).to.equal(hxRidirect ? 'HX-Redirect' : 'Location')
+    expect(setHeaderSpy.firstCall.args[0]).to.equal(hxRedirect ? 'HX-Redirect' : 'Location')
     expect(setHeaderSpy.firstCall.args[1]).to.equal(
       `https://github.com/login/oauth/authorize?client_id=${env.get('GH_CLIENT_ID')}&redirect_uri=${redirect}`
     )
