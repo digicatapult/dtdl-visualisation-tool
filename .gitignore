@@ -11,3 +11,4 @@ obj
 /playwright-report/
 /playwright/.cache/
 .env
+playwright/.auth

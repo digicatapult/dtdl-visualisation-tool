@@ -7,7 +7,6 @@ test.describe('Upload ontology from GitHub via OAuth', () => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     await page.setViewportSize({ width: 1920, height: 1080 })
     await waitForUpdateLayout(page, () => page.goto('./'))
-
     await waitForSuccessResponse(page, () => page.locator('#open-button').click(), '/open')
     await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('Upload New File').click(), '/menu')
     await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/repos')
