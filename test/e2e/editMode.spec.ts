@@ -43,9 +43,9 @@ test.describe('Test edit ontology', () => {
     // check the color of the border
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page.locator('#edit-toggle').getByText('Edit')).toBeVisible()
-    const beforeContent = await getStyledComponent(page, '#mermaid-wrapper', '::before')
+    const beforeContent = await getStyledComponent(page, '#mermaid-wrapper', '::before', 'border')
 
-    expect(beforeContent?.border).toBe('5px solid rgb(0, 183, 155)')
+    expect(beforeContent).toBe('5px solid rgb(0, 183, 155)')
 
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page.locator('#edit-toggle').getByText('View')).toBeVisible()
@@ -58,23 +58,34 @@ test.describe('Test edit ontology', () => {
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page.locator('#edit-toggle').getByText('Edit')).toBeVisible()
 
-    const navigationAfterContent = await getStyledComponent(page, '#navigation-panel h3:first-of-type', '::after')
-    expect(navigationAfterContent?.content).toBe(`url("${baseURL}/public/images/pencil.svg")`)
+    const navigationAfterContent = await getStyledComponent(
+      page,
+      '#navigation-panel h3:first-of-type',
+      '::after',
+      'content'
+    )
+    expect(navigationAfterContent).toBe(`url("${baseURL}/public/images/pencil.svg")`)
 
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page.locator('#edit-toggle').getByText('View')).toBeVisible()
 
-    const navigationAfterContentNull = await getStyledComponent(page, '#navigation-panel h3:first-of-type', '::after')
-    expect(navigationAfterContentNull?.content).toBe('none')
+    const navigationAfterContentNull = await getStyledComponent(
+      page,
+      '#navigation-panel h3:first-of-type',
+      '::after',
+      'content'
+    )
+    expect(navigationAfterContentNull).toBe('none')
   })
 })
 
-const getStyledComponent = async (page: Page, selector: string, pseudoElement: string) => {
+const getStyledComponent = async (page: Page, selector: string, pseudoElement: string, property: string) => {
   return page.evaluate(
-    ({ selector, pseudoElement }) => {
+    ({ selector, pseudoElement, property }) => {
       const element = document.querySelector(selector)
-      return element ? window.getComputedStyle(element, pseudoElement) : null
+      const style = element ? window.getComputedStyle(element, pseudoElement) : null
+      return style ? style.getPropertyValue(property) : null
     },
-    { selector, pseudoElement }
+    { selector, pseudoElement, property }
   )
 }
