@@ -65,7 +65,6 @@ export default class MermaidTemplates {
       <this.navigationPanel expanded={false} />
       <this.svgControls />
       <this.editToggle canEdit={canEdit} />
-      <></>
     </Page>
   )
 

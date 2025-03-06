@@ -53,7 +53,7 @@ a:not(.button):focus-visible {
   --navigation-panel-width: 400px;
   --navigation-panel-translate-x: calc(0.9 * var(--navigation-panel-width));
 
-  --transition-delay: 200ms
+  --transition-duration: 200ms
 }
 
 #search-panel {
@@ -126,17 +126,17 @@ label[for='diagramType'] {
 
 #content-main:has(#navigation-panel[aria-expanded]) #mermaid-wrapper.edit::after {
   transform: translateX(calc(-1 * var(--navigation-panel-width)));
-  transition: transform var(--transition-delay);
+  transition: transform var(--transition-duration);
 }
 
 #content-main:has(#navigation-panel:not([aria-expanded])) #mermaid-wrapper.edit::after {
   transform: translateX(calc(var(--navigation-panel-translate-x) - var(--navigation-panel-width)));
-  transition: transform var(--transition-delay);
+  transition: transform var(--transition-duration);
 }
 
 #mermaid-output {
   display: block;
-  transition: opacity var(--transition-delay);
+  transition: opacity var(--transition-duration);
   opacity: 1;
 }
 
@@ -152,14 +152,14 @@ label[for='diagramType'] {
   border-bottom: 0;
   width: var(--navigation-panel-width);
   height: 100%;
-  transition: transform var(--transition-delay);
+  transition: transform var(--transition-duration);
 }
 
 #navigation-panel-content {
   height: 100%;
   overflow-y: auto;
   opacity: 1;
-  transition: opacity var(--transition-delay);
+  transition: opacity var(--transition-duration);
 }
 
 #navigation-panel:not([aria-expanded]) {
@@ -238,7 +238,7 @@ label[for='diagramType'] {
   bottom: 10px;
   right: 50px;
   transform: translateX(0);
-  transition: transform var(--transition-delay);
+  transition: transform var(--transition-duration);
 }
 
 #zoom-buttons {
@@ -603,7 +603,7 @@ label[for='diagramType'] {
   top: 120px;
   right: 70px;
   transform: translateX(0);
-  transition: transform var(--transition-delay);
+  transition: transform var(--transition-duration);
   font-weight: 800;
   background-color: #d5d5d5;
   padding: 10px 20px;
@@ -647,7 +647,7 @@ label[for='diagramType'] {
   height: 25px;
   width: 25px;
   bottom: -5px;
-  transition: transform var(--transition-delay);
+  transition: transform var(--transition-duration);
   border-radius: 50%;
   background: #bbc4cb center/contain no-repeat;
 }

@@ -11,7 +11,6 @@ import {
   complexMockDtdlLoader,
   generatorRunStub,
   mockCache,
-  mockDb,
   mockGenerator,
   mockLogger,
   mockMutator,
@@ -63,8 +62,7 @@ describe('OntologyController', async () => {
     mockLogger,
     mockCache,
     mockSession,
-    mockGithubRequest,
-    mockDb
+    mockGithubRequest
   )
   const complexController = new OntologyController(
     complexMockDtdlLoader,
@@ -74,8 +72,7 @@ describe('OntologyController', async () => {
     mockLogger,
     mockCache,
     mockSession,
-    mockGithubRequest,
-    mockDb
+    mockGithubRequest
   )
 
   describe('view', () => {

@@ -3,9 +3,8 @@ import express from 'express'
 import { randomUUID } from 'node:crypto'
 import { Get, Path, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { container, inject, injectable, singleton } from 'tsyringe'
-import Database from '../../../db/index.js'
 import { Env } from '../../env/index.js'
-import { InvalidQueryError } from '../../errors.js'
+import { InternalError, InvalidQueryError } from '../../errors.js'
 import { Logger, type ILogger } from '../../logger.js'
 import {
   A11yPreference,
@@ -57,8 +56,7 @@ export class OntologyController extends HTMLController {
     @inject(Logger) private logger: ILogger,
     @inject(Cache) private cache: ICache,
     private sessionStore: SessionStore,
-    private githubRequest: GithubRequest,
-    private db: Database
+    private githubRequest: GithubRequest
   ) {
     super()
     this.logger = logger.child({ controller: '/ontology' })
@@ -101,7 +99,7 @@ export class OntologyController extends HTMLController {
       this.cookieOpts
     )
 
-    const { name, source, owner, repo } = await this.getModelDetails(dtdlModelId)
+    const { source, owner, repo } = await this.dtdlLoader.getDatabaseModel(dtdlModelId)
     let canEdit = false
     if (source == 'github') {
       const octokitToken = req.signedCookies[octokitTokenCookie]
@@ -110,7 +108,7 @@ export class OntologyController extends HTMLController {
         this.setHeader('Location', authRedirectURL(`/ontology/${dtdlModelId}/view`))
         return
       }
-      canEdit = await this.checkEditPermissions(octokitToken, owner, repo, name)
+      canEdit = await this.checkEditPermissions(octokitToken, owner, repo)
     }
 
     return this.html(
@@ -465,33 +463,15 @@ export class OntologyController extends HTMLController {
     return cookieHistory
   }
 
-  private async getModelDetails(
-    dtdlModelId: UUID
-  ): Promise<{ name: string; source: string | null; owner: string | null; repo: string | null }> {
-    try {
-      const [model] = await this.db.get('model', { id: dtdlModelId })
-      return { name: model.name, source: model.source, owner: model.owner, repo: model.repo }
-    } catch (error) {
-      this.logger.warn(`Failed to fetch model for ID ${dtdlModelId}`, error)
-      return { name: '', source: null, owner: null, repo: null }
-    }
-  }
-
   private async checkEditPermissions(
     octokitToken: string,
     owner: string | null,
-    repo: string | null,
-    name: string
+    repo: string | null
   ): Promise<boolean> {
     if (!EDIT_ONTOLOGY) return false
 
     if (!owner || !repo) {
-      const [extractedOwner, extractedRepo] = name.split('/')
-      if (!extractedOwner || !extractedRepo) {
-        this.logger.warn(`Malformed repository name: "${name}"`)
-        return false
-      }
-      return await this.githubRequest.getRepoPermissions(octokitToken, extractedOwner, extractedRepo)
+      throw new InternalError('owner or repo not found in database for GitHub source')
     }
 
     return await this.githubRequest.getRepoPermissions(octokitToken, owner, repo)
