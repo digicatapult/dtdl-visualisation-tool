@@ -82,7 +82,7 @@ docker compose up
 To bring up both the `postgres` database and the `dtdl-visualiser` service in docker you may run
 
 ```
-docker compose up --scale dtdl-visualiser=1
+docker compose up --scale dtdl-visualiser=1 -d
 ```
 
 The service will be available on `http://localhost:3000`
