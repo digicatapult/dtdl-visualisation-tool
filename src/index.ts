@@ -7,8 +7,10 @@ import chalk from 'chalk'
 import { Command } from 'commander'
 import { container } from 'tsyringe'
 import Database from './lib/db/index.js'
+import { ModelDb } from './lib/db/modelDB.js'
 import { httpServer } from './lib/server/index.js'
 import { logger } from './lib/server/logger.js'
+import { UUID } from './lib/server/models/strings.js'
 import { Cache, ICache } from './lib/server/utils/cache.js'
 import { DtdlLoader } from './lib/server/utils/dtdl/dtdlLoader.js'
 import { parseAndInsertDtdl } from './lib/server/utils/dtdl/parse.js'
@@ -38,8 +40,15 @@ program
     const cache = container.resolve<ICache>(Cache)
     logger.info(`Storing default model in db`)
 
-    const id = await parseAndInsertDtdl(options.path, `default`, db, generator, false, cache, 'default')
-
+    const model = new ModelDb(db)
+    let id: UUID
+    try {
+      id = (await model.getDefaultModel()).id
+    } catch (e) {
+      logger.info(e)
+      logger.info('No default model found, creating one')
+      id = await parseAndInsertDtdl(options.path, `default`, db, generator, false, cache, 'default')
+    }
     const dtdlLoader = new DtdlLoader(db, id)
     container.register(DtdlLoader, {
       useValue: dtdlLoader,
