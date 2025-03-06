@@ -38,7 +38,7 @@ program
     const db = container.resolve(Database)
     const generator = container.resolve(SvgGenerator)
     const cache = container.resolve<ICache>(Cache)
-    logger.info(`Storing default model in db`)
+    logger.info(`Loading default model`)
 
     const model = new ModelDb(db)
     let id: UUID
