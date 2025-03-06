@@ -5,7 +5,7 @@ import sinon from 'sinon'
 import { InternalError } from '../../server/errors.js'
 import { multipleInterfaces } from '../../server/utils/dtdl/__tests__/fixtures.js'
 import Database from '../index.js'
-import { ModelDb } from '../modelDB.js'
+import { ModelDb } from '../modelDb.js'
 
 chai.use(chaiAsPromised)
 const { expect } = chai

@@ -1,7 +1,7 @@
 import { type DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { singleton } from 'tsyringe'
 import Database from '../../../db/index.js'
-import { ModelDb } from '../../../db/modelDB.js'
+import { ModelDb } from '../../../db/modelDb.js'
 import { ModelRow } from '../../../db/types.js'
 import { type UUID } from '../../models/strings.js'
 import { allInterfaceFilter } from './extract.js'
