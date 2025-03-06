@@ -45,8 +45,7 @@ program
     try {
       id = (await model.getDefaultModel()).id
     } catch (e) {
-      logger.info(e)
-      logger.info('No default model found, creating one')
+      logger.info(e, 'Failed to get default model')
       id = await parseAndInsertDtdl(options.path, `default`, db, generator, false, cache, 'default')
     }
     const dtdlLoader = new DtdlLoader(db, id)
