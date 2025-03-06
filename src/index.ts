@@ -38,7 +38,7 @@ program
     const cache = container.resolve<ICache>(Cache)
     logger.info(`Storing default model in db`)
 
-    const id = await parseAndInsertDtdl(options.path, `default`, db, generator, false, cache)
+    const id = await parseAndInsertDtdl(options.path, `default`, db, generator, false, cache, 'default')
 
     const dtdlLoader = new DtdlLoader(db, id)
     container.register(DtdlLoader, {

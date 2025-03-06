@@ -6,3 +6,6 @@ export interface RecentFile {
   preview: JSX.Element
   dtdlModelId: UUID
 }
+
+export const fileSource = ['default', 'zip', 'github'] as const
+export type FileSourceKeys = (typeof fileSource)[number]
