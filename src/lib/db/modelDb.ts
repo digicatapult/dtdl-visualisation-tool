@@ -13,7 +13,9 @@ export class ModelDb {
   }
   async getDefaultModel(): Promise<ModelRow> {
     const [model] = await this.db.get('model', { source: 'default' })
-    if (!model) throw new InternalError(`Failed to find default model`)
     return model
+  }
+  async deleteDefaultModel(): Promise<void> {
+    await this.db.delete('model', { source: 'default' })
   }
 }
