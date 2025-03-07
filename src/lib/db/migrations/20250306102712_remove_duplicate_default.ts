@@ -1,10 +1,9 @@
 import type { Knex } from 'knex'
 
 export async function up(knex: Knex): Promise<void> {
-  await knex('model')
-    .where('name', 'default')
-    .andWhere('id', '!=', () => {
-      knex.select('id').from('model').where('name', 'default').orderBy('created_at', 'desc').limit(1)
-    })
-    .del()
+  await knex.raw(
+    "DELETE FROM model WHERE id IN (SELECT id FROM model WHERE source = 'default' ORDER BY created_at DESC OFFSET 1)"
+  )
 }
+
+export async function down(): Promise<void> {}
