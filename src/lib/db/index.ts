@@ -53,4 +53,10 @@ export default class Database {
     const result = await query
     return z.array(Zod[model].get).parse(result)
   }
+
+  delete = async <M extends TABLE>(model: M, where: Where<M>): Promise<void> => {
+    return this.db[model]()
+      .where(where || {})
+      .delete()
+  }
 }
