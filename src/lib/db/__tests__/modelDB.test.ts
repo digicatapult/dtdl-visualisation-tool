@@ -39,7 +39,7 @@ describe('modelDB', function () {
   it('should return the default model in the db', async () => {
     expect(await model.getDefaultModel()).to.deep.equal(defaultFixture)
   })
-  it('should throw when there is no default in the database', async () => {
-    await expect(modelNoDefault.getDefaultModel()).to.be.rejectedWith(InternalError)
+  it('should return empty when there is no default in the database', async () => {
+    expect(await modelNoDefault.getDefaultModel()).to.equal(undefined)
   })
 })

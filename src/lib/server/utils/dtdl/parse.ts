@@ -2,7 +2,7 @@ import { DtdlObjectModel, getInterop, parseDirectories } from '@digicatapult/dtd
 import { rm } from 'node:fs/promises'
 
 import Database from '../../../db'
-import { ModelDb } from '../../../db/modelDb'
+import { ModelDb } from '../../../db/modelDb.js'
 import { dtdlCacheKey } from '../../controllers/helpers.js'
 import { DataError } from '../../errors.js'
 import { GenerateParams } from '../../models/controllerTypes'
