@@ -13,7 +13,7 @@ import { octokitTokenCookie } from '../models/cookieNames.js'
 import { ListItem } from '../models/github.js'
 import { type ICache, Cache } from '../utils/cache.js'
 import { parseAndInsertDtdl } from '../utils/dtdl/parse.js'
-import { GithubRequest } from '../utils/githubRequest.js'
+import { GithubRequest, authRedirectURL } from '../utils/githubRequest.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
 import { safeUrl } from '../utils/url.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
@@ -44,25 +44,14 @@ export class GithubController extends HTMLController {
   @Get('/picker')
   public async picker(@Request() req: express.Request): Promise<HTML | void> {
     if (!req.signedCookies[octokitTokenCookie]) {
-      return this.getOctokitToken(`/github/picker`, false)
+      this.setStatus(302)
+      this.setHeader('Location', authRedirectURL(`/github/picker`))
+      return
     }
 
     const populateListLink = safeUrl(`/github/repos`, { page: '1' })
     const recentFiles = await recentFilesFromCookies(req.signedCookies, this.db, this.logger)
     return this.html(this.templates.OpenOntologyRoot({ populateListLink, recentFiles }))
-  }
-
-  async getOctokitToken(returnUrl: string, hxRidirect: boolean = true): Promise<void> {
-    const githubAuthUrl = safeUrl(`https://github.com/login/oauth/authorize`, {
-      client_id: env.get('GH_CLIENT_ID'),
-      redirect_uri: `${env.get('GH_REDIRECT_ORIGIN')}/github/callback?returnUrl=${returnUrl}`,
-    })
-    this.setStatus(302)
-
-    // if used as part of a htmx response, use HX-Redirect instead of location
-    if (hxRidirect) this.setHeader('HX-Redirect', githubAuthUrl)
-    else this.setHeader('Location', githubAuthUrl)
-    return
   }
 
   // Called by GitHub after external OAuth login
@@ -92,7 +81,9 @@ export class GithubController extends HTMLController {
   public async repos(@Query() page: number, @Request() req: express.Request): Promise<HTML | void> {
     const octokitToken = req.signedCookies[octokitTokenCookie]
     if (!octokitToken) {
-      return this.getOctokitToken(`/github/picker`)
+      this.setStatus(302)
+      this.setHeader('HX-Redirect', authRedirectURL(`/github/picker`))
+      return
     }
 
     const response = await this.githubRequest.getRepos(octokitToken, page)
@@ -120,7 +111,9 @@ export class GithubController extends HTMLController {
   ): Promise<HTML | void> {
     const octokitToken = req.signedCookies[octokitTokenCookie]
     if (!octokitToken) {
-      return this.getOctokitToken(`/github/picker`)
+      this.setStatus(302)
+      this.setHeader('HX-Redirect', authRedirectURL(`/github/picker`))
+      return
     }
 
     const response = await this.githubRequest.getBranches(octokitToken, owner, repo, page)
@@ -158,7 +151,9 @@ export class GithubController extends HTMLController {
   ): Promise<HTML | void> {
     const octokitToken = req.signedCookies[octokitTokenCookie]
     if (!octokitToken) {
-      return this.getOctokitToken(`/github/picker`)
+      this.setStatus(302)
+      this.setHeader('HX-Redirect', authRedirectURL(`/github/picker`))
+      return
     }
 
     const response = await this.githubRequest.getContents(octokitToken, owner, repo, path, ref)
@@ -216,7 +211,9 @@ export class GithubController extends HTMLController {
   ): Promise<void> {
     const octokitToken = req.signedCookies[octokitTokenCookie]
     if (!octokitToken) {
-      return this.getOctokitToken(`/github/picker`)
+      this.setStatus(302)
+      this.setHeader('HX-Redirect', authRedirectURL(`/github/picker`))
+      return
     }
 
     const tmpDir = await mkdtemp(join(os.tmpdir(), 'dtdl-'))
@@ -235,6 +232,9 @@ export class GithubController extends HTMLController {
         this.db,
         this.generator,
         this.cache,
+        'github',
+        owner,
+        repo,
         acc.files
       )
       this.setHeader('HX-Redirect', `/ontology/${id}/view`)

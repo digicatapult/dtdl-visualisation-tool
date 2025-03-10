@@ -34,6 +34,7 @@ export default class MermaidTemplates {
     diagramType,
     svgWidth,
     svgHeight,
+    canEdit,
   }: {
     search?: string
     layout: Layout
@@ -41,6 +42,7 @@ export default class MermaidTemplates {
     diagramType: DiagramType
     svgWidth?: number
     svgHeight?: number
+    canEdit: boolean
   }) => (
     <Page title={'UKDTC'}>
       <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
@@ -62,6 +64,7 @@ export default class MermaidTemplates {
       <this.Legend showContent={false} />
       <this.navigationPanel expanded={false} />
       <this.svgControls />
+      <this.editToggle canEdit={canEdit} />
     </Page>
   )
 
@@ -111,11 +114,13 @@ export default class MermaidTemplates {
     entityId,
     model,
     expanded,
+    edit,
   }: {
     swapOutOfBand?: boolean
     entityId?: DtdlId
     model?: DtdlObjectModel
     expanded: boolean
+    edit?: boolean
   }): JSX.Element => {
     const entity = entityId && model ? model[entityId] : undefined
     return (
@@ -123,6 +128,7 @@ export default class MermaidTemplates {
         id="navigation-panel"
         hx-swap-oob={swapOutOfBand ? 'true' : undefined}
         {...(expanded && { 'aria-expanded': '' })}
+        class={edit ? 'edit' : 'view'}
       >
         <button
           id="navigation-panel-button"
@@ -349,6 +355,35 @@ export default class MermaidTemplates {
       <a id="open-button" href={`/open`} class="button">
         Open Ontology
       </a>
+    )
+  }
+
+  public editToggle = ({ canEdit }: { canEdit: boolean }) => {
+    return (
+      <div
+        id="edit-toggle"
+        title={
+          canEdit
+            ? 'Click to edit ontology'
+            : 'Only Ontologies from github that you have write permissions on, can be edited'
+        }
+        class={canEdit ? '' : 'disabled'}
+      >
+        <span id="edit-toggle-text">View</span>
+        <label class="switch">
+          <form
+            hx-get="edit-model"
+            hx-target="#navigation-panel"
+            hx-trigger="change"
+            hx-include="#sessionId"
+            hx-swap="outerHTML"
+            hx-vals="js:{ editMode: event.target.checked }"
+          >
+            <input type="checkbox" disabled={!canEdit} onclick="globalThis.toggleEditSwitch(event)" value="editMode" />
+            <span class="slider"></span>
+          </form>
+        </label>
+      </div>
     )
   }
 }

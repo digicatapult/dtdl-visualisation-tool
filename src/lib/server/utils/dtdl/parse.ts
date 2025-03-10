@@ -5,6 +5,7 @@ import { PartialInsertDtdl } from '../../../db/types'
 import { dtdlCacheKey } from '../../controllers/helpers.js'
 import { DataError } from '../../errors.js'
 import { GenerateParams } from '../../models/controllerTypes'
+import { FileSourceKeys } from '../../models/openTypes'
 import { type UUID } from '../../models/strings.js'
 import { ICache } from '../cache.js'
 import { SvgGenerator } from '../mermaid/generator'
@@ -15,6 +16,9 @@ export const parseAndInsertDtdl = async (
   db: Database,
   generator: SvgGenerator,
   cache: ICache,
+  source: FileSourceKeys,
+  owner: string | null = null,
+  repo: string | null = null,
   files?: PartialInsertDtdl[]
 ): Promise<UUID> => {
   const parser = await getInterop()
@@ -30,6 +34,9 @@ export const parseAndInsertDtdl = async (
     name: dtdlName,
     parsed: parsedDtdl,
     preview: output.renderForMinimap(),
+    source: source,
+    owner: owner,
+    repo: repo,
   })
 
   if (files)

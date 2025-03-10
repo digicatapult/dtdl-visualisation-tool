@@ -82,7 +82,7 @@ docker compose up
 To bring up both the `postgres` database and the `dtdl-visualiser` service in docker you may run
 
 ```
-docker compose up --scale dtdl-visualiser=1
+docker compose up --scale dtdl-visualiser=1 -d
 ```
 
 The service will be available on `http://localhost:3000`
@@ -113,6 +113,7 @@ The application can be run in Docker. `sample/energygrid` is automatically parse
 | GH_REDIRECT_ORIGIN  | n        | `http://localhost:3000`   | Origin to redirect to for GitHub OAuth callback. See [GitHub Integration](#github-integration)                                               |
 | COOKIE_SESSION_KEYS | y        | -                         | Secret for signed cookies, devDefault `secret`                                                                                               |
 | PUPPETEER_ARGS      | n        | ''                        | Comma separated string of puppeteer [launch args](https://pptr.dev/api/puppeteer.launchoptions) e.g. `--no-sandbox,--disable-setuid-sandbox` |
+| EDIT_ONTOLOGY       | n        | 'false'                   | Edit toggle is disabled on all ontologys when false and works as normal when true                                                            |
 
 ## Database migrations
 

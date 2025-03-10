@@ -1,8 +1,9 @@
 import { defineConfig, devices } from '@playwright/test'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
 export default defineConfig({
   globalSetup: './test/globalSetup.ts',
-  globalTeardown: './test/globalTeardown.ts',
   testDir: './test/e2e',
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -20,8 +21,9 @@ export default defineConfig({
   use: {
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
-    baseURL: 'http://127.0.0.1:3000',
+    baseURL: 'http://localhost:3000',
     headless: !!process.env.CI,
+    storageState: join(tmpdir(), 'storage-state.json'),
   },
   expect: {
     timeout: 10 * 1000,

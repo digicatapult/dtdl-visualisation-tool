@@ -5,6 +5,7 @@ import { UpdateParams } from '../../../models/controllerTypes.js'
 import { modelHistoryCookie } from '../../../models/cookieNames.js'
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../../models/renderedDiagram/index.js'
 import { generatedSVGFixture } from '../../../utils/mermaid/__tests__/fixtures.js'
+import { mockGithubRequest } from '../../__tests__/github.test.js'
 import {
   complexDtdlId,
   complexMockDtdlLoader,
@@ -60,7 +61,8 @@ describe('OntologyController', async () => {
     templateMock,
     mockLogger,
     mockCache,
-    mockSession
+    mockSession,
+    mockGithubRequest
   )
   const complexController = new OntologyController(
     complexMockDtdlLoader,
@@ -69,7 +71,8 @@ describe('OntologyController', async () => {
     templateMock,
     mockLogger,
     mockCache,
-    mockSession
+    mockSession,
+    mockGithubRequest
   )
 
   describe('view', () => {
@@ -77,7 +80,9 @@ describe('OntologyController', async () => {
 
     it('should return rendered root template', async () => {
       const req = mockReqWithCookie({})
-      const result = await controller.view(simpleDtdlId, { ...defaultParams }, req).then(toHTMLString)
+      const result = await controller
+        .view(simpleDtdlId, { ...defaultParams }, req)
+        .then((value) => (value ? toHTMLString(value) : ''))
       expect(result).to.equal(`root_dagre-d3_undefined_root`)
     })
 
@@ -467,6 +472,15 @@ describe('OntologyController', async () => {
           `svgControls_${generatedSVGFixture}_svgControls`,
         ].join('')
       )
+    })
+  })
+
+  describe('OntologyController - editModel', () => {
+    it('should return rendered navigation panel template', async () => {
+      const mockHtmlOutput = `navigationPanel_false__navigationPanel`
+      const result = await controller.editModel(simpleDtdlId, validSessionId, true).then(toHTMLString)
+
+      expect(result).to.equal(mockHtmlOutput)
     })
   })
 })
