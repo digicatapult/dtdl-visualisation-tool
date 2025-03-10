@@ -4,7 +4,6 @@ import { z } from 'zod'
 export const tablesList = ['model', 'dtdl'] as const
 
 const insertModel = z.object({
-  id: z.string(),
   name: z.string(),
   parsed: z.unknown(),
   preview: z.string().nullable(),
@@ -21,6 +20,7 @@ const Zod = {
   model: {
     insert: insertModel,
     get: insertModel.extend({
+      id: z.string(),
       created_at: z.date(),
     }),
   },
@@ -37,6 +37,7 @@ export type InsertModel = z.infer<typeof Zod.model.insert>
 export type ModelRow = z.infer<typeof Zod.model.get>
 
 export type InsertDtdl = z.infer<typeof Zod.dtdl.insert>
+export type PartialInsertDtdl = Omit<InsertDtdl, 'model_id'>
 export type DtdlRow = z.infer<typeof Zod.dtdl.get>
 
 export type TABLES_TUPLE = typeof tablesList

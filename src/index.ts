@@ -5,7 +5,6 @@ import 'reflect-metadata'
 import { getInterop, validateDirectories } from '@digicatapult/dtdl-parser'
 import chalk from 'chalk'
 import { Command } from 'commander'
-import { randomUUID } from 'node:crypto'
 import { container } from 'tsyringe'
 import Database from './lib/db/index.js'
 import { httpServer } from './lib/server/index.js'
@@ -39,7 +38,7 @@ program
     const cache = container.resolve<ICache>(Cache)
     logger.info(`Storing default model in db`)
 
-    const id = await parseAndInsertDtdl(options.path, `default`, db, generator, false, cache, randomUUID())
+    const id = await parseAndInsertDtdl(options.path, `default`, db, generator, cache)
 
     const dtdlLoader = new DtdlLoader(db, id)
     container.register(DtdlLoader, {

@@ -1,17 +1,16 @@
 import express from 'express'
-import { randomUUID } from 'node:crypto'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import { dirname, join } from 'node:path'
 import { Get, Produces, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { container, inject, injectable } from 'tsyringe'
 import Database from '../../db/index.js'
+import { PartialInsertDtdl } from '../../db/types.js'
 import { Env } from '../env/index.js'
 import { UploadError } from '../errors.js'
 import { type ILogger, Logger } from '../logger.js'
 import { octokitTokenCookie } from '../models/cookieNames.js'
 import { ListItem } from '../models/github.js'
-import { UUID } from '../models/strings.js'
 import { type ICache, Cache } from '../utils/cache.js'
 import { parseAndInsertDtdl } from '../utils/dtdl/parse.js'
 import { GithubRequest } from '../utils/githubRequest.js'
@@ -220,29 +219,29 @@ export class GithubController extends HTMLController {
       return this.getOctokitToken(`/github/picker`)
     }
 
-    const modelId = randomUUID()
-    const tmpDir = join(os.tmpdir(), modelId)
-    await mkdir(tmpDir)
+    const tmpDir = await mkdtemp(join(os.tmpdir(), 'dtdl-'))
 
-    const totalUploaded = { total: 0 }
-    await this.fetchFiles(octokitToken, tmpDir, owner, repo, path, ref, this.db, modelId, totalUploaded)
+    const acc: { files: PartialInsertDtdl[]; total: number } = { files: [], total: 0 }
+    await this.fetchFiles(octokitToken, tmpDir, owner, repo, path, ref, this.db, acc)
 
-    if (totalUploaded.total === 0) {
-      throw new UploadError(`No '.json' files found`)
+    if (acc.files.length === 0) {
+      throw new UploadError(`No valid DTDL '.json' files found`)
     }
 
-    const id = await parseAndInsertDtdl(
-      tmpDir,
-      `${owner}/${repo}/${ref}/${path}`,
-      this.db,
-      this.generator,
-      false,
-      this.cache,
-      modelId
-    )
-
-    this.setHeader('HX-Redirect', `/ontology/${id}/view`)
-    return
+    try {
+      const id = await parseAndInsertDtdl(
+        tmpDir,
+        `${owner}/${repo}/${ref}/${path}`,
+        this.db,
+        this.generator,
+        this.cache,
+        acc.files
+      )
+      this.setHeader('HX-Redirect', `/ontology/${id}/view`)
+      return
+    } finally {
+      await rm(tmpDir, { recursive: true })
+    }
   }
 
   private async fetchFiles(
@@ -253,8 +252,7 @@ export class GithubController extends HTMLController {
     path: string,
     ref: string,
     db: Database,
-    modelId: UUID,
-    totalUploadedRef: { total: number }
+    acc: { files: PartialInsertDtdl[]; total: number }
   ): Promise<void> {
     const response = await this.githubRequest.getContents(githubToken, owner, repo, path, ref)
 
@@ -264,31 +262,36 @@ export class GithubController extends HTMLController {
         const fileResponse = await fetch(entry.download_url)
         const fileBuffer = await fileResponse.arrayBuffer()
 
-        totalUploadedRef.total += fileBuffer.byteLength
-        if (totalUploadedRef.total > uploadLimit) {
+        if (acc.total + fileBuffer.byteLength > uploadLimit) {
           throw new UploadError(`Total upload must be less than ${env.get('UPLOAD_LIMIT_MB')}MB`)
         }
 
-        this.logger.trace('writing file', entry.name, entryPath)
-        await writeFile(entryPath, Buffer.from(fileBuffer))
         const fileString = Buffer.from(fileBuffer).toString()
         const dtdl = JSON.parse(fileString)
         let entityIds: string[] = []
+        // search file for entity ids
         if (Array.isArray(dtdl)) {
           entityIds = dtdl.map((entity) => entity['@id'])
         } else {
           entityIds = [dtdl['@id']]
         }
 
-        await db.insert('dtdl', {
+        if (entityIds.length === 0) {
+          this.logger.trace('ignoring invalid DTDL json', entryPath)
+          return
+        }
+
+        this.logger.trace('writing file', entry.name, entryPath)
+        await writeFile(entryPath, Buffer.from(fileBuffer))
+        acc.total += fileBuffer.byteLength
+        acc.files.push({
           path: entryPath,
           contents: fileString,
-          model_id: modelId,
           entity_ids: entityIds,
         })
       } else if (entry.type === 'dir') {
         await mkdir(entryPath)
-        await this.fetchFiles(githubToken, entryPath, owner, repo, entry.path, ref, db, modelId, totalUploadedRef)
+        await this.fetchFiles(githubToken, entryPath, owner, repo, entry.path, ref, db, acc)
       }
     }
   }

@@ -12,7 +12,6 @@ import { parseAndInsertDtdl } from '../utils/dtdl/parse.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
-import { randomUUID } from 'node:crypto'
 import { Logger, type ILogger } from '../logger.js'
 import { Cache, type ICache } from '../utils/cache.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
@@ -62,15 +61,7 @@ export class OpenOntologyController extends HTMLController {
       throw new UploadError('Uploaded zip file is not valid')
     }
 
-    const id = await parseAndInsertDtdl(
-      unzippedPath,
-      file.originalname,
-      this.db,
-      this.generator,
-      false,
-      this.cache,
-      randomUUID()
-    )
+    const id = await parseAndInsertDtdl(unzippedPath, file.originalname, this.db, this.generator, this.cache)
 
     this.setHeader('HX-Redirect', `/ontology/${id}/view`)
     return

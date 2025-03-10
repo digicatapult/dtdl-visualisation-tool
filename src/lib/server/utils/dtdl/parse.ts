@@ -1,7 +1,7 @@
 import { getInterop, parseDirectories } from '@digicatapult/dtdl-parser'
-import { rm } from 'node:fs/promises'
 
 import Database from '../../../db'
+import { PartialInsertDtdl } from '../../../db/types'
 import { dtdlCacheKey } from '../../controllers/helpers.js'
 import { DataError } from '../../errors.js'
 import { GenerateParams } from '../../models/controllerTypes'
@@ -14,14 +14,11 @@ export const parseAndInsertDtdl = async (
   dtdlName: string,
   db: Database,
   generator: SvgGenerator,
-  deleteLocal: boolean = false,
   cache: ICache,
-  modelId: UUID
+  files?: PartialInsertDtdl[]
 ): Promise<UUID> => {
   const parser = await getInterop()
   const parsedDtdl = parseDirectories(localPath, parser)
-
-  if (deleteLocal) await rm(localPath, { recursive: true })
 
   if (!parsedDtdl) {
     throw new DataError('Failed to parse DTDL model')
@@ -29,15 +26,20 @@ export const parseAndInsertDtdl = async (
 
   const output = await generator.run(parsedDtdl, 'flowchart', 'elk')
 
-  await db.insert('model', {
-    id: modelId,
+  const [{ id }] = await db.insert('model', {
     name: dtdlName,
     parsed: parsedDtdl,
     preview: output.renderForMinimap(),
   })
 
-  const defaultParams: GenerateParams = { layout: 'elk', diagramType: 'flowchart', expandedIds: [], search: '' }
-  cache.set(dtdlCacheKey(modelId, defaultParams), output)
+  if (files)
+    await db.insertMany(
+      'dtdl',
+      files.map((file) => ({ ...file, model_id: id }))
+    )
 
-  return modelId
+  const defaultParams: GenerateParams = { layout: 'elk', diagramType: 'flowchart', expandedIds: [], search: '' }
+  cache.set(dtdlCacheKey(id, defaultParams), output)
+
+  return id
 }

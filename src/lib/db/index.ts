@@ -46,6 +46,13 @@ export default class Database {
     return z.array(Zod[model].get).parse(await this.db[model]().insert(record).returning('*'))
   }
 
+  insertMany = async <M extends TABLE>(
+    model: M,
+    records: Models[typeof model]['insert'][]
+  ): Promise<Models[typeof model]['get'][]> => {
+    return z.array(Zod[model].get).parse(await this.db[model]().insert(records).returning('*'))
+  }
+
   get = async <M extends TABLE>(model: M, where?: Where<M>, limit?: number): Promise<Models[typeof model]['get'][]> => {
     let query = this.db[model]()
     query = reduceWhere(query, where)
