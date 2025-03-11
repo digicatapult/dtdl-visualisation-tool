@@ -22,10 +22,13 @@ globalThis.toggleEditSwitch = (event) => {
 }
 
 globalThis.getOwnerRepoFromInput = (event) => {
-  const [owner, repo] = event.target.value.split('/')
-  return {
-    owner: owner || undefined,
-    repo: repo || undefined,
+  const input = event.target.value.trim()
+  try {
+    const [, owner, repo] = new URL(input).pathname.split('/')
+    return { owner, repo }
+  } catch {
+    const [owner, repo] = input.split('/')
+    return { owner, repo }
   }
 }
 
