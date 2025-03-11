@@ -111,8 +111,5 @@
   },
   "engines": {
     "node": ">= 20"
-  },
-  "overrides": {
-    "chokidar": "^4.0.3"
   }
 }
