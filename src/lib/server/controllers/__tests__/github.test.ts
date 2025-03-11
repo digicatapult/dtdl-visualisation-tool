@@ -97,9 +97,6 @@ const validId1 = 'dtmi:com:example2;1'
 const cookie = { [octokitTokenCookie]: 'someToken' }
 
 const getContentsStub = sinon.stub()
-const fetchStub = sinon.stub(global, 'fetch')
-const insertDb = sinon.spy(mockDb, 'insert')
-const insertManyDb = sinon.spy(mockDb, 'insertMany')
 
 export const mockGithubRequest = {
   getRepos: () => Promise.resolve(repos),
@@ -118,10 +115,10 @@ describe('GithubController', async () => {
     mockCache
   )
 
-  const setHeaderSpy = sinon.spy(controller, 'setHeader')
-  const setStatusSpy = sinon.spy(controller, 'setStatus')
-
   const assertRedirectOnNoToken = async <T>(controllerFn: () => Promise<T>, hxRedirect: boolean = true) => {
+    const setHeaderSpy = sinon.spy(controller, 'setHeader')
+    const setStatusSpy = sinon.spy(controller, 'setStatus')
+
     await controllerFn()
 
     const redirect = encodeURIComponent(`${env.get('GH_REDIRECT_ORIGIN')}/github/callback?returnUrl=/github/picker`)
@@ -156,6 +153,8 @@ describe('GithubController', async () => {
 
   describe('/callback', () => {
     it('should set cookie and redirect to return url from session', async () => {
+      const setHeaderSpy = sinon.spy(controller, 'setHeader')
+
       const req = mockReqWithCookie({})
       const returnUrl = 'return.url'
 
@@ -275,8 +274,13 @@ describe('GithubController', async () => {
     })
   })
 
-  describe.only('/directory', () => {
+  describe('/directory', () => {
     it('should insert and redirect to valid ontology', async () => {
+      const fetchStub = sinon.stub(global, 'fetch')
+      const setHeaderSpy = sinon.spy(controller, 'setHeader')
+      const insertDb = sinon.spy(mockDb, 'insert')
+      const insertManyDb = sinon.spy(mockDb, 'insertMany')
+
       // mock returning root dir contents then nested dir contents
       getContentsStub.onCall(0).resolves(contents)
       getContentsStub.onCall(1).resolves(nestedContents)
@@ -317,6 +321,11 @@ describe('GithubController', async () => {
     })
 
     it('should handle single DTDL files with multiple IDs', async () => {
+      const fetchStub = sinon.stub(global, 'fetch')
+      const insertDb = sinon.spy(mockDb, 'insert')
+      const insertManyDb = sinon.spy(mockDb, 'insertMany')
+      const setHeaderSpy = sinon.spy(controller, 'setHeader')
+
       getContentsStub.onCall(0).resolves(nestedContents)
 
       const multipleInterfaceFile = `[${dtdl(validId0)}, ${dtdl(validId1)}]`
@@ -356,6 +365,8 @@ describe('GithubController', async () => {
     })
 
     it('should throw error if sum of file sizes is over upload size limit', async () => {
+      const fetchStub = sinon.stub(global, 'fetch')
+
       getContentsStub.onCall(0).resolves(contents)
       getContentsStub.onCall(1).resolves(nestedContents)
 
@@ -375,6 +386,13 @@ describe('GithubController', async () => {
     })
 
     it(`should ignore json files without '@id key'`, async () => {
+      const fetchStub = sinon.stub(global, 'fetch')
+      const insertDb = sinon.spy(mockDb, 'insert')
+      const insertManyDb = sinon.spy(mockDb, 'insertMany')
+      const setHeaderSpy = sinon.spy(controller, 'setHeader')
+
+      getContentsStub.reset()
+
       // get root then nested contents
       getContentsStub.onCall(0).resolves(contents)
       getContentsStub.onCall(1).resolves(nestedContents)
