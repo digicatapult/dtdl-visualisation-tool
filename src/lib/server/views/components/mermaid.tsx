@@ -8,7 +8,6 @@ import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { Layout, layoutEntries } from '../../models/mermaidLayouts.js'
 import { DtdlId, UUID } from '../../models/strings.js'
 import { getDisplayName, isInterface, isRelationship } from '../../utils/dtdl/extract.js'
-import { safeUrl } from '../../utils/url.js'
 import { AccordionSection, Page } from '../common.js'
 
 const commonUpdateAttrs = {
@@ -35,6 +34,7 @@ export default class MermaidTemplates {
     diagramType,
     svgWidth,
     svgHeight,
+    canEdit,
   }: {
     search?: string
     layout: Layout
@@ -42,6 +42,7 @@ export default class MermaidTemplates {
     diagramType: DiagramType
     svgWidth?: number
     svgHeight?: number
+    canEdit: boolean
   }) => (
     <Page title={'UKDTC'}>
       <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
@@ -53,7 +54,7 @@ export default class MermaidTemplates {
           svgWidth={svgWidth}
           svgHeight={svgHeight}
         />
-        <this.uploadForm sessionId={sessionId} />
+        <this.uploadForm />
       </section>
 
       <div id="mermaid-wrapper">
@@ -63,6 +64,7 @@ export default class MermaidTemplates {
       <this.Legend showContent={false} />
       <this.navigationPanel expanded={false} />
       <this.svgControls />
+      <this.editToggle canEdit={canEdit} />
     </Page>
   )
 
@@ -112,11 +114,13 @@ export default class MermaidTemplates {
     entityId,
     model,
     expanded,
+    edit,
   }: {
     swapOutOfBand?: boolean
     entityId?: DtdlId
     model?: DtdlObjectModel
     expanded: boolean
+    edit?: boolean
   }): JSX.Element => {
     const entity = entityId && model ? model[entityId] : undefined
     return (
@@ -124,6 +128,7 @@ export default class MermaidTemplates {
         id="navigation-panel"
         hx-swap-oob={swapOutOfBand ? 'true' : undefined}
         {...(expanded && { 'aria-expanded': '' })}
+        class={edit ? 'edit' : 'view'}
       >
         <button
           id="navigation-panel-button"
@@ -345,11 +350,40 @@ export default class MermaidTemplates {
     )
   }
 
-  private uploadForm = ({ sessionId }: { sessionId: UUID }) => {
+  private uploadForm = () => {
     return (
-      <a id="open-button" href={safeUrl(`/open`, { sessionId })} class="button">
+      <a id="open-button" href={`/open`} class="button">
         Open Ontology
       </a>
+    )
+  }
+
+  public editToggle = ({ canEdit }: { canEdit: boolean }) => {
+    return (
+      <div
+        id="edit-toggle"
+        title={
+          canEdit
+            ? 'Click to edit ontology'
+            : 'Only Ontologies from github that you have write permissions on, can be edited'
+        }
+        class={canEdit ? '' : 'disabled'}
+      >
+        <span id="edit-toggle-text">View</span>
+        <label class="switch">
+          <form
+            hx-get="edit-model"
+            hx-target="#navigation-panel"
+            hx-trigger="change"
+            hx-include="#sessionId"
+            hx-swap="outerHTML"
+            hx-vals="js:{ editMode: event.target.checked }"
+          >
+            <input type="checkbox" disabled={!canEdit} onclick="globalThis.toggleEditSwitch(event)" value="editMode" />
+            <span class="slider"></span>
+          </form>
+        </label>
+      </div>
     )
   }
 }

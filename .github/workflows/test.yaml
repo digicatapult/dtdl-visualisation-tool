@@ -4,6 +4,10 @@ on:
   push:
     branches-ignore: ['main']
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   static-checks-npm:
     uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@main
@@ -15,56 +19,27 @@ jobs:
     with:
       docker_compose_file: ''
       npm_build_command: 'npm run build'
-      pre_test_command: |
-        export CHROME_PUPPETEER_PATH=/@{HOME}/.cache/puppeteer/chrome/**/**/chrome
-        cat | sudo tee /etc/apparmor.d/chrome-puppeteer <<EOF
-        abi <abi/4.0>,
-        include <tunables/global>
-
-        profile chrome $CHROME_PUPPETEER_PATH flags=(unconfined) {
-
-          userns,
-
-          # Site-specific additions and overrides. See local/README for details.
-          include if exists <local/chrome>
-        }
-        EOF
-        sudo service apparmor reload  # reload AppArmor profiles to include the new one
       env_vars: |
         {
-          "TMPDIR": "${{ github.workspace }}"
+          "TMPDIR": "${{ github.workspace }}",
+          "PUPPETEER_ARGS": "--no-sandbox,--disable-setuid-sandbox"
         }
 
   e2e-tests-npm:
     uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
+    concurrency:
+      group: e2e-tests-npm
     with:
       docker_compose_file: ''
-      pre_test_command: |
-        export CHROME_PUPPETEER_PATH=/@{HOME}/.cache/puppeteer/chrome/**/**/chrome
-        cat | sudo tee /etc/apparmor.d/chrome-puppeteer <<EOF
-        abi <abi/4.0>,
-        include <tunables/global>
-
-        profile chrome $CHROME_PUPPETEER_PATH flags=(unconfined) {
-          userns,
-
-          # Site-specific additions and overrides. See local/README for details.
-          include if exists <local/chrome>
-        }
-        EOF
-        sudo service apparmor reload  # reload AppArmor profiles to include the new one
-
-        npm ci
-        npx playwright install-deps
-        npx playwright install
+      pre_test_command: 'npm ci && npx playwright install-deps && npx playwright install'
       test_command: 'npm run test:playwright || exit 1'
       env_vars: |
         {
-          "GH_CLIENT_ID": "",
-          "GH_CLIENT_SECRET": ""
+          "PUPPETEER_ARGS": "--no-sandbox,--disable-setuid-sandbox"
         }
     permissions:
       contents: write
+    secrets: inherit
 
   build-docker:
     uses: digicatapult/shared-workflows/.github/workflows/build-docker.yml@main

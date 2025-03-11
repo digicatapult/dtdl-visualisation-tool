@@ -4,8 +4,9 @@ import url from 'node:url'
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import type { LayoutLoaderDefinition, Mermaid, MermaidConfig } from 'mermaid'
 import puppeteer, { Browser, Page } from 'puppeteer'
-import { inject, singleton } from 'tsyringe'
+import { container, inject, singleton } from 'tsyringe'
 
+import { Env } from '../../env/index.js'
 import { Logger, type ILogger } from '../../logger.js'
 import { DiagramType } from '../../models/mermaidDiagrams.js'
 import { Layout } from '../../models/mermaidLayouts.js'
@@ -13,6 +14,8 @@ import { MermaidSvgRender, PlainTextRender } from '../../models/renderedDiagram/
 import ClassDiagram from './classDiagram.js'
 import { IDiagram } from './diagramInterface.js'
 import Flowchart from './flowchart.js'
+
+const env = container.resolve(Env)
 
 const mermaidJsPath = path.resolve(
   path.dirname(url.fileURLToPath(import.meta.resolve('mermaid', import.meta.url))),
@@ -81,8 +84,10 @@ export class SvgGenerator {
     }
   }
 
-  private async initialise() {
-    const browser = await puppeteer.launch({})
+  async initialise() {
+    const browser = await puppeteer.launch({
+      args: env.get('PUPPETEER_ARGS'),
+    })
     const page = await browser.newPage()
 
     page.on('console', (msg) => {

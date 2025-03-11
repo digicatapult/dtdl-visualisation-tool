@@ -4,8 +4,6 @@ import { escapeHtml } from '@kitajs/html'
 import { singleton } from 'tsyringe'
 import { ListItem } from '../../models/github.js'
 import { RecentFile } from '../../models/openTypes.js'
-import { UUID } from '../../models/strings.js'
-import { safeUrl } from '../../utils/url.js'
 import { Page } from '../common.js'
 
 @singleton()
@@ -13,18 +11,15 @@ export default class OpenOntologyTemplates {
   constructor() {}
 
   public OpenOntologyRoot = ({
-    sessionId,
     populateListLink,
     recentFiles,
   }: {
-    sessionId: UUID
     populateListLink?: string
     recentFiles: RecentFile[]
   }) => {
     const showGithubModal = populateListLink !== undefined
     return (
       <Page title="UKDTC">
-        <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
         <section id="upload-toolbar">
           <a href="/">
             <h2>UKDTC</h2>
@@ -32,8 +27,8 @@ export default class OpenOntologyTemplates {
         </section>
         <div id="main-view">
           <h1>Open Ontology</h1>
-          <this.getMenu showContent={false} sessionId={sessionId} />
-          <this.recentFiles recentFiles={recentFiles} sessionId={sessionId} />
+          <this.getMenu showContent={false} />
+          <this.recentFiles recentFiles={recentFiles} />
           {showGithubModal && <this.githubModal populateListLink={populateListLink} />}
           <div id="spinner-wrapper">
             <div id="spinner" class="spinner" />
@@ -43,7 +38,7 @@ export default class OpenOntologyTemplates {
     )
   }
 
-  public getMenu = ({ showContent, sessionId }: { showContent: boolean; sessionId: UUID }) => {
+  public getMenu = ({ showContent }: { showContent: boolean }) => {
     return (
       <section id="upload-method">
         <label
@@ -51,7 +46,6 @@ export default class OpenOntologyTemplates {
           hx-swap="outerHTML transition:true"
           hx-target="#upload-method"
           hx-trigger="click"
-          hx-include="#sessionId"
           hx-get={`/open/menu?showContent=${!showContent}`}
         >
           Upload New File
@@ -59,7 +53,7 @@ export default class OpenOntologyTemplates {
         </label>
         <div id="upload-options" class={showContent ? 'show-content' : ''}>
           <this.uploadZip />
-          <this.uploadGithub sessionId={sessionId} />
+          <this.uploadGithub />
         </div>
       </section>
     )
@@ -69,14 +63,18 @@ export default class OpenOntologyTemplates {
     return (
       <dialog id="github-modal">
         <div id="modal-wrapper">
+          <div id="public-github-input-wrapper">
+            <input
+              id="public-github-input"
+              placeholder="Enter public GitHub repo {org}/{repo} e.g. 'digicatapult/dtdl-visualisation-tool'"
+              hx-get="/github/branches?page=1"
+              hx-trigger="keyup[event.key=='Enter']"
+              hx-vals="js:{ owner: globalThis.getOwnerRepoFromInput(event).owner, repo: globalThis.getOwnerRepoFromInput(event).repo }"
+              hx-target=".github-list"
+            />
+          </div>
           <div id="spin" class="spinner" />
-          <ul
-            class="github-list"
-            hx-indicator="#spin"
-            hx-get={populateListLink}
-            hx-trigger="load"
-            hx-include="#sessionId"
-          ></ul>
+          <ul class="github-list" hx-indicator="#spin" hx-get={populateListLink} hx-trigger="load"></ul>
           <this.selectFolder />
         </div>
         <form method="dialog">
@@ -90,7 +88,6 @@ export default class OpenOntologyTemplates {
     <button
       id="select-folder"
       hx-trigger="click"
-      hx-include="#sessionId"
       hx-get={link}
       hx-swap-oob={swapOutOfBand ? 'true' : undefined}
       hx-swap="outerHTML"
@@ -117,7 +114,6 @@ export default class OpenOntologyTemplates {
       'hx-get': nextPageLink,
       'hx-trigger': 'intersect once',
       'hx-swap': 'afterend',
-      'hx-include': '#sessionId',
       style: 'height: 1px; overflow: hidden',
     }
 
@@ -151,7 +147,6 @@ export default class OpenOntologyTemplates {
         hx-post="/open/"
         hx-encoding="multipart/form-data"
         hx-trigger="change from:#zip"
-        hx-include="#sessionId"
       >
         <label for="zip" class="upload-option">
           <img src="/public/images/zip-folder.svg" alt="zip-folder" />
@@ -161,16 +156,16 @@ export default class OpenOntologyTemplates {
       </form>
     )
   }
-  private uploadGithub = ({ sessionId }: { sessionId: UUID }) => {
+  private uploadGithub = () => {
     return (
-      <a class="upload-option button" href={`/github/picker?sessionId=${sessionId}`}>
+      <a class="upload-option button" href={`/github/picker`}>
         <img src="/public/images/github-mark.svg" alt="github" />
         <span>GitHub</span>
       </a>
     )
   }
 
-  public recentFiles = ({ recentFiles, sessionId }: { recentFiles: RecentFile[]; sessionId: UUID }) => {
+  public recentFiles = ({ recentFiles }: { recentFiles: RecentFile[] }) => {
     return (
       <>
         <h4>Recent Files</h4>
@@ -178,14 +173,8 @@ export default class OpenOntologyTemplates {
           {recentFiles.map((recentFile, index) => {
             const preview: JSX.Element = recentFile.preview
             return (
-              <a href={safeUrl(`/ontology/${recentFile.dtdlModelId}/view`, { sessionId })}>
-                <div
-                  class="file-card"
-                  role="button"
-                  tabindex={`${index + 1}`}
-                  hx-get={`/open/${recentFile.dtdlModelId}`}
-                  hx-include="#sessionId"
-                >
+              <a href={`/ontology/${recentFile.dtdlModelId}/view`}>
+                <div class="file-card" role="button" tabindex={`${index + 1}`}>
                   <div class="file-preview">{preview}</div>
                   <div class="file-details">
                     <p class="file-name">{escapeHtml(recentFile.fileName)}</p>

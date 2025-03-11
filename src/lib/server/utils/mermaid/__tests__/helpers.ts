@@ -1,7 +1,12 @@
+import { expect } from 'chai'
 import { JSDOM } from 'jsdom'
 import mermaid, { ParseResult } from 'mermaid'
 import path from 'path'
 import puppeteer from 'puppeteer'
+import { container } from 'tsyringe'
+import { Env } from '../../../env/index.js'
+
+const env = container.resolve(Env)
 
 declare global {
   interface Window {
@@ -19,7 +24,9 @@ export const checkIfStringIsSVG = (svgString: string): boolean => {
 }
 
 export const parseMermaid = async (markdown: string): Promise<ParseResult> => {
-  const browser = await puppeteer.launch({})
+  const browser = await puppeteer.launch({
+    args: env.get('PUPPETEER_ARGS'),
+  })
   const page = await browser.newPage()
 
   await page.addScriptTag({ path: mermaidPath })
@@ -42,4 +49,19 @@ export function withPathElement(): Element {
   const dom = new JSDOM()
   const document = dom.window.document
   return document.createElement('path')
+}
+
+export const expectStringIsFiniteNumber = (x: string | null) => {
+  expect(x).to.be.a('string')
+  expect(Number.isFinite(parseFloat(x || 'NaN'))).to.equal(true)
+}
+
+export const getChildrenByClass = (element: Element, className: string): Element[] => {
+  return [...element.childNodes].filter((c) => {
+    if (!('classList' in c) || !c.classList) {
+      return false
+    }
+    const classSet = new Set(c.classList.toString().split(/\s+/))
+    return classSet.has(className)
+  }) as Element[]
 }

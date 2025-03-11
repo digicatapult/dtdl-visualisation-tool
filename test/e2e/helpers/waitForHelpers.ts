@@ -1,15 +1,18 @@
 import { Page } from '@playwright/test'
 
 export const waitForUpdateLayout = async <T>(page: Page, action: () => Promise<T>) => {
-  const updateLayoutResponse = page.waitForResponse(
-    (resp) => resp.url().includes('/update-layout') && resp.status() === 200
-  )
-  await action()
-  await updateLayoutResponse
+  return waitForSuccessResponse(page, action, '/update-layout')
 }
 
 export const waitForSuccessResponse = async <T>(page: Page, action: () => Promise<T>, includeRoute: string) => {
-  const response = page.waitForResponse((resp) => resp.url().includes(includeRoute) && resp.status() === 200)
+  const response = page.waitForResponse((resp) => {
+    const acceptableStatuses = new Set([200, 204, 302, 304])
+    if (!acceptableStatuses.has(resp.status())) {
+      throw new Error(`Caught bad request to '${resp.url()}' failed with: ${resp.status()}`)
+    }
+
+    return resp.url().includes(includeRoute) && resp.status() === 200
+  })
   await action()
   await response
 }

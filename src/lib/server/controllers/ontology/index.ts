@@ -1,9 +1,10 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import express from 'express'
 import { randomUUID } from 'node:crypto'
-import { Get, Path, Produces, Queries, Request, Route, SuccessResponse } from 'tsoa'
-import { inject, injectable, singleton } from 'tsyringe'
-import { InvalidQueryError } from '../../errors.js'
+import { Get, Path, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
+import { container, inject, injectable, singleton } from 'tsyringe'
+import { Env } from '../../env/index.js'
+import { InternalError, InvalidQueryError } from '../../errors.js'
 import { Logger, type ILogger } from '../../logger.js'
 import {
   A11yPreference,
@@ -14,13 +15,14 @@ import {
   type RootParams,
   type UpdateParams,
 } from '../../models/controllerTypes.js'
-import { modelHistoryCookie } from '../../models/cookieNames.js'
+import { modelHistoryCookie, octokitTokenCookie } from '../../models/cookieNames.js'
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../models/renderedDiagram/index.js'
 import { type UUID } from '../../models/strings.js'
 import { Cache, type ICache } from '../../utils/cache.js'
 import { DtdlLoader } from '../../utils/dtdl/dtdlLoader.js'
 import { filterModelByDisplayName, getRelatedIdsById } from '../../utils/dtdl/filter.js'
 import { FuseSearch } from '../../utils/fuseSearch.js'
+import { authRedirectURL, GithubRequest } from '../../utils/githubRequest.js'
 import { SvgGenerator } from '../../utils/mermaid/generator.js'
 import { dtdlIdReinstateSemicolon } from '../../utils/mermaid/helpers.js'
 import { SvgMutator } from '../../utils/mermaid/svgMutator.js'
@@ -28,6 +30,10 @@ import SessionStore, { Session } from '../../utils/sessions.js'
 import MermaidTemplates from '../../views/components/mermaid.js'
 import { HTML, HTMLController } from '../HTMLController.js'
 import { dtdlCacheKey } from '../helpers.js'
+
+const env = container.resolve(Env)
+
+const EDIT_ONTOLOGY = env.get('EDIT_ONTOLOGY')
 
 @singleton()
 @injectable()
@@ -49,7 +55,8 @@ export class OntologyController extends HTMLController {
     private templates: MermaidTemplates,
     @inject(Logger) private logger: ILogger,
     @inject(Cache) private cache: ICache,
-    private sessionStore: SessionStore
+    private sessionStore: SessionStore,
+    private githubRequest: GithubRequest
   ) {
     super()
     this.logger = logger.child({ controller: '/ontology' })
@@ -61,7 +68,7 @@ export class OntologyController extends HTMLController {
     @Path() dtdlModelId: UUID,
     @Queries() params: RootParams,
     @Request() req: express.Request
-  ): Promise<HTML> {
+  ): Promise<HTML | void> {
     const { res } = req
     if (!res) {
       throw new Error('Result not found on request')
@@ -92,12 +99,25 @@ export class OntologyController extends HTMLController {
       this.cookieOpts
     )
 
+    const { source, owner, repo } = await this.dtdlLoader.getDatabaseModel(dtdlModelId)
+    let canEdit = false
+    if (source == 'github') {
+      const octokitToken = req.signedCookies[octokitTokenCookie]
+      if (!octokitToken) {
+        this.setStatus(302)
+        this.setHeader('Location', authRedirectURL(`/ontology/${dtdlModelId}/view`))
+        return
+      }
+      canEdit = await this.checkEditPermissions(octokitToken, owner, repo)
+    }
+
     return this.html(
       this.templates.MermaidRoot({
         layout: params.layout,
         search: params.search,
         sessionId,
         diagramType: params.diagramType,
+        canEdit,
       })
     )
   }
@@ -204,6 +224,29 @@ export class OntologyController extends HTMLController {
       this.templates.svgControls({
         swapOutOfBand: true,
         generatedOutput: output.renderForMinimap(),
+      })
+    )
+  }
+
+  @SuccessResponse(200)
+  @Get('{dtdlModelId}/edit-model')
+  public async editModel(
+    @Path() dtdlModelId: UUID,
+    @Query() sessionId: UUID,
+    @Query() editMode: boolean
+  ): Promise<HTML> {
+    const session = this.sessionStore.get(sessionId)
+
+    // get the base dtdl model that we will derive the graph from
+    const baseModel = await this.dtdlLoader.getDtdlModel(dtdlModelId)
+
+    return this.html(
+      this.templates.navigationPanel({
+        swapOutOfBand: false,
+        entityId: dtdlIdReinstateSemicolon(session.highlightNodeId ?? ''),
+        model: baseModel,
+        expanded: session.highlightNodeId !== undefined,
+        edit: editMode ?? false,
       })
     )
   }
@@ -418,5 +461,19 @@ export class OntologyController extends HTMLController {
     }
 
     return cookieHistory
+  }
+
+  private async checkEditPermissions(
+    octokitToken: string,
+    owner: string | null,
+    repo: string | null
+  ): Promise<boolean> {
+    if (!EDIT_ONTOLOGY) return false
+
+    if (!owner || !repo) {
+      throw new InternalError('owner or repo not found in database for GitHub source')
+    }
+
+    return await this.githubRequest.getRepoPermissions(octokitToken, owner, repo)
   }
 }
