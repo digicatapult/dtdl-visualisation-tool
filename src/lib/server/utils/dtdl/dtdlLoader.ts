@@ -1,6 +1,5 @@
 import { type DtdlObjectModel } from '@digicatapult/dtdl-parser'
-import { singleton } from 'tsyringe'
-import Database from '../../../db/index.js'
+import { container, singleton } from 'tsyringe'
 import { ModelDb } from '../../../db/modelDb.js'
 import { ModelRow } from '../../../db/types.js'
 import { type UUID } from '../../models/strings.js'
@@ -11,9 +10,9 @@ export class DtdlLoader {
   private defaultModelId: UUID
   private modelDb: ModelDb
 
-  constructor(db: Database, defaultModelId: UUID) {
+  constructor(defaultModelId: UUID) {
     this.defaultModelId = defaultModelId
-    this.modelDb = new ModelDb(db)
+    this.modelDb = container.resolve(ModelDb)
   }
 
   getDefaultId() {

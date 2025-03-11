@@ -1,24 +1,19 @@
 import * as chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import { describe, it } from 'mocha'
-import sinon from 'sinon'
-import Database from '../../../../db'
+import { mockModelDb } from '../../../controllers/__tests__/helpers'
 import { InternalError } from '../../../errors'
 import { DtdlLoader } from '../dtdlLoader'
-import { singleInterfaceFirst as defaultModel, multipleInterfaces } from './fixtures'
+import { singleInterfaceFirst as defaultModel } from './fixtures'
 
 chai.use(chaiAsPromised)
 const { expect } = chai
 
-const mockDb = {
-  get: sinon.stub().callsFake((_, { id }) => {
-    if (id === '1') return Promise.resolve([{ id: 1, parsed: multipleInterfaces }])
-    return Promise.resolve([])
-  }),
-} as unknown as Database
-const dtdlLoader = new DtdlLoader(mockDb, '1')
+const dtdlLoader = new DtdlLoader('1')
 
 describe('dtdlLoader', function () {
+  dtdlLoader['modelDb'] = mockModelDb
+
   it('should return default model id from when dtdlLoader was instantiated', async () => {
     expect(dtdlLoader.getDefaultId()).to.equal('1')
   })

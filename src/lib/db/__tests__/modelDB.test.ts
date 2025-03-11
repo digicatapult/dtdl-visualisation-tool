@@ -3,6 +3,8 @@ import chaiAsPromised from 'chai-as-promised'
 import { describe, it } from 'mocha'
 import sinon from 'sinon'
 import { InternalError } from '../../server/errors.js'
+import { FileSourceKeys } from '../../server/models/openTypes.js'
+import { UUID } from '../../server/models/strings.js'
 import { multipleInterfaces } from '../../server/utils/dtdl/__tests__/fixtures.js'
 import Database from '../index.js'
 import { ModelDb } from '../modelDb.js'
@@ -19,12 +21,16 @@ const mockDb = {
     if (source === 'default') return Promise.resolve([defaultFixture])
     return Promise.resolve([])
   }),
+  insert: sinon.stub().resolves([{ id: '3' as UUID }]),
+  delete: sinon.stub().resolves(),
 } as unknown as Database
 const mockDbNoDefault = {
   get: sinon.stub().callsFake((_, { id }) => {
     if (id === '1') return Promise.resolve([githubFixture])
     return Promise.resolve([])
   }),
+  insert: sinon.stub().resolves([{ id: '3' as UUID }]),
+  delete: sinon.stub().resolves(),
 } as unknown as Database
 const model = new ModelDb(mockDb)
 const modelNoDefault = new ModelDb(mockDbNoDefault)
@@ -41,5 +47,21 @@ describe('modelDB', function () {
   })
   it('should return empty when there is no default in the database', async () => {
     expect(await modelNoDefault.getDefaultModel()).to.equal(undefined)
+  })
+  it('should insert a model into the database and return its ID', async () => {
+    const newModelId = await model.insertModel(
+      'Test Model',
+      multipleInterfaces,
+      'test-preview',
+      'default' as FileSourceKeys,
+      'owner',
+      'repo'
+    )
+    expect(newModelId).to.equal('3')
+    expect((mockDb.insert as sinon.SinonStub).calledOnce).to.equal(true)
+  })
+  it('should delete the default model', async () => {
+    await model.deleteDefaultModel()
+    expect((mockDb.delete as sinon.SinonStub).calledOnceWith('model', { source: 'default' })).to.equal(true)
   })
 })

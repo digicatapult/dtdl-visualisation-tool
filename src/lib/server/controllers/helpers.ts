@@ -1,5 +1,5 @@
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns'
-import Database from '../../db'
+import { ModelDb } from '../../db/modelDb'
 import { ILogger } from '../logger'
 import { CookieHistoryParams, GenerateParams, relevantParams } from '../models/controllerTypes.js'
 import { modelHistoryCookie } from '../models/cookieNames.js'
@@ -14,15 +14,15 @@ const formatLastVisited = (timestamp: number): string => {
 }
 
 export const recentFilesFromCookies = async (
+  modelDb: ModelDb,
   cookies: Record<string, CookieHistoryParams[]>,
-  db: Database,
   logger: ILogger
 ) => {
   const cookieHistory: CookieHistoryParams[] = cookies[modelHistoryCookie] ? cookies[modelHistoryCookie] : []
   const models = await Promise.all(
     cookieHistory.flatMap(async (entry) => {
       try {
-        const model = (await db.get('model', { id: entry.id }, 1))[0]
+        const model = await modelDb.getModelById(entry.id)
         return model || null
       } catch (error) {
         logger.warn(`Failed to fetch model for ID ${entry.id}`, error)

@@ -1,7 +1,6 @@
 import { DtdlObjectModel, getInterop, parseDirectories } from '@digicatapult/dtdl-parser'
 import { rm } from 'node:fs/promises'
 
-import Database from '../../../db'
 import { ModelDb } from '../../../db/modelDb.js'
 import { dtdlCacheKey } from '../../controllers/helpers.js'
 import { DataError } from '../../errors.js'
@@ -16,9 +15,9 @@ function compareDtdlObjectModel(obj1: DtdlObjectModel, obj2: DtdlObjectModel): b
 }
 
 export const parseAndInsertDtdl = async (
+  modelDb: ModelDb,
   localPath: string,
   dtdlName: string,
-  db: Database,
   generator: SvgGenerator,
   deleteLocal: boolean = false,
   cache: ICache,
@@ -35,8 +34,8 @@ export const parseAndInsertDtdl = async (
     throw new DataError('Failed to parse DTDL model')
   }
 
+  // Check if default model needs updating
   if (source === 'default') {
-    const modelDb = new ModelDb(db)
     const model = await modelDb.getDefaultModel()
     if (model) {
       if (compareDtdlObjectModel(model.parsed as DtdlObjectModel, parsedDtdl)) return model.id
@@ -46,14 +45,7 @@ export const parseAndInsertDtdl = async (
 
   const output = await generator.run(parsedDtdl, 'flowchart', 'elk')
 
-  const [{ id }] = await db.insert('model', {
-    name: dtdlName,
-    parsed: parsedDtdl,
-    preview: output.renderForMinimap(),
-    source: source,
-    owner: owner,
-    repo: repo,
-  })
+  const id = await modelDb.insertModel(dtdlName, parsedDtdl, output.renderForMinimap(), source, owner, repo)
   const defaultParams: GenerateParams = { layout: 'elk', diagramType: 'flowchart', expandedIds: [], search: '' }
   cache.set(dtdlCacheKey(id, defaultParams), output)
 

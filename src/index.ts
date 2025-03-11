@@ -7,8 +7,10 @@ import chalk from 'chalk'
 import { Command } from 'commander'
 import { container } from 'tsyringe'
 import Database from './lib/db/index.js'
+import { ModelDb } from './lib/db/modelDb.js'
 import { httpServer } from './lib/server/index.js'
 import { logger } from './lib/server/logger.js'
+import { UUID } from './lib/server/models/strings.js'
 import { Cache, ICache } from './lib/server/utils/cache.js'
 import { DtdlLoader } from './lib/server/utils/dtdl/dtdlLoader.js'
 import { parseAndInsertDtdl } from './lib/server/utils/dtdl/parse.js'
@@ -31,16 +33,31 @@ program
   .command('parse')
   .description('parse a dtdl ontology and start a server')
   .option('-P, --port <port>', 'specify host port number if it is not a default, default - 3000', '3000')
-  .requiredOption('-p --path <path/to/dir>', 'Path to dtdl ontology directory')
+  .option('-p --path <path/to/dir>', 'Path to dtdl ontology directory')
   .action(async (options) => {
     const db = container.resolve(Database)
     const generator = container.resolve(SvgGenerator)
     const cache = container.resolve<ICache>(Cache)
     logger.info(`Loading default model`)
 
-    const id = await parseAndInsertDtdl(options.path, `default`, db, generator, false, cache, 'default')
+    const modelDb = new ModelDb(db)
+    container.register(ModelDb, {
+      useValue: modelDb,
+    })
 
-    const dtdlLoader = new DtdlLoader(db, id)
+    let id: UUID
+    if (options.path) {
+      id = await parseAndInsertDtdl(modelDb, options.path, `default`, generator, false, cache, 'default')
+    } else {
+      const model = await modelDb.getDefaultModel()
+      if (!model) {
+        logger.error(`No default model found`)
+        process.exit(1)
+      }
+      id = model.id
+    }
+
+    const dtdlLoader = new DtdlLoader(id)
     container.register(DtdlLoader, {
       useValue: dtdlLoader,
     })

@@ -5,7 +5,7 @@ import os from 'node:os'
 import { dirname, join } from 'node:path'
 import { Get, Produces, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { container, inject, injectable } from 'tsyringe'
-import Database from '../../db/index.js'
+import { ModelDb } from '../../db/modelDb.js'
 import { Env } from '../env/index.js'
 import { UploadError } from '../errors.js'
 import { type ILogger, Logger } from '../logger.js'
@@ -29,7 +29,7 @@ const uploadLimit = env.get('UPLOAD_LIMIT_MB') * 1024 * 1024
 @Produces('text/html')
 export class GithubController extends HTMLController {
   constructor(
-    private db: Database,
+    private modelDb: ModelDb,
     private templates: OpenOntologyTemplates,
     private githubRequest: GithubRequest,
     private generator: SvgGenerator,
@@ -50,7 +50,7 @@ export class GithubController extends HTMLController {
     }
 
     const populateListLink = safeUrl(`/github/repos`, { page: '1' })
-    const recentFiles = await recentFilesFromCookies(req.signedCookies, this.db, this.logger)
+    const recentFiles = await recentFilesFromCookies(this.modelDb, req.signedCookies, this.logger)
     return this.html(this.templates.OpenOntologyRoot({ populateListLink, recentFiles }))
   }
 
@@ -226,9 +226,9 @@ export class GithubController extends HTMLController {
     }
 
     const id = await parseAndInsertDtdl(
+      this.modelDb,
       tmpDir,
       `${owner}/${repo}/${ref}/${path}`,
-      this.db,
       this.generator,
       false,
       this.cache,
