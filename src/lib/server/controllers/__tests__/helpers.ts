@@ -65,6 +65,7 @@ export const mockCache = new LRUCache(10, 1000 * 60)
 
 export const mockDb = {
   insert: () => Promise.resolve([{ id: 1 }]),
+  insertMany: (_, records: unknown[]) => Promise.resolve(records.map((_, i) => ({ id: i + 1 }))),
   get: sinon.stub().callsFake((_, { id }) => {
     return Promise.resolve([mockModelTable[id]])
   }),

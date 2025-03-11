@@ -30,7 +30,7 @@ const mockRepo = 'repo'
 const mockFullName = `${mockOwner}/${mockRepo}`
 const mockBranch = 'branch'
 const mockRootPath = '.'
-const mockFile = 'someFile.json'
+const mockFileName = 'someFile.json'
 const mockDir = 'someDir'
 const mockDirPath = 'dir'
 
@@ -63,10 +63,10 @@ const branches = [
 
 const contents = [
   {
-    name: mockFile,
-    path: 'file.json',
+    name: mockFileName,
+    path: mockFileName,
     type: 'file',
-    download_url: 'https://raw.githubusercontent.com/file.json',
+    download_url: `https://raw.githubusercontent.com/${mockFileName}`,
   },
   {
     name: mockDir,
@@ -77,23 +77,29 @@ const contents = [
 
 const nestedContents = [
   {
-    name: mockFile,
-    path: `${mockDirPath}/file.json`,
+    name: mockFileName,
+    path: `${mockDirPath}/${mockFileName}`,
     type: 'file',
-    download_url: `https://raw.githubusercontent.com/${mockDirPath}/file.json`,
+    download_url: `https://raw.githubusercontent.com/${mockDirPath}/${mockFileName}`,
   },
 ]
 
 const dtdl = (id: string) =>
   JSON.stringify({
     '@context': ['dtmi:dtdl:context;3'],
-    '@id': `dtmi:com:${id};1`,
+    '@id': id,
     '@type': 'Interface',
   })
+
+const validId0 = 'dtmi:com:example0;1'
+const validId1 = 'dtmi:com:example2;1'
 
 const cookie = { [octokitTokenCookie]: 'someToken' }
 
 const getContentsStub = sinon.stub()
+const fetchStub = sinon.stub(global, 'fetch')
+const insertDb = sinon.spy(mockDb, 'insert')
+const insertManyDb = sinon.spy(mockDb, 'insertMany')
 
 export const mockGithubRequest = {
   getRepos: () => Promise.resolve(repos),
@@ -112,10 +118,10 @@ describe('GithubController', async () => {
     mockCache
   )
 
-  const assertRedirectOnNoToken = async <T>(controllerFn: () => Promise<T>, hxRedirect: boolean = true) => {
-    const setHeaderSpy = sinon.spy(controller, 'setHeader')
-    const setStatusSpy = sinon.spy(controller, 'setStatus')
+  const setHeaderSpy = sinon.spy(controller, 'setHeader')
+  const setStatusSpy = sinon.spy(controller, 'setStatus')
 
+  const assertRedirectOnNoToken = async <T>(controllerFn: () => Promise<T>, hxRedirect: boolean = true) => {
     await controllerFn()
 
     const redirect = encodeURIComponent(`${env.get('GH_REDIRECT_ORIGIN')}/github/callback?returnUrl=/github/picker`)
@@ -150,7 +156,6 @@ describe('GithubController', async () => {
 
   describe('/callback', () => {
     it('should set cookie and redirect to return url from session', async () => {
-      const setHeaderSpy = sinon.spy(controller, 'setHeader')
       const req = mockReqWithCookie({})
       const returnUrl = 'return.url'
 
@@ -235,7 +240,7 @@ describe('GithubController', async () => {
 
       expect(html).to.equal(
         [
-          `githubListItems_📄 ${mockFile}_${onClickLinkFile}_📂 ${mockDir}_${onClickLinkDir}_${nextPageLink}_${backLink}_githubListItems`,
+          `githubListItems_📄 ${mockFileName}_${onClickLinkFile}_📂 ${mockDir}_${onClickLinkDir}_${nextPageLink}_${backLink}_githubListItems`,
           `selectFolder_${selectFolderLink}_true_selectFolder`,
         ].join('')
       )
@@ -257,7 +262,7 @@ describe('GithubController', async () => {
 
       expect(html).to.equal(
         [
-          `githubListItems_📄 ${mockFile}_${onClickLinkFile}_${nextPageLink}_${backLink}_githubListItems`,
+          `githubListItems_📄 ${mockFileName}_${onClickLinkFile}_${nextPageLink}_${backLink}_githubListItems`,
           `selectFolder_${selectFolderLink}_true_selectFolder`,
         ].join('')
       )
@@ -270,27 +275,75 @@ describe('GithubController', async () => {
     })
   })
 
-  describe('/directory', () => {
+  describe.only('/directory', () => {
     it('should insert and redirect to valid ontology', async () => {
-      const setHeaderSpy = sinon.spy(controller, 'setHeader')
-      const insertDb = sinon.spy(mockDb, 'insert')
-
-      // get root then nested contents
+      // mock returning root dir contents then nested dir contents
       getContentsStub.onCall(0).resolves(contents)
       getContentsStub.onCall(1).resolves(nestedContents)
 
       // mock file download
-      const fetchStub = sinon.stub(global, 'fetch')
       fetchStub.onCall(0).resolves({
-        arrayBuffer: () => Promise.resolve(Buffer.from(dtdl('example0'))),
+        arrayBuffer: () => Promise.resolve(Buffer.from(dtdl(validId0))),
       } as unknown as Response)
       fetchStub.onCall(1).resolves({
-        arrayBuffer: () => Promise.resolve(Buffer.from(dtdl('example1'))),
+        arrayBuffer: () => Promise.resolve(Buffer.from(dtdl(validId1))),
       } as unknown as Response)
 
       await controller.directory(mockOwner, mockRepo, mockRootPath, mockBranch, mockReqWithCookie(cookie))
 
-      expect(insertDb.calledOnce).to.equal(true)
+      // assert model inserted
+      expect(insertDb.firstCall.args[0]).to.equal('model')
+
+      // assert row for each file inserted
+      expect(insertManyDb.firstCall.args).to.deep.equal([
+        'dtdl',
+        [
+          {
+            path: mockFileName,
+            contents: dtdl(validId0),
+            entity_ids: [validId0],
+            model_id: 1,
+          },
+          {
+            path: `${mockDirPath}/${mockFileName}`,
+            contents: dtdl(validId1),
+            entity_ids: [validId1],
+            model_id: 1,
+          },
+        ],
+      ])
+
+      expect(setHeaderSpy.calledWith('HX-Redirect', `/ontology/1/view`)).to.equal(true)
+    })
+
+    it('should handle single DTDL files with multiple IDs', async () => {
+      getContentsStub.onCall(0).resolves(nestedContents)
+
+      const multipleInterfaceFile = `[${dtdl(validId0)}, ${dtdl(validId1)}]`
+
+      // mock file download
+      fetchStub.onCall(0).resolves({
+        arrayBuffer: () => Promise.resolve(Buffer.from(multipleInterfaceFile)),
+      } as unknown as Response)
+
+      await controller.directory(mockOwner, mockRepo, mockRootPath, mockBranch, mockReqWithCookie(cookie))
+
+      // assert model inserted
+      expect(insertDb.firstCall.args[0]).to.equal('model')
+
+      // assert only single file row inserted with 2 entity IDs
+      expect(insertManyDb.firstCall.args).to.deep.equal([
+        'dtdl',
+        [
+          {
+            path: `${mockDirPath}/${mockFileName}`,
+            contents: multipleInterfaceFile,
+            entity_ids: [validId0, validId1],
+            model_id: 1,
+          },
+        ],
+      ])
+
       expect(setHeaderSpy.calledWith('HX-Redirect', `/ontology/1/view`)).to.equal(true)
     })
 
@@ -298,25 +351,62 @@ describe('GithubController', async () => {
       getContentsStub.resolves([])
       await expect(controller.directory('', '', '', '', mockReqWithCookie(cookie))).to.be.rejectedWith(
         UploadError,
-        `No '.json' files found`
+        `No valid DTDL files found`
       )
     })
 
     it('should throw error if sum of file sizes is over upload size limit', async () => {
-      // get root then nested contents
       getContentsStub.onCall(0).resolves(contents)
       getContentsStub.onCall(1).resolves(nestedContents)
 
-      const fileSize = (env.get('UPLOAD_LIMIT_MB') / 2) * 1024 * 1024 + 1 // two files of this size is just over limit
-
-      sinon.stub(global, 'fetch').resolves({
-        arrayBuffer: () => Promise.resolve(new ArrayBuffer(fileSize)),
+      // valid first file
+      fetchStub.onCall(0).resolves({
+        arrayBuffer: () => Promise.resolve(Buffer.from(dtdl(validId0))),
+      } as unknown as Response)
+      // second file over limit
+      fetchStub.onCall(1).resolves({
+        arrayBuffer: () => Promise.resolve(new ArrayBuffer(env.get('UPLOAD_LIMIT_MB') * 1024 * 1024)),
       } as unknown as Response)
 
       await expect(controller.directory('', '', '', '', mockReqWithCookie(cookie))).to.be.rejectedWith(
         UploadError,
         `Total upload must be less than ${env.get('UPLOAD_LIMIT_MB')}MB`
       )
+    })
+
+    it(`should ignore json files without '@id key'`, async () => {
+      // get root then nested contents
+      getContentsStub.onCall(0).resolves(contents)
+      getContentsStub.onCall(1).resolves(nestedContents)
+
+      // valid first file
+      fetchStub.onCall(0).resolves({
+        arrayBuffer: () => Promise.resolve(Buffer.from(dtdl(validId0))),
+      } as unknown as Response)
+      // second file missing '@id key'
+      fetchStub.onCall(1).resolves({
+        arrayBuffer: () => Promise.resolve(Buffer.from('{}')),
+      } as unknown as Response)
+
+      await controller.directory('', '', '', '', mockReqWithCookie(cookie))
+
+      // assert model inserted
+      expect(insertDb.firstCall.args[0]).to.equal('model')
+
+      // assert only single valid file row inserted
+      expect(insertManyDb.firstCall.args).to.deep.equal([
+        'dtdl',
+        [
+          {
+            path: mockFileName,
+            contents: dtdl(validId0),
+            entity_ids: [validId0],
+            model_id: 1,
+          },
+        ],
+      ])
+
+      expect(setHeaderSpy.calledWith('HX-Redirect', `/ontology/1/view`)).to.equal(true)
     })
   })
 })

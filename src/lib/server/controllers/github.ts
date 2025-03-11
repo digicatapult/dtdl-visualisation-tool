@@ -222,7 +222,7 @@ export class GithubController extends HTMLController {
     await this.fetchFiles(octokitToken, tmpDir, owner, repo, path, ref, this.db, acc)
 
     if (acc.files.length === 0) {
-      throw new UploadError(`No valid DTDL '.json' files found`)
+      throw new UploadError(`No valid DTDL files found`)
     }
 
     try {
@@ -267,14 +267,19 @@ export class GithubController extends HTMLController {
         }
 
         const fileString = Buffer.from(fileBuffer).toString()
-        const dtdl = JSON.parse(fileString)
-        let entityIds: string[] = []
-        // search file for entity ids
-        if (Array.isArray(dtdl)) {
-          entityIds = dtdl.map((entity) => entity['@id'])
-        } else {
-          entityIds = [dtdl['@id']]
+
+        let dtdl
+        try {
+          dtdl = JSON.parse(fileString)
+        } catch {
+          this.logger.trace('ignoring invalid json', entryPath)
+          return
         }
+
+        const entityIds = ([] as string[])
+          .concat(dtdl) // dtdl can be array or object
+          .map((entity) => entity?.['@id'])
+          .filter((id): id is string => id !== undefined)
 
         if (entityIds.length === 0) {
           this.logger.trace('ignoring invalid DTDL json', entryPath)
@@ -285,7 +290,7 @@ export class GithubController extends HTMLController {
         await writeFile(entryPath, Buffer.from(fileBuffer))
         acc.total += fileBuffer.byteLength
         acc.files.push({
-          path: entryPath,
+          path: entry.path,
           contents: fileString,
           entity_ids: entityIds,
         })
