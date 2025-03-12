@@ -8,7 +8,7 @@ import { generatedSVGFixture } from '../../../utils/mermaid/__tests__/fixtures.j
 import { mockGithubRequest } from '../../__tests__/github.test.js'
 import {
   complexDtdlId,
-  complexMockDtdlLoader,
+  complexMockModelDb,
   generatorRunStub,
   mockCache,
   mockGenerator,
@@ -19,7 +19,7 @@ import {
   mockSession,
   sessionSetStub,
   simpleDtdlId,
-  simpleMockDtdlLoader,
+  simpleMockModelDb,
   templateMock,
   toHTMLString,
 } from '../../__tests__/helpers.js'
@@ -55,7 +55,7 @@ describe('OntologyController', async () => {
   })
 
   const controller = new OntologyController(
-    simpleMockDtdlLoader,
+    simpleMockModelDb,
     mockGenerator,
     mockMutator,
     templateMock,
@@ -65,7 +65,7 @@ describe('OntologyController', async () => {
     mockGithubRequest
   )
   const complexController = new OntologyController(
-    complexMockDtdlLoader,
+    complexMockModelDb,
     mockGenerator,
     mockMutator,
     templateMock,

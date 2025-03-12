@@ -1,8 +1,8 @@
 import { Get, Produces, Queries, Query, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable, singleton } from 'tsyringe'
+import { ModelDb } from '../../db/modelDb.js'
 import { Logger, type ILogger } from '../logger.js'
 import { type RootParams } from '../models/controllerTypes.js'
-import { DtdlLoader } from '../utils/dtdl/dtdlLoader.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
@@ -12,7 +12,7 @@ import { HTML, HTMLController } from './HTMLController.js'
 @Produces('text/html')
 export class RootController extends HTMLController {
   constructor(
-    private dtdlLoader: DtdlLoader,
+    private modelDb: ModelDb,
     private templates: MermaidTemplates,
     @inject(Logger) private logger: ILogger
   ) {
@@ -25,7 +25,10 @@ export class RootController extends HTMLController {
   public async get(@Queries() params: RootParams): Promise<void> {
     this.logger.debug('default model requested')
 
-    this.setHeader('Location', `/ontology/${this.dtdlLoader.getDefaultId()}/view?${new URLSearchParams({ ...params })}`)
+    this.setHeader(
+      'Location',
+      `/ontology/${(await this.modelDb.getDefaultModel()).id}/view?${new URLSearchParams({ ...params })}`
+    )
     return
   }
 
