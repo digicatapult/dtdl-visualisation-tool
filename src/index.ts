@@ -46,8 +46,8 @@ program
     if (!options.path && !(await modelDb.getDefaultModel())) {
       logger.error(`No default model found, please run with '-p <PATH_TO_MODEL>' `)
       process.exit(1)
-    }
-    await parseAndInsertDtdl(modelDb, options.path, `default`, generator, false, cache, 'default')
+    } else if (options.path)
+      await parseAndInsertDtdl(modelDb, options.path, `default`, generator, false, cache, 'default')
 
     logger.info(`Complete`)
 
