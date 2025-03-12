@@ -55,8 +55,6 @@ export default class Database {
   }
 
   delete = async <M extends TABLE>(model: M, where: Where<M>): Promise<void> => {
-    return this.db[model]()
-      .where(where || {})
-      .delete()
+    return this.db[model]().where(where).delete()
   }
 }
