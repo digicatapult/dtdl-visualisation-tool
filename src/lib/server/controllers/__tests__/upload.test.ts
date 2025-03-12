@@ -11,10 +11,10 @@ import {
   mockCache,
   mockGenerator,
   mockLogger,
-  mockModelDb,
   mockReqWithCookie,
   openOntologyMock,
   previewDtdlId,
+  simpleMockModelDb,
   toHTMLString,
 } from './helpers.js'
 
@@ -25,7 +25,13 @@ const __filename = new URL(import.meta.url).pathname
 const __dirname = path.dirname(__filename)
 
 describe('OpenOntologyController', async () => {
-  const controller = new OpenOntologyController(mockModelDb, mockGenerator, openOntologyMock, mockLogger, mockCache)
+  const controller = new OpenOntologyController(
+    simpleMockModelDb,
+    mockGenerator,
+    openOntologyMock,
+    mockLogger,
+    mockCache
+  )
 
   afterEach(() => {
     sinon.restore()
@@ -86,7 +92,7 @@ describe('OpenOntologyController', async () => {
   describe('zip upload', () => {
     it('should insert to db and redirect to view on success', async () => {
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
-      const insertModelDb = sinon.spy(mockModelDb, 'insertModel')
+      const insertModelDb = sinon.spy(simpleMockModelDb, 'insertModel')
       const originalname = 'test.zip'
       const mockFile = {
         mimetype: 'application/zip',

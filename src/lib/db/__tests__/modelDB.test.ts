@@ -5,7 +5,7 @@ import sinon from 'sinon'
 import { InternalError } from '../../server/errors.js'
 import { FileSourceKeys } from '../../server/models/openTypes.js'
 import { UUID } from '../../server/models/strings.js'
-import { multipleInterfaces } from '../../server/utils/dtdl/__tests__/fixtures.js'
+import { singleInterfaceFirst as defaultModel, multipleInterfaces } from '../../server/utils/dtdl/__tests__/fixtures.js'
 import Database from '../index.js'
 import { ModelDb } from '../modelDb.js'
 
@@ -63,5 +63,12 @@ describe('modelDB', function () {
   it('should delete the default model', async () => {
     await model.deleteDefaultModel()
     expect((mockDb.delete as sinon.SinonStub).calledOnceWith('model', { source: 'default' })).to.equal(true)
+  })
+  it('should throw error if given ID not found', async () => {
+    await expect(model.getDtdlModel('badId')).to.be.rejectedWith(InternalError)
+  })
+
+  it('should produce an array of entities for search', async () => {
+    expect(model.getCollection(defaultModel)).to.deep.equal([defaultModel.first])
   })
 })

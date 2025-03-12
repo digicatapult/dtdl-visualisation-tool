@@ -3,6 +3,7 @@ import { singleton } from 'tsyringe'
 import { InternalError } from '../server/errors.js'
 import { FileSourceKeys } from '../server/models/openTypes.js'
 import { type UUID } from '../server/models/strings.js'
+import { allInterfaceFilter } from '../server/utils/dtdl/extract.js'
 import Database from './index.js'
 import { ModelRow } from './types.js'
 
@@ -40,5 +41,17 @@ export class ModelDb {
     })
 
     return id
+  }
+
+  async getDtdlModel(id: UUID): Promise<DtdlObjectModel> {
+    const { parsed } = await this.getModelById(id)
+    return parsed as DtdlObjectModel
+  }
+
+  // collection for searching
+  getCollection(dtdlModel: DtdlObjectModel) {
+    return Object.entries(dtdlModel)
+      .filter(allInterfaceFilter)
+      .map(([, entity]) => entity)
   }
 }

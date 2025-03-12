@@ -10,7 +10,6 @@ import { InternalError } from '../../errors.js'
 import { ListItem } from '../../models/github.js'
 import { Layout } from '../../models/mermaidLayouts.js'
 import { type UUID } from '../../models/strings.js'
-import { DtdlLoader } from '../../utils/dtdl/dtdlLoader'
 import { allInterfaceFilter } from '../../utils/dtdl/extract.js'
 import { FuseSearch } from '../../utils/fuseSearch.js'
 import { LRUCache } from '../../utils/lruCache.js'
@@ -81,7 +80,7 @@ export const mockDb = {
   }),
 } as unknown as Database
 
-export const mockModelDb = {
+export const simpleMockModelDb = {
   getModelById: (id: UUID) => {
     if (id === 'badId') throw new InternalError(`Failed to find model: ${id}`)
     if (mockModelTable[id]) {
@@ -93,6 +92,30 @@ export const mockModelDb = {
   getDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
   insertModel: () => Promise.resolve(1),
   deleteDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
+  getDtdlModel: () => Promise.resolve(simpleMockDtdlObjectModel),
+  getCollection: (dtdlModel: DtdlObjectModel) =>
+    Object.entries(dtdlModel)
+      .filter(allInterfaceFilter)
+      .map(([, entity]) => entity),
+} as unknown as ModelDb
+
+export const complexMockModelDb = {
+  getModelById: (id: UUID) => {
+    if (id === 'badId') throw new InternalError(`Failed to find model: ${id}`)
+    if (mockModelTable[id]) {
+      return Promise.resolve(mockModelTable[id])
+    } else {
+      return Promise.resolve(null)
+    }
+  },
+  getDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
+  insertModel: () => Promise.resolve(1),
+  deleteDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
+  getDtdlModel: () => Promise.resolve(complexMockDtdlModel),
+  getCollection: (dtdlModel: DtdlObjectModel) =>
+    Object.entries(dtdlModel)
+      .filter(allInterfaceFilter)
+      .map(([, entity]) => entity),
 } as unknown as ModelDb
 
 export const sessionSetStub = sinon.stub()
@@ -104,25 +127,6 @@ export const mockSession = {
 } as unknown as SessionStore
 
 export const mockSearch = new FuseSearch<EntityType>(Object.values(simpleMockDtdlObjectModel))
-
-export const simpleMockDtdlLoader: DtdlLoader = {
-  getDefaultId: () => simpleDtdlId,
-  getDatabaseModel: (id: UUID) => Promise.resolve(mockModelTable[id]),
-  getDtdlModel: () => Promise.resolve(simpleMockDtdlObjectModel),
-  getCollection: (dtdlModel: DtdlObjectModel) =>
-    Object.entries(dtdlModel)
-      .filter(allInterfaceFilter)
-      .map(([, entity]) => entity),
-} as unknown as DtdlLoader
-export const complexMockDtdlLoader: DtdlLoader = {
-  getDefaultId: () => complexDtdlId,
-  getDatabaseModel: (id: UUID) => Promise.resolve(mockModelTable[id]),
-  getDtdlModel: () => Promise.resolve(complexMockDtdlModel),
-  getCollection: (dtdlModel: DtdlObjectModel) =>
-    Object.entries(dtdlModel)
-      .filter(allInterfaceFilter)
-      .map(([, entity]) => entity),
-} as unknown as DtdlLoader
 
 export const generatorRunStub = sinon.stub().callsFake(() => {
   const mock = {

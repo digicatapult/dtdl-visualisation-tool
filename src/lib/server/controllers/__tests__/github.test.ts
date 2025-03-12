@@ -15,9 +15,9 @@ import {
   mockCache,
   mockGenerator,
   mockLogger,
-  mockModelDb,
   mockReqWithCookie,
   openOntologyMock,
+  simpleMockModelDb,
   toHTMLString,
 } from './helpers.js'
 
@@ -105,7 +105,7 @@ export const mockGithubRequest = {
 
 describe('GithubController', async () => {
   const controller = new GithubController(
-    mockModelDb,
+    simpleMockModelDb,
     openOntologyMock,
     mockGithubRequest,
     mockGenerator,
@@ -275,7 +275,7 @@ describe('GithubController', async () => {
     it('should insert and redirect to valid ontology', async () => {
       sinon.stub(parseAndInsertDtdl)
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
-      const insertDb = sinon.spy(mockModelDb, 'insertModel')
+      const insertDb = sinon.spy(simpleMockModelDb, 'insertModel')
 
       // get root then nested contents
       getContentsStub.onCall(0).resolves(contents)
