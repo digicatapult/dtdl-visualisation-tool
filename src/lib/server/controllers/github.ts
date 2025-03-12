@@ -1,24 +1,22 @@
 import express from 'express'
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
-import os from 'node:os'
-import { dirname, join } from 'node:path'
+import { dirname } from 'node:path'
 import { Get, Produces, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { container, inject, injectable } from 'tsyringe'
 import Database from '../../db/index.js'
-import { PartialInsertDtdl } from '../../db/types.js'
 import { Env } from '../env/index.js'
-import { UploadError } from '../errors.js'
+import { GithubReqError } from '../errors.js'
 import { type ILogger, Logger } from '../logger.js'
+import { GenerateParams } from '../models/controllerTypes.js'
 import { octokitTokenCookie } from '../models/cookieNames.js'
 import { ListItem } from '../models/github.js'
 import { type ICache, Cache } from '../utils/cache.js'
-import { parseAndInsertDtdl } from '../utils/dtdl/parse.js'
+import { parse, unzipJsonFiles } from '../utils/dtdl/parse.js'
 import { GithubRequest, authRedirectURL } from '../utils/githubRequest.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
 import { safeUrl } from '../utils/url.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
-import { recentFilesFromCookies } from './helpers.js'
+import { dtdlCacheKey, recentFilesFromCookies } from './helpers.js'
 
 const env = container.resolve(Env)
 
@@ -216,76 +214,33 @@ export class GithubController extends HTMLController {
       return
     }
 
-    const tmpDir = await mkdtemp(join(os.tmpdir(), 'dtdl-'))
+    const zippedBranch = await this.githubRequest.getZip(octokitToken, owner, repo, ref)
+    const files = await unzipJsonFiles(Buffer.from(zippedBranch), path)
 
-    const acc: { files: PartialInsertDtdl[]; total: number } = { files: [], total: 0 }
-    await this.fetchFiles(octokitToken, tmpDir, owner, repo, path, ref, this.db, acc)
+    if (files.length === 0) throw new GithubReqError(`No valid '.json' files found`)
 
-    if (acc.files.length === 0) {
-      throw new UploadError(`No valid DTDL files found`)
-    }
+    const parsedDtdl = await parse(files)
 
-    try {
-      const id = await parseAndInsertDtdl(
-        tmpDir,
-        `${owner}/${repo}/${ref}/${path}`,
-        this.db,
-        this.generator,
-        this.cache,
-        'github',
-        owner,
-        repo,
-        acc.files
-      )
-      this.setHeader('HX-Redirect', `/ontology/${id}/view`)
-      return
-    } finally {
-      await rm(tmpDir, { recursive: true })
-    }
-  }
+    const output = await this.generator.run(parsedDtdl, 'flowchart', 'elk')
 
-  private async fetchFiles(
-    githubToken: string | undefined,
-    parentDir: string,
-    owner: string,
-    repo: string,
-    path: string,
-    ref: string,
-    db: Database,
-    acc: { files: PartialInsertDtdl[]; total: number }
-  ): Promise<void> {
-    const response = await this.githubRequest.getContents(githubToken, owner, repo, path, ref)
+    const id = await this.db.withTransaction(async (db) => {
+      const [{ id }] = await db.insert('model', {
+        name: `${owner}/${repo}/${ref}/${path}`,
+        preview: output.renderForMinimap(),
+        source: 'github',
+        owner: owner,
+        repo: repo,
+      })
 
-    for (const entry of response) {
-      const entryPath = join(parentDir, entry.name)
-      if (entry.type === 'file' && entry.name.endsWith('.json') && entry.download_url) {
-        const fileResponse = await fetch(entry.download_url)
-        const fileBuffer = await fileResponse.arrayBuffer()
-
-        if (acc.total + fileBuffer.byteLength > uploadLimit) {
-          throw new UploadError(`Total upload must be less than ${env.get('UPLOAD_LIMIT_MB')}MB`)
-        }
-
-        const fileString = Buffer.from(fileBuffer).toString()
-
-        try {
-          JSON.parse(fileString)
-        } catch {
-          this.logger.trace('ignoring invalid json', entryPath)
-          return
-        }
-
-        this.logger.trace('writing file', entry.name, entryPath)
-        await writeFile(entryPath, Buffer.from(fileBuffer))
-        acc.total += fileBuffer.byteLength
-        acc.files.push({
-          path: entry.path,
-          contents: fileString,
-        })
-      } else if (entry.type === 'dir') {
-        await mkdir(entryPath)
-        await this.fetchFiles(githubToken, entryPath, owner, repo, entry.path, ref, db, acc)
+      for (const file of files) {
+        await db.insert('dtdl', { ...file, model_id: id })
       }
-    }
+      return id
+    })
+
+    const defaultParams: GenerateParams = { layout: 'elk', diagramType: 'flowchart', expandedIds: [], search: '' }
+    this.cache.set(dtdlCacheKey(id, defaultParams), output)
+    this.setHeader('HX-Redirect', `/ontology/${id}/view`)
+    return
   }
 }

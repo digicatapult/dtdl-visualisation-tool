@@ -1,10 +1,19 @@
 import { Knex } from 'knex'
+import { fileSource } from '../../server/models/openTypes'
 
 export async function up(knex: Knex): Promise<void> {
   const now = () => knex.fn.now()
 
+  await knex('model').delete()
+
+  await knex.schema.alterTable('model', (def) => {
+    def.dropColumn('source')
+  })
+
   await knex.schema.alterTable('model', (def) => {
     def.primary(['id'])
+    def.enum('source', fileSource).notNullable()
+    def.dropColumn('parsed')
   })
 
   await knex.schema.createTable('dtdl', (def) => {
@@ -27,5 +36,6 @@ export async function down(knex: Knex): Promise<void> {
 
   await knex.schema.alterTable('model', (def) => {
     def.dropPrimary()
+    def.enum('source', fileSource).nullable()
   })
 }

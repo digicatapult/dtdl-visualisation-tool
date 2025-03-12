@@ -279,7 +279,6 @@ describe('GithubController', async () => {
       const fetchStub = sinon.stub(global, 'fetch')
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
       const insertDb = sinon.spy(mockDb, 'insert')
-      const insertManyDb = sinon.spy(mockDb, 'insertMany')
 
       // mock returning root dir contents then nested dir contents
       getContentsStub.onCall(0).resolves(contents)
@@ -321,7 +320,6 @@ describe('GithubController', async () => {
     it('should handle single DTDL files with multiple IDs', async () => {
       const fetchStub = sinon.stub(global, 'fetch')
       const insertDb = sinon.spy(mockDb, 'insert')
-      const insertManyDb = sinon.spy(mockDb, 'insertMany')
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
 
       getContentsStub.onCall(0).resolves(nestedContents)
@@ -385,7 +383,6 @@ describe('GithubController', async () => {
     it(`should ignore json files without '@id key'`, async () => {
       const fetchStub = sinon.stub(global, 'fetch')
       const insertDb = sinon.spy(mockDb, 'insert')
-      const insertManyDb = sinon.spy(mockDb, 'insertMany')
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
 
       getContentsStub.reset()

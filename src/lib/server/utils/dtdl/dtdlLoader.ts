@@ -5,6 +5,7 @@ import { ModelRow } from '../../../db/types.js'
 import { InternalError } from '../../errors.js'
 import { type UUID } from '../../models/strings.js'
 import { allInterfaceFilter } from './extract.js'
+import { parse } from './parse.js'
 
 @singleton()
 export class DtdlLoader {
@@ -28,8 +29,9 @@ export class DtdlLoader {
   }
 
   async getDtdlModel(id: UUID): Promise<DtdlObjectModel> {
-    const { parsed } = await this.getDatabaseModel(id)
-    return parsed as DtdlObjectModel
+    const files = await this.db.get('dtdl', { model_id: id })
+    const parsedDtdl = await parse(files.map((file) => ({ path: file.path, contents: JSON.stringify(file.contents) })))
+    return parsedDtdl
   }
 
   // collection for searching
