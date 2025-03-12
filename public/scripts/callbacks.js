@@ -23,7 +23,7 @@ globalThis.toggleEditSwitch = (event) => {
 
 globalThis.getOwnerRepoFromInput = (event) => {
   const input = event.target.value.trim()
-  const match = input.match(/^(?:https:\/\/(?:www\.)?github\.com\/)?([a-zA-Z0-9-_\.]+)\/([a-zA-Z0-9-_\.]+)\/?(?:\/.*)?$/)
+  const match = input.match(/^(?:https:\/\/(?:www\.)?github\.com\/)?([a-zA-Z0-9-_\.]+)\/([a-zA-Z0-9-_\.]+)(?:\/.*)?$/)
   return match ? { owner: match[1], repo: match[2] } : { owner: undefined, repo: undefined }
 }
 
