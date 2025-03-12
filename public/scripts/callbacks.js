@@ -23,13 +23,8 @@ globalThis.toggleEditSwitch = (event) => {
 
 globalThis.getOwnerRepoFromInput = (event) => {
   const input = event.target.value.trim()
-  try {
-    const [, owner, repo] = new URL(input).pathname.split('/')
-    return { owner, repo }
-  } catch {
-    const [owner, repo] = input.split('/')
-    return { owner, repo }
-  }
+  const match = input.match(/^(?:https:\/\/(?:www\.)?github\.com\/)?([a-zA-Z0-9-_\.]+)\/([a-zA-Z0-9-_\.]+)\/?(?:\/.*)?$/)
+  return match ? { owner: match[1], repo: match[2] } : { owner: undefined, repo: undefined }
 }
 
 htmx.on('htmx:load', (e) => {
