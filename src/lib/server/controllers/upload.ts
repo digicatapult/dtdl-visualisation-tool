@@ -6,12 +6,12 @@ import { join } from 'node:path'
 import { Get, Post, Produces, Query, Request, Route, SuccessResponse, UploadedFile } from 'tsoa'
 import { inject, injectable } from 'tsyringe'
 import unzipper from 'unzipper'
-import Database from '../../db/index.js'
 import { UploadError } from '../errors.js'
 import { parseAndInsertDtdl } from '../utils/dtdl/parse.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
+import { ModelDb } from '../../db/modelDb.js'
 import { Logger, type ILogger } from '../logger.js'
 import { Cache, type ICache } from '../utils/cache.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
@@ -22,7 +22,7 @@ import { recentFilesFromCookies } from './helpers.js'
 @Produces('text/html')
 export class OpenOntologyController extends HTMLController {
   constructor(
-    private db: Database,
+    private modelDb: ModelDb,
     private generator: SvgGenerator,
     private openOntologyTemplates: OpenOntologyTemplates,
     @inject(Logger) private logger: ILogger,
@@ -37,7 +37,7 @@ export class OpenOntologyController extends HTMLController {
   public async open(@Request() req: express.Request): Promise<HTML> {
     this.setHeader('HX-Push-Url', `/open`)
 
-    const recentFiles = await recentFilesFromCookies(req.signedCookies, this.db, this.logger)
+    const recentFiles = await recentFilesFromCookies(this.modelDb, req.signedCookies, this.logger)
     return this.html(this.openOntologyTemplates.OpenOntologyRoot({ recentFiles }))
   }
 
@@ -62,9 +62,9 @@ export class OpenOntologyController extends HTMLController {
     }
 
     const id = await parseAndInsertDtdl(
+      this.modelDb,
       unzippedPath,
       file.originalname,
-      this.db,
       this.generator,
       false,
       this.cache,

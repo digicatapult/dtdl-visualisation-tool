@@ -4,7 +4,7 @@ import { afterEach, describe, it } from 'mocha'
 import sinon from 'sinon'
 import { modelHistoryCookie } from '../../models/cookieNames.js'
 import { recentFilesFromCookies } from '../helpers.js'
-import { mockDb, mockLogger, previewDtdlId, simpleDtdlId } from './helpers.js'
+import { mockLogger, previewDtdlId, simpleDtdlId, simpleMockModelDb } from './helpers.js'
 
 chai.use(chaiAsPromised)
 const { expect } = chai
@@ -21,7 +21,7 @@ describe('recentFilesFromCookies', () => {
 
   it('should handle missing cookie gracefully', async () => {
     const cookies = {}
-    const result = await recentFilesFromCookies(cookies, mockDb, mockLogger)
+    const result = await recentFilesFromCookies(simpleMockModelDb, cookies, mockLogger)
     expect(result).to.deep.equal([])
   })
 
@@ -30,7 +30,7 @@ describe('recentFilesFromCookies', () => {
       [modelHistoryCookie]: [{ id: previewDtdlId, timestamp: validTimestamp.getTime() }],
     }
 
-    const result = await recentFilesFromCookies(cookies, mockDb, mockLogger)
+    const result = await recentFilesFromCookies(simpleMockModelDb, cookies, mockLogger)
 
     expect(result).to.deep.equal([
       {
@@ -50,7 +50,7 @@ describe('recentFilesFromCookies', () => {
       ],
     }
 
-    const result = await recentFilesFromCookies(cookies, mockDb, mockLogger)
+    const result = await recentFilesFromCookies(simpleMockModelDb, cookies, mockLogger)
 
     expect(result).to.deep.equal([
       {
@@ -78,7 +78,7 @@ describe('recentFilesFromCookies', () => {
       ],
     }
 
-    const result = await recentFilesFromCookies(cookies, mockDb, mockLogger)
+    const result = await recentFilesFromCookies(simpleMockModelDb, cookies, mockLogger)
 
     expect(result.map((r) => r.fileName)).to.deep.equal(['Preview Model', 'Simple Model'])
   })

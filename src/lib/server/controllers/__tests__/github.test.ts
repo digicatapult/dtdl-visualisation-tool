@@ -8,15 +8,16 @@ import { Env } from '../../env/index.js'
 import { UploadError } from '../../errors.js'
 import { octokitTokenCookie } from '../../models/cookieNames.js'
 import { OAuthToken } from '../../models/github.js'
+import { parseAndInsertDtdl } from '../../utils/dtdl/parse.js'
 import { GithubRequest } from '../../utils/githubRequest.js'
 import { GithubController } from '../github.js'
 import {
   mockCache,
-  mockDb,
   mockGenerator,
   mockLogger,
   mockReqWithCookie,
   openOntologyMock,
+  simpleMockModelDb,
   toHTMLString,
 } from './helpers.js'
 
@@ -104,7 +105,7 @@ export const mockGithubRequest = {
 
 describe('GithubController', async () => {
   const controller = new GithubController(
-    mockDb,
+    simpleMockModelDb,
     openOntologyMock,
     mockGithubRequest,
     mockGenerator,
@@ -272,8 +273,9 @@ describe('GithubController', async () => {
 
   describe('/directory', () => {
     it('should insert and redirect to valid ontology', async () => {
+      sinon.stub(parseAndInsertDtdl)
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
-      const insertDb = sinon.spy(mockDb, 'insert')
+      const insertDb = sinon.spy(simpleMockModelDb, 'insertModel')
 
       // get root then nested contents
       getContentsStub.onCall(0).resolves(contents)
