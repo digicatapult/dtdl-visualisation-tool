@@ -268,21 +268,10 @@ export class GithubController extends HTMLController {
 
         const fileString = Buffer.from(fileBuffer).toString()
 
-        let dtdl
         try {
-          dtdl = JSON.parse(fileString)
+          JSON.parse(fileString)
         } catch {
           this.logger.trace('ignoring invalid json', entryPath)
-          return
-        }
-
-        const entityIds = ([] as string[])
-          .concat(dtdl) // dtdl can be array or object
-          .map((entity) => entity?.['@id'])
-          .filter((id): id is string => id !== undefined)
-
-        if (entityIds.length === 0) {
-          this.logger.trace('ignoring invalid DTDL json', entryPath)
           return
         }
 
@@ -292,7 +281,6 @@ export class GithubController extends HTMLController {
         acc.files.push({
           path: entry.path,
           contents: fileString,
-          entity_ids: entityIds,
         })
       } else if (entry.type === 'dir') {
         await mkdir(entryPath)

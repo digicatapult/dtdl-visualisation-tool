@@ -16,7 +16,6 @@ const insertModel = z.object({
 const insertDtdl = z.object({
   path: z.string(),
   model_id: z.string(),
-  entity_ids: z.array(z.string()),
   contents: z.unknown(),
 })
 

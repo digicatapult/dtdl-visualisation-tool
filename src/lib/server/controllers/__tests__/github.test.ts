@@ -305,13 +305,11 @@ describe('GithubController', async () => {
           {
             path: mockFileName,
             contents: dtdl(validId0),
-            entity_ids: [validId0],
             model_id: 1,
           },
           {
             path: `${mockDirPath}/${mockFileName}`,
             contents: dtdl(validId1),
-            entity_ids: [validId1],
             model_id: 1,
           },
         ],
@@ -347,7 +345,6 @@ describe('GithubController', async () => {
           {
             path: `${mockDirPath}/${mockFileName}`,
             contents: multipleInterfaceFile,
-            entity_ids: [validId0, validId1],
             model_id: 1,
           },
         ],
@@ -418,7 +415,6 @@ describe('GithubController', async () => {
           {
             path: mockFileName,
             contents: dtdl(validId0),
-            entity_ids: [validId0],
             model_id: 1,
           },
         ],

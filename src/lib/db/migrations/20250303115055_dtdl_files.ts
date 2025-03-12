@@ -11,10 +11,15 @@ export async function up(knex: Knex): Promise<void> {
     def.uuid('id').defaultTo(knex.raw('uuid_generate_v4()')).primary()
     def.string('path').notNullable()
     def.uuid('model_id').notNullable()
-    def.specificType('entity_ids', 'text[]').notNullable()
     def.jsonb('contents').notNullable()
     def.datetime('created_at').notNullable().defaultTo(now())
+
+    def.foreign('model_id').references('id').inTable('model').onDelete('CASCADE').onUpdate('CASCADE')
   })
+
+  await knex.schema.raw(`
+    CREATE INDEX dtdl_contents_gin ON dtdl USING GIN (contents jsonb_path_ops);
+  `)
 }
 
 export async function down(knex: Knex): Promise<void> {
