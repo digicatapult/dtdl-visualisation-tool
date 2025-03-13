@@ -5,7 +5,6 @@ import { escapeHtml } from '@kitajs/html'
 import { randomUUID } from 'crypto'
 import { singleton } from 'tsyringe'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
-import { Layout, layoutEntries } from '../../models/mermaidLayouts.js'
 import { DtdlId, UUID } from '../../models/strings.js'
 import { getDisplayName, isInterface, isRelationship } from '../../utils/dtdl/extract.js'
 import { AccordionSection, Page } from '../common.js'
@@ -29,7 +28,6 @@ export default class MermaidTemplates {
 
   public MermaidRoot = ({
     search,
-    layout,
     sessionId,
     diagramType,
     svgWidth,
@@ -37,7 +35,6 @@ export default class MermaidTemplates {
     canEdit,
   }: {
     search?: string
-    layout: Layout
     sessionId: UUID
     diagramType: DiagramType
     svgWidth?: number
@@ -47,13 +44,7 @@ export default class MermaidTemplates {
     <Page title={'UKDTC'}>
       <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
       <section id="toolbar">
-        <this.searchPanel
-          layout={layout}
-          search={search}
-          diagramType={diagramType}
-          svgWidth={svgWidth}
-          svgHeight={svgHeight}
-        />
+        <this.searchPanel search={search} diagramType={diagramType} svgWidth={svgWidth} svgHeight={svgHeight} />
         <this.uploadForm />
       </section>
 
@@ -217,7 +208,6 @@ export default class MermaidTemplates {
 
   public searchPanel = ({
     search,
-    layout,
     swapOutOfBand,
     diagramType,
     svgWidth,
@@ -228,7 +218,6 @@ export default class MermaidTemplates {
   }: {
     // inputs with current state
     search?: string
-    layout: Layout
     diagramType: DiagramType
     // hidden inputs not set by input controls
     svgWidth?: number
@@ -271,20 +260,6 @@ export default class MermaidTemplates {
         <select id="diagramType" name="diagramType" hx-trigger="input changed" {...commonUpdateAttrs}>
           {diagramTypes.map((entry) => (
             <option value={entry} selected={entry === diagramType}>
-              {escapeHtml(entry)}
-            </option>
-          ))}
-        </select>
-        <label for="layout">Layout</label>
-        <select
-          id="layout"
-          name="layout"
-          hx-trigger="input changed"
-          disabled={diagramType === 'classDiagram'}
-          {...commonUpdateAttrs}
-        >
-          {layoutEntries.map((entry) => (
-            <option value={entry} selected={entry === layout}>
               {escapeHtml(entry)}
             </option>
           ))}

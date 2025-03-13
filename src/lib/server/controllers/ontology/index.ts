@@ -76,7 +76,6 @@ export class OntologyController extends HTMLController {
 
     this.logger.debug(`model ${dtdlModelId} requested with search: %o`, {
       search: params.search,
-      layout: params.layout,
     })
 
     let sessionId = params.sessionId
@@ -84,7 +83,7 @@ export class OntologyController extends HTMLController {
     if (!sessionId || !this.sessionStore.get(sessionId)) {
       sessionId = randomUUID()
       const session = {
-        layout: params.layout,
+        layout: 'elk' as const,
         diagramType: params.diagramType,
         search: params.search,
         highlightNodeId: params.highlightNodeId,
@@ -113,7 +112,6 @@ export class OntologyController extends HTMLController {
 
     return this.html(
       this.templates.MermaidRoot({
-        layout: params.layout,
         search: params.search,
         sessionId,
         diagramType: params.diagramType,
@@ -129,7 +127,7 @@ export class OntologyController extends HTMLController {
     @Path() dtdlModelId: UUID,
     @Queries() params: UpdateParams
   ): Promise<HTML> {
-    this.logger.debug('search: %o', { search: params.search, layout: params.layout })
+    this.logger.debug('search: %o', { search: params.search })
 
     // pull out the stored session. If this is invalid the request is invalid
     const session = this.sessionStore.get(params.sessionId)
@@ -148,7 +146,7 @@ export class OntologyController extends HTMLController {
 
     const newSession: Session = {
       diagramType: params.diagramType,
-      layout: params.layout,
+      layout: 'elk' as const,
       search: params.search,
       expandedIds: [...session.expandedIds],
       highlightNodeId: params.highlightNodeId ?? session.highlightNodeId,
@@ -205,7 +203,6 @@ export class OntologyController extends HTMLController {
         target: 'mermaid-output',
       }),
       this.templates.searchPanel({
-        layout: newSession.layout,
         search: newSession.search,
         diagramType: newSession.diagramType,
         svgWidth: params.svgWidth,
@@ -302,7 +299,7 @@ export class OntologyController extends HTMLController {
       svgWidth: params.svgWidth,
       svgHeight: params.svgHeight,
       diagramType: newSession.diagramType,
-      layout: newSession.layout,
+      layout: 'elk' as const,
       highlightNodeId: newSession.highlightNodeId,
     }
 

@@ -1,13 +1,8 @@
-import { Layout } from '../models/mermaidLayouts.js'
 import { Session } from '../utils/sessions.js'
 import { DiagramType } from './mermaidDiagrams.js'
 import { UUID } from './strings.js'
 
 export interface RootParams {
-  /**
-   * @default 'elk'
-   */
-  layout: Layout
   /**
    * @default 'flowchart'
    */
@@ -18,12 +13,7 @@ export interface RootParams {
   search?: string
   sessionId?: UUID
 }
-export const urlQueryKeys = [
-  'layout',
-  'diagramType',
-  'highlightNodeId',
-  'search',
-] as const satisfies (keyof RootParams)[]
+export const urlQueryKeys = ['diagramType', 'highlightNodeId', 'search'] as const satisfies (keyof RootParams)[]
 export type UrlQueryKeys = (typeof urlQueryKeys)[number]
 
 export type A11yPreference = 'reduce-motion'
@@ -48,5 +38,5 @@ export const relevantParams = ['search', 'diagramType', 'layout', 'expandedIds']
 export type GenerateParamKeys = (typeof relevantParams)[number]
 export type GenerateParams = Pick<UpdateParams & Session, GenerateParamKeys>
 
-export type AttributeParamKeys = 'svgWidth' | 'svgHeight' | 'highlightNodeId' | 'diagramType' | 'layout'
+export type AttributeParamKeys = 'svgWidth' | 'svgHeight' | 'highlightNodeId' | 'diagramType'
 export type AttributeParams = Pick<UpdateParams, AttributeParamKeys>
