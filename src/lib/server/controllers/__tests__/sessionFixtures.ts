@@ -13,7 +13,7 @@ export const validSessionReturnUrlId = '6cfacf2a-5058-4c20-95da-a7dc7659ea60' as
 export const invalidSessionId = '00000000-0000-0000-0000-000000000000' as const
 
 export const validSession = {
-  layout: 'dagre-d3',
+  layout: 'elk',
   diagramType: 'flowchart',
   search: undefined,
   highlightNodeId: undefined,

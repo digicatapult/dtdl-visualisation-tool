@@ -20,17 +20,13 @@ describe('Generator', function () {
 
   describe('run', () => {
     it('should return no graph for empty object model', async () => {
-      const generatedOutput = await generator.run({}, defaultParams.diagramType, defaultParams.layout)
+      const generatedOutput = await generator.run({}, defaultParams.diagramType, 'elk' as const)
       expect(generatedOutput.type).to.equal('text')
       expect(generatedOutput.renderToString()).to.equal(`No graph`)
     })
 
     it('should return a simple svg', async () => {
-      const generatedOutput = await generator.run(
-        simpleMockDtdlObjectModel,
-        defaultParams.diagramType,
-        defaultParams.layout
-      )
+      const generatedOutput = await generator.run(simpleMockDtdlObjectModel, defaultParams.diagramType, 'elk' as const)
       expect(generatedOutput.type).to.equal('svg')
       expect(checkIfStringIsSVG(generatedOutput.renderToString())).to.equal(true)
     })
@@ -39,11 +35,7 @@ describe('Generator', function () {
       const stub = sinon.stub(puppeteer, 'launch').onFirstCall().rejects('Error').callThrough()
       const generator = new SvgGenerator(logger)
 
-      const generatedOutput = await generator.run(
-        simpleMockDtdlObjectModel,
-        defaultParams.diagramType,
-        defaultParams.layout
-      )
+      const generatedOutput = await generator.run(simpleMockDtdlObjectModel, defaultParams.diagramType, 'elk' as const)
 
       expect(generatedOutput.type).to.equal('svg')
       expect(checkIfStringIsSVG(generatedOutput.renderToString())).to.equal(true)
@@ -56,7 +48,7 @@ describe('Generator', function () {
 
       let error: Error | null = null
       try {
-        await generator.run(simpleMockDtdlObjectModel, defaultParams.diagramType, defaultParams.layout)
+        await generator.run(simpleMockDtdlObjectModel, defaultParams.diagramType, 'elk' as const)
       } catch (err) {
         error = err as Error
       }
