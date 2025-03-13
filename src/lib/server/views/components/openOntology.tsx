@@ -68,8 +68,8 @@ export default class OpenOntologyTemplates {
               id="public-github-input"
               placeholder="Enter public GitHub repo {org}/{repo} e.g. 'digicatapult/dtdl-visualisation-tool'"
               hx-get="/github/branches?page=1"
-              hx-trigger="keyup[event.key=='Enter']"
-              hx-vals="js:{ owner: globalThis.getOwnerRepoFromInput(event).owner, repo: globalThis.getOwnerRepoFromInput(event).repo }"
+              hx-trigger="keyup[event.key=='Enter'], input changed delay:500ms"
+              hx-vals="js:{...globalThis.getOwnerRepoFromInput()}"
               hx-target=".github-list"
             />
             <img src="/public/images/arrow-enter.svg" />
