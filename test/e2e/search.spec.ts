@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 
 test.describe('search', () => {
   test('change search to reveal nodes', async ({ page }) => {
-    await page.goto('./?layout=elk&diagramType=flowchart&search=Node')
+    await page.goto('./?diagramType=flowchart&search=Node')
     await page.waitForSelector("text='ConnectivityNodeContainer'")
 
     await page.focus('#search')
