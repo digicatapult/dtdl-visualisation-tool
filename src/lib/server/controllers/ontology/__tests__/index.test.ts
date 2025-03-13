@@ -38,7 +38,6 @@ import { OntologyController } from '../index.js'
 
 export const defaultParams: UpdateParams = {
   sessionId: validSessionId,
-  layout: 'dagre-d3',
   diagramType: 'flowchart',
   svgWidth: 300,
   svgHeight: 100,
@@ -83,7 +82,7 @@ describe('OntologyController', async () => {
       const result = await controller
         .view(simpleDtdlId, { ...defaultParams }, req)
         .then((value) => (value ? toHTMLString(value) : ''))
-      expect(result).to.equal(`root_dagre-d3_undefined_root`)
+      expect(result).to.equal(`root_undefined_root`)
     })
 
     it('should set a cookie with model history', async () => {
@@ -111,7 +110,7 @@ describe('OntologyController', async () => {
       expect(result).to.equal(
         [
           `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
-          `searchPanel_undefined_dagre-d3_true_searchPanel`,
+          `searchPanel_undefined_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
           `svgControls_${generatedSVGFixture}_svgControls`,
         ].join('')
@@ -126,7 +125,7 @@ describe('OntologyController', async () => {
       expect(result).to.equal(
         [
           `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
-          `searchPanel_example 1_dagre-d3_true_searchPanel`,
+          `searchPanel_example 1_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
           `svgControls_${generatedSVGFixture}_svgControls`,
         ].join('')
@@ -135,7 +134,7 @@ describe('OntologyController', async () => {
 
     it('should render plain text content', async () => {
       const req = mockReq({})
-      mockCache.set(`diagramType=flowchart&dtdlId=${simpleDtdlId}&layout=dagre-d3`, {
+      mockCache.set(`diagramType=flowchart&dtdlId=${simpleDtdlId}&layout=elk`, {
         type: 'text',
         content: 'None',
       })
@@ -150,7 +149,7 @@ describe('OntologyController', async () => {
       expect(result).to.equal(
         [
           `mermaidTarget_None_mermaid-output_mermaidTarget`,
-          `searchPanel_undefined_dagre-d3_true_searchPanel`,
+          `searchPanel_undefined_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
           `svgControls__svgControls`,
         ].join('')
@@ -166,10 +165,7 @@ describe('OntologyController', async () => {
       await controller.updateLayout(req, simpleDtdlId, defaultParams).then(toHTMLString)
 
       expect(stub.callCount).to.equal(2)
-      expect(stub.firstCall.args).to.deep.equal([
-        'HX-Push-Url',
-        '/some/path?param1=x&param2=y&layout=dagre-d3&diagramType=flowchart',
-      ])
+      expect(stub.firstCall.args).to.deep.equal(['HX-Push-Url', '/some/path?param1=x&param2=y&diagramType=flowchart'])
       expect(stub.secondCall.args).to.deep.equal(['Content-Type', 'text/html'])
     })
 
@@ -177,14 +173,11 @@ describe('OntologyController', async () => {
       const stub = sinon.stub(controller, 'setHeader')
 
       const req = mockReq({
-        'hx-current-url': 'http://localhost:3000/some/path?param1=x&layout=y',
+        'hx-current-url': 'http://localhost:3000/some/path?param1=x',
       })
       await controller.updateLayout(req, simpleDtdlId, defaultParams).then(toHTMLString)
 
-      expect(stub.firstCall.args).to.deep.equal([
-        'HX-Push-Url',
-        '/some/path?param1=x&layout=dagre-d3&diagramType=flowchart',
-      ])
+      expect(stub.firstCall.args).to.deep.equal(['HX-Push-Url', '/some/path?param1=x&diagramType=flowchart'])
     })
 
     it('should not set HX-Push-Url header if hx-current-url is not passed', async () => {
@@ -213,7 +206,7 @@ describe('OntologyController', async () => {
       expect(stub.lastCall.args[1]).to.deep.equal({
         diagramType: 'flowchart',
         expandedIds: [],
-        layout: 'dagre-d3',
+        layout: 'elk',
         search: '"example 1"',
         highlightNodeId: 'dtmi:com:example;1',
       })
@@ -229,7 +222,7 @@ describe('OntologyController', async () => {
         .updateLayout(req, simpleDtdlId, { ...defaultParams, sessionId: validSessionExpanded11Id })
         .then(toHTMLString)
 
-      expect(stub.firstCall.args).to.deep.equal(['HX-Push-Url', '/some/path?layout=dagre-d3&diagramType=flowchart'])
+      expect(stub.firstCall.args).to.deep.equal(['HX-Push-Url', '/some/path?diagramType=flowchart'])
     })
 
     it('should append multiple expandedIds', async () => {
@@ -242,17 +235,14 @@ describe('OntologyController', async () => {
         .updateLayout(req, simpleDtdlId, { ...defaultParams, sessionId: validSessionExpanded12Id })
         .then(toHTMLString)
 
-      expect(stub.firstCall.args).to.deep.equal(['HX-Push-Url', '/some/path?layout=dagre-d3&diagramType=flowchart'])
+      expect(stub.firstCall.args).to.deep.equal(['HX-Push-Url', '/some/path?diagramType=flowchart'])
     })
 
     it('should cache generated output - keyed by params', async () => {
       const req = mockReq({})
       const generatorRunCount = generatorRunStub.callCount
       await controller.updateLayout(req, simpleDtdlId, defaultParams)
-      const fromCache = mockCache.get(
-        `diagramType=flowchart&dtdlId=${simpleDtdlId}&layout=dagre-d3`,
-        renderedDiagramParser
-      )
+      const fromCache = mockCache.get(`diagramType=flowchart&dtdlId=${simpleDtdlId}&layout=elk`, renderedDiagramParser)
       expect(fromCache).instanceOf(MermaidSvgRender)
       expect(fromCache?.renderToString()).to.deep.equal(generatedSVGFixture)
 
@@ -267,10 +257,7 @@ describe('OntologyController', async () => {
 
       expect(mockCache.size()).to.equal(1)
 
-      const fromCache = mockCache.get(
-        `diagramType=flowchart&dtdlId=${simpleDtdlId}&layout=dagre-d3`,
-        renderedDiagramParser
-      )
+      const fromCache = mockCache.get(`diagramType=flowchart&dtdlId=${simpleDtdlId}&layout=elk`, renderedDiagramParser)
       expect(fromCache).instanceOf(MermaidSvgRender)
       expect(fromCache?.renderToString()).to.deep.equal(generatedSVGFixture)
     })
@@ -379,7 +366,7 @@ describe('OntologyController', async () => {
       expect(result).to.equal(
         [
           `mermaidTarget_${generatedSVGFixture}_attr_animate_mermaid-output_mermaidTarget`,
-          `searchPanel_example_dagre-d3_true_searchPanel`,
+          `searchPanel_example_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
           `svgControls_${generatedSVGFixture}_svgControls`,
         ].join('')
@@ -400,7 +387,7 @@ describe('OntologyController', async () => {
       expect(result).to.equal(
         [
           `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
-          `searchPanel_example_dagre-d3_true_searchPanel`,
+          `searchPanel_example_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
           `svgControls_${generatedSVGFixture}_svgControls`,
         ].join('')
@@ -423,7 +410,7 @@ describe('OntologyController', async () => {
       expect(result).to.equal(
         [
           `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
-          `searchPanel_example_dagre-d3_true_searchPanel`,
+          `searchPanel_example_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
           `svgControls_${generatedSVGFixture}_svgControls`,
         ].join('')
@@ -432,7 +419,7 @@ describe('OntologyController', async () => {
 
     it('should not animate if only highlighted node changes', async () => {
       const req = mockReq({})
-      mockCache.set('diagramType=flowchart&layout=dagre-d3', new MermaidSvgRender(Buffer.from(generatedSVGFixture)))
+      mockCache.set('diagramType=flowchart', new MermaidSvgRender(Buffer.from(generatedSVGFixture)))
 
       const result = await controller
         .updateLayout(req, simpleDtdlId, {
@@ -445,7 +432,7 @@ describe('OntologyController', async () => {
       expect(result).to.equal(
         [
           `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
-          `searchPanel_undefined_dagre-d3_true_searchPanel`,
+          `searchPanel_undefined_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
           `svgControls_${generatedSVGFixture}_svgControls`,
         ].join('')
@@ -454,7 +441,7 @@ describe('OntologyController', async () => {
 
     it('should not animate if old output was plain text', async () => {
       const req = mockReq({})
-      mockCache.set('diagramType=flowchart&layout=dagre-d3', new PlainTextRender('None'))
+      mockCache.set('diagramType=flowchart', new PlainTextRender('None'))
 
       const result = await controller
         .updateLayout(req, simpleDtdlId, {
@@ -467,7 +454,7 @@ describe('OntologyController', async () => {
       expect(result).to.equal(
         [
           `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
-          `searchPanel_example_dagre-d3_true_searchPanel`,
+          `searchPanel_example_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
           `svgControls_${generatedSVGFixture}_svgControls`,
         ].join('')

@@ -8,7 +8,6 @@ import Database from '../../../db/index.js'
 import { ModelDb } from '../../../db/modelDb.js'
 import { InternalError } from '../../errors.js'
 import { ListItem } from '../../models/github.js'
-import { Layout } from '../../models/mermaidLayouts.js'
 import { type UUID } from '../../models/strings.js'
 import { allInterfaceFilter } from '../../utils/dtdl/extract.js'
 import { FuseSearch } from '../../utils/fuseSearch.js'
@@ -41,11 +40,11 @@ const mockModelTable = {
 }
 
 export const templateMock = {
-  MermaidRoot: ({ search, layout }: { search: string; layout: string }) => `root_${layout}_${search}_root`,
+  MermaidRoot: ({ search }: { search: string }) => `root_${search}_root`,
   mermaidTarget: ({ generatedOutput, target }: { generatedOutput?: JSX.Element; target: string }): JSX.Element =>
     `mermaidTarget_${generatedOutput}_${target}_mermaidTarget`,
-  searchPanel: ({ search, layout, swapOutOfBand }: { search?: string; layout: Layout; swapOutOfBand?: boolean }) =>
-    `searchPanel_${search}_${layout}_${swapOutOfBand || false}_searchPanel`,
+  searchPanel: ({ search, swapOutOfBand }: { search?: string; swapOutOfBand?: boolean }) =>
+    `searchPanel_${search}_${swapOutOfBand || false}_searchPanel`,
   navigationPanel: ({ swapOutOfBand, content }: { swapOutOfBand?: boolean; content?: string }) =>
     `navigationPanel_${swapOutOfBand || false}_${content || ''}_navigationPanel`,
   svgControls: ({ generatedOutput }: { generatedOutput?: JSX.Element }): JSX.Element =>

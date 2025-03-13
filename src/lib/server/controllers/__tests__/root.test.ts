@@ -8,7 +8,6 @@ import { validSessionId } from './sessionFixtures.js'
 
 export const defaultParams: UpdateParams = {
   sessionId: validSessionId,
-  layout: 'dagre-d3',
   diagramType: 'flowchart',
   svgWidth: 300,
   svgHeight: 100,
