@@ -27,10 +27,18 @@
 #public-github-input-wrapper {
     display: grid;
     width: 100%;
+    grid-template-columns: 1fr auto;
 }
 
 #public-github-input {
     font-size: 0.9rem;
+}
+
+#public-github-input-wrapper img {
+    width: 20px; /* Adjust as needed */
+    height: 20px;
+    margin-left: 8px; /* Space between input and image */
+    align-self: center;
 }
 
 .github-list li:nth-child(odd) { background: var(--background-color); }

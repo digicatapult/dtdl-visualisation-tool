@@ -72,6 +72,7 @@ export default class OpenOntologyTemplates {
               hx-vals="js:{ owner: globalThis.getOwnerRepoFromInput(event).owner, repo: globalThis.getOwnerRepoFromInput(event).repo }"
               hx-target=".github-list"
             />
+            <img src="/public/images/arrow-enter.svg" />
           </div>
           <div id="spin" class="spinner" />
           <ul class="github-list" hx-indicator="#spin" hx-get={populateListLink} hx-trigger="load"></ul>
@@ -97,7 +98,7 @@ export default class OpenOntologyTemplates {
       disabled={!link}
       onclick="document.getElementById('github-modal').close();"
     >
-      Select Folder
+      Select Folder to Open Ontology
     </button>
   )
 
