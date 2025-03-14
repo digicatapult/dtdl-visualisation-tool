@@ -21,11 +21,30 @@ globalThis.toggleEditSwitch = (event) => {
   document.getElementById('navigation-panel').classList.toggle('edit', isChecked)
 }
 
-globalThis.getOwnerRepoFromInput = (event) => {
-  const input = event.target.value.trim()
+globalThis.getOwnerRepoFromInput = () => {
+  // Not passing in event as not all triggers produce HX-Events
+  const input = document.getElementById('public-github-input').value.trim()
   const match = input.match(/^(?:https:\/\/(?:www\.)?github\.com\/)?([a-zA-Z0-9-_\.]+)\/([a-zA-Z0-9-_\.]+)(?:\/.*)?$/)
   return match ? { owner: match[1], repo: match[2] } : { owner: undefined, repo: undefined }
 }
+
+globalThis.validatePublicRepoInput = (e) => {
+  const { owner, repo } = globalThis.getOwnerRepoFromInput()
+  if (!owner || !repo) {
+    e.setCustomValidity("invalid owner/repo combination or url")
+  } else {
+    e.setCustomValidity("")
+  }
+  e.reportValidity()
+}
+
+htmx.on('htmx:beforeSwap', (e) => {
+  if (e.detail.pathInfo.requestPath === '/github/branches?page=1') {
+    if (e.detail.xhr.status === 400 && e.detail.requestConfig.triggeringEvent.type !== 'keyup') {
+      e.preventDefault()
+    }
+  }
+})
 
 htmx.on('htmx:load', (e) => {
   if (e?.detail.elt.baseURI.includes('github/picker')) {
