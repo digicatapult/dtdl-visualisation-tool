@@ -71,6 +71,9 @@ export default class OpenOntologyTemplates {
               hx-trigger="keyup[event.key=='Enter'], input changed delay:500ms"
               hx-vals="js:{...globalThis.getOwnerRepoFromInput()}"
               hx-target=".github-list"
+              hx-validate={true}
+              oninput="globalThis.validatePublicRepoInput(this)"
+              hx-on-htmx-before-request="if (this.validity.valid === false) event.preventDefault()"
             />
             <img src="/public/images/arrow-enter.svg" />
           </div>

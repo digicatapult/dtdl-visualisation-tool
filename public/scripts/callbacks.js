@@ -28,6 +28,16 @@ globalThis.getOwnerRepoFromInput = () => {
   return match ? { owner: match[1], repo: match[2] } : { owner: undefined, repo: undefined }
 }
 
+globalThis.validatePublicRepoInput = (e) => {
+  const { owner, repo } = globalThis.getOwnerRepoFromInput()
+  if (!owner || !repo) {
+    e.setCustomValidity("invalid owner/repo combination or url")
+  } else {
+    e.setCustomValidity("")
+  }
+  e.reportValidity()
+}
+
 htmx.on('htmx:beforeSwap', (e) => {
   if (e.detail.pathInfo.requestPath === '/github/branches?page=1') {
     if (e.detail.xhr.status === 400 && e.detail.requestConfig.triggeringEvent.type !== 'keyup') {
