@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.4.46",
+  "version": "0.4.49",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
