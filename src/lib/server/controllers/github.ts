@@ -2,11 +2,10 @@ import express from 'express'
 import { dirname } from 'node:path'
 import { Get, Produces, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { container, inject, injectable } from 'tsyringe'
-import Database from '../../db/index.js'
+import { ModelDb } from '../../db/modelDb.js'
 import { Env } from '../env/index.js'
 import { GithubReqError } from '../errors.js'
 import { type ILogger, Logger } from '../logger.js'
-import { GenerateParams } from '../models/controllerTypes.js'
 import { octokitTokenCookie } from '../models/cookieNames.js'
 import { ListItem } from '../models/github.js'
 import { type ICache, Cache } from '../utils/cache.js'
@@ -16,7 +15,7 @@ import { SvgGenerator } from '../utils/mermaid/generator.js'
 import { safeUrl } from '../utils/url.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
-import { dtdlCacheKey, recentFilesFromCookies } from './helpers.js'
+import { recentFilesFromCookies, setCacheWithDefaultParams } from './helpers.js'
 
 const env = container.resolve(Env)
 
@@ -27,7 +26,7 @@ const uploadLimit = env.get('UPLOAD_LIMIT_MB') * 1024 * 1024
 @Produces('text/html')
 export class GithubController extends HTMLController {
   constructor(
-    private db: Database,
+    private modelDb: ModelDb,
     private templates: OpenOntologyTemplates,
     private githubRequest: GithubRequest,
     private generator: SvgGenerator,
@@ -48,7 +47,7 @@ export class GithubController extends HTMLController {
     }
 
     const populateListLink = safeUrl(`/github/repos`, { page: '1' })
-    const recentFiles = await recentFilesFromCookies(req.signedCookies, this.db, this.logger)
+    const recentFiles = await recentFilesFromCookies(this.modelDb, req.signedCookies, this.logger)
     return this.html(this.templates.OpenOntologyRoot({ populateListLink, recentFiles }))
   }
 
@@ -223,23 +222,16 @@ export class GithubController extends HTMLController {
 
     const output = await this.generator.run(parsedDtdl, 'flowchart', 'elk')
 
-    const id = await this.db.withTransaction(async (db) => {
-      const [{ id }] = await db.insert('model', {
-        name: `${owner}/${repo}/${ref}/${path}`,
-        preview: output.renderForMinimap(),
-        source: 'github',
-        owner: owner,
-        repo: repo,
-      })
+    const id = await this.modelDb.insertModel(
+      `${owner}/${repo}/${ref}/${path}`,
+      output.renderForMinimap(),
+      'github',
+      owner,
+      repo,
+      files
+    )
 
-      for (const file of files) {
-        await db.insert('dtdl', { ...file, model_id: id })
-      }
-      return id
-    })
-
-    const defaultParams: GenerateParams = { layout: 'elk', diagramType: 'flowchart', expandedIds: [], search: '' }
-    this.cache.set(dtdlCacheKey(id, defaultParams), output)
+    setCacheWithDefaultParams(this.cache, id, output)
     this.setHeader('HX-Redirect', `/ontology/${id}/view`)
     return
   }

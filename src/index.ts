@@ -7,12 +7,11 @@ import chalk from 'chalk'
 import { Command } from 'commander'
 import { container } from 'tsyringe'
 import Database from './lib/db/index.js'
-import { dtdlCacheKey } from './lib/server/controllers/helpers.js'
+import { ModelDb } from './lib/db/modelDb.js'
+import { setCacheWithDefaultParams } from './lib/server/controllers/helpers.js'
 import { httpServer } from './lib/server/index.js'
 import { logger } from './lib/server/logger.js'
-import { GenerateParams } from './lib/server/models/controllerTypes.js'
 import { Cache, ICache } from './lib/server/utils/cache.js'
-import { DtdlLoader } from './lib/server/utils/dtdl/dtdlLoader.js'
 import { getJsonFiles, parse } from './lib/server/utils/dtdl/parse.js'
 import { SvgGenerator } from './lib/server/utils/mermaid/generator.js'
 import version from './version.js'
@@ -33,41 +32,39 @@ program
   .command('parse')
   .description('parse a dtdl ontology and start a server')
   .option('-P, --port <port>', 'specify host port number if it is not a default, default - 3000', '3000')
-  .requiredOption('-p --path <path/to/dir>', 'Path to dtdl ontology directory')
+  .option('-p --path <path/to/dir>', 'Path to dtdl ontology directory')
   .action(async (options) => {
     const db = container.resolve(Database)
     const generator = container.resolve(SvgGenerator)
     const cache = container.resolve<ICache>(Cache)
-    logger.info(`Storing default model in db`)
-    const files = await getJsonFiles(options.path)
-    if (files.length === 0) throw new Error(`No valid '.json' files found`)
+    logger.info(`Loading default model`)
 
-    const parsedDtdl = await parse(files)
-
-    const output = await generator.run(parsedDtdl, 'flowchart', 'elk')
-
-    const id = await db.withTransaction(async (db) => {
-      const [{ id }] = await db.insert('model', {
-        name: `default`,
-        preview: output.renderForMinimap(),
-        source: 'default',
-        owner: null,
-        repo: null,
-      })
-
-      for (const file of files) {
-        await db.insert('dtdl', { ...file, model_id: id })
-      }
-      return id
+    const modelDb = new ModelDb(db)
+    container.register(ModelDb, {
+      useValue: modelDb,
     })
 
-    const defaultParams: GenerateParams = { layout: 'elk', diagramType: 'flowchart', expandedIds: [], search: '' }
-    cache.set(dtdlCacheKey(id, defaultParams), output)
+    const currentDefault = await modelDb.getDefaultModel()
 
-    const dtdlLoader = new DtdlLoader(db, id)
-    container.register(DtdlLoader, {
-      useValue: dtdlLoader,
-    })
+    if (!options.path && !currentDefault) {
+      logger.error(`No default model found, please run with '-p <PATH_TO_MODEL>' `)
+      process.exit(1)
+    }
+
+    if (currentDefault) {
+      const parsedDtdl = await modelDb.getDtdlModel(currentDefault.id)
+      const output = await generator.run(parsedDtdl, 'flowchart', 'elk')
+      setCacheWithDefaultParams(cache, currentDefault.id, output)
+    } else {
+      const files = await getJsonFiles(options.path)
+      if (files.length === 0) throw new Error(`No valid '.json' files found`)
+
+      const parsedDtdl = await parse(files)
+      const output = await generator.run(parsedDtdl, 'flowchart', 'elk')
+
+      const id = await modelDb.insertModel(`default`, output.renderForMinimap(), 'default', null, null, files)
+      setCacheWithDefaultParams(cache, id, output)
+    }
 
     logger.info(`Complete`)
 

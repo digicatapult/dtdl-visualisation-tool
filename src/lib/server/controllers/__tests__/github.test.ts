@@ -12,11 +12,11 @@ import { GithubRequest } from '../../utils/githubRequest.js'
 import { GithubController } from '../github.js'
 import {
   mockCache,
-  mockDb,
   mockGenerator,
   mockLogger,
   mockReqWithCookie,
   openOntologyMock,
+  simpleMockModelDb,
   toHTMLString,
 } from './helpers.js'
 
@@ -107,7 +107,7 @@ export const mockGithubRequest = {
 
 describe('GithubController', async () => {
   const controller = new GithubController(
-    mockDb,
+    simpleMockModelDb,
     openOntologyMock,
     mockGithubRequest,
     mockGenerator,
@@ -277,8 +277,9 @@ describe('GithubController', async () => {
   describe('/directory', () => {
     it('should insert and redirect to valid ontology', async () => {
       const fetchStub = sinon.stub(global, 'fetch')
+      sinon.stub(parseAndInsertDtdl)
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
-      const insertDb = sinon.spy(mockDb, 'insert')
+      const insertDb = sinon.spy(simpleMockModelDb, 'insertModel')
 
       // mock returning root dir contents then nested dir contents
       getContentsStub.onCall(0).resolves(contents)

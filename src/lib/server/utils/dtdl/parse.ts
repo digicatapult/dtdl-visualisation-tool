@@ -5,7 +5,7 @@ import { readdir, readFile } from 'node:fs/promises'
 import { join, relative } from 'node:path'
 import { DataError, UploadError } from '../../errors.js'
 
-interface File {
+export interface File {
   path: string
   contents: string
 }

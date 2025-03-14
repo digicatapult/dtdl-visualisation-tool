@@ -9,12 +9,12 @@ import { modelHistoryCookie } from '../../models/cookieNames.js'
 import { OpenOntologyController } from '../upload.js'
 import {
   mockCache,
-  mockDb,
   mockGenerator,
   mockLogger,
   mockReqWithCookie,
   openOntologyMock,
   previewDtdlId,
+  simpleMockModelDb,
   toHTMLString,
 } from './helpers.js'
 
@@ -25,7 +25,13 @@ const __filename = new URL(import.meta.url).pathname
 const __dirname = path.dirname(__filename)
 
 describe('OpenOntologyController', async () => {
-  const controller = new OpenOntologyController(mockDb, mockGenerator, openOntologyMock, mockLogger, mockCache)
+  const controller = new OpenOntologyController(
+    simpleMockModelDb,
+    mockGenerator,
+    openOntologyMock,
+    mockLogger,
+    mockCache
+  )
 
   afterEach(() => {
     sinon.restore()
@@ -86,7 +92,7 @@ describe('OpenOntologyController', async () => {
   describe('zip upload', () => {
     it('should insert to db and redirect to view on success', async () => {
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
-      const insertDb = sinon.spy(mockDb, 'insert')
+      const insertModelDb = sinon.spy(simpleMockModelDb, 'insertModel')
       const originalname = 'test.zip'
       const mockFile = {
         mimetype: 'application/zip',
@@ -96,7 +102,7 @@ describe('OpenOntologyController', async () => {
       await controller.uploadZip(mockFile as Express.Multer.File)
       const hxRedirectHeader = setHeaderSpy.firstCall.args[1]
 
-      expect(insertDb.calledOnce).to.equal(true)
+      expect(insertModelDb.calledOnce).to.equal(true)
       expect(hxRedirectHeader).to.equal(`/ontology/1/view`)
     })
 

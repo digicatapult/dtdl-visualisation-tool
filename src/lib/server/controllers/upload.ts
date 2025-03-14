@@ -2,24 +2,23 @@ import express from 'express'
 import { Get, Post, Produces, Query, Request, Route, SuccessResponse, UploadedFile } from 'tsoa'
 import { inject, injectable } from 'tsyringe'
 
-import Database from '../../db/index.js'
 import { UploadError } from '../errors.js'
 import { parse, unzipJsonFiles } from '../utils/dtdl/parse.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
+import { ModelDb } from '../../db/modelDb.js'
 import { Logger, type ILogger } from '../logger.js'
-import { GenerateParams } from '../models/controllerTypes.js'
 import { Cache, type ICache } from '../utils/cache.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
-import { dtdlCacheKey, recentFilesFromCookies } from './helpers.js'
+import { recentFilesFromCookies, setCacheWithDefaultParams } from './helpers.js'
 
 @injectable()
 @Route('/open')
 @Produces('text/html')
 export class OpenOntologyController extends HTMLController {
   constructor(
-    private db: Database,
+    private modelDb: ModelDb,
     private generator: SvgGenerator,
     private openOntologyTemplates: OpenOntologyTemplates,
     @inject(Logger) private logger: ILogger,
@@ -34,7 +33,7 @@ export class OpenOntologyController extends HTMLController {
   public async open(@Request() req: express.Request): Promise<HTML> {
     this.setHeader('HX-Push-Url', `/open`)
 
-    const recentFiles = await recentFilesFromCookies(req.signedCookies, this.db, this.logger)
+    const recentFiles = await recentFilesFromCookies(this.modelDb, req.signedCookies, this.logger)
     return this.html(this.openOntologyTemplates.OpenOntologyRoot({ recentFiles }))
   }
 
@@ -56,26 +55,10 @@ export class OpenOntologyController extends HTMLController {
     if (files.length === 0) throw new UploadError(`No valid '.json' files found`)
 
     const parsedDtdl = await parse(files)
-
     const output = await this.generator.run(parsedDtdl, 'flowchart', 'elk')
+    const id = await this.modelDb.insertModel(file.originalname, output.renderForMinimap(), 'zip', null, null, files)
 
-    const id = await this.db.withTransaction(async (db) => {
-      const [{ id }] = await db.insert('model', {
-        name: file.originalname,
-        preview: output.renderForMinimap(),
-        source: 'zip',
-        owner: null,
-        repo: null,
-      })
-
-      for (const file of files) {
-        await db.insert('dtdl', { ...file, model_id: id })
-      }
-      return id
-    })
-
-    const defaultParams: GenerateParams = { layout: 'elk', diagramType: 'flowchart', expandedIds: [], search: '' }
-    this.cache.set(dtdlCacheKey(id, defaultParams), output)
+    setCacheWithDefaultParams(this.cache, id, output)
 
     this.setHeader('HX-Redirect', `/ontology/${id}/view`)
     return

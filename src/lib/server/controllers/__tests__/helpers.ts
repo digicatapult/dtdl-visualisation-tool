@@ -2,13 +2,14 @@ import express from 'express'
 import { Readable } from 'node:stream'
 import { pino } from 'pino'
 
-import { EntityType } from '@digicatapult/dtdl-parser'
+import { DtdlObjectModel, EntityType } from '@digicatapult/dtdl-parser'
 import sinon from 'sinon'
 import Database from '../../../db/index.js'
+import { ModelDb } from '../../../db/modelDb.js'
+import { InternalError } from '../../errors.js'
 import { ListItem } from '../../models/github.js'
-import { Layout } from '../../models/mermaidLayouts.js'
 import { type UUID } from '../../models/strings.js'
-import { DtdlLoader } from '../../utils/dtdl/dtdlLoader'
+import { allInterfaceFilter } from '../../utils/dtdl/extract.js'
 import { FuseSearch } from '../../utils/fuseSearch.js'
 import { LRUCache } from '../../utils/lruCache.js'
 import { generatedSVGFixture, simpleMockDtdlObjectModel } from '../../utils/mermaid/__tests__/fixtures'
@@ -23,19 +24,27 @@ import { sessionMap } from './sessionFixtures.js'
 export const simpleDtdlId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed7'
 export const complexDtdlId: UUID = 'e89f119a-fc3b-4ce8-8722-2000a7ebeeab'
 export const previewDtdlId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed8'
+export const defaultDtdlId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed9'
 
 const mockModelTable = {
   [simpleDtdlId]: { id: simpleDtdlId, name: 'Simple Model', parsed: simpleMockDtdlObjectModel },
   [complexDtdlId]: { id: complexDtdlId, name: 'Complex Model', parsed: complexMockDtdlModel },
   [previewDtdlId]: { id: previewDtdlId, name: 'Preview Model', parsed: simpleMockDtdlObjectModel, preview: 'Preview' },
+  [defaultDtdlId]: {
+    id: defaultDtdlId,
+    name: 'Default Model',
+    parsed: simpleMockDtdlObjectModel,
+    preview: 'Preview',
+    source: 'default',
+  },
 }
 
 export const templateMock = {
-  MermaidRoot: ({ search, layout }: { search: string; layout: string }) => `root_${layout}_${search}_root`,
+  MermaidRoot: ({ search }: { search: string }) => `root_${search}_root`,
   mermaidTarget: ({ generatedOutput, target }: { generatedOutput?: JSX.Element; target: string }): JSX.Element =>
     `mermaidTarget_${generatedOutput}_${target}_mermaidTarget`,
-  searchPanel: ({ search, layout, swapOutOfBand }: { search?: string; layout: Layout; swapOutOfBand?: boolean }) =>
-    `searchPanel_${search}_${layout}_${swapOutOfBand || false}_searchPanel`,
+  searchPanel: ({ search, swapOutOfBand }: { search?: string; swapOutOfBand?: boolean }) =>
+    `searchPanel_${search}_${swapOutOfBand || false}_searchPanel`,
   navigationPanel: ({ swapOutOfBand, content }: { swapOutOfBand?: boolean; content?: string }) =>
     `navigationPanel_${swapOutOfBand || false}_${content || ''}_navigationPanel`,
   svgControls: ({ generatedOutput }: { generatedOutput?: JSX.Element }): JSX.Element =>
@@ -70,6 +79,44 @@ export const mockDb = {
   }),
 } as unknown as Database
 
+export const simpleMockModelDb = {
+  getModelById: (id: UUID) => {
+    if (id === 'badId') throw new InternalError(`Failed to find model: ${id}`)
+    if (mockModelTable[id]) {
+      return Promise.resolve(mockModelTable[id])
+    } else {
+      return Promise.resolve(null)
+    }
+  },
+  getDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
+  insertModel: () => Promise.resolve(1),
+  deleteDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
+  getDtdlModel: () => Promise.resolve(simpleMockDtdlObjectModel),
+  getCollection: (dtdlModel: DtdlObjectModel) =>
+    Object.entries(dtdlModel)
+      .filter(allInterfaceFilter)
+      .map(([, entity]) => entity),
+} as unknown as ModelDb
+
+export const complexMockModelDb = {
+  getModelById: (id: UUID) => {
+    if (id === 'badId') throw new InternalError(`Failed to find model: ${id}`)
+    if (mockModelTable[id]) {
+      return Promise.resolve(mockModelTable[id])
+    } else {
+      return Promise.resolve(null)
+    }
+  },
+  getDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
+  insertModel: () => Promise.resolve(1),
+  deleteDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
+  getDtdlModel: () => Promise.resolve(complexMockDtdlModel),
+  getCollection: (dtdlModel: DtdlObjectModel) =>
+    Object.entries(dtdlModel)
+      .filter(allInterfaceFilter)
+      .map(([, entity]) => entity),
+} as unknown as ModelDb
+
 export const sessionSetStub = sinon.stub()
 export const sessionUpdateStub = sinon.stub()
 export const mockSession = {
@@ -79,9 +126,6 @@ export const mockSession = {
 } as unknown as SessionStore
 
 export const mockSearch = new FuseSearch<EntityType>(Object.values(simpleMockDtdlObjectModel))
-
-export const simpleMockDtdlLoader: DtdlLoader = new DtdlLoader(mockDb, simpleDtdlId)
-export const complexMockDtdlLoader: DtdlLoader = new DtdlLoader(mockDb, complexDtdlId)
 
 export const generatorRunStub = sinon.stub().callsFake(() => {
   const mock = {

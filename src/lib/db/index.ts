@@ -82,6 +82,10 @@ export default class Database {
       return await update(decorated)
     })
   }
+
+  delete = async <M extends TABLE>(model: M, where: Where<M>): Promise<void> => {
+    return this.db[model]().where(where).delete()
+  }
 }
 
 container.register(Database, { useValue: new Database() })

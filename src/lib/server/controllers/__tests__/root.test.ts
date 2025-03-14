@@ -3,12 +3,11 @@ import { describe, it } from 'mocha'
 import sinon from 'sinon'
 import { UpdateParams } from '../../models/controllerTypes.js'
 import { RootController } from '../root'
-import { mockCache, mockLogger, simpleDtdlId, simpleMockDtdlLoader, templateMock } from './helpers'
+import { defaultDtdlId, mockCache, mockLogger, simpleMockModelDb, templateMock } from './helpers'
 import { validSessionId } from './sessionFixtures.js'
 
 export const defaultParams: UpdateParams = {
   sessionId: validSessionId,
-  layout: 'dagre-d3',
   diagramType: 'flowchart',
   svgWidth: 300,
   svgHeight: 100,
@@ -24,7 +23,7 @@ describe('RootController', async () => {
     mockCache.clear()
   })
 
-  const controller = new RootController(simpleMockDtdlLoader, templateMock, mockLogger)
+  const controller = new RootController(simpleMockModelDb, templateMock, mockLogger)
 
   describe('get', () => {
     it('should redirect to the default model', async () => {
@@ -34,7 +33,7 @@ describe('RootController', async () => {
       const locationHeader = setHeaderSpy.firstCall.args[1]
 
       expect(locationHeader).to.equal(
-        `/ontology/${simpleDtdlId}/view?${new URLSearchParams(Object.entries(defaultParams))}`
+        `/ontology/${defaultDtdlId}/view?${new URLSearchParams(Object.entries(defaultParams))}`
       )
     })
   })

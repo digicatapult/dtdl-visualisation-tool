@@ -3,6 +3,7 @@ import express from 'express'
 import { randomUUID } from 'node:crypto'
 import { Get, Path, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { container, inject, injectable, singleton } from 'tsyringe'
+import { ModelDb } from '../../../db/modelDb.js'
 import { Env } from '../../env/index.js'
 import { InternalError, InvalidQueryError } from '../../errors.js'
 import { Logger, type ILogger } from '../../logger.js'
@@ -19,7 +20,6 @@ import { modelHistoryCookie, octokitTokenCookie } from '../../models/cookieNames
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../models/renderedDiagram/index.js'
 import { type UUID } from '../../models/strings.js'
 import { Cache, type ICache } from '../../utils/cache.js'
-import { DtdlLoader } from '../../utils/dtdl/dtdlLoader.js'
 import { filterModelByDisplayName, getRelatedIdsById } from '../../utils/dtdl/filter.js'
 import { FuseSearch } from '../../utils/fuseSearch.js'
 import { authRedirectURL, GithubRequest } from '../../utils/githubRequest.js'
@@ -49,7 +49,7 @@ export class OntologyController extends HTMLController {
   }
 
   constructor(
-    private dtdlLoader: DtdlLoader,
+    private modelDb: ModelDb,
     private generator: SvgGenerator,
     private svgMutator: SvgMutator,
     private templates: MermaidTemplates,
@@ -76,7 +76,6 @@ export class OntologyController extends HTMLController {
 
     this.logger.debug(`model ${dtdlModelId} requested with search: %o`, {
       search: params.search,
-      layout: params.layout,
     })
 
     let sessionId = params.sessionId
@@ -84,7 +83,7 @@ export class OntologyController extends HTMLController {
     if (!sessionId || !this.sessionStore.get(sessionId)) {
       sessionId = randomUUID()
       const session = {
-        layout: params.layout,
+        layout: 'elk' as const,
         diagramType: params.diagramType,
         search: params.search,
         highlightNodeId: params.highlightNodeId,
@@ -99,7 +98,7 @@ export class OntologyController extends HTMLController {
       this.cookieOpts
     )
 
-    const { source, owner, repo } = await this.dtdlLoader.getDatabaseModel(dtdlModelId)
+    const { source, owner, repo } = await this.modelDb.getModelById(dtdlModelId)
     let canEdit = false
     if (source == 'github') {
       const octokitToken = req.signedCookies[octokitTokenCookie]
@@ -113,7 +112,6 @@ export class OntologyController extends HTMLController {
 
     return this.html(
       this.templates.MermaidRoot({
-        layout: params.layout,
         search: params.search,
         sessionId,
         diagramType: params.diagramType,
@@ -129,7 +127,7 @@ export class OntologyController extends HTMLController {
     @Path() dtdlModelId: UUID,
     @Queries() params: UpdateParams
   ): Promise<HTML> {
-    this.logger.debug('search: %o', { search: params.search, layout: params.layout })
+    this.logger.debug('search: %o', { search: params.search })
 
     // pull out the stored session. If this is invalid the request is invalid
     const session = this.sessionStore.get(params.sessionId)
@@ -143,12 +141,12 @@ export class OntologyController extends HTMLController {
     }
 
     // get the base dtdl model that we will derive the graph from
-    const baseModel = await this.dtdlLoader.getDtdlModel(dtdlModelId)
-    const search = new FuseSearch(this.dtdlLoader.getCollection(baseModel))
+    const baseModel = await this.modelDb.getDtdlModel(dtdlModelId)
+    const search = new FuseSearch(this.modelDb.getCollection(baseModel))
 
     const newSession: Session = {
       diagramType: params.diagramType,
-      layout: params.layout,
+      layout: 'elk' as const,
       search: params.search,
       expandedIds: [...session.expandedIds],
       highlightNodeId: params.highlightNodeId ?? session.highlightNodeId,
@@ -205,7 +203,6 @@ export class OntologyController extends HTMLController {
         target: 'mermaid-output',
       }),
       this.templates.searchPanel({
-        layout: newSession.layout,
         search: newSession.search,
         diagramType: newSession.diagramType,
         svgWidth: params.svgWidth,
@@ -238,7 +235,7 @@ export class OntologyController extends HTMLController {
     const session = this.sessionStore.get(sessionId)
 
     // get the base dtdl model that we will derive the graph from
-    const baseModel = await this.dtdlLoader.getDtdlModel(dtdlModelId)
+    const baseModel = await this.modelDb.getDtdlModel(dtdlModelId)
 
     return this.html(
       this.templates.navigationPanel({
@@ -302,7 +299,7 @@ export class OntologyController extends HTMLController {
       svgWidth: params.svgWidth,
       svgHeight: params.svgHeight,
       diagramType: newSession.diagramType,
-      layout: newSession.layout,
+      layout: 'elk' as const,
       highlightNodeId: newSession.highlightNodeId,
     }
 
