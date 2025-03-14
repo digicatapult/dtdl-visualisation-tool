@@ -1,25 +1,20 @@
 import express from 'express'
 import { dirname } from 'node:path'
 import { Get, Produces, Query, Request, Route, SuccessResponse } from 'tsoa'
-import { container, inject, injectable } from 'tsyringe'
+import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../db/modelDb.js'
-import { Env } from '../env/index.js'
 import { GithubReqError } from '../errors.js'
 import { type ILogger, Logger } from '../logger.js'
 import { octokitTokenCookie } from '../models/cookieNames.js'
 import { ListItem } from '../models/github.js'
 import { type ICache, Cache } from '../utils/cache.js'
-import { parse, unzipJsonFiles } from '../utils/dtdl/parse.js'
+import Parser from '../utils/dtdl/parser.js'
 import { GithubRequest, authRedirectURL } from '../utils/githubRequest.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
 import { safeUrl } from '../utils/url.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
 import { recentFilesFromCookies, setCacheWithDefaultParams } from './helpers.js'
-
-const env = container.resolve(Env)
-
-const uploadLimit = env.get('UPLOAD_LIMIT_MB') * 1024 * 1024
 
 @injectable()
 @Route('/github')
@@ -30,6 +25,7 @@ export class GithubController extends HTMLController {
     private templates: OpenOntologyTemplates,
     private githubRequest: GithubRequest,
     private generator: SvgGenerator,
+    private parser: Parser,
     @inject(Logger) private logger: ILogger,
     @inject(Cache) private cache: ICache
   ) {
@@ -214,11 +210,11 @@ export class GithubController extends HTMLController {
     }
 
     const zippedBranch = await this.githubRequest.getZip(octokitToken, owner, repo, ref)
-    const files = await unzipJsonFiles(Buffer.from(zippedBranch), path)
+    const files = await this.parser.unzipJsonFiles(Buffer.from(zippedBranch), path)
 
     if (files.length === 0) throw new GithubReqError(`No valid '.json' files found`)
 
-    const parsedDtdl = await parse(files)
+    const parsedDtdl = await this.parser.parse(files)
 
     const output = await this.generator.run(parsedDtdl, 'flowchart', 'elk')
 

@@ -12,7 +12,7 @@ import { setCacheWithDefaultParams } from './lib/server/controllers/helpers.js'
 import { httpServer } from './lib/server/index.js'
 import { logger } from './lib/server/logger.js'
 import { Cache, ICache } from './lib/server/utils/cache.js'
-import { getJsonFiles, parse } from './lib/server/utils/dtdl/parse.js'
+import Parser from './lib/server/utils/dtdl/parser.js'
 import { SvgGenerator } from './lib/server/utils/mermaid/generator.js'
 import version from './version.js'
 
@@ -37,9 +37,10 @@ program
     const db = container.resolve(Database)
     const generator = container.resolve(SvgGenerator)
     const cache = container.resolve<ICache>(Cache)
+    const parser = container.resolve(Parser)
     logger.info(`Loading default model`)
 
-    const modelDb = new ModelDb(db)
+    const modelDb = new ModelDb(db, parser)
     container.register(ModelDb, {
       useValue: modelDb,
     })
@@ -56,10 +57,10 @@ program
       const output = await generator.run(parsedDtdl, 'flowchart', 'elk')
       setCacheWithDefaultParams(cache, currentDefault.id, output)
     } else {
-      const files = await getJsonFiles(options.path)
+      const files = await parser.getJsonFiles(options.path)
       if (files.length === 0) throw new Error(`No valid '.json' files found`)
 
-      const parsedDtdl = await parse(files)
+      const parsedDtdl = await parser.parse(files)
       const output = await generator.run(parsedDtdl, 'flowchart', 'elk')
 
       const id = await modelDb.insertModel(`default`, output.renderForMinimap(), 'default', null, null, files)

@@ -3,7 +3,7 @@ import { Get, Post, Produces, Query, Request, Route, SuccessResponse, UploadedFi
 import { inject, injectable } from 'tsyringe'
 
 import { UploadError } from '../errors.js'
-import { parse, unzipJsonFiles } from '../utils/dtdl/parse.js'
+import Parser from '../utils/dtdl/parser.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
@@ -21,6 +21,7 @@ export class OpenOntologyController extends HTMLController {
     private modelDb: ModelDb,
     private generator: SvgGenerator,
     private openOntologyTemplates: OpenOntologyTemplates,
+    private parser: Parser,
     @inject(Logger) private logger: ILogger,
     @inject(Cache) private cache: ICache
   ) {
@@ -50,11 +51,11 @@ export class OpenOntologyController extends HTMLController {
       throw new UploadError('File must be a .zip')
     }
 
-    const files = await unzipJsonFiles(Buffer.from(file.buffer))
+    const files = await this.parser.unzipJsonFiles(Buffer.from(file.buffer))
 
     if (files.length === 0) throw new UploadError(`No valid '.json' files found`)
 
-    const parsedDtdl = await parse(files)
+    const parsedDtdl = await this.parser.parse(files)
     const output = await this.generator.run(parsedDtdl, 'flowchart', 'elk')
     const id = await this.modelDb.insertModel(file.originalname, output.renderForMinimap(), 'zip', null, null, files)
 

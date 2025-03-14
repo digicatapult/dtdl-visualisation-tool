@@ -4,13 +4,16 @@ import { InternalError } from '../server/errors.js'
 import { FileSourceKeys } from '../server/models/openTypes.js'
 import { type UUID } from '../server/models/strings.js'
 import { allInterfaceFilter } from '../server/utils/dtdl/extract.js'
-import { parse, type File } from '../server/utils/dtdl/parse.js'
+import Parser from '../server/utils/dtdl/parser.js'
 import Database from './index.js'
-import { ModelRow } from './types.js'
+import { DtdlFile, ModelRow } from './types.js'
 
 @singleton()
 export class ModelDb {
-  constructor(private db: Database) {}
+  constructor(
+    private db: Database,
+    private parser: Parser
+  ) {}
 
   async getModelById(id: UUID): Promise<ModelRow> {
     const [model] = await this.db.get('model', { id })
@@ -33,7 +36,7 @@ export class ModelDb {
     source: FileSourceKeys,
     owner: string | null,
     repo: string | null,
-    files: File[]
+    files: DtdlFile[]
   ): Promise<UUID> {
     return this.db.withTransaction(async (db) => {
       const [{ id }] = await db.insert('model', {
@@ -53,7 +56,11 @@ export class ModelDb {
 
   async getDtdlModel(id: UUID): Promise<DtdlObjectModel> {
     const files = await this.db.get('dtdl', { model_id: id })
-    const parsedDtdl = await parse(files.map((file) => ({ path: file.path, contents: JSON.stringify(file.contents) })))
+    if (files.length === 0) throw new InternalError(`Failed to find model: ${id}`)
+
+    const parsedDtdl = await this.parser.parse(
+      files.map((file) => ({ path: file.path, contents: JSON.stringify(file.contents) }))
+    )
     return parsedDtdl
   }
 

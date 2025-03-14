@@ -40,6 +40,10 @@ export type ModelRow = z.infer<typeof Zod.model.get>
 
 export type InsertDtdl = z.infer<typeof Zod.dtdl.insert>
 export type DtdlRow = z.infer<typeof Zod.dtdl.get>
+export type DtdlFile = {
+  path: string
+  contents: string
+}
 
 export type TABLES_TUPLE = typeof tablesList
 export type TABLE = TABLES_TUPLE[number]

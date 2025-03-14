@@ -132,7 +132,7 @@ export class GithubRequest {
     return response.data as ArrayBuffer
   }
 
-  private async requestWrapper<T>(request: () => Promise<T>): Promise<T> {
+  public async requestWrapper<T>(request: () => Promise<T>): Promise<T> {
     try {
       return await request()
     } catch (err) {
