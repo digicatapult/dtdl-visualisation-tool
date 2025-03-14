@@ -25,7 +25,7 @@ export default class OpenOntologyTemplates {
           <a href="/">
             <h2>UKDTC</h2>
           </a>
-          <div>v{version}</div>
+          <div>v{escapeHtml(version)}</div>
         </section>
         <div id="main-view">
           <h1>Open Ontology</h1>
