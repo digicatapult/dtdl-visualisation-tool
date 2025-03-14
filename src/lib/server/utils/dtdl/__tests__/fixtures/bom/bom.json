@@ -1,0 +1,5 @@
+﻿{
+  "@context": ["dtmi:dtdl:context;3"],
+  "@id": "dtmi:com:one;1",
+  "@type": "Interface"
+}

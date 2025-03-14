@@ -60,8 +60,12 @@ test.describe('highlight', () => {
 
   test('class diagram - relationship should change to highlight colour and navigation panel open', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 })
+
     await page.goto('./?diagramType=classDiagram')
 
+    for (let i = 0; i < 10; i++) {
+      await page.locator('#zoom-out').click()
+    }
     await waitForUpdateLayout(page, () =>
       page.locator('#mermaid-output').getByText('memberOfSubstation', { exact: true }).click()
     )

@@ -8,10 +8,11 @@ import { Command } from 'commander'
 import { container } from 'tsyringe'
 import Database from './lib/db/index.js'
 import { ModelDb } from './lib/db/modelDb.js'
+import { setCacheWithDefaultParams } from './lib/server/controllers/helpers.js'
 import { httpServer } from './lib/server/index.js'
 import { logger } from './lib/server/logger.js'
 import { Cache, ICache } from './lib/server/utils/cache.js'
-import { parseAndInsertDtdl } from './lib/server/utils/dtdl/parse.js'
+import Parser from './lib/server/utils/dtdl/parser.js'
 import { SvgGenerator } from './lib/server/utils/mermaid/generator.js'
 import version from './version.js'
 
@@ -36,18 +37,35 @@ program
     const db = container.resolve(Database)
     const generator = container.resolve(SvgGenerator)
     const cache = container.resolve<ICache>(Cache)
+    const parser = container.resolve(Parser)
     logger.info(`Loading default model`)
 
-    const modelDb = new ModelDb(db)
+    const modelDb = new ModelDb(db, parser)
     container.register(ModelDb, {
       useValue: modelDb,
     })
 
-    if (!options.path && !(await modelDb.getDefaultModel())) {
+    const currentDefault = await modelDb.getDefaultModel()
+
+    if (!options.path && !currentDefault) {
       logger.error(`No default model found, please run with '-p <PATH_TO_MODEL>' `)
       process.exit(1)
-    } else if (options.path)
-      await parseAndInsertDtdl(modelDb, options.path, `default`, generator, false, cache, 'default')
+    }
+
+    if (currentDefault) {
+      const parsedDtdl = await modelDb.getDtdlModel(currentDefault.id)
+      const output = await generator.run(parsedDtdl, 'flowchart', 'elk')
+      setCacheWithDefaultParams(cache, currentDefault.id, output)
+    } else {
+      const files = await parser.getJsonFiles(options.path)
+      if (files.length === 0) throw new Error(`No valid '.json' files found`)
+
+      const parsedDtdl = await parser.parse(files)
+      const output = await generator.run(parsedDtdl, 'flowchart', 'elk')
+
+      const id = await modelDb.insertModel(`default`, output.renderForMinimap(), 'default', null, null, files)
+      setCacheWithDefaultParams(cache, id, output)
+    }
 
     logger.info(`Complete`)
 

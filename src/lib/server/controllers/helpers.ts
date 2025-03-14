@@ -3,8 +3,10 @@ import { ModelDb } from '../../db/modelDb'
 import { ILogger } from '../logger'
 import { CookieHistoryParams, GenerateParams, relevantParams } from '../models/controllerTypes.js'
 import { modelHistoryCookie } from '../models/cookieNames.js'
-import { RecentFile } from '../models/openTypes'
+import { RecentFile } from '../models/openTypes.js'
+import { MermaidSvgRender, PlainTextRender } from '../models/renderedDiagram'
 import { UUID } from '../models/strings'
+import { ICache } from '../utils/cache'
 
 const formatLastVisited = (timestamp: number): string => {
   const date = new Date(timestamp)
@@ -66,4 +68,9 @@ export const dtdlCacheKey = (dtdlModelId: UUID, queryParams?: GenerateParams): s
 
   searchParams.sort()
   return searchParams.toString()
+}
+
+export const setCacheWithDefaultParams = (cache: ICache, id: UUID, output: MermaidSvgRender | PlainTextRender) => {
+  const defaultParams: GenerateParams = { layout: 'elk', diagramType: 'flowchart', expandedIds: [], search: '' }
+  cache.set(dtdlCacheKey(id, defaultParams), output)
 }

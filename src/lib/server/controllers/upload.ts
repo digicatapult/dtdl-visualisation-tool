@@ -1,13 +1,9 @@
-import { mkdtemp } from 'node:fs/promises'
-import os from 'node:os'
-
 import express from 'express'
-import { join } from 'node:path'
 import { Get, Post, Produces, Query, Request, Route, SuccessResponse, UploadedFile } from 'tsoa'
 import { inject, injectable } from 'tsyringe'
-import unzipper from 'unzipper'
+
 import { UploadError } from '../errors.js'
-import { parseAndInsertDtdl } from '../utils/dtdl/parse.js'
+import Parser from '../utils/dtdl/parser.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
@@ -15,7 +11,7 @@ import { ModelDb } from '../../db/modelDb.js'
 import { Logger, type ILogger } from '../logger.js'
 import { Cache, type ICache } from '../utils/cache.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
-import { recentFilesFromCookies } from './helpers.js'
+import { recentFilesFromCookies, setCacheWithDefaultParams } from './helpers.js'
 
 @injectable()
 @Route('/open')
@@ -25,6 +21,7 @@ export class OpenOntologyController extends HTMLController {
     private modelDb: ModelDb,
     private generator: SvgGenerator,
     private openOntologyTemplates: OpenOntologyTemplates,
+    private parser: Parser,
     @inject(Logger) private logger: ILogger,
     @inject(Cache) private cache: ICache
   ) {
@@ -54,34 +51,17 @@ export class OpenOntologyController extends HTMLController {
       throw new UploadError('File must be a .zip')
     }
 
-    let unzippedPath: string
-    try {
-      unzippedPath = await this.unzip(file.buffer)
-    } catch {
-      throw new UploadError('Uploaded zip file is not valid')
-    }
+    const files = await this.parser.unzipJsonFiles(Buffer.from(file.buffer))
 
-    const id = await parseAndInsertDtdl(
-      this.modelDb,
-      unzippedPath,
-      file.originalname,
-      this.generator,
-      false,
-      this.cache,
-      'zip'
-    )
+    if (files.length === 0) throw new UploadError(`No valid '.json' files found`)
+
+    const parsedDtdl = await this.parser.parse(files)
+    const output = await this.generator.run(parsedDtdl, 'flowchart', 'elk')
+    const id = await this.modelDb.insertModel(file.originalname, output.renderForMinimap(), 'zip', null, null, files)
+
+    setCacheWithDefaultParams(this.cache, id, output)
 
     this.setHeader('HX-Redirect', `/ontology/${id}/view`)
     return
-  }
-
-  public async unzip(file: Buffer): Promise<string> {
-    const directory = await unzipper.Open.buffer(file)
-
-    const tempDir = os.tmpdir()
-    const extractionPath = await mkdtemp(join(tempDir, 'dtdl-'))
-    await directory.extract({ path: extractionPath })
-
-    return extractionPath
   }
 }

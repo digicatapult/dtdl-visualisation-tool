@@ -29,10 +29,10 @@ const clientSingleton = knex({
 export default class Database {
   private db: IDatabase
 
-  constructor() {
+  constructor(private client = clientSingleton) {
     const models: IDatabase = tablesList.reduce((acc, name) => {
       return {
-        [name]: () => clientSingleton(name),
+        [name]: () => this.client(name),
         ...acc,
       }
     }, {}) as IDatabase
@@ -54,7 +54,38 @@ export default class Database {
     return z.array(Zod[model].get).parse(result)
   }
 
+  getJsonb = async <M extends TABLE>(
+    model: M,
+    jsonbProcess: string,
+    column: string,
+    jsonbExpression: string,
+    bindings: string[],
+    where?: Where<M>,
+    limit?: number
+  ): Promise<Models[typeof model]['get'][]> => {
+    let query = this.db[model]()
+
+    const preparedExpression = this.client.raw(jsonbExpression, bindings)
+    query = query.whereRaw(`${jsonbProcess}(??, '??')`, [column, preparedExpression])
+
+    query = reduceWhere(query, where)
+
+    if (limit !== undefined) query = query.limit(limit)
+
+    const result = await query
+    return z.array(Zod[model].get).parse(result)
+  }
+
+  withTransaction = <T>(update: (db: Database) => Promise<T>): Promise<T> => {
+    return this.client.transaction(async (trx) => {
+      const decorated = new Database(trx)
+      return await update(decorated)
+    })
+  }
+
   delete = async <M extends TABLE>(model: M, where: Where<M>): Promise<void> => {
     return this.db[model]().where(where).delete()
   }
 }
+
+container.register(Database, { useValue: new Database() })

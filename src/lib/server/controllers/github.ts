@@ -1,28 +1,20 @@
 import express from 'express'
-import { randomUUID } from 'node:crypto'
-import { mkdtemp, writeFile } from 'node:fs/promises'
-import os from 'node:os'
-import { dirname, join } from 'node:path'
+import { dirname } from 'node:path'
 import { Get, Produces, Query, Request, Route, SuccessResponse } from 'tsoa'
-import { container, inject, injectable } from 'tsyringe'
+import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../db/modelDb.js'
-import { Env } from '../env/index.js'
-import { UploadError } from '../errors.js'
+import { GithubReqError } from '../errors.js'
 import { type ILogger, Logger } from '../logger.js'
 import { octokitTokenCookie } from '../models/cookieNames.js'
 import { ListItem } from '../models/github.js'
 import { type ICache, Cache } from '../utils/cache.js'
-import { parseAndInsertDtdl } from '../utils/dtdl/parse.js'
+import Parser from '../utils/dtdl/parser.js'
 import { GithubRequest, authRedirectURL } from '../utils/githubRequest.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
 import { safeUrl } from '../utils/url.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
-import { recentFilesFromCookies } from './helpers.js'
-
-const env = container.resolve(Env)
-
-const uploadLimit = env.get('UPLOAD_LIMIT_MB') * 1024 * 1024
+import { recentFilesFromCookies, setCacheWithDefaultParams } from './helpers.js'
 
 @injectable()
 @Route('/github')
@@ -33,6 +25,7 @@ export class GithubController extends HTMLController {
     private templates: OpenOntologyTemplates,
     private githubRequest: GithubRequest,
     private generator: SvgGenerator,
+    private parser: Parser,
     @inject(Logger) private logger: ILogger,
     @inject(Cache) private cache: ICache
   ) {
@@ -216,58 +209,26 @@ export class GithubController extends HTMLController {
       return
     }
 
-    const tmpDir = await mkdtemp(join(os.tmpdir(), 'dtdl-'))
+    const zippedBranch = await this.githubRequest.getZip(octokitToken, owner, repo, ref)
+    const files = await this.parser.unzipJsonFiles(Buffer.from(zippedBranch), path)
 
-    const totalUploaded = { total: 0 }
-    await this.fetchFiles(octokitToken, tmpDir, owner, repo, path, ref, totalUploaded)
+    if (files.length === 0) throw new GithubReqError(`No valid '.json' files found`)
 
-    if (totalUploaded.total === 0) {
-      throw new UploadError(`No '.json' files found`)
-    }
+    const parsedDtdl = await this.parser.parse(files)
 
-    const id = await parseAndInsertDtdl(
-      this.modelDb,
-      tmpDir,
+    const output = await this.generator.run(parsedDtdl, 'flowchart', 'elk')
+
+    const id = await this.modelDb.insertModel(
       `${owner}/${repo}/${ref}/${path}`,
-      this.generator,
-      false,
-      this.cache,
+      output.renderForMinimap(),
       'github',
       owner,
-      repo
+      repo,
+      files
     )
 
+    setCacheWithDefaultParams(this.cache, id, output)
     this.setHeader('HX-Redirect', `/ontology/${id}/view`)
     return
-  }
-
-  private async fetchFiles(
-    githubToken: string | undefined,
-    tempDir: string,
-    owner: string,
-    repo: string,
-    path: string,
-    ref: string,
-    totalUploadedRef: { total: number }
-  ): Promise<void> {
-    const response = await this.githubRequest.getContents(githubToken, owner, repo, path, ref)
-
-    for (const entry of response) {
-      if (entry.type === 'file' && entry.name.endsWith('.json') && entry.download_url) {
-        const fileResponse = await fetch(entry.download_url)
-        const fileBuffer = await fileResponse.arrayBuffer()
-
-        totalUploadedRef.total += fileBuffer.byteLength
-        if (totalUploadedRef.total > uploadLimit) {
-          throw new UploadError(`Total upload must be less than ${env.get('UPLOAD_LIMIT_MB')}MB`)
-        }
-
-        const filePath = join(tempDir, `${randomUUID()}.json`)
-        this.logger.trace('writing file', entry.name, filePath)
-        await writeFile(filePath, Buffer.from(fileBuffer))
-      } else if (entry.type === 'dir') {
-        await this.fetchFiles(githubToken, tempDir, owner, repo, entry.path, ref, totalUploadedRef)
-      }
-    }
   }
 }
