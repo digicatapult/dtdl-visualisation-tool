@@ -60,6 +60,7 @@ globalThis.setMermaidListeners = function setMermaidListeners() {
     document.getElementById('mermaid-output')?.removeAttribute('pending-listeners')
     return
   }
+  setSizes()
 
   function onPan({ x, y }) {
     document.getElementById('currentPanX')?.setAttribute('value', x)
