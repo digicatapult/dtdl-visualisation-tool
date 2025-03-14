@@ -7,6 +7,8 @@ export class MermaidSvgRender extends RenderedDiagram<'svg'> {
   private jsdom: JSDOM
   private minimapDom: JSDOM
   private svg: Element
+  private svgRawWidth: number | null
+  private svgRawHeight: number | null
   private minimapSvg: Element
   private nodesParent: Element
   private edgesParent: Element
@@ -30,6 +32,9 @@ export class MermaidSvgRender extends RenderedDiagram<'svg'> {
   get edgeLabelsElement() {
     return this.edgeLabelsParent
   }
+  get svgRawSize() {
+    return this.svgRawWidth && this.svgRawHeight ? { width: this.svgRawWidth, height: this.svgRawHeight } : null
+  }
 
   constructor(svgBuffer: Buffer) {
     super()
@@ -43,6 +48,11 @@ export class MermaidSvgRender extends RenderedDiagram<'svg'> {
 
     const keyElements = this.validateSvg(this.jsdom)
     this.svg = keyElements.svg
+
+    const maybeViewBox = this.svg.getAttribute('viewBox')?.split(/\s+/).map(parseFloat)
+    this.svgRawWidth = maybeViewBox?.length === 4 ? maybeViewBox[2] : null
+    this.svgRawHeight = maybeViewBox?.length === 4 ? maybeViewBox[3] : null
+
     this.nodesParent = keyElements.nodes
     this.edgesParent = keyElements.edges
     this.edgeLabelsParent = keyElements.edgeLabels

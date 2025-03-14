@@ -183,6 +183,7 @@ export class OntologyController extends HTMLController {
 
     // get the raw mermaid generated svg
     const output = await this.generateRawOutput(dtdlModelId, filteredModel, newSession)
+    const outputRawSize = output instanceof MermaidSvgRender ? output.svgRawSize : null
 
     // perform out manipulations on the svg
     const { pan, zoom } = this.manipulateOutput(output, dtdlModelId, filteredModel, session, newSession, params)
@@ -220,6 +221,8 @@ export class OntologyController extends HTMLController {
       }),
       this.templates.svgControls({
         swapOutOfBand: true,
+        svgRawHeight: outputRawSize?.height,
+        svgRawWidth: outputRawSize?.width,
         generatedOutput: output.renderForMinimap(),
       })
     )

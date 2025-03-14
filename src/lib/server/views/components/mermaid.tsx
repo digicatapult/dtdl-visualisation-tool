@@ -54,22 +54,34 @@ export default class MermaidTemplates {
       </div>
       <this.Legend showContent={false} />
       <this.navigationPanel expanded={false} />
-      <this.svgControls />
+      <this.svgControls svgRawHeight={svgHeight} svgRawWidth={svgWidth} />
       <this.editToggle canEdit={canEdit} />
     </Page>
   )
 
   public svgControls = ({
     generatedOutput,
+    svgRawWidth,
+    svgRawHeight,
     swapOutOfBand,
   }: {
     generatedOutput?: JSX.Element
+    svgRawWidth?: number
+    svgRawHeight?: number
     swapOutOfBand?: boolean
   }): JSX.Element => {
     const output = generatedOutput ?? ''
     return (
       <div id="svg-controls" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
-        <div id="minimap">{output && <div id="minimap-svg">{output}</div>}</div>
+        <div
+          id="minimap"
+          style={`
+            --svg-raw-width: ${svgRawWidth || 300};
+            --svg-raw-height: ${svgRawHeight || 100};
+          `}
+        >
+          {output && <div id="minimap-svg">{output}</div>}
+        </div>
         <div id="zoom-buttons">
           <button id="zoom-in">+</button>
           <button id="reset-pan-zoom">◯</button>
