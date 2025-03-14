@@ -14,6 +14,9 @@ body {
   margin: 0;
   overflow-x: hidden;
   --background-color: #f5f6fa;
+  --svg-pan-x: 0px;
+  --svg-pan-y: 0px;
+  --svg-zoom: 1;
 }
 
 button.highlighted {
@@ -53,7 +56,7 @@ a:not(.button):focus-visible {
   --navigation-panel-width: 400px;
   --navigation-panel-translate-x: calc(0.9 * var(--navigation-panel-width));
 
-  --transition-duration: 200ms
+  --transition-duration: 200ms;
 }
 
 #search-panel {
@@ -114,9 +117,9 @@ label[for='diagramType'] {
   background-color: #d0d1da;
 
   &::before,
-  &::after{
+  &::after {
     border: 5px solid #00b79b;
-    content: "";
+    content: '';
     position: absolute;
     width: 100%;
     height: 100%;
@@ -225,9 +228,9 @@ label[for='diagramType'] {
 #navigation-panel.edit section h3::after {
   content: url('../images/pencil.svg');
   display: inline-block;
-  width: 25px; 
+  width: 25px;
   height: 25px;
-  margin-left: 5px; 
+  margin-left: 5px;
 }
 
 #svg-controls {
@@ -416,21 +419,43 @@ label[for='diagramType'] {
 }
 
 #minimap {
-  width: 300px;
-  height: 200px;
+  /* minimap width and height in px */
+  --minimap-width: 300;
+  --minimap-height: 200;
+
+  /* calculate the desired and war aspect ratios based on variables */
+  --minimap-raw-svg-aspect-ratio: calc(var(--svg-raw-width) / var(--svg-raw-height));
+  --minimap-desired-aspect-ratio: calc(var(--minimap-width) / var(--minimap-height));
+
+  /* calculate a boolean value (1 or 0) which says if the desired aspect ratio is larger than the raw */
+  --minimap-ratio-diff: calc(var(--minimap-desired-aspect-ratio) - var(--minimap-raw-svg-aspect-ratio));
+  --minimap-ratio-diff-abs: max(var(--minimap-ratio-diff), -1 * var(--minimap-ratio-diff));
+  --minimap-ratios-compare: clamp(0, calc(var(--minimap-ratio-diff) / var(--minimap-ratio-diff-abs)), 1);
+
+  /* scale factor between aspect ratios. This will be used to scale the oversized dimension of the raw svg compared to the desired  */
+  --minimap-scale-factor: calc(var(--minimap-raw-svg-aspect-ratio) / var(--minimap-desired-aspect-ratio));
+
+  width: calc(var(--minimap-width) * 1px);
+  height: calc(var(--minimap-height) * 1px);
   border: 2px solid #646464;
   background-color: white;
   position: relative;
   overflow: hidden;
-  display: grid;
-  justify-items: center;
-  align-items: center;
+  padding: 5px;
+  align-content: center;
 }
 
 #minimap-svg {
-  width: var(--minimap-svg-width);
-  height: var(--minimap-svg-height);
+  /* based on the ratio comparison scale either the width or the height based on the scale factor. The other is set to 100% */
+  width: calc(
+    var(--minimap-ratios-compare) * var(--minimap-scale-factor) * 100% + (1 - var(--minimap-ratios-compare)) * 100%
+  );
+  height: calc(
+    var(--minimap-ratios-compare) * 100% + ((1 - var(--minimap-ratios-compare)) / var(--minimap-scale-factor)) * 100%
+  );
+
   position: relative;
+  margin-inline: auto;
 }
 
 #minimap-svg > #mermaid-svg {
@@ -441,10 +466,10 @@ label[for='diagramType'] {
 #minimap-svg::after {
   content: '';
   position: absolute;
-  top: var(--minimap-lens-top);
-  left: var(--minimap-lens-left);
-  width: var(--minimap-lens-width);
-  height: var(--minimap-lens-height);
+  top: calc(-100% * var(--svg-pan-y) / var(--svg-zoom) / var(--svg-raw-height));
+  left: calc(-100% * var(--svg-pan-x) / var(--svg-zoom) / var(--svg-raw-width));
+  width: calc(100% * var(--svg-width) / var(--svg-zoom) / var(--svg-raw-width));
+  height: calc(100% * var(--svg-height) / var(--svg-zoom) / var(--svg-raw-height));
   border: 2px solid red;
   background-color: rgba(255, 0, 0, 0.1);
 }
@@ -638,12 +663,12 @@ label[for='diagramType'] {
   right: 0;
   bottom: 0;
   background-color: #e6e6e6;
-  transition: .4s;
+  transition: 0.4s;
   border-radius: 25px;
 }
 #edit-toggle .slider:before {
   position: absolute;
-  content: "";
+  content: '';
   height: 25px;
   width: 25px;
   bottom: -5px;
