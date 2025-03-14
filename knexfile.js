@@ -31,7 +31,7 @@ const config = {
       database: process.env.DB_NAME,
     },
     migrations: {
-      directory: './build/src/lib/db/migrations',
+      directory: './build/lib/db/migrations',
     },
   },
 }
