@@ -21,11 +21,30 @@ globalThis.toggleEditSwitch = (event) => {
   document.getElementById('navigation-panel').classList.toggle('edit', isChecked)
 }
 
-globalThis.getOwnerRepoFromInput = (event) => {
-  const input = event.target.value.trim()
+globalThis.getOwnerRepoFromInput = () => {
+  // Not passing in event as not all triggers produce HX-Events
+  const input = document.getElementById('public-github-input').value.trim()
   const match = input.match(/^(?:https:\/\/(?:www\.)?github\.com\/)?([a-zA-Z0-9-_\.]+)\/([a-zA-Z0-9-_\.]+)(?:\/.*)?$/)
   return match ? { owner: match[1], repo: match[2] } : { owner: undefined, repo: undefined }
 }
+
+globalThis.validatePublicRepoInput = (e) => {
+  const { owner, repo } = globalThis.getOwnerRepoFromInput()
+  if (!owner || !repo) {
+    e.setCustomValidity("invalid owner/repo combination or url")
+  } else {
+    e.setCustomValidity("")
+  }
+  e.reportValidity()
+}
+
+htmx.on('htmx:beforeSwap', (e) => {
+  if (e.detail.pathInfo.requestPath === '/github/branches?page=1') {
+    if (e.detail.xhr.status === 400 && e.detail.requestConfig.triggeringEvent.type !== 'keyup') {
+      e.preventDefault()
+    }
+  }
+})
 
 htmx.on('htmx:load', (e) => {
   if (e?.detail.elt.baseURI.includes('github/picker')) {
@@ -65,13 +84,14 @@ globalThis.setMermaidListeners = function setMermaidListeners() {
   function onPan({ x, y }) {
     document.getElementById('currentPanX')?.setAttribute('value', x)
     document.getElementById('currentPanY')?.setAttribute('value', y)
-    setMinimap()
+    document.body.style.setProperty('--svg-pan-x', x)
+    document.body.style.setProperty('--svg-pan-y', y)
   }
 
   function onZoom(newZoom) {
     document.getElementById('currentZoom')?.setAttribute('value', newZoom)
+    document.body.style.setProperty('--svg-zoom', newZoom)
     onPan(panZoom.getPan())
-    setMinimap()
   }
 
   panZoom = svgPanZoom('#mermaid-svg', {
@@ -79,11 +99,17 @@ globalThis.setMermaidListeners = function setMermaidListeners() {
     minZoom: -100,
   })
 
-  panZoom.zoom(valueFromElementOrDefault('currentZoom', 1))
-  panZoom.pan({
+  const initZoom = valueFromElementOrDefault('currentZoom', 1)
+  const initPan = {
     x: valueFromElementOrDefault('currentPanX', 0),
     y: valueFromElementOrDefault('currentPanY', 0),
-  })
+  }
+  panZoom.zoom(initZoom)
+  panZoom.pan(initPan)
+  document.body.style.setProperty('--svg-zoom', initZoom)
+  document.body.style.setProperty('--svg-pan-x', initPan.x)
+  document.body.style.setProperty('--svg-pan-y', initPan.y)
+
   panZoom.setOnPan(onPan)
   panZoom.setOnZoom(onZoom)
 
@@ -121,74 +147,51 @@ function setSizes() {
   const boundingRec = wrapper.getBoundingClientRect()
   document.getElementById('svgWidth')?.setAttribute('value', `${boundingRec.width}`)
   document.getElementById('svgHeight')?.setAttribute('value', `${boundingRec.height}`)
+  document.body.style.setProperty('--svg-width', boundingRec.width)
+  document.body.style.setProperty('--svg-height', boundingRec.height)
 
   const svg = document.querySelector('#mermaid-output #mermaid-svg')
   svg?.setAttribute('viewBox', `0 0 ${boundingRec.width} ${boundingRec.height}`)
   svg?.setAttribute('width', `${boundingRec.width}`)
   svg?.setAttribute('height', `${boundingRec.height}`)
-
-  setMinimap()
 }
 
 function setMinimap() {
-  const contentMain = document.querySelector('#content-main')
-  const mainSvg = document.querySelector('#mermaid-output #mermaid-svg')
-  const mainViewport = document.querySelector('#mermaid-output .svg-pan-zoom_viewport')
   const minimap = document.getElementById('minimap')
-
-  if (!(contentMain && mainSvg && mainViewport && minimap)) return
-
-  const minimapStyles = window.getComputedStyle(minimap)
-  const desiredAspectRatio = parseFloat(minimapStyles.width) / parseFloat(minimapStyles.height)
-
-  const { width: viewportSvgWidth, height: viewportSvgHeight } = mainSvg.getBoundingClientRect()
-  const { width: rawSvgWidth, height: rawSvgHeight } = mainViewport.getBBox()
-
-  const actualAspectRatio = rawSvgWidth / rawSvgHeight // aspect ratio of the generated svg
-  const scaleFactor = actualAspectRatio / desiredAspectRatio
-
-  // make the minimap svg as big as possible within bounds of the minimap
-  const minimapSvgWidth = actualAspectRatio < desiredAspectRatio ? 100 * scaleFactor : 100
-  const minimapSvgHeight = actualAspectRatio < desiredAspectRatio ? 100 : 100 / scaleFactor
-
-  contentMain.style.setProperty('--minimap-svg-width', `${minimapSvgWidth}%`)
-  contentMain.style.setProperty('--minimap-svg-height', `${minimapSvgHeight}%`)
-
-  const zoomScale = panZoom.getZoom()
-  const { x, y } = panZoom.getPan()
-
-  // invert translations, positive translation of svg means negative translation of lens
-  const translateX = x * -1
-  const translateY = y * -1
-
-  const lensWidth = `${(viewportSvgWidth / zoomScale / rawSvgWidth) * 100}%`
-  const lensHeight = `${(viewportSvgHeight / zoomScale / rawSvgHeight) * 100}%`
-  const lensLeft = `${(translateX / zoomScale / rawSvgWidth) * 100}%`
-  const lensTop = `${(translateY / zoomScale / rawSvgHeight) * 100}%`
-
-  contentMain.style.setProperty('--minimap-lens-width', lensWidth)
-  contentMain.style.setProperty('--minimap-lens-height', lensHeight)
-  contentMain.style.setProperty('--minimap-lens-left', lensLeft)
-  contentMain.style.setProperty('--minimap-lens-top', lensTop)
-
-  const minimapSvg = document.getElementById('minimap-svg')
-  if (!minimap || !minimapSvg) return
+  if (!minimap) {
+    return
+  }
 
   minimap.onclick = (event) => {
+    const minimapSvg = document.getElementById('minimap-svg')
+    const mainSvg = document.querySelector('#mermaid-output #mermaid-svg')
+    if (!minimapSvg || !mainSvg || !panZoom) {
+      return
+    }
+
+    const styles = window.getComputedStyle(minimapSvg, null)
+    const zoomScale = parseFloat(styles.getPropertyValue('--svg-zoom') || 'NaN')
+    const rawSvgWidth = parseFloat(styles.getPropertyValue('--svg-raw-width') || 'NaN')
+    const rawSvgHeight = parseFloat(styles.getPropertyValue('--svg-raw-height') || 'NaN')
+    if (isNaN(zoomScale) || isNaN(rawSvgWidth) || isNaN(rawSvgHeight)) {
+      return
+    }
+
     // compute click coordinates relative to the svg
     const { left, top, width: svgWidth, height: svgHeight } = minimapSvg.getBoundingClientRect()
+    const { width: viewportSvgWidth, height: viewportSvgHeight } = mainSvg.getBoundingClientRect()
+
     const x = event.clientX - left
     const y = event.clientY - top
 
     const percentX = x / svgWidth
     const percentY = y / svgHeight
+    // offset in viewport space so centre of lens moves to click coords
+    const viewportSvgCenterX = viewportSvgWidth / 2
+    const viewportSvgCenterY = viewportSvgHeight / 2
 
-    // offset so centre of lens moves to click coords
-    const percentCentreOffsetX = viewportSvgWidth / rawSvgWidth / zoomScale / 2
-    const percentCentreOffsetY = viewportSvgHeight / rawSvgHeight / zoomScale / 2
-
-    const targetX = (percentX - percentCentreOffsetX) * rawSvgWidth * zoomScale * -1
-    const targetY = (percentY - percentCentreOffsetY) * rawSvgHeight * zoomScale * -1
+    const targetX = viewportSvgCenterX - percentX * rawSvgWidth * zoomScale
+    const targetY = viewportSvgCenterY - percentY * rawSvgHeight * zoomScale
 
     panZoom.pan({ x: targetX, y: targetY })
   }

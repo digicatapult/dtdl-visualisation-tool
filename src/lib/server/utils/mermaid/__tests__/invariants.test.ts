@@ -27,6 +27,12 @@ describe('Mermaid Invariants', function () {
       mermaidRender = render
     })
 
+    it('should set a viewBox with a width and height that are valid positive numbers', function () {
+      const size = mermaidRender.svgRawSize
+      expect(size?.width).be.greaterThan(0)
+      expect(size?.height).be.greaterThan(0)
+    })
+
     it('should set element ids based on node ids', function () {
       const ids = mermaidRender.mapGraphNodes((node) => node.id).sort()
       expect(ids).to.deep.equal([
@@ -175,6 +181,12 @@ describe('Mermaid Invariants', function () {
         expect.fail('Expected a MermaidSvgRender')
       }
       mermaidRender = render
+    })
+
+    it('should set a viewBox with a width and height that are valid positive numbers', function () {
+      const size = mermaidRender.svgRawSize
+      expect(size?.width).be.greaterThan(0)
+      expect(size?.height).be.greaterThan(0)
     })
 
     it('should set element ids based on node ids', function () {
