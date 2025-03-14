@@ -2,6 +2,7 @@
 
 import { escapeHtml } from '@kitajs/html'
 import { singleton } from 'tsyringe'
+import version from '../../../../version.js'
 import { ListItem } from '../../models/github.js'
 import { RecentFile } from '../../models/openTypes.js'
 import { Page } from '../common.js'
@@ -24,6 +25,7 @@ export default class OpenOntologyTemplates {
           <a href="/">
             <h2>UKDTC</h2>
           </a>
+          <div>v{escapeHtml(version)}</div>
         </section>
         <div id="main-view">
           <h1>Open Ontology</h1>
