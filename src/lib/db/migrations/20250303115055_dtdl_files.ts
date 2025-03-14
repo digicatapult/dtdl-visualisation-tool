@@ -1,5 +1,5 @@
 import { Knex } from 'knex'
-import { fileSource } from '../../server/models/openTypes'
+import { fileSource } from '../../server/models/openTypes.js'
 
 export async function up(knex: Knex): Promise<void> {
   const now = () => knex.fn.now()
