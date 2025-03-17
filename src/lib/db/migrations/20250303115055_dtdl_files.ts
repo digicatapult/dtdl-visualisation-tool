@@ -26,9 +26,7 @@ export async function up(knex: Knex): Promise<void> {
     def.foreign('model_id').references('id').inTable('model').onDelete('CASCADE').onUpdate('CASCADE')
   })
 
-  await knex.schema.raw(`
-    CREATE INDEX dtdl_contents_gin ON dtdl USING GIN (contents jsonb_path_ops);
-  `)
+  await knex.schema.raw(`CREATE INDEX dtdl_model_id_idx ON dtdl (model_id);`)
 }
 
 export async function down(knex: Knex): Promise<void> {

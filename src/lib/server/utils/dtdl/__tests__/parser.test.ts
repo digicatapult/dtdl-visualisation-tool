@@ -6,6 +6,7 @@ import Parser from '../parser.js'
 
 import { expect } from 'chai'
 import { readFile } from 'node:fs/promises'
+import { mockLogger } from '../../../controllers/__tests__/helpers.js'
 import { DataError } from '../../../errors.js'
 import bom from './fixtures/bom/bom.json' assert { type: 'json' }
 import nestedTwo from './fixtures/nestedDtdl/nested/two.json' assert { type: 'json' }
@@ -15,7 +16,7 @@ import valid from './fixtures/someInvalid/valid.json' assert { type: 'json' }
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const parser = new Parser()
+const parser = new Parser(mockLogger)
 
 describe('getJsonfiles', function () {
   test('nested directories', async () => {
