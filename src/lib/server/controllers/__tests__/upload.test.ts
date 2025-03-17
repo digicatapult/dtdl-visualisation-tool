@@ -4,8 +4,10 @@ import { readFileSync } from 'fs'
 import { describe, it } from 'mocha'
 import path from 'path'
 import sinon from 'sinon'
-import { DataError, UploadError } from '../../errors.js'
+import { UploadError } from '../../errors.js'
 import { modelHistoryCookie } from '../../models/cookieNames.js'
+import Parser from '../../utils/dtdl/parser.js'
+import { simpleMockDtdlObjectModel } from '../../utils/mermaid/__tests__/fixtures.js'
 import { OpenOntologyController } from '../upload.js'
 import {
   mockCache,
@@ -24,11 +26,19 @@ const { expect } = chai
 const __filename = new URL(import.meta.url).pathname
 const __dirname = path.dirname(__filename)
 
+const unzipJsonFilesStub = sinon.stub()
+
+export const mockParser = {
+  parse: sinon.stub().resolves(simpleMockDtdlObjectModel),
+  unzipJsonFiles: unzipJsonFilesStub,
+} as unknown as Parser
+
 describe('OpenOntologyController', async () => {
   const controller = new OpenOntologyController(
     simpleMockModelDb,
     mockGenerator,
     openOntologyMock,
+    mockParser,
     mockLogger,
     mockCache
   )
@@ -91,18 +101,19 @@ describe('OpenOntologyController', async () => {
 
   describe('zip upload', () => {
     it('should insert to db and redirect to view on success', async () => {
+      unzipJsonFilesStub.resolves([{ path: '', contents: '' }])
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
-      const insertModelDb = sinon.spy(simpleMockModelDb, 'insertModel')
-      const originalname = 'test.zip'
+      const insertModel = sinon.spy(simpleMockModelDb, 'insertModel')
       const mockFile = {
         mimetype: 'application/zip',
         buffer: readFileSync(path.resolve(__dirname, './simple.zip')),
-        originalname,
+        originalname: 'test.zip',
       }
       await controller.uploadZip(mockFile as Express.Multer.File)
       const hxRedirectHeader = setHeaderSpy.firstCall.args[1]
 
-      expect(insertModelDb.calledOnce).to.equal(true)
+      // assert model and file inserted
+      expect(insertModel.calledOnce).to.equal(true)
       expect(hxRedirectHeader).to.equal(`/ontology/1/view`)
     })
 
@@ -117,26 +128,17 @@ describe('OpenOntologyController', async () => {
       )
     })
 
-    it('should handle unzipping error', async () => {
-      sinon.stub(controller, 'unzip').throws(new Error('Mock error'))
+    it('should throw error if no json files found', async () => {
+      unzipJsonFilesStub.resolves([])
       const mockFile = {
         mimetype: 'application/zip',
         buffer: readFileSync(path.resolve(__dirname, './simple.zip')),
+        originalname: 'test.zip',
       }
+
       await expect(controller.uploadZip(mockFile as Express.Multer.File)).to.be.rejectedWith(
         UploadError,
-        'Uploaded zip file is not valid'
-      )
-    })
-
-    it('should error on bad DTDL', async () => {
-      const mockFile = {
-        mimetype: 'application/zip',
-        buffer: readFileSync(path.resolve(__dirname, './error.zip')),
-      }
-      await expect(controller.uploadZip(mockFile as Express.Multer.File)).to.be.rejectedWith(
-        DataError,
-        'Failed to parse DTDL model'
+        `No valid '.json' files found`
       )
     })
   })

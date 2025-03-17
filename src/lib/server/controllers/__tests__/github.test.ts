@@ -4,12 +4,15 @@ import { describe, it } from 'mocha'
 import sinon from 'sinon'
 import { container } from 'tsyringe'
 
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 import { Env } from '../../env/index.js'
-import { UploadError } from '../../errors.js'
+import { GithubReqError } from '../../errors.js'
 import { octokitTokenCookie } from '../../models/cookieNames.js'
 import { OAuthToken } from '../../models/github.js'
-import { parseAndInsertDtdl } from '../../utils/dtdl/parse.js'
+import Parser from '../../utils/dtdl/parser.js'
 import { GithubRequest } from '../../utils/githubRequest.js'
+import { simpleMockDtdlObjectModel } from '../../utils/mermaid/__tests__/fixtures.js'
 import { GithubController } from '../github.js'
 import {
   mockCache,
@@ -24,6 +27,9 @@ import {
 chai.use(chaiAsPromised)
 const { expect } = chai
 
+const __filename = new URL(import.meta.url).pathname
+const __dirname = path.dirname(__filename)
+
 const env = container.resolve(Env)
 
 const mockOwner = 'owner'
@@ -31,7 +37,7 @@ const mockRepo = 'repo'
 const mockFullName = `${mockOwner}/${mockRepo}`
 const mockBranch = 'branch'
 const mockRootPath = '.'
-const mockFile = 'someFile.json'
+const mockFileName = 'someFile.json'
 const mockDir = 'someDir'
 const mockDirPath = 'dir'
 
@@ -64,10 +70,10 @@ const branches = [
 
 const contents = [
   {
-    name: mockFile,
-    path: 'file.json',
+    name: mockFileName,
+    path: mockFileName,
     type: 'file',
-    download_url: 'https://raw.githubusercontent.com/file.json',
+    download_url: `https://raw.githubusercontent.com/${mockFileName}`,
   },
   {
     name: mockDir,
@@ -78,19 +84,12 @@ const contents = [
 
 const nestedContents = [
   {
-    name: mockFile,
-    path: `${mockDirPath}/file.json`,
+    name: mockFileName,
+    path: `${mockDirPath}/${mockFileName}`,
     type: 'file',
-    download_url: `https://raw.githubusercontent.com/${mockDirPath}/file.json`,
+    download_url: `https://raw.githubusercontent.com/${mockDirPath}/${mockFileName}`,
   },
 ]
-
-const dtdl = (id: string) =>
-  JSON.stringify({
-    '@context': ['dtmi:dtdl:context;3'],
-    '@id': `dtmi:com:${id};1`,
-    '@type': 'Interface',
-  })
 
 const cookie = { [octokitTokenCookie]: 'someToken' }
 
@@ -101,7 +100,15 @@ export const mockGithubRequest = {
   getBranches: () => Promise.resolve(branches),
   getContents: getContentsStub,
   getAccessToken: () => Promise.resolve(token),
+  getZip: () => Promise.resolve(readFileSync(path.resolve(__dirname, './simple.zip'))),
 } as unknown as GithubRequest
+
+const unzipJsonFilesStub = sinon.stub()
+
+export const mockParser = {
+  parse: sinon.stub().resolves(simpleMockDtdlObjectModel),
+  unzipJsonFiles: unzipJsonFilesStub,
+} as unknown as Parser
 
 describe('GithubController', async () => {
   const controller = new GithubController(
@@ -109,6 +116,7 @@ describe('GithubController', async () => {
     openOntologyMock,
     mockGithubRequest,
     mockGenerator,
+    mockParser,
     mockLogger,
     mockCache
   )
@@ -152,6 +160,7 @@ describe('GithubController', async () => {
   describe('/callback', () => {
     it('should set cookie and redirect to return url from session', async () => {
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
+
       const req = mockReqWithCookie({})
       const returnUrl = 'return.url'
 
@@ -236,7 +245,7 @@ describe('GithubController', async () => {
 
       expect(html).to.equal(
         [
-          `githubListItems_📄 ${mockFile}_${onClickLinkFile}_📂 ${mockDir}_${onClickLinkDir}_${nextPageLink}_${backLink}_githubListItems`,
+          `githubListItems_📄 ${mockFileName}_${onClickLinkFile}_📂 ${mockDir}_${onClickLinkDir}_${nextPageLink}_${backLink}_githubListItems`,
           `selectFolder_${selectFolderLink}_true_selectFolder`,
         ].join('')
       )
@@ -258,7 +267,7 @@ describe('GithubController', async () => {
 
       expect(html).to.equal(
         [
-          `githubListItems_📄 ${mockFile}_${onClickLinkFile}_${nextPageLink}_${backLink}_githubListItems`,
+          `githubListItems_📄 ${mockFileName}_${onClickLinkFile}_${nextPageLink}_${backLink}_githubListItems`,
           `selectFolder_${selectFolderLink}_true_selectFolder`,
         ].join('')
       )
@@ -273,51 +282,23 @@ describe('GithubController', async () => {
 
   describe('/directory', () => {
     it('should insert and redirect to valid ontology', async () => {
-      sinon.stub(parseAndInsertDtdl)
+      unzipJsonFilesStub.resolves([{ path: '', contents: '' }])
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
-      const insertDb = sinon.spy(simpleMockModelDb, 'insertModel')
-
-      // get root then nested contents
-      getContentsStub.onCall(0).resolves(contents)
-      getContentsStub.onCall(1).resolves(nestedContents)
-
-      // mock file download
-      const fetchStub = sinon.stub(global, 'fetch')
-      fetchStub.onCall(0).resolves({
-        arrayBuffer: () => Promise.resolve(Buffer.from(dtdl('example0'))),
-      } as unknown as Response)
-      fetchStub.onCall(1).resolves({
-        arrayBuffer: () => Promise.resolve(Buffer.from(dtdl('example1'))),
-      } as unknown as Response)
+      const insertModel = sinon.spy(simpleMockModelDb, 'insertModel')
 
       await controller.directory(mockOwner, mockRepo, mockRootPath, mockBranch, mockReqWithCookie(cookie))
 
-      expect(insertDb.calledOnce).to.equal(true)
+      // assert model and file inserted
+      expect(insertModel.calledOnce).to.equal(true)
+
       expect(setHeaderSpy.calledWith('HX-Redirect', `/ontology/1/view`)).to.equal(true)
     })
 
     it('should throw error if no json files found', async () => {
-      getContentsStub.resolves([])
+      unzipJsonFilesStub.resolves([])
       await expect(controller.directory('', '', '', '', mockReqWithCookie(cookie))).to.be.rejectedWith(
-        UploadError,
-        `No '.json' files found`
-      )
-    })
-
-    it('should throw error if sum of file sizes is over upload size limit', async () => {
-      // get root then nested contents
-      getContentsStub.onCall(0).resolves(contents)
-      getContentsStub.onCall(1).resolves(nestedContents)
-
-      const fileSize = (env.get('UPLOAD_LIMIT_MB') / 2) * 1024 * 1024 + 1 // two files of this size is just over limit
-
-      sinon.stub(global, 'fetch').resolves({
-        arrayBuffer: () => Promise.resolve(new ArrayBuffer(fileSize)),
-      } as unknown as Response)
-
-      await expect(controller.directory('', '', '', '', mockReqWithCookie(cookie))).to.be.rejectedWith(
-        UploadError,
-        `Total upload must be less than ${env.get('UPLOAD_LIMIT_MB')}MB`
+        GithubReqError,
+        `No valid '.json' files found`
       )
     })
   })

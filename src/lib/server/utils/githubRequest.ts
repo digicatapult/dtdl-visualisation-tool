@@ -110,7 +110,29 @@ export class GithubRequest {
     return false
   }
 
-  private async requestWrapper<T>(request: () => Promise<T>): Promise<T> {
+  getZip = async (token: string | undefined, owner: string, repo: string, ref: string) => {
+    if (!token) throw new GithubReqError('Missing GitHub token')
+
+    const octokit = new Octokit({ auth: token })
+
+    const response = await this.requestWrapper(async () =>
+      octokit.request('GET /repos/{owner}/{repo}/zipball/{ref}', {
+        owner,
+        repo,
+        ref,
+      })
+    )
+
+    const contentLength = response.headers['content-length']
+
+    if (contentLength && contentLength > env.get('UPLOAD_LIMIT_MB') * 1024 * 1024) {
+      throw new GithubReqError(`Total upload must be less than ${env.get('UPLOAD_LIMIT_MB')}MB`)
+    }
+
+    return response.data as ArrayBuffer
+  }
+
+  public async requestWrapper<T>(request: () => Promise<T>): Promise<T> {
     try {
       return await request()
     } catch (err) {
