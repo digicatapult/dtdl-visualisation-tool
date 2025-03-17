@@ -73,7 +73,7 @@ describe('Mermaid Invariants', function () {
 
       expect(pairs).to.deep.equal([
         'L_dtmi:com:example:1_dtmi:com:example_extended:1_0_0',
-        'L_dtmi:com:example:1_dtmi:com:example_related:1_1_0',
+        'L_dtmi:com:example:1_dtmi:com:example_related:1_0_0',
       ])
     })
 
@@ -92,7 +92,7 @@ describe('Mermaid Invariants', function () {
 
       expect(pairs).to.deep.equal([
         ['L_dtmi:com:example:1_dtmi:com:example_extended:1_0_0', 'extends'],
-        ['L_dtmi:com:example:1_dtmi:com:example_related:1_1_0', 'A'],
+        ['L_dtmi:com:example:1_dtmi:com:example_related:1_0_0', 'A'],
       ])
     })
 
