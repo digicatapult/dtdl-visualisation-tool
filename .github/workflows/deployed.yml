@@ -1,0 +1,10 @@
+name: Deployed
+
+on:
+  workflow_dispatch: 
+
+jobs:
+  deployed:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Deployed"
