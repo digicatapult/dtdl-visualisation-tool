@@ -31,7 +31,15 @@ jobs:
         run: |
           RESPONSE=$(curl -s "$BASE_URL/api/health")
           DEPLOYED_VERSION=$(echo "$RESPONSE" | jq -r '.version')
+
+          if [ $? -ne 0 ]; then
+            echo "Error: Failed to extract version from response."
+            echo "Full response: $RESPONSE"
+            exit 1
+          fi
+
           REPO_VERSION="${{ needs.get-version.outputs.version }}"
+          REPO_VERSION="${REPO_VERSION#v}"
           
           echo "Deployed Version: $DEPLOYED_VERSION"
           echo "Repo Version: $REPO_VERSION"
