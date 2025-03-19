@@ -1,0 +1,47 @@
+name: Check deployment
+
+on:
+  workflow_dispatch:
+
+jobs:
+  get-version:
+    name: 'Check version'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.VERSION }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check version
+        id: get_version
+        uses: digicatapult/check-version@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  check-deployed-version:
+    runs-on: ubuntu-latest
+    needs: get-version
+    outputs:
+      version_match: ${{ steps.check.outputs.match }}
+    steps:
+      - name: Check API Health
+        id: check
+        env:
+          BASE_URL: ${{ secrets.DEPLOYED_BASE_URL}}
+        run: |
+          RESPONSE=$(curl -s "$BASE_URL/api/health")
+          DEPLOYED_VERSION=$(echo "$RESPONSE" | jq -r '.version')
+          REPO_VERSION="${{ needs.get-version.outputs.version }}"
+          
+          echo "Deployed Version: $DEPLOYED_VERSION"
+          echo "Repo Version: $REPO_VERSION"
+
+          if [[ "$DEPLOYED_VERSION" == "$REPO_VERSION" ]]; then
+            echo "match=true" >> $GITHUB_OUTPUT
+          fi
+
+  deploy-success:
+    runs-on: ubuntu-latest
+    needs: check-deployed-version
+    if: needs.check-deployed-version.outputs.version_match == 'true'
+    steps:
+      - run: echo "test"
