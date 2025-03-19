@@ -5,24 +5,29 @@ on:
   workflow_dispatch:
 
 jobs:
-  get-version:
-    name: 'Check version'
+  get-repo-version:
+    name: 'Check repo version'
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.get_version.outputs.VERSION }}
+      version: ${{ steps.get-version.outputs.VERSION }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Check version
-        id: get_version
-        uses: digicatapult/check-version@v1
+      - name: Checkout main branch
+        uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: main
+      
+      - name: Read version from package.json
+        id: get-version
+        run: |
+          VERSION=$(jq -r '.version' package.json)
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
   check-deployed-version:
+    name: 'Check deployed version'
     runs-on: ubuntu-latest
-    needs: get-version
+    needs: get-repo-version
     outputs:
-      version_match: ${{ steps.check.outputs.match }}
+      version_match: ${{ steps.check.outputs.MATCH }}
     steps:
       - name: Check API Health
         id: check
@@ -38,14 +43,14 @@ jobs:
             exit 1
           fi
 
-          REPO_VERSION="${{ needs.get-version.outputs.version }}"
+          REPO_VERSION="${{ needs.get-repo-version.outputs.VERSION }}"
           REPO_VERSION="${REPO_VERSION#v}"
           
           echo "Deployed Version: $DEPLOYED_VERSION"
           echo "Repo Version: $REPO_VERSION"
 
           if [[ "$DEPLOYED_VERSION" == "$REPO_VERSION" ]]; then
-            echo "match=true" >> $GITHUB_OUTPUT
+            echo "MATCH=true" >> $GITHUB_OUTPUT
           fi
 
   success-test:
