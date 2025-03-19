@@ -56,5 +56,16 @@ describe('Generator', function () {
       expect(error?.name).to.equal('Error')
       expect(stub.callCount).to.equal(2)
     })
+
+    it('should wait for a render to complete if before requesting another', async () => {
+      const firstCall = generator.run(simpleMockDtdlObjectModel, defaultParams.diagramType, 'elk' as const)
+      const secondCall = generator.run(simpleMockDtdlObjectModel, defaultParams.diagramType, 'elk' as const)
+
+      const [firstResult, secondResult] = await Promise.all([firstCall, secondCall])
+      expect(firstResult.type).to.equal('svg')
+      expect(secondResult.type).to.equal('svg')
+      expect(checkIfStringIsSVG(firstResult.renderToString())).to.equal(true)
+      expect(checkIfStringIsSVG(secondResult.renderToString())).to.equal(true)
+    })
   })
 })
