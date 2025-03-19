@@ -21,15 +21,16 @@ jobs:
         run: |
           VERSION=$(jq -r '.version' package.json)
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version on main: $VERSION"
 
-  check-deployed-version:
-    name: 'Check deployed version'
+  get-deployed-version:
+    name: 'Get deployed version'
     runs-on: ubuntu-latest
     needs: get-repo-version
     outputs:
-      version_match: ${{ steps.check.outputs.MATCH }}
+      deployed_version: ${{ steps.check.outputs.DEPLOYED_VERSION }}
     steps:
-      - name: Check API Health
+      - name: Check deployed health endpoint
         id: check
         env:
           BASE_URL: ${{ secrets.DEPLOYED_BASE_URL}}
@@ -43,19 +44,18 @@ jobs:
             exit 1
           fi
 
-          REPO_VERSION="${{ needs.get-repo-version.outputs.VERSION }}"
-          REPO_VERSION="${REPO_VERSION#v}"
-          
-          echo "Deployed Version: $DEPLOYED_VERSION"
-          echo "Repo Version: $REPO_VERSION"
-
-          if [[ "$DEPLOYED_VERSION" == "$REPO_VERSION" ]]; then
-            echo "MATCH=true" >> $GITHUB_OUTPUT
-          fi
+          echo "DEPLOYED_VERSION=$DEPLOYED_VERSION" >> $GITHUB_OUTPUT
+          echo "Deployed version: $DEPLOYED_VERSION"
 
   success-test:
     runs-on: ubuntu-latest
-    needs: check-deployed-version
-    if: needs.check-deployed-version.outputs.version_match == 'true'
+    needs: [get-repo-version, get-deployed-version]
+    if: needs.get-deployed-version.outputs.deployed_version == needs.get-repo-version.outputs.version
     steps:
-      - run: echo "test"
+      - name: Print versions
+        run: |
+          echo "Version on main: ${{ needs.get-repo-version.outputs.version }}"
+          echo "Deployed version: ${{ needs.get-deployed-version.outputs.deployed_version }}"
+      
+      - name: Run success tests
+        run: echo "Success - versions match"
