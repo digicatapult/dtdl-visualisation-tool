@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.4.55",
+  "version": "0.4.59",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -33,7 +33,7 @@
   "author": "Digital Catapult",
   "license": "Apache-2.0",
   "dependencies": {
-    "@digicatapult/dtdl-parser": "^0.2.0",
+    "@digicatapult/dtdl-parser": "^0.1.1",
     "@kitajs/html": "^4.2.7",
     "@kitajs/ts-html-plugin": "^4.1.1",
     "@mermaid-js/mermaid-cli": "^11.4.2",
@@ -106,7 +106,7 @@
     "prettier-plugin-organize-imports": "^4.1.0",
     "rimraf": "^6.0.1",
     "sinon": "^19.0.2",
-    "testcontainers": "^10.19.0",
+    "testcontainers": "^10.20.0",
     "typescript": "^5.8.2"
   },
   "engines": {
