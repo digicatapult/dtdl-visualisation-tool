@@ -6,7 +6,7 @@ import sinon from 'sinon'
 
 import { defaultParams } from '../../../controllers/__tests__/root.test'
 import { SvgGenerator } from '../generator'
-import { simpleMockDtdlObjectModel } from './fixtures'
+import { mockDtdlObjectModel, simpleMockDtdlObjectModel, simpleMockSVGFixture } from './fixtures'
 import { checkIfStringIsSVG } from './helpers'
 
 describe('Generator', function () {
@@ -59,10 +59,10 @@ describe('Generator', function () {
 
     it('should wait for a render to complete if before requesting another', async () => {
       const firstCall = generator.run(simpleMockDtdlObjectModel, defaultParams.diagramType, 'elk' as const)
-      const secondCall = generator.run(simpleMockDtdlObjectModel, defaultParams.diagramType, 'elk' as const)
+      const secondCall = generator.run(mockDtdlObjectModel, defaultParams.diagramType, 'elk' as const)
 
       const [firstResult, secondResult] = await Promise.all([firstCall, secondCall])
-      expect(firstResult.type).to.equal('svg')
+      expect(firstResult.renderToString()).to.equal(simpleMockSVGFixture)
       expect(secondResult.type).to.equal('svg')
       expect(checkIfStringIsSVG(firstResult.renderToString())).to.equal(true)
       expect(checkIfStringIsSVG(secondResult.renderToString())).to.equal(true)
