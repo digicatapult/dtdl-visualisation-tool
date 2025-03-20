@@ -40,21 +40,25 @@ test.describe('Test edit ontology', () => {
     await waitForSuccessResponse(page, () => page.click('#select-folder'), '/ontology')
     await expect(page.locator('#mermaid-output').getByText('dtmi:com:example;1')).toBeVisible()
 
-    // check the color of the border
+    // turn on edit mode
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page.locator('#edit-toggle').getByText('Edit')).toBeVisible()
     const beforeContent = await getStyledComponent(page, '#mermaid-wrapper', '::before', 'border')
 
     expect(beforeContent).toBe('5px solid rgb(0, 183, 155)')
 
+    // turn off edit mode
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page.locator('#edit-toggle').getByText('View')).toBeVisible()
 
+    // highlight a node
     await waitForSuccessResponse(
       page,
       () => page.locator('#mermaid-output').getByText('dtmi:com:example;1').first().click(),
       '/update-layout'
     )
+
+    // turn on edit mode
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page.locator('#edit-toggle').getByText('Edit')).toBeVisible()
 
@@ -80,6 +84,8 @@ test.describe('Test edit ontology', () => {
 })
 
 const getStyledComponent = async (page: Page, selector: string, pseudoElement: string, property: string) => {
+  await expect(page.locator(selector).first()).toBeVisible()
+
   return page.evaluate(
     ({ selector, pseudoElement, property }) => {
       const element = document.querySelector(selector)
