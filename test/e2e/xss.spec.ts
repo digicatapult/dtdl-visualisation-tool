@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { waitForUpdateLayout } from './helpers/waitForHelpers'
 
 test.describe('xss-vulnerabilities', () => {
   const payloads = [
@@ -16,11 +17,9 @@ test.describe('xss-vulnerabilities', () => {
       })
 
       await page.goto('./')
-      await Promise.all([
-        page.waitForResponse((resp) => resp.url().includes('/update-layout') && resp.status() === 200),
-        page.fill('#search', payload),
-      ])
-      await page.waitForTimeout(500)
+      await page.waitForSelector(`text='ACDCTerminal'`)
+
+      await waitForUpdateLayout(page, () => page.fill('#search', payload))
 
       expect(dialogTriggered).toBe(false)
     })
