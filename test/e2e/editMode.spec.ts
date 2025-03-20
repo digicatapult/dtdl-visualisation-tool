@@ -84,8 +84,6 @@ test.describe('Test edit ontology', () => {
 })
 
 const getStyledComponent = async (page: Page, selector: string, pseudoElement: string, property: string) => {
-  await page.waitForTimeout(5000)
-
   return page.evaluate(
     ({ selector, pseudoElement, property }) => {
       const element = document.querySelector(selector)
