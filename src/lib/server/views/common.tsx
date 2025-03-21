@@ -1,4 +1,6 @@
 import { escapeHtml, type PropsWithChildren } from '@kitajs/html'
+import { DtdlId } from '../models/strings'
+import { UpdateType } from '../utils/dtdl/save'
 
 export const parseError = (): JSX.Element => <p>Ontology Undefined</p>
 
@@ -57,3 +59,39 @@ export const AccordionSection = (props: PropsWithChildren<{ heading: string; col
     </div>
   </section>
 )
+
+export const EditableText = ({
+  edit,
+  entityId,
+  content,
+  updateType,
+  multiline,
+}: {
+  edit: boolean
+  entityId: DtdlId
+  content: string
+  updateType: UpdateType
+  multiline?: boolean
+}): JSX.Element => {
+  if (!edit) return <>{escapeHtml(content)}</>
+
+  return (
+    <form
+      hx-post="save"
+      hx-trigger="blur from:find textarea"
+      hx-vals={`{"entityId": "${entityId}", "updateType": "${updateType}", "initialValue": "${content}"}`}
+      hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagramType"
+      hx-swap="outerHTML transition:true"
+      hx-target="#mermaid-output"
+      hx-indicator="#spinner"
+    >
+      <textarea
+        name="content"
+        class={`nav-panel-editable ${multiline ? 'multiline' : ''}`}
+        contenteditable="plaintext-only"
+      >
+        {escapeHtml(content)}
+      </textarea>
+    </form>
+  )
+}

@@ -736,3 +736,17 @@ label[for='diagramType'] {
 #delete-node-button {
   background-image: url('../images/delete-node.svg');
 }
+
+.nav-panel-editable {
+  width: 100%; 
+  background-color: #F5F6FA;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+  resize:vertical;
+  min-height: 1.5em;
+}
+
+textarea.multiline {
+  height: 10rem;
+}

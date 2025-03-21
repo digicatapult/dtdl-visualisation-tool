@@ -7,8 +7,8 @@ import { container, singleton } from 'tsyringe'
 import { Env } from '../../env/index.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { DtdlId, UUID } from '../../models/strings.js'
-import { getDisplayName, isInterface, isRelationship } from '../../utils/dtdl/extract.js'
-import { AccordionSection, Page } from '../common.js'
+import { getDisplayName, isInterface, isProperty, isRelationship } from '../../utils/dtdl/extract.js'
+import { AccordionSection, EditableText, Page } from '../common.js'
 
 const env = container.resolve(Env)
 
@@ -56,7 +56,7 @@ export default class MermaidTemplates {
         <div id="spinner" class="spinner" />
       </div>
       <this.Legend showContent={false} />
-      <this.navigationPanel expanded={false} />
+      <this.navigationPanel expanded={false} edit={canEdit} />
       <this.svgControls svgRawHeight={svgHeight} svgRawWidth={svgWidth} />
       <this.editToggle canEdit={canEdit} />
     </Page>
@@ -126,7 +126,7 @@ export default class MermaidTemplates {
     entityId?: DtdlId
     model?: DtdlObjectModel
     expanded: boolean
-    edit?: boolean
+    edit: boolean
   }): JSX.Element => {
     const entity = entityId && model ? model[entityId] : undefined
     return (
@@ -142,21 +142,37 @@ export default class MermaidTemplates {
           {...(expanded && { 'aria-expanded': '' })}
         ></button>
         <div id="navigation-panel-content" {...(expanded && { 'aria-expanded': '' })}>
-          {entity && model ? (
+          {entityId && entity && model ? (
             <>
               <section>
                 <h3>Basic Information</h3>
                 <p>
-                  <b>Display Name: </b>
-                  {escapeHtml(getDisplayName(entity))}
+                  <b>Display Name:</b>
+                </p>
+                <p> {EditableText({ edit, entityId, content: getDisplayName(entity), updateType: 'displayName' })}</p>
+                <p>
+                  <b>Description:</b>
                 </p>
                 <p>
-                  <b>Description: </b>
-                  {entity.description.en ?? 'None'}
+                  {EditableText({
+                    edit: edit && entity.description.en !== undefined,
+                    entityId,
+                    content: entity.description.en ?? `'description.en' key missing in original file`,
+                    updateType: 'description',
+                    multiline: true,
+                  })}
                 </p>
                 <p>
-                  <b>Comments: </b>
-                  {entity.comment ?? 'None'}
+                  <b>Comment:</b>
+                </p>
+                <p>
+                  {EditableText({
+                    edit: edit && entity.comment !== undefined,
+                    entityId,
+                    content: entity.comment ?? `'comment' key missing in original file`,
+                    updateType: 'entityComment',
+                    multiline: true,
+                  })}
                 </p>
               </section>
               <AccordionSection heading={'Entity Identifiers'} collapsed={false}>
@@ -177,12 +193,26 @@ export default class MermaidTemplates {
               </AccordionSection>
               <AccordionSection heading={'Properties'} collapsed={false}>
                 {isInterface(entity) && Object.keys(entity.properties).length > 0
-                  ? Object.entries(entity.properties).map(([name, id]) => (
-                      <p>
-                        <b>{escapeHtml(name)}: </b>
-                        {escapeHtml(model[id].comment ?? '-')}
-                      </p>
-                    ))
+                  ? Object.entries(entity.properties).map(([name, id]) => {
+                      const property = model[id]
+                      if (!isProperty(property) || !property.DefinedIn) return
+
+                      return (
+                        <>
+                          <p>
+                            <b>
+                              {EditableText({
+                                edit,
+                                entityId: property.DefinedIn,
+                                content: escapeHtml(name),
+                                updateType: 'propertyName',
+                              })}
+                            </b>
+                          </p>
+                          <p>{escapeHtml(property.comment ?? '-')}</p> {/* Use modelData here */}
+                        </>
+                      )
+                    })
                   : 'None'}
               </AccordionSection>
               <AccordionSection heading={'Relationships'} collapsed={false}>

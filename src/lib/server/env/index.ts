@@ -27,7 +27,7 @@ const envConfig = {
   UPLOAD_LIMIT_MB: envalid.num({ default: 10 }),
   GH_REDIRECT_ORIGIN: envalid.str({ default: 'http://localhost:3000' }),
   PUPPETEER_ARGS: strArrayValidator({ default: [''] }),
-  EDIT_ONTOLOGY: envalid.bool({ default: false, devDefault: true }),
+  EDIT_ONTOLOGY: envalid.bool({ default: true, devDefault: true }),
 }
 
 export type ENV_CONFIG = typeof envConfig
