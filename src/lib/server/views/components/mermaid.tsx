@@ -3,11 +3,14 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
 import { randomUUID } from 'crypto'
-import { singleton } from 'tsyringe'
+import { container, singleton } from 'tsyringe'
+import { Env } from '../../env/index.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { DtdlId, UUID } from '../../models/strings.js'
 import { getDisplayName, isInterface, isProperty, isRelationship } from '../../utils/dtdl/extract.js'
 import { AccordionSection, EditableText, Page } from '../common.js'
+
+const env = container.resolve(Env)
 
 const commonUpdateAttrs = {
   'hx-target': '#mermaid-output',
@@ -376,6 +379,7 @@ export default class MermaidTemplates {
   }
 
   public editToggle = ({ canEdit }: { canEdit: boolean }) => {
+    if (!env.get('EDIT_ONTOLOGY')) return <></>
     return (
       <div id="edit-controls">
         <div

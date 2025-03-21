@@ -2,9 +2,8 @@ import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import express from 'express'
 import { randomUUID } from 'node:crypto'
 import { Body, Get, Path, Post, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
-import { container, inject, injectable, singleton } from 'tsyringe'
+import { inject, injectable, singleton } from 'tsyringe'
 import { ModelDb } from '../../../db/modelDb.js'
-import { Env } from '../../env/index.js'
 import { InternalError } from '../../errors.js'
 import { Logger, type ILogger } from '../../logger.js'
 import {
@@ -31,10 +30,6 @@ import SessionStore, { Session } from '../../utils/sessions.js'
 import MermaidTemplates from '../../views/components/mermaid.js'
 import { HTML, HTMLController } from '../HTMLController.js'
 import { dtdlCacheKey } from '../helpers.js'
-
-const env = container.resolve(Env)
-
-const EDIT_ONTOLOGY = env.get('EDIT_ONTOLOGY')
 
 type SaveBody = UpdateParams & {
   initialValue: string
@@ -491,8 +486,6 @@ export class OntologyController extends HTMLController {
     owner: string | null,
     repo: string | null
   ): Promise<boolean> {
-    if (!EDIT_ONTOLOGY) return false
-
     if (!owner || !repo) {
       throw new InternalError('owner or repo not found in database for GitHub source')
     }

@@ -744,6 +744,7 @@ label[for='diagramType'] {
   font-family: inherit;
   font-size: inherit;
   resize:vertical;
+  min-height: 1.5em;
 }
 
 textarea.multiline {
