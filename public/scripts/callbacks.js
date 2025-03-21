@@ -15,10 +15,11 @@ globalThis.toggleNavPanel = (event) => {
 
 globalThis.toggleEditSwitch = (event) => {
   const isChecked = event.target.toggleAttribute('checked')
+  htmx.trigger(event.target, 'checked', { checked: isChecked })
   document.getElementById('edit-toggle').classList.toggle('edit', isChecked)
   document.getElementById('edit-toggle-text').textContent = isChecked ? 'Edit' : 'View'
   document.getElementById('mermaid-wrapper').classList.toggle('edit', isChecked)
-  document.getElementById('navigation-panel').classList.toggle('edit', isChecked)
+  document.getElementById('edit-buttons').classList.toggle('edit', isChecked)
 }
 
 globalThis.getOwnerRepoFromInput = () => {
@@ -31,9 +32,9 @@ globalThis.getOwnerRepoFromInput = () => {
 globalThis.validatePublicRepoInput = (e) => {
   const { owner, repo } = globalThis.getOwnerRepoFromInput()
   if (!owner || !repo) {
-    e.setCustomValidity("invalid owner/repo combination or url")
+    e.setCustomValidity('invalid owner/repo combination or url')
   } else {
-    e.setCustomValidity("")
+    e.setCustomValidity('')
   }
   e.reportValidity()
 }

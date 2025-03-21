@@ -51,7 +51,7 @@ a:not(.button):focus-visible {
   height: 100vh;
   width: 100%;
   position: relative;
-  min-height: 500px;
+  min-height: 600px;
 
   --navigation-panel-width: 400px;
   --navigation-panel-translate-x: calc(0.9 * var(--navigation-panel-width));
@@ -178,7 +178,7 @@ label[for='diagramType'] {
 }
 
 #navigation-panel[aria-expanded] ~ #svg-controls,
-#navigation-panel[aria-expanded] ~ #edit-toggle {
+#navigation-panel[aria-expanded] ~ #edit-controls {
   transform: translateX(calc(-1 * var(--navigation-panel-translate-x)));
 }
 
@@ -189,7 +189,7 @@ label[for='diagramType'] {
   height: 2rem;
   width: 2rem;
   position: absolute;
-  top: 5rem;
+  top: 2rem;
   left: -1rem;
   z-index: 1;
 }
@@ -621,19 +621,25 @@ label[for='diagramType'] {
   }
 }
 
-#edit-toggle {
-  display: flex;
-  align-items: center;
+#edit-controls {
   position: absolute;
   top: 120px;
   right: 70px;
   transform: translateX(0);
   transition: transform var(--transition-duration);
+  display: grid;
+  row-gap: 20px;
+}
+
+#edit-toggle {
+  display: flex;
+  align-items: center;
   font-weight: 800;
   background-color: #d5d5d5;
   padding: 10px 20px;
   border-radius: 7px;
   width: 140px;
+  color: #83898C;
 }
 #edit-toggle.edit {
   background-color: #00b79b;
@@ -674,7 +680,11 @@ label[for='diagramType'] {
   bottom: -5px;
   transition: transform var(--transition-duration);
   border-radius: 50%;
-  background: #bbc4cb center/contain no-repeat;
+  background: #83898C center no-repeat;
+  background-size: 60% 60%;
+}
+#edit-toggle .slider:hover::before {
+  filter: brightness(115%);
 }
 #edit-toggle .slider:before {
   background-image: url('../images/eye.svg');
@@ -684,7 +694,45 @@ label[for='diagramType'] {
   background-color: #65d4c3;
 }
 #edit-toggle input[checked] + .slider:before {
-  background-image: url('../images/pencil.svg');
+  background-image: url('../images/pencil-green.svg');
   background-color: white;
   transform: translateX(25px);
+}
+#edit-buttons{
+  display: none;
+}
+
+#edit-buttons.edit{
+  display: grid;
+  align-items: center;
+  background-color: #00b79b;
+  border-radius: 7px;
+  justify-self: end;
+  justify-content: center;
+  grid-auto-rows: 1fr 1fr 1fr;
+}
+
+#edit-buttons button {
+  background-size: 50% 50%;
+  background-position: center;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  border: none;
+  background-color: transparent;
+  width: 50px;
+  height: 50px;
+  border-radius: inherit;
+}
+
+#edit-buttons button:hover {
+  background-color: #009c84;
+}
+#add-node-button {
+  background-image: url('../images/add-node.svg');
+}
+#edit-node-button {
+  background-image: url('../images/edit-node.svg');
+}
+#delete-node-button {
+  background-image: url('../images/delete-node.svg');
 }
