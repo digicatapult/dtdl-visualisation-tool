@@ -67,6 +67,7 @@ export const dtdlCacheKey = (dtdlModelId: UUID, queryParams?: GenerateParams): s
   searchParams.set('dtdlId', dtdlModelId)
 
   searchParams.sort()
+  console.log(searchParams.toString())
   return searchParams.toString()
 }
 

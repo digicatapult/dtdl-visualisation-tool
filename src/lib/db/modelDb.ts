@@ -2,11 +2,11 @@ import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { singleton } from 'tsyringe'
 import { InternalError } from '../server/errors.js'
 import { FileSourceKeys } from '../server/models/openTypes.js'
-import { type UUID } from '../server/models/strings.js'
+import { DtdlId, type UUID } from '../server/models/strings.js'
 import { allInterfaceFilter } from '../server/utils/dtdl/extract.js'
 import Parser from '../server/utils/dtdl/parser.js'
 import Database from './index.js'
-import { DtdlFile, ModelRow } from './types.js'
+import { DtdlFile, DtdlRow, ModelRow } from './types.js'
 
 @singleton()
 export class ModelDb {
@@ -64,10 +64,46 @@ export class ModelDb {
     return parsedDtdl
   }
 
+  async parseWithUpdatedFile(model_id: UUID, updateId: UUID, updateContents: string) {
+    const files = await this.db.get('dtdl', { model_id })
+    if (files.length === 0) throw new InternalError(`Failed to find model: ${model_id}`)
+
+    const parsedDtdl = await this.parser.parse(
+      files.map((file) => {
+        if (file.id === updateId) {
+          return { path: file.path, contents: updateContents }
+        }
+        return { path: file.path, contents: JSON.stringify(file.contents) }
+      })
+    )
+    return parsedDtdl
+  }
+
   // collection for searching
   getCollection(dtdlModel: DtdlObjectModel) {
     return Object.entries(dtdlModel)
       .filter(allInterfaceFilter)
       .map(([, entity]) => entity)
+  }
+
+  async getDtdl(model_id: UUID, entityId: DtdlId): Promise<DtdlRow> {
+    const [dtdl] = await this.db.getJsonb(
+      'dtdl',
+      'jsonb_path_exists',
+      'contents',
+      `$.**."@id" \\? (@ == ??)`,
+      [entityId],
+      {
+        model_id,
+      }
+    )
+    if (!dtdl) throw new InternalError(`Failed to find dtdl containing @id: ${entityId} for model: ${model_id}`)
+    return dtdl
+  }
+
+  async updateDtdlContents(id: UUID, contents: string): Promise<DtdlRow> {
+    const [dtdl] = await this.db.update('dtdl', { id }, { contents })
+    if (!dtdl) throw new InternalError(`Failed to find dtdl: ${id}`)
+    return dtdl
   }
 }

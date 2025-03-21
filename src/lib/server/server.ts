@@ -34,11 +34,10 @@ export default async (): Promise<Express> => {
     },
   })
   app.use(cookieParser(env.get('COOKIE_SESSION_KEYS')))
-
-  RegisterRoutes(app, { multer: multerOptions })
-
   app.use(bodyParser.urlencoded({ extended: true }))
   app.use(bodyParser.json())
+
+  RegisterRoutes(app, { multer: multerOptions })
 
   app.use('/public', express.static('public'))
   app.use('/lib/htmx.org', express.static('node_modules/htmx.org/dist'))
@@ -55,6 +54,7 @@ export default async (): Promise<Express> => {
     res: express.Response,
     next: express.NextFunction
   ): void {
+    console.log(err)
     if (err instanceof Error) {
       req.log.debug('API error: %s', err.message)
       req.log.trace('API error: stack %j', err.stack)

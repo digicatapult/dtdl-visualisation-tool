@@ -1,11 +1,11 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import express from 'express'
 import { randomUUID } from 'node:crypto'
-import { Get, Path, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
+import { Body, Get, Path, Post, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { container, inject, injectable, singleton } from 'tsyringe'
 import { ModelDb } from '../../../db/modelDb.js'
 import { Env } from '../../env/index.js'
-import { InternalError, InvalidQueryError } from '../../errors.js'
+import { InternalError } from '../../errors.js'
 import { Logger, type ILogger } from '../../logger.js'
 import {
   A11yPreference,
@@ -18,9 +18,10 @@ import {
 } from '../../models/controllerTypes.js'
 import { modelHistoryCookie, octokitTokenCookie } from '../../models/cookieNames.js'
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../models/renderedDiagram/index.js'
-import { type UUID } from '../../models/strings.js'
+import { DtdlId, type UUID } from '../../models/strings.js'
 import { Cache, type ICache } from '../../utils/cache.js'
 import { filterModelByDisplayName, getRelatedIdsById } from '../../utils/dtdl/filter.js'
+import { parseContents, UpdateType } from '../../utils/dtdl/save.js'
 import { FuseSearch } from '../../utils/fuseSearch.js'
 import { authRedirectURL, GithubRequest } from '../../utils/githubRequest.js'
 import { SvgGenerator } from '../../utils/mermaid/generator.js'
@@ -35,6 +36,12 @@ const env = container.resolve(Env)
 
 const EDIT_ONTOLOGY = env.get('EDIT_ONTOLOGY')
 
+type SaveBody = UpdateParams & {
+  initialValue: string
+  entityId: DtdlId
+  content: string
+  updateType: UpdateType
+}
 @singleton()
 @injectable()
 @Route('/ontology')
@@ -129,16 +136,7 @@ export class OntologyController extends HTMLController {
   ): Promise<HTML> {
     this.logger.debug('search: %o', { search: params.search })
 
-    // pull out the stored session. If this is invalid the request is invalid
     const session = this.sessionStore.get(params.sessionId)
-    if (!session) {
-      throw new InvalidQueryError(
-        'Session Error',
-        'Please refresh the page or try again later',
-        `Session ${params.sessionId} not found in session store`,
-        false
-      )
-    }
 
     // get the base dtdl model that we will derive the graph from
     const baseModel = await this.modelDb.getDtdlModel(dtdlModelId)
@@ -218,7 +216,7 @@ export class OntologyController extends HTMLController {
         entityId: dtdlIdReinstateSemicolon(newSession.highlightNodeId ?? ''),
         model: baseModel,
         expanded: newSession.highlightNodeId !== undefined,
-        edit: session.editMode,
+        edit: session.editMode!,
       }),
       this.templates.svgControls({
         swapOutOfBand: true,
@@ -252,6 +250,28 @@ export class OntologyController extends HTMLController {
         edit: editMode,
       })
     )
+  }
+
+  @SuccessResponse(200)
+  @Post('{dtdlModelId}/save')
+  public async save(
+    @Request() req: express.Request,
+    @Path() dtdlModelId: UUID,
+    @Body() body: SaveBody
+  ): Promise<HTML | void> {
+    const { entityId, initialValue, content, updateType, ...updateParams } = body
+
+    if (initialValue === content) return this.setStatus(204)
+
+    const { id, contents } = await this.modelDb.getDtdl(dtdlModelId, entityId)
+
+    if (!contents) throw new InternalError(`No contents for: ${entityId}`)
+
+    const validContents = await parseContents(dtdlModelId, id, this.modelDb, updateType, contents, content)
+
+    await this.modelDb.updateDtdlContents(id, JSON.stringify(validContents))
+    this.cache.clear()
+    return this.updateLayout(req, dtdlModelId, updateParams)
   }
 
   private getCurrentPathQuery(req: express.Request): { path: string; query: URLSearchParams } | undefined {
