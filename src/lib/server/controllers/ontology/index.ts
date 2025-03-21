@@ -218,6 +218,7 @@ export class OntologyController extends HTMLController {
         entityId: dtdlIdReinstateSemicolon(newSession.highlightNodeId ?? ''),
         model: baseModel,
         expanded: newSession.highlightNodeId !== undefined,
+        edit: session.editMode,
       }),
       this.templates.svgControls({
         swapOutOfBand: true,
@@ -240,13 +241,15 @@ export class OntologyController extends HTMLController {
     // get the base dtdl model that we will derive the graph from
     const baseModel = await this.modelDb.getDtdlModel(dtdlModelId)
 
+    this.sessionStore.update(sessionId, { editMode })
+
     return this.html(
       this.templates.navigationPanel({
         swapOutOfBand: false,
         entityId: dtdlIdReinstateSemicolon(session.highlightNodeId ?? ''),
         model: baseModel,
         expanded: session.highlightNodeId !== undefined,
-        edit: editMode ?? false,
+        edit: editMode,
       })
     )
   }

@@ -347,29 +347,36 @@ export default class MermaidTemplates {
 
   public editToggle = ({ canEdit }: { canEdit: boolean }) => {
     return (
-      <div
-        id="edit-toggle"
-        title={
-          canEdit
-            ? 'Click to edit ontology'
-            : 'Only Ontologies from github that you have write permissions on, can be edited'
-        }
-        class={canEdit ? '' : 'disabled'}
-      >
-        <span id="edit-toggle-text">View</span>
-        <label class="switch">
-          <form
-            hx-get="edit-model"
-            hx-target="#navigation-panel"
-            hx-trigger="change"
-            hx-include="#sessionId"
-            hx-swap="outerHTML"
-            hx-vals="js:{ editMode: event.target.checked }"
-          >
-            <input type="checkbox" disabled={!canEdit} onclick="globalThis.toggleEditSwitch(event)" value="editMode" />
-            <span class="slider"></span>
-          </form>
-        </label>
+      <div id="edit-controls">
+        <div
+          id="edit-toggle"
+          title={
+            canEdit
+              ? 'Click to edit ontology'
+              : 'Only Ontologies from github that you have write permissions on, can be edited'
+          }
+          class={canEdit ? '' : 'disabled'}
+        >
+          <span id="edit-toggle-text">View</span>
+          <label class="switch">
+            <form
+              hx-get="edit-model"
+              hx-target="#navigation-panel"
+              hx-trigger="checked"
+              hx-include="#sessionId"
+              hx-swap="outerHTML"
+              hx-vals="js:{ editMode: event.detail.checked }"
+            >
+              <input type="checkbox" disabled={!canEdit} onclick="globalThis.toggleEditSwitch(event)" />
+              <span class="slider"></span>
+            </form>
+          </label>
+        </div>
+        <div id="edit-buttons">
+          <button id="add-node-button"></button>
+          <button id="edit-node-button"></button>
+          <button id="delete-node-button"></button>
+        </div>
       </div>
     )
   }
