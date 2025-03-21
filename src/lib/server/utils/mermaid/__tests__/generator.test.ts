@@ -6,7 +6,7 @@ import sinon from 'sinon'
 
 import { defaultParams } from '../../../controllers/__tests__/root.test'
 import { SvgGenerator } from '../generator'
-import { mockDtdlObjectModel, simpleMockDtdlObjectModel, simpleMockSVGFixture } from './fixtures'
+import { generatedSVGFixture, simpleMockDtdlObjectModel } from './fixtures'
 import { checkIfStringIsSVG } from './helpers'
 
 describe('Generator', function () {
@@ -58,14 +58,36 @@ describe('Generator', function () {
     })
 
     it('should wait for a render to complete if before requesting another', async () => {
-      const firstCall = generator.run(simpleMockDtdlObjectModel, defaultParams.diagramType, 'elk' as const)
-      const secondCall = generator.run(mockDtdlObjectModel, defaultParams.diagramType, 'elk' as const)
+      let firstRenderStartTime: number = 0
+      let secondRenderStartTime: number = 0
+      const PageRenderStub = sinon.stub()
 
-      const [firstResult, secondResult] = await Promise.all([firstCall, secondCall])
-      expect(firstResult.renderToString()).to.equal(simpleMockSVGFixture)
-      expect(secondResult.type).to.equal('svg')
-      expect(checkIfStringIsSVG(firstResult.renderToString())).to.equal(true)
-      expect(checkIfStringIsSVG(secondResult.renderToString())).to.equal(true)
+      PageRenderStub.callsFake(async (_container, _mermaidConfig, _definition, _svgId) => {
+        // differentiating different calls to render from diagram type and marking start time
+        if (
+          _svgId ===
+          'flowchart TD\ndtmi:com:example:1@{ shape: rect, label: "example 1"}\nclick dtmi:com:example:1 getEntity\nclass dtmi:com:example:1 search'
+        )
+          firstRenderStartTime = Date.now()
+        else secondRenderStartTime = Date.now()
+        await new Promise((resolve) => setTimeout(resolve, 4000))
+        return generatedSVGFixture
+      })
+      //eslint-disable-next-line @typescript-eslint/no-explicit-any
+      sinon.stub(generator as any, 'init').get(() => ({
+        page: { $eval: PageRenderStub },
+      }))
+
+      const firstCall = generator.run(simpleMockDtdlObjectModel, 'flowchart', 'elk' as const)
+      const secondCall = generator.run(simpleMockDtdlObjectModel, 'classDiagram', 'elk' as const)
+
+      await Promise.all([firstCall, secondCall])
+
+      expect(firstRenderStartTime).to.not.equal(0)
+      expect(secondRenderStartTime).to.not.equal(0)
+
+      // If the start times difference is greater than the delay, we know the mutex worked. when removing the mutex this test should fail
+      expect(secondRenderStartTime).to.be.greaterThanOrEqual(firstRenderStartTime + 4000)
     })
   })
 })
