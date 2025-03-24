@@ -3,11 +3,14 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
 import { randomUUID } from 'crypto'
-import { singleton } from 'tsyringe'
+import { container, singleton } from 'tsyringe'
+import { Env } from '../../env/index.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { DtdlId, UUID } from '../../models/strings.js'
 import { getDisplayName, isInterface, isRelationship } from '../../utils/dtdl/extract.js'
 import { AccordionSection, Page } from '../common.js'
+
+const env = container.resolve(Env)
 
 const commonUpdateAttrs = {
   'hx-target': '#mermaid-output',
@@ -346,30 +349,38 @@ export default class MermaidTemplates {
   }
 
   public editToggle = ({ canEdit }: { canEdit: boolean }) => {
+    if (!env.get('EDIT_ONTOLOGY')) return <></>
     return (
-      <div
-        id="edit-toggle"
-        title={
-          canEdit
-            ? 'Click to edit ontology'
-            : 'Only Ontologies from github that you have write permissions on, can be edited'
-        }
-        class={canEdit ? '' : 'disabled'}
-      >
-        <span id="edit-toggle-text">View</span>
-        <label class="switch">
-          <form
-            hx-get="edit-model"
-            hx-target="#navigation-panel"
-            hx-trigger="change"
-            hx-include="#sessionId"
-            hx-swap="outerHTML"
-            hx-vals="js:{ editMode: event.target.checked }"
-          >
-            <input type="checkbox" disabled={!canEdit} onclick="globalThis.toggleEditSwitch(event)" value="editMode" />
-            <span class="slider"></span>
-          </form>
-        </label>
+      <div id="edit-controls">
+        <div
+          id="edit-toggle"
+          title={
+            canEdit
+              ? 'Click to edit ontology'
+              : 'Only Ontologies from github that you have write permissions on, can be edited'
+          }
+          class={canEdit ? '' : 'disabled'}
+        >
+          <span id="edit-toggle-text">View</span>
+          <label class="switch">
+            <form
+              hx-get="edit-model"
+              hx-target="#navigation-panel"
+              hx-trigger="checked"
+              hx-include="#sessionId"
+              hx-swap="outerHTML"
+              hx-vals="js:{ editMode: event.detail.checked }"
+            >
+              <input type="checkbox" disabled={!canEdit} onclick="globalThis.toggleEditSwitch(event)" />
+              <span class="slider"></span>
+            </form>
+          </label>
+        </div>
+        <div id="edit-buttons">
+          <button id="add-node-button"></button>
+          <button id="edit-node-button"></button>
+          <button id="delete-node-button"></button>
+        </div>
       </div>
     )
   }

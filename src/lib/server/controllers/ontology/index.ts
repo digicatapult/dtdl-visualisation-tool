@@ -2,9 +2,8 @@ import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import express from 'express'
 import { randomUUID } from 'node:crypto'
 import { Get, Path, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
-import { container, inject, injectable, singleton } from 'tsyringe'
+import { inject, injectable, singleton } from 'tsyringe'
 import { ModelDb } from '../../../db/modelDb.js'
-import { Env } from '../../env/index.js'
 import { InternalError, InvalidQueryError } from '../../errors.js'
 import { Logger, type ILogger } from '../../logger.js'
 import {
@@ -30,10 +29,6 @@ import SessionStore, { Session } from '../../utils/sessions.js'
 import MermaidTemplates from '../../views/components/mermaid.js'
 import { HTML, HTMLController } from '../HTMLController.js'
 import { dtdlCacheKey } from '../helpers.js'
-
-const env = container.resolve(Env)
-
-const EDIT_ONTOLOGY = env.get('EDIT_ONTOLOGY')
 
 @singleton()
 @injectable()
@@ -218,6 +213,7 @@ export class OntologyController extends HTMLController {
         entityId: dtdlIdReinstateSemicolon(newSession.highlightNodeId ?? ''),
         model: baseModel,
         expanded: newSession.highlightNodeId !== undefined,
+        edit: session.editMode,
       }),
       this.templates.svgControls({
         swapOutOfBand: true,
@@ -240,13 +236,15 @@ export class OntologyController extends HTMLController {
     // get the base dtdl model that we will derive the graph from
     const baseModel = await this.modelDb.getDtdlModel(dtdlModelId)
 
+    this.sessionStore.update(sessionId, { editMode })
+
     return this.html(
       this.templates.navigationPanel({
         swapOutOfBand: false,
         entityId: dtdlIdReinstateSemicolon(session.highlightNodeId ?? ''),
         model: baseModel,
         expanded: session.highlightNodeId !== undefined,
-        edit: editMode ?? false,
+        edit: editMode,
       })
     )
   }
@@ -468,8 +466,6 @@ export class OntologyController extends HTMLController {
     owner: string | null,
     repo: string | null
   ): Promise<boolean> {
-    if (!EDIT_ONTOLOGY) return false
-
     if (!owner || !repo) {
       throw new InternalError('owner or repo not found in database for GitHub source')
     }
