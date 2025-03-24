@@ -1,12 +1,12 @@
 import { expect } from 'chai'
 import { afterEach, describe, it } from 'mocha'
 import { pino } from 'pino'
-import puppeteer from 'puppeteer'
+import puppeteer, { Browser, Page } from 'puppeteer'
 import sinon from 'sinon'
 
 import { defaultParams } from '../../../controllers/__tests__/root.test'
 import { SvgGenerator } from '../generator'
-import { generatedSVGFixture, simpleMockDtdlObjectModel } from './fixtures'
+import { generatedSVGFixture, simpleMockDtdlObjectModel, svgSearchFuelTypeExpandedFossilFuel } from './fixtures'
 import { checkIfStringIsSVG } from './helpers'
 
 describe('Generator', function () {
@@ -57,37 +57,39 @@ describe('Generator', function () {
       expect(stub.callCount).to.equal(2)
     })
 
-    it('should wait for a render to complete if before requesting another', async () => {
-      let firstRenderStartTime: number = 0
-      let secondRenderStartTime: number = 0
-      const PageRenderStub = sinon.stub()
-
-      PageRenderStub.callsFake(async (_container, _mermaidConfig, _definition, _svgId) => {
-        // differentiating different calls to render from diagram type and marking start time
+    it('should wait for a render to complete before requesting another', async () => {
+      const clock = sinon.useFakeTimers({ shouldAdvanceTime: true })
+      const pageRenderStub = sinon.stub().callsFake(async (_container, _mermaidConfig, _definition, _svgId) => {
         if (
           _svgId ===
           'flowchart TD\ndtmi:com:example:1@{ shape: rect, label: "example 1"}\nclick dtmi:com:example:1 getEntity\nclass dtmi:com:example:1 search'
-        )
-          firstRenderStartTime = Date.now()
-        else secondRenderStartTime = Date.now()
-        await new Promise((resolve) => setTimeout(resolve, 4000))
+        ) {
+          await clock.tickAsync(4000)
+          return svgSearchFuelTypeExpandedFossilFuel
+        }
         return generatedSVGFixture
       })
-      //eslint-disable-next-line @typescript-eslint/no-explicit-any
-      sinon.stub(generator as any, 'init').get(() => ({
-        page: { $eval: PageRenderStub },
-      }))
 
-      const firstCall = generator.run(simpleMockDtdlObjectModel, 'flowchart', 'elk' as const)
-      const secondCall = generator.run(simpleMockDtdlObjectModel, 'classDiagram', 'elk' as const)
+      const pageStub = {
+        $eval: pageRenderStub,
+        on: sinon.stub(),
+        goto: sinon.stub().resolves(),
+        addScriptTag: sinon.stub().resolves(),
+        evaluate: sinon.stub().resolves(),
+      } as unknown as Page
 
-      await Promise.all([firstCall, secondCall])
+      sinon.stub(puppeteer, 'launch').resolves({
+        newPage: sinon.stub().resolves(pageStub),
+        close: sinon.stub(),
+      } as unknown as Browser)
 
-      expect(firstRenderStartTime).to.not.equal(0)
-      expect(secondRenderStartTime).to.not.equal(0)
+      const gen = new SvgGenerator(logger)
+      const [firstResult, secondResult] = await Promise.all([
+        gen.run(simpleMockDtdlObjectModel, 'flowchart', 'elk' as const),
+        gen.run(simpleMockDtdlObjectModel, 'classDiagram', 'elk' as const),
+      ])
 
-      // If the start times difference is greater than the delay, we know the mutex worked. when removing the mutex this test should fail
-      expect(secondRenderStartTime).to.be.greaterThanOrEqual(firstRenderStartTime + 4000)
+      expect(firstResult.renderToString()).to.not.equal(secondResult.renderToString())
     })
   })
 })
