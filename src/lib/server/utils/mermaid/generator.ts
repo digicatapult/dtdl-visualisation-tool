@@ -6,6 +6,7 @@ import type { LayoutLoaderDefinition, Mermaid, MermaidConfig } from 'mermaid'
 import puppeteer, { Browser, Page } from 'puppeteer'
 import { container, inject, singleton } from 'tsyringe'
 
+import { Mutex } from 'async-mutex'
 import { Env } from '../../env/index.js'
 import { Logger, type ILogger } from '../../logger.js'
 import { DiagramType } from '../../models/mermaidDiagrams.js'
@@ -42,6 +43,7 @@ export class SvgGenerator {
     flowchart: new Flowchart(),
     classDiagram: new ClassDiagram(),
   }
+  protected mutex = new Mutex()
 
   constructor(@inject(Logger) private logger: ILogger) {
     this.init = this.initialise()
@@ -106,37 +108,40 @@ export class SvgGenerator {
   }
 
   private async render(layout: Layout, definition: string) {
-    const svgId = 'mermaid-svg'
-    const mermaidConfig: MermaidConfig = {
-      flowchart: {
-        useMaxWidth: false,
-        htmlLabels: false,
-      },
-      maxTextSize: 99999999,
-      securityLevel: 'strict',
-      maxEdges: 99999999,
-      layout,
-    }
+    const buffer = await this.mutex.runExclusive(async () => {
+      const svgId = 'mermaid-svg'
+      const mermaidConfig: MermaidConfig = {
+        flowchart: {
+          useMaxWidth: false,
+          htmlLabels: false,
+        },
+        maxTextSize: 99999999,
+        securityLevel: 'strict',
+        maxEdges: 99999999,
+        layout,
+      }
 
-    const { page } = await this.init
-    const svg = await page.$eval(
-      '#container',
-      async (container, mermaidConfig, definition, svgId) => {
-        const { mermaid } = globalThis as unknown as GlobalExtMermaidAndElk
+      const { page } = await this.init
+      const svg = await page.$eval(
+        '#container',
+        async (container, mermaidConfig, definition, svgId) => {
+          const { mermaid } = globalThis as unknown as GlobalExtMermaidAndElk
 
-        mermaid.initialize({ startOnLoad: false, ...mermaidConfig })
-        const { svg: svgText } = await mermaid.render(svgId, definition, container)
-        container.innerHTML = svgText
+          mermaid.initialize({ startOnLoad: false, ...mermaidConfig })
+          const { svg: svgText } = await mermaid.render(svgId, definition, container)
+          container.innerHTML = svgText
 
-        const svg = container.getElementsByTagName?.('svg')?.[0]
-        const xmlSerializer = new XMLSerializer()
-        return xmlSerializer.serializeToString(svg)
-      },
-      mermaidConfig,
-      definition,
-      svgId
-    )
+          const svg = container.getElementsByTagName?.('svg')?.[0]
+          const xmlSerializer = new XMLSerializer()
+          return xmlSerializer.serializeToString(svg)
+        },
+        mermaidConfig,
+        definition,
+        svgId
+      )
 
-    return Buffer.from(svg)
+      return Buffer.from(svg)
+    })
+    return buffer
   }
 }
