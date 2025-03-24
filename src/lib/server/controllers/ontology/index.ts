@@ -20,7 +20,7 @@ import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../
 import { DtdlId, type UUID } from '../../models/strings.js'
 import { Cache, type ICache } from '../../utils/cache.js'
 import { filterModelByDisplayName, getRelatedIdsById } from '../../utils/dtdl/filter.js'
-import { parseContents, UpdateType } from '../../utils/dtdl/save.js'
+import { parseUpdate, UpdateType } from '../../utils/dtdl/save.js'
 import { FuseSearch } from '../../utils/fuseSearch.js'
 import { authRedirectURL, GithubRequest } from '../../utils/githubRequest.js'
 import { SvgGenerator } from '../../utils/mermaid/generator.js'
@@ -32,8 +32,7 @@ import { HTML, HTMLController } from '../HTMLController.js'
 import { dtdlCacheKey } from '../helpers.js'
 
 type SaveBody = UpdateParams & {
-  initialValue: string
-  entityId: DtdlId
+  definedIn: DtdlId
   content: string
   updateType: UpdateType
 }
@@ -254,15 +253,11 @@ export class OntologyController extends HTMLController {
     @Path() dtdlModelId: UUID,
     @Body() body: SaveBody
   ): Promise<HTML | void> {
-    const { entityId, initialValue, content, updateType, ...updateParams } = body
+    const { definedIn, content, updateType, ...updateParams } = body
 
-    if (initialValue === content) return this.setStatus(204)
+    const { id, contents } = await this.modelDb.getDtdl(dtdlModelId, definedIn)
 
-    const { id, contents } = await this.modelDb.getDtdl(dtdlModelId, entityId)
-
-    if (!contents) throw new InternalError(`No contents for: ${entityId}`)
-
-    const validContents = await parseContents(dtdlModelId, id, this.modelDb, updateType, contents, content)
+    const validContents = await parseUpdate(dtdlModelId, id, definedIn, this.modelDb, updateType, contents, content)
 
     await this.modelDb.updateDtdlContents(id, JSON.stringify(validContents))
     this.cache.clear()

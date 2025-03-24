@@ -62,24 +62,27 @@ export const AccordionSection = (props: PropsWithChildren<{ heading: string; col
 
 export const EditableText = ({
   edit,
-  entityId,
+  definedIn,
   content,
   updateType,
   multiline,
+  maxLength,
 }: {
   edit: boolean
-  entityId: DtdlId
+  definedIn: DtdlId
   content: string
   updateType: UpdateType
   multiline?: boolean
+  maxLength?: number
 }): JSX.Element => {
   if (!edit) return <>{escapeHtml(content)}</>
 
   return (
     <form
       hx-post="save"
-      hx-trigger="blur from:find textarea"
-      hx-vals={`{"entityId": "${entityId}", "updateType": "${updateType}", "initialValue": "${content}"}`}
+      // trigger when textarea loses focus and content has changed
+      hx-trigger={`blur[this.querySelector('textarea').value !== '${content}'] from:find textarea`}
+      hx-vals={`{"definedIn": "${definedIn}", "updateType": "${updateType}"}`}
       hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagramType"
       hx-swap="outerHTML transition:true"
       hx-target="#mermaid-output"
@@ -89,6 +92,7 @@ export const EditableText = ({
         name="content"
         class={`nav-panel-editable ${multiline ? 'multiline' : ''}`}
         contenteditable="plaintext-only"
+        {...(maxLength ? { maxlength: maxLength } : {})}
       >
         {escapeHtml(content)}
       </textarea>

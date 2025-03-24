@@ -1,13 +1,15 @@
 import { z } from 'zod'
 import { ModelDb } from '../../../db/modelDb'
 import { DataError } from '../../errors'
-import { UUID } from '../../models/strings'
+import { DtdlId, UUID } from '../../models/strings'
 
 export type UpdateType = keyof typeof updateMap
 
-export const parseContents = async (
+// Validates and returns an updated DTDL file
+export const parseUpdate = async (
   dtdlModelId: UUID,
   dtdlRowId: UUID,
+  definedIn: DtdlId,
   modelDb: ModelDb,
   updateType: UpdateType,
   contents: unknown,
@@ -16,20 +18,22 @@ export const parseContents = async (
   try {
     JSON.parse(`{"key":"${newValue}"}`)
   } catch {
-    throw new DataError(`Invalid JSON: ${JSON.stringify(newValue)}`)
+    throw new DataError(`Invalid JSON: '${newValue}'`)
   }
-  // handle if contents is an array
 
-  const validContents = updateMap[updateType](contents, newValue)
+  // DTDL files can be array or single object
+  const updatedContents = Array.isArray(contents)
+    ? contents.map((c) => (c['@id'] === definedIn ? updateMap[updateType](c, newValue) : c))
+    : updateMap[updateType](contents, newValue)
 
-  await modelDb.parseWithUpdatedFile(dtdlModelId, dtdlRowId, JSON.stringify(validContents))
+  await modelDb.parseWithUpdatedFile(dtdlModelId, dtdlRowId, JSON.stringify(updatedContents))
 
-  return validContents
+  return updatedContents
 }
 
 const updateDisplayName = (contents: unknown, newValue: string) => {
   const schema = z.object({
-    '@id': z.literal('Interface'),
+    '@type': z.literal('Interface'),
     displayName: z.string(),
   })
 
@@ -40,7 +44,7 @@ const updateDisplayName = (contents: unknown, newValue: string) => {
 
 const updateDescription = (contents: unknown, newValue: string) => {
   const schema = z.object({
-    '@id': z.literal('Interface'),
+    '@type': z.literal('Interface'),
     description: z.string(),
   })
 
@@ -51,7 +55,7 @@ const updateDescription = (contents: unknown, newValue: string) => {
 
 const updateEntityComment = (contents: unknown, newValue: string) => {
   const schema = z.object({
-    '@id': z.literal('Interface'),
+    '@type': z.literal('Interface'),
     comment: z.string(),
   })
 
@@ -60,31 +64,8 @@ const updateEntityComment = (contents: unknown, newValue: string) => {
   return validContents
 }
 
-const updatePropertyName = (contents: unknown, newValue: string) => {
-  const contentSchema = z.object({
-    '@type': z.literal('Property'),
-    name: z.string(),
-  })
-  const schema = z.object({
-    '@id': z.literal('Interface'),
-    contents: z.array(z.unknown()).refine((contents) =>
-      contents.some((content) => {
-        try {
-          contentSchema.parse(content)
-          return true
-        } catch {
-          return false
-        }
-      })
-    ),
-  })
-
-  //need original name to find and replace
-}
-
 const updateMap = {
   displayName: updateDisplayName,
   description: updateDescription,
   entityComment: updateEntityComment,
-  propertyName: updatePropertyName,
 } as const

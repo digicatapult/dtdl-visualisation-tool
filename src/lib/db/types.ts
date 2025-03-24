@@ -15,7 +15,7 @@ const insertModel = z.object({
 const insertDtdl = z.object({
   path: z.string(),
   model_id: z.string(),
-  contents: z.unknown(),
+  contents: z.unknown().refine((value) => value !== null && value !== undefined),
 })
 
 const Zod = {
