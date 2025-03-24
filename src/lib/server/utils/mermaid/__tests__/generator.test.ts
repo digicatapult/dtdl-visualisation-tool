@@ -1,12 +1,12 @@
 import { expect } from 'chai'
 import { afterEach, describe, it } from 'mocha'
 import { pino } from 'pino'
-import puppeteer from 'puppeteer'
+import puppeteer, { Browser, Page } from 'puppeteer'
 import sinon from 'sinon'
 
 import { defaultParams } from '../../../controllers/__tests__/root.test'
 import { SvgGenerator } from '../generator'
-import { simpleMockDtdlObjectModel } from './fixtures'
+import { generatedSVGFixture, simpleMockDtdlObjectModel, svgSearchFuelTypeExpandedFossilFuel } from './fixtures'
 import { checkIfStringIsSVG } from './helpers'
 
 describe('Generator', function () {
@@ -55,6 +55,41 @@ describe('Generator', function () {
 
       expect(error?.name).to.equal('Error')
       expect(stub.callCount).to.equal(2)
+    })
+
+    it('should wait for a render to complete before requesting another', async () => {
+      const clock = sinon.useFakeTimers({ shouldAdvanceTime: true })
+      const pageRenderStub = sinon.stub().callsFake(async (_container, _mermaidConfig, _definition, _svgId) => {
+        if (
+          _svgId ===
+          'flowchart TD\ndtmi:com:example:1@{ shape: rect, label: "example 1"}\nclick dtmi:com:example:1 getEntity\nclass dtmi:com:example:1 search'
+        ) {
+          await clock.tickAsync(4000)
+          return svgSearchFuelTypeExpandedFossilFuel
+        }
+        return generatedSVGFixture
+      })
+
+      const pageStub = {
+        $eval: pageRenderStub,
+        on: sinon.stub(),
+        goto: sinon.stub().resolves(),
+        addScriptTag: sinon.stub().resolves(),
+        evaluate: sinon.stub().resolves(),
+      } as unknown as Page
+
+      sinon.stub(puppeteer, 'launch').resolves({
+        newPage: sinon.stub().resolves(pageStub),
+        close: sinon.stub(),
+      } as unknown as Browser)
+
+      const gen = new SvgGenerator(logger)
+      const [firstResult, secondResult] = await Promise.all([
+        gen.run(simpleMockDtdlObjectModel, 'flowchart', 'elk' as const),
+        gen.run(simpleMockDtdlObjectModel, 'classDiagram', 'elk' as const),
+      ])
+
+      expect(firstResult.renderToString()).to.not.equal(secondResult.renderToString())
     })
   })
 })
