@@ -26,7 +26,7 @@
             "displayName": "BoundaryPoint"
         }
     ],
-    "@context": "dtmi:dtdl:context;2",
+    "@context": "dtmi:dtdl:context;4",
     "extends": [
         "dtmi:digitaltwins:ngsi_ld:cim:energy:IdentifiedObject;1"
     ]
