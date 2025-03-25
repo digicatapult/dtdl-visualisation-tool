@@ -8,5 +8,4 @@ export interface ICache {
   has(key: string): boolean
   clear(): void
   size(): number
-  delete(key: string): boolean
 }

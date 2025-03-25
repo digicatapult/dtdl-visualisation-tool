@@ -31,6 +31,4 @@ export class LRUCache implements ICache {
   clear = (): void => this.cache.clear()
 
   size = (): number => this.cache.size
-
-  delete = (key: string): boolean => this.cache.delete(key)
 }

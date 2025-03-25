@@ -141,7 +141,7 @@ export default class MermaidTemplates {
           {...(expanded && { 'aria-expanded': '' })}
         ></button>
         <div id="navigation-panel-content" {...(expanded && { 'aria-expanded': '' })}>
-          <this.navigationPanelContent entityId={entityId} model={model} expanded={expanded} edit={edit} />
+          <this.navigationPanelContent entityId={entityId} model={model} edit={edit} />
         </div>
       </aside>
     )

@@ -1,7 +1,7 @@
 import { z } from 'zod'
-import { ModelDb } from '../../../db/modelDb'
-import { DataError } from '../../errors'
-import { DtdlId, UUID } from '../../models/strings'
+import { ModelDb } from '../../../db/modelDb.js'
+import { DataError } from '../../errors.js'
+import { DtdlId, UUID } from '../../models/strings.js'
 
 export type UpdateType = keyof typeof updateMap
 
