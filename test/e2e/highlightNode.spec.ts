@@ -62,6 +62,7 @@ test.describe('highlight', () => {
     await page.setViewportSize({ width: 1920, height: 1080 })
 
     await page.goto('./?diagramType=classDiagram')
+    await page.waitForSelector(`text='Terminal'`)
 
     for (let i = 0; i < 10; i++) {
       await page.locator('#zoom-out').click()
