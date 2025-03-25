@@ -235,6 +235,8 @@ export class OntologyController extends HTMLController {
 
     this.sessionStore.update(sessionId, { editMode })
 
+    this.setHeader('HX-Push-Url') // clear push URL
+
     return this.html(
       this.templates.navigationPanel({
         swapOutOfBand: false,

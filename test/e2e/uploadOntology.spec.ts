@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 test.describe('Upload ontology from local drive', () => {
-  test('Should error success path for uploading ontology from local zip file', async ({ page }) => {
+  test('Should error + success path for uploading ontology from local zip file', async ({ page }) => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     await page.setViewportSize({ width: 1920, height: 1080 })
     await waitForUpdateLayout(page, () => page.goto('./'))
