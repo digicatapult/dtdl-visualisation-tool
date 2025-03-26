@@ -22,6 +22,12 @@ test.describe('highlight', () => {
   test('flowchart - relationship should change to highlight colour and navigation panel open', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 })
     await page.goto('./')
+    await page.waitForSelector(`text='ACDCTerminal'`)
+
+    // zoom out until visible
+    for (let i = 0; i < 10; i++) {
+      await page.locator('#zoom-out').click()
+    }
 
     await waitForUpdateLayout(page, () =>
       page.locator('#mermaid-output').getByText('CurveDatas', { exact: true }).click()
