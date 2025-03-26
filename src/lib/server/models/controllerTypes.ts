@@ -1,6 +1,7 @@
+import { UpdateType } from '../utils/dtdl/updateType.js'
 import { Session } from '../utils/sessions.js'
 import { DiagramType } from './mermaidDiagrams.js'
-import { UUID } from './strings.js'
+import { DtdlId, UUID } from './strings.js'
 
 export interface RootParams {
   /**
@@ -40,3 +41,10 @@ export type GenerateParams = Pick<UpdateParams & Session, GenerateParamKeys>
 
 export type AttributeParamKeys = 'svgWidth' | 'svgHeight' | 'highlightNodeId' | 'diagramType'
 export type AttributeParams = Pick<UpdateParams, AttributeParamKeys>
+
+export type UpdateBody = UpdateParams & {
+  definedIn: DtdlId
+  newValue: string
+  oldValue: string
+  updateType: UpdateType
+}

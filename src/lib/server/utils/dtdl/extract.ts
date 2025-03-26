@@ -1,6 +1,6 @@
 import { EntityType, InterfaceInfo, RelationshipInfo } from '@digicatapult/dtdl-parser'
 
-export const getDisplayName = (entity: EntityType): string =>
+export const getDisplayNameOrId = (entity: EntityType): string =>
   entity?.displayName?.en ?? entity?.Id ?? 'Entity not found in model'
 
 export const isInterface = (entity: EntityType): entity is InterfaceInfo => entity.EntityKind === 'Interface'

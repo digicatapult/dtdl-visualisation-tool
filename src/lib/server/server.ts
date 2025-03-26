@@ -54,7 +54,6 @@ export default async (): Promise<Express> => {
     res: express.Response,
     next: express.NextFunction
   ): void {
-    console.log(err)
     if (err instanceof Error) {
       req.log.debug('API error: %s', err.message)
       req.log.trace('API error: stack %j', err.stack)

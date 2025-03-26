@@ -18,7 +18,7 @@ test.describe('Test edit ontology', () => {
       'Only Ontologies from github that you have write permissions on, can be edited'
     )
   })
-  test('open ontology than can be edited and check edit function works', async ({ page, baseURL }) => {
+  test('edit display name', async ({ page, baseURL }) => {
     // login to github
     await page.setViewportSize({ width: 1920, height: 1080 })
     await page.goto('./open')
@@ -43,13 +43,14 @@ test.describe('Test edit ontology', () => {
     // turn on edit mode
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page.locator('#edit-toggle').getByText('Edit')).toBeVisible()
-    const border = await getStyledComponent(page, '#mermaid-wrapper', '::before', 'border')
 
+    // assert editing styling
+    const border = await getStyledComponent(page, '#mermaid-wrapper', '::before', 'border')
     expect(border).toBe('5px solid rgb(0, 183, 155)')
 
     await waitForSuccessResponse(
       page,
-      () => page.locator('#mermaid-output').getByText('dtmi:com:example;1').first().click(),
+      () => page.locator('#mermaid-output').getByText('edit').first().click(),
       '/update-layout'
     )
 
@@ -60,6 +61,18 @@ test.describe('Test edit ontology', () => {
       'content'
     )
     expect(navigationAfterContent).toBe(`url("${baseURL}/public/images/pencil.svg")`)
+
+    // edit display name and focus away from textarea to trigger update
+    const newDisplayName = 'new display name'
+    const textarea = page.locator('.nav-panel-editable').getByText('edit')
+    await textarea.fill(newDisplayName)
+    await waitForSuccessResponse(page, () => page.mouse.click(0, 0), '/update')
+    await expect(page.locator('#mermaid-output').getByText(newDisplayName)).toBeVisible()
+
+    // search by new name
+    await page.focus('#search')
+    await waitForUpdateLayout(page, () => page.fill('#search', newDisplayName))
+    await expect(page.locator('#mermaid-output').getByText(newDisplayName)).toBeVisible()
 
     // turn off edit mode
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')

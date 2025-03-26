@@ -7,7 +7,7 @@ import { container, singleton } from 'tsyringe'
 import { Env } from '../../env/index.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { DtdlId, UUID } from '../../models/strings.js'
-import { getDisplayName, isInterface, isRelationship } from '../../utils/dtdl/extract.js'
+import { getDisplayNameOrId, isInterface, isRelationship } from '../../utils/dtdl/extract.js'
 import { AccordionSection, EditableText, Page } from '../common.js'
 
 const env = container.resolve(Env)
@@ -171,13 +171,15 @@ export default class MermaidTemplates {
             <b>Display Name:</b>
           </p>
           <p>
-            {EditableText({
-              edit,
-              definedIn,
-              content: getDisplayName(entity),
-              updateType: 'displayName',
-              maxLength: 64,
-            })}
+            {entity?.displayName?.en
+              ? EditableText({
+                  edit,
+                  definedIn,
+                  text: entity?.displayName?.en,
+                  updateType: 'displayName',
+                  maxLength: 64,
+                })
+              : "'displayName' key missing in original file"}
           </p>
           <p>
             <b>Description:</b>
@@ -187,7 +189,7 @@ export default class MermaidTemplates {
               ? EditableText({
                   edit,
                   definedIn,
-                  content: entity.description.en,
+                  text: entity.description.en,
                   updateType: 'description',
                   multiline: true,
                   maxLength: 512,
@@ -202,8 +204,8 @@ export default class MermaidTemplates {
               ? EditableText({
                   edit,
                   definedIn,
-                  content: entity.comment,
-                  updateType: 'entityComment',
+                  text: entity.comment,
+                  updateType: 'interfaceComment',
                   multiline: true,
                   maxLength: 512,
                 })
@@ -222,7 +224,7 @@ export default class MermaidTemplates {
           <p>
             <b>Extends: </b>
             {isInterface(entity) && entity.extends.length > 0
-              ? entity.extends.map((entityId) => getDisplayName(model[entityId]))
+              ? entity.extends.map((entityId) => getDisplayNameOrId(model[entityId]))
               : 'None'}
           </p>
         </AccordionSection>
@@ -249,7 +251,7 @@ export default class MermaidTemplates {
                     <p>
                       <b>Target: </b>
                       {isRelationship(relationship) && relationship.target
-                        ? getDisplayName(model[relationship.target])
+                        ? getDisplayNameOrId(model[relationship.target])
                         : '-'}
                     </p>
                     <br />

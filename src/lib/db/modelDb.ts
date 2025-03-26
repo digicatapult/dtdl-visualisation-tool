@@ -57,25 +57,23 @@ export class ModelDb {
   async getDtdlModel(id: UUID): Promise<DtdlObjectModel> {
     const files = await this.db.get('dtdl', { model_id: id })
     if (files.length === 0) throw new InternalError(`Failed to find model: ${id}`)
-
-    const parsedDtdl = await this.parser.parse(
-      files.map((file) => ({ path: file.path, contents: JSON.stringify(file.contents) }))
-    )
+    const filesStringified = files.map((file) => ({ path: file.path, contents: JSON.stringify(file.contents) }))
+    const parsedDtdl = await this.parser.parse(filesStringified)
     return parsedDtdl
   }
 
+  // validate the updated file works with rest of model
   async parseWithUpdatedFile(model_id: UUID, updateId: UUID, updateContents: string) {
     const files = await this.db.get('dtdl', { model_id })
     if (files.length === 0) throw new InternalError(`Failed to find model: ${model_id}`)
+    const filesStringified = files.map((file) => {
+      if (file.id === updateId) {
+        return { path: file.path, contents: updateContents }
+      }
+      return { path: file.path, contents: JSON.stringify(file.contents) }
+    })
 
-    const parsedDtdl = await this.parser.parse(
-      files.map((file) => {
-        if (file.id === updateId) {
-          return { path: file.path, contents: updateContents }
-        }
-        return { path: file.path, contents: JSON.stringify(file.contents) }
-      })
-    )
+    const parsedDtdl = await this.parser.parse(filesStringified)
     return parsedDtdl
   }
 
@@ -86,7 +84,7 @@ export class ModelDb {
       .map(([, entity]) => entity)
   }
 
-  async getDtdl(model_id: UUID, entityId: DtdlId): Promise<DtdlRow> {
+  async getDtdlByEntityId(model_id: UUID, entityId: DtdlId): Promise<DtdlRow> {
     const [dtdl] = await this.db.getJsonb(
       'dtdl',
       'jsonb_path_exists',
