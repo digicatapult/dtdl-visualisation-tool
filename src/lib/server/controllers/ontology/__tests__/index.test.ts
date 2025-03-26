@@ -531,13 +531,26 @@ describe('OntologyController', async () => {
       )
     })
 
-    it(`should error on invalid JSON for new entity value `, async () => {
+    it(`should error on " char in new entity value`, async () => {
       const req = mockReq({})
       const saveBody: UpdateBody = {
         ...defaultParams,
         definedIn: simpleDtdlFileEntityId,
         oldValue: '',
         newValue: '"',
+        updateType: 'description',
+      }
+
+      await expect(controller.update(req, simpleDtdlId, saveBody)).to.be.rejectedWith(DataError, 'Invalid JSON')
+    })
+
+    it(`should error on \\ char in new entity value`, async () => {
+      const req = mockReq({})
+      const saveBody: UpdateBody = {
+        ...defaultParams,
+        definedIn: simpleDtdlFileEntityId,
+        oldValue: '',
+        newValue: '\\',
         updateType: 'description',
       }
 

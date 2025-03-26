@@ -89,6 +89,8 @@ export class ModelDb {
       'dtdl',
       'jsonb_path_exists',
       'contents',
+      // filter root of json ($), recursively (**), for the (@id) field where (?) it matches (@ == ??) entity id (prepared statement)
+      // recursive is required because DTDL can be a single entity or an array of entities (multiple IDs in one file)
       `$.**."@id" \\? (@ == ??)`,
       [entityId],
       {

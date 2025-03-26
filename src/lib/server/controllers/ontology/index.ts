@@ -2,7 +2,7 @@ import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import express from 'express'
 import { randomUUID } from 'node:crypto'
 import { Body, Get, Path, Post, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
-import { inject, injectable, singleton } from 'tsyringe'
+import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../../db/modelDb.js'
 import { DataError, InternalError } from '../../errors.js'
 import { Logger, type ILogger } from '../../logger.js'
@@ -32,7 +32,6 @@ import MermaidTemplates from '../../views/components/mermaid.js'
 import { HTML, HTMLController } from '../HTMLController.js'
 import { dtdlCacheKey } from '../helpers.js'
 
-@singleton()
 @injectable()
 @Route('/ontology')
 @Produces('text/html')
@@ -231,8 +230,6 @@ export class OntologyController extends HTMLController {
 
     this.sessionStore.update(sessionId, { editMode })
 
-    this.setHeader('HX-Push-Url', '') // clear push URL
-
     return this.html(
       this.templates.navigationPanel({
         swapOutOfBand: false,
@@ -253,11 +250,8 @@ export class OntologyController extends HTMLController {
   ): Promise<HTML> {
     const { definedIn, newValue, oldValue, updateType, ...updateParams } = body
 
-    try {
-      JSON.parse(`{"key":"${newValue}"}`)
-    } catch {
-      throw new DataError(`Invalid JSON: '${newValue}'`)
-    }
+    const invalidChars = /["\\]/
+    if (invalidChars.test(newValue)) throw new DataError(`Invalid JSON: '${newValue}'`)
 
     const { id, contents } = await this.modelDb.getDtdlByEntityId(dtdlModelId, definedIn)
 

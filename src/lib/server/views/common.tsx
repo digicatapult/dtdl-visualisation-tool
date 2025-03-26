@@ -92,6 +92,7 @@ export const EditableText = ({
         name="newValue"
         class={`nav-panel-editable ${multiline ? 'multiline' : ''}`}
         contenteditable="plaintext-only"
+        onkeyup="globalThis.validateDtdlValue(this)"
         {...(maxLength ? { maxlength: maxLength } : {})}
       >
         {escapeHtml(text)}
