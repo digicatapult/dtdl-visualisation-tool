@@ -175,8 +175,8 @@ export default class MermaidTemplates {
               ? EditableText({
                   edit,
                   definedIn,
+                  putRoute: 'displayName',
                   text: entity?.displayName?.en,
-                  updateType: 'displayName',
                   maxLength: 64,
                 })
               : "'displayName' key missing in original file"}
@@ -189,8 +189,8 @@ export default class MermaidTemplates {
               ? EditableText({
                   edit,
                   definedIn,
+                  putRoute: 'description',
                   text: entity.description.en,
-                  updateType: 'description',
                   multiline: true,
                   maxLength: 512,
                 })
@@ -204,8 +204,8 @@ export default class MermaidTemplates {
               ? EditableText({
                   edit,
                   definedIn,
+                  putRoute: 'interfaceComment',
                   text: entity.comment,
-                  updateType: 'interfaceComment',
                   multiline: true,
                   maxLength: 512,
                 })

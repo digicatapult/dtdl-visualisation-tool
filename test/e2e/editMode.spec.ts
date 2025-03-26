@@ -66,7 +66,7 @@ test.describe('Test edit ontology', () => {
     const newDisplayName = 'new display name'
     const textarea = page.locator('.nav-panel-editable').getByText('edit')
     await textarea.fill(newDisplayName)
-    await waitForSuccessResponse(page, () => page.mouse.click(0, 0), '/update')
+    await waitForSuccessResponse(page, () => page.mouse.click(0, 0), '/displayName')
     await expect(page.locator('#mermaid-output').getByText(newDisplayName)).toBeVisible()
 
     // search by new name

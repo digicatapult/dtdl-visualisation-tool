@@ -1,8 +1,9 @@
 import { describe, test } from 'mocha'
 
 import { expect } from 'chai'
+import { ZodError } from 'zod'
 import { DataError } from '../../../errors'
-import { updateMap } from '../updateType'
+import { updateDescription, updateDisplayName, updateInterfaceComment } from '../entityUpdate'
 
 export const dtdlFile = {
   '@context': ['dtmi:dtdl:context;4'],
@@ -13,11 +14,11 @@ export const dtdlFile = {
   comment: 'comment',
 }
 
-describe('updateMap', function () {
+describe('entity updates', function () {
   describe('happy path', function () {
     test('updates interface display name', async () => {
       const newDisplayName = 'updated'
-      expect(updateMap['displayName'](dtdlFile, '', newDisplayName)).to.deep.equal({
+      expect(updateDisplayName(newDisplayName)(dtdlFile)).to.deep.equal({
         ...dtdlFile,
         displayName: newDisplayName,
       })
@@ -25,7 +26,7 @@ describe('updateMap', function () {
 
     test('updates interface description', async () => {
       const newDescription = 'updated'
-      expect(updateMap['description'](dtdlFile, '', newDescription)).to.deep.equal({
+      expect(updateDescription(newDescription)(dtdlFile)).to.deep.equal({
         ...dtdlFile,
         description: newDescription,
       })
@@ -33,7 +34,7 @@ describe('updateMap', function () {
 
     test('updates interface comment', async () => {
       const newComment = 'updated'
-      expect(updateMap['interfaceComment'](dtdlFile, '', newComment)).to.deep.equal({
+      expect(updateInterfaceComment(newComment)(dtdlFile)).to.deep.equal({
         ...dtdlFile,
         comment: newComment,
       })
@@ -41,24 +42,30 @@ describe('updateMap', function () {
   })
 
   describe('sad path', function () {
+    test('throws Zod error if display name key is missing in file', async () => {
+      expect(() => {
+        updateDisplayName('display name')({})
+      }).to.throw(ZodError)
+    })
+
     test('throws error for display name too long', async () => {
       const newDisplayName = 'a'.repeat(65)
       expect(() => {
-        updateMap['displayName'](dtdlFile, '', newDisplayName)
+        updateDisplayName(newDisplayName)(dtdlFile)
       }).to.throw(DataError)
     })
 
     test('throws error for description too long', async () => {
       const newDescription = 'a'.repeat(513)
       expect(() => {
-        updateMap['description'](dtdlFile, '', newDescription)
+        updateDescription(newDescription)(dtdlFile)
       }).to.throw(DataError)
     })
 
     test('throws error for interface comment too long', async () => {
       const newComment = 'a'.repeat(513)
       expect(() => {
-        updateMap['interfaceComment'](dtdlFile, '', newComment)
+        updateInterfaceComment(newComment)(dtdlFile)
       }).to.throw(DataError)
     })
   })

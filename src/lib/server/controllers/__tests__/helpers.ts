@@ -57,7 +57,9 @@ export const arrayDtdlFile = [
     '@context': ['dtmi:dtdl:context;4'],
     '@id': arrayDtdlFileEntityId,
     '@type': 'Interface',
+    displayName: 'displayName',
     description: 'description',
+    comment: 'comment',
   },
 ]
 

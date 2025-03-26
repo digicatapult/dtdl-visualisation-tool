@@ -1,15 +1,12 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import sinon, { SinonStub } from 'sinon'
-import { DataError } from '../../../errors.js'
-import { UpdateBody, UpdateParams } from '../../../models/controllerTypes.js'
+import { UpdateParams } from '../../../models/controllerTypes.js'
 import { modelHistoryCookie } from '../../../models/cookieNames.js'
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../../models/renderedDiagram/index.js'
 import { generatedSVGFixture } from '../../../utils/mermaid/__tests__/fixtures.js'
 import { mockGithubRequest } from '../../__tests__/github.test.js'
 import {
-  arrayDtdlFile,
-  arrayDtdlFileEntityId,
   complexDtdlId,
   complexMockModelDb,
   generatorRunStub,
@@ -21,13 +18,10 @@ import {
   mockReqWithCookie,
   mockSession,
   sessionSetStub,
-  simpleDtdlFile,
-  simpleDtdlFileEntityId,
   simpleDtdlId,
   simpleMockModelDb,
   templateMock,
   toHTMLString,
-  updateDtdlContentsStub,
 } from '../../__tests__/helpers.js'
 import {
   validSessionExpanded11Id,
@@ -474,87 +468,6 @@ describe('OntologyController', async () => {
       const result = await controller.editModel(simpleDtdlId, validSessionId, true).then(toHTMLString)
 
       expect(result).to.equal(mockHtmlOutput)
-    })
-  })
-
-  describe('update', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
-
-    it('should update db and layout for new description on non-array DTDL file', async () => {
-      const req = mockReq({})
-      const saveBody: UpdateBody = {
-        ...defaultParams,
-        definedIn: simpleDtdlFileEntityId,
-        oldValue: '',
-        newValue: 'new description',
-        updateType: 'description',
-      }
-      const result = await controller.update(req, simpleDtdlId, saveBody).then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal({
-        ...simpleDtdlFile,
-        description: 'new description',
-      })
-      expect(result).to.equal(
-        [
-          `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
-          `searchPanel_undefined_true_searchPanel`,
-          `navigationPanel_true__navigationPanel`,
-          `svgControls_${generatedSVGFixture}_svgControls`,
-        ].join('')
-      )
-    })
-
-    it('should update db and layout for new description on array DTDL file', async () => {
-      const req = mockReq({})
-      const saveBody: UpdateBody = {
-        ...defaultParams,
-        definedIn: arrayDtdlFileEntityId,
-        oldValue: '',
-        newValue: 'new description',
-        updateType: 'description',
-      }
-      const result = await controller.update(req, simpleDtdlId, saveBody).then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal([
-        arrayDtdlFile[0],
-        {
-          ...arrayDtdlFile[1],
-          description: 'new description',
-        },
-      ])
-      expect(result).to.equal(
-        [
-          `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
-          `searchPanel_undefined_true_searchPanel`,
-          `navigationPanel_true__navigationPanel`,
-          `svgControls_${generatedSVGFixture}_svgControls`,
-        ].join('')
-      )
-    })
-
-    it(`should error on " char in new entity value`, async () => {
-      const req = mockReq({})
-      const saveBody: UpdateBody = {
-        ...defaultParams,
-        definedIn: simpleDtdlFileEntityId,
-        oldValue: '',
-        newValue: '"',
-        updateType: 'description',
-      }
-
-      await expect(controller.update(req, simpleDtdlId, saveBody)).to.be.rejectedWith(DataError, 'Invalid JSON')
-    })
-
-    it(`should error on \\ char in new entity value`, async () => {
-      const req = mockReq({})
-      const saveBody: UpdateBody = {
-        ...defaultParams,
-        definedIn: simpleDtdlFileEntityId,
-        oldValue: '',
-        newValue: '\\',
-        updateType: 'description',
-      }
-
-      await expect(controller.update(req, simpleDtdlId, saveBody)).to.be.rejectedWith(DataError, 'Invalid JSON')
     })
   })
 })

@@ -1,10 +1,10 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import express from 'express'
 import { randomUUID } from 'node:crypto'
-import { Body, Get, Path, Post, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
+import { Get, Path, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../../db/modelDb.js'
-import { DataError, InternalError } from '../../errors.js'
+import { InternalError } from '../../errors.js'
 import { Logger, type ILogger } from '../../logger.js'
 import {
   A11yPreference,
@@ -13,7 +13,6 @@ import {
   UrlQueryKeys,
   type CookieHistoryParams,
   type RootParams,
-  type UpdateBody,
   type UpdateParams,
 } from '../../models/controllerTypes.js'
 import { modelHistoryCookie, octokitTokenCookie } from '../../models/cookieNames.js'
@@ -21,7 +20,6 @@ import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../
 import { type UUID } from '../../models/strings.js'
 import { Cache, type ICache } from '../../utils/cache.js'
 import { filterModelByDisplayName, getRelatedIdsById } from '../../utils/dtdl/filter.js'
-import { updateMap } from '../../utils/dtdl/updateType.js'
 import { FuseSearch } from '../../utils/fuseSearch.js'
 import { authRedirectURL, GithubRequest } from '../../utils/githubRequest.js'
 import { SvgGenerator } from '../../utils/mermaid/generator.js'
@@ -239,33 +237,6 @@ export class OntologyController extends HTMLController {
         edit: editMode,
       })
     )
-  }
-
-  @SuccessResponse(200)
-  @Post('{dtdlModelId}/update')
-  public async update(
-    @Request() req: express.Request,
-    @Path() dtdlModelId: UUID,
-    @Body() body: UpdateBody
-  ): Promise<HTML> {
-    const { definedIn, newValue, oldValue, updateType, ...updateParams } = body
-
-    const invalidChars = /["\\]/
-    if (invalidChars.test(newValue)) throw new DataError(`Invalid JSON: '${newValue}'`)
-
-    const { id, contents } = await this.modelDb.getDtdlByEntityId(dtdlModelId, definedIn)
-
-    // DTDL files can be array or single object
-    const updatedContents = Array.isArray(contents)
-      ? contents.map((c) => (c['@id'] === definedIn ? updateMap[updateType](c, oldValue, newValue) : c))
-      : updateMap[updateType](contents, oldValue, newValue)
-
-    // validate new DTDL parses before saving
-    await this.modelDb.parseWithUpdatedFile(dtdlModelId, id, JSON.stringify(updatedContents))
-    await this.modelDb.updateDtdlContents(id, JSON.stringify(updatedContents))
-
-    this.cache.clear()
-    return this.updateLayout(req, dtdlModelId, updateParams)
   }
 
   private getCurrentPathQuery(req: express.Request): { path: string; query: URLSearchParams } | undefined {

@@ -1,6 +1,5 @@
 import { escapeHtml, type PropsWithChildren } from '@kitajs/html'
 import { DtdlId } from '../models/strings'
-import { UpdateType } from '../utils/dtdl/updateType'
 
 export const parseError = (): JSX.Element => <p>Ontology Undefined</p>
 
@@ -63,15 +62,15 @@ export const AccordionSection = (props: PropsWithChildren<{ heading: string; col
 export const EditableText = ({
   edit,
   definedIn,
+  putRoute,
   text,
-  updateType,
   multiline,
   maxLength,
 }: {
   edit: boolean
   definedIn: DtdlId
+  putRoute: string
   text: string
-  updateType: UpdateType
   multiline?: boolean
   maxLength?: number
 }): JSX.Element => {
@@ -79,17 +78,16 @@ export const EditableText = ({
 
   return (
     <form
-      hx-post="update"
+      hx-put={`entity/${definedIn}/${putRoute}`}
       // trigger when textarea loses focus and value has changed
       hx-trigger={`blur[this.querySelector('textarea').value !== '${text}'] from:find textarea`}
-      hx-vals={`{"definedIn": "${definedIn}", "updateType": "${updateType}", "oldValue": "${text}"}`}
       hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagramType"
       hx-swap="outerHTML transition:true"
       hx-target="#mermaid-output"
       hx-indicator="#spinner"
     >
       <textarea
-        name="newValue"
+        name="value"
         class={`nav-panel-editable ${multiline ? 'multiline' : ''}`}
         contenteditable="plaintext-only"
         onkeyup="globalThis.validateDtdlValue(this)"
