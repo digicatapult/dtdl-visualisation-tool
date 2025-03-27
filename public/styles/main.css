@@ -630,6 +630,7 @@ label[for='diagramType'] {
   transition: transform var(--transition-duration);
   display: grid;
   row-gap: 20px;
+  pointer-events: none;
 }
 
 #edit-toggle {
@@ -641,6 +642,7 @@ label[for='diagramType'] {
   border-radius: 7px;
   width: 140px;
   color: #83898C;
+  pointer-events: all;
 }
 #edit-toggle.edit {
   background-color: #00b79b;
@@ -711,6 +713,7 @@ label[for='diagramType'] {
   justify-self: end;
   justify-content: center;
   grid-auto-rows: 1fr 1fr 1fr;
+  pointer-events: all;
 }
 
 #edit-buttons button {
@@ -744,10 +747,12 @@ label[for='diagramType'] {
   border: none;
   font-family: inherit;
   font-size: inherit;
-  resize:vertical;
-  min-height: 1.5em;
+  resize:none;
+  height: 1.8em;
 }
 
 textarea.multiline {
   height: 10rem;
+  resize:vertical;
+
 }

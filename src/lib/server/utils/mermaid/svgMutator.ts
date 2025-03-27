@@ -95,7 +95,7 @@ export class SvgMutator {
     lineElement: Element,
     labelElement: Element,
     relationshipMap: Map<string, string>,
-    highlighNodeId?: string
+    highlightNodeId?: string
   ) {
     const labelText = [...labelElement.querySelectorAll('.text-inner-tspan')].map((n) => n.innerHTML).join('')
     const relationshipId = relationshipMap.get(`${this.getMermaidIdFromId(lineElement.id, 'edge')}_${labelText}`)
@@ -110,7 +110,7 @@ export class SvgMutator {
     })
 
     labelElement.setAttribute('clickable', '')
-    if (relationshipId === highlighNodeId) {
+    if (relationshipId === highlightNodeId) {
       lineElement.setAttribute('highlighted', '')
       labelElement.setAttribute('highlighted', '')
     }
