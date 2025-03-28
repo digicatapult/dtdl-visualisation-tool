@@ -17,7 +17,7 @@ import {
 import { checkIfStringIsSVG } from './helpers'
 
 describe('Generator', function () {
-  this.timeout(1000000)
+  this.timeout(10000)
   const logger = pino({ level: 'silent' })
   const generator = new SvgGenerator(logger)
 
