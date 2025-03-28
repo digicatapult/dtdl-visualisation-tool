@@ -120,7 +120,7 @@ describe('Generator', function () {
         })
       ).to.not.equal(undefined)
     })
-    it.only('if parallel render fails browser should restart and renders should complete', async () => {
+    it('if parallel render fails browser should restart and renders should complete', async () => {
       const clock = sinon.useFakeTimers({ shouldAdvanceTime: true })
       const startTimes: number[] = []
       const numPages = os.cpus().length - 2
