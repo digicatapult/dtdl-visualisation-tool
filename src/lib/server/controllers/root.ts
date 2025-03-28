@@ -1,12 +1,11 @@
 import { Get, Produces, Queries, Query, Route, SuccessResponse } from 'tsoa'
-import { inject, injectable, singleton } from 'tsyringe'
+import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../db/modelDb.js'
 import { Logger, type ILogger } from '../logger.js'
 import { type RootParams } from '../models/controllerTypes.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
-@singleton()
 @injectable()
 @Route()
 @Produces('text/html')

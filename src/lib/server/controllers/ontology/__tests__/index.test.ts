@@ -462,7 +462,7 @@ describe('OntologyController', async () => {
     })
   })
 
-  describe('OntologyController - editModel', () => {
+  describe('editModel', () => {
     it('should return rendered navigation panel template', async () => {
       const mockHtmlOutput = `navigationPanel_false__navigationPanel`
       const result = await controller.editModel(simpleDtdlId, validSessionId, true).then(toHTMLString)

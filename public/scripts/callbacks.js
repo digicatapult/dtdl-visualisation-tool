@@ -39,6 +39,12 @@ globalThis.validatePublicRepoInput = (e) => {
   e.reportValidity()
 }
 
+globalThis.validateDtdlValue = (e) => {
+  const invalidChars = /["\\]/
+  e.setCustomValidity(invalidChars.test(e.value) ? 'Invalid characters: " and \\' : '')
+  e.reportValidity()
+}
+
 htmx.on('htmx:beforeSwap', (e) => {
   if (e.detail.pathInfo.requestPath === '/github/branches?page=1') {
     if (e.detail.xhr.status === 400 && e.detail.requestConfig.triggeringEvent.type !== 'keyup') {
