@@ -173,7 +173,7 @@ export default class MermaidTemplates {
           <p>
             {entity?.displayName?.en
               ? EditableText({
-                  edit,
+                  edit: edit && !isRelationship(entity),
                   definedIn,
                   putRoute: 'displayName',
                   text: entity?.displayName?.en,
@@ -187,7 +187,7 @@ export default class MermaidTemplates {
           <p>
             {entity.description?.en
               ? EditableText({
-                  edit,
+                  edit: edit && !isRelationship(entity),
                   definedIn,
                   putRoute: 'description',
                   text: entity.description.en,
@@ -202,7 +202,7 @@ export default class MermaidTemplates {
           <p>
             {entity.comment
               ? EditableText({
-                  edit,
+                  edit: edit && !isRelationship(entity),
                   definedIn,
                   putRoute: 'interfaceComment',
                   text: entity.comment,
