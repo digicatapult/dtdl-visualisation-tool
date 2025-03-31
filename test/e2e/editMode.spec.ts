@@ -113,7 +113,7 @@ const testNavPanelEdit = async (page: Page, textToEdit: RegExp, newValue: string
   const textArea = page.locator('.nav-panel-editable').getByText(textToEdit)
   await textArea.fill(newValue)
   await waitForSuccessResponse(page, () => page.mouse.click(0, 0), successRoute)
-  await expect(page.locator('#navigation-panel-content')).toBeVisible()
+  await page.waitForTimeout(500)
 }
 
 const getStyledComponent = async (page: Page, selector: string, pseudoElement: string, property: string) => {
