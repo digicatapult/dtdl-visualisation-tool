@@ -11,13 +11,29 @@ test.describe('Upload ontology from GitHub via OAuth', () => {
     await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('Upload New File').click(), '/menu')
     await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/repos')
 
-    // click first of test users repos
+    // click test repo
     await expect(page.locator('.github-list li').first()).toBeVisible()
-    await waitForSuccessResponse(page, () => page.locator('.github-list li').first().click(), '/branches')
+    await waitForSuccessResponse(
+      page,
+      () =>
+        page
+          .locator('.github-list li')
+          .filter({ hasText: /^digicatapult\/dtdl-test-fixtures$/ })
+          .click(),
+      '/branches'
+    )
 
-    // click main branch, 1st option is back button
-    await expect(page.locator('.github-list li').nth(1)).toBeVisible()
-    await waitForSuccessResponse(page, () => page.locator('.github-list li').nth(1).click(), '/contents')
+    // click main branch
+    await expect(page.locator('.github-list li').first()).toBeVisible()
+    await waitForSuccessResponse(
+      page,
+      () =>
+        page
+          .locator('.github-list li')
+          .filter({ hasText: /^main$/ })
+          .click(),
+      '/contents'
+    )
 
     // get dtdl from github
     await waitForSuccessResponse(page, () => page.click('#select-folder'), '/ontology')

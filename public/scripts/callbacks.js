@@ -75,7 +75,6 @@ document.addEventListener('htmx:afterSwap', (event) => {
     const navPanelContent = document.getElementById('navigation-panel-content')
     if (navPanelContent) {
       navPanelContent.scrollTop = navPanelContentScrollTop
-      console.log(navPanelContent.scrollTop)
     }
   }
 })
