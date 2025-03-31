@@ -1,4 +1,5 @@
 import { escapeHtml, type PropsWithChildren } from '@kitajs/html'
+import { DtdlId } from '../models/strings'
 
 export const parseError = (): JSX.Element => <p>Ontology Undefined</p>
 
@@ -57,3 +58,43 @@ export const AccordionSection = (props: PropsWithChildren<{ heading: string; col
     </div>
   </section>
 )
+
+export const EditableText = ({
+  edit,
+  definedIn,
+  putRoute,
+  text,
+  multiline,
+  maxLength,
+}: {
+  edit: boolean
+  definedIn: DtdlId
+  putRoute: string
+  text: string
+  multiline?: boolean
+  maxLength?: number
+}): JSX.Element => {
+  if (!edit) return <>{escapeHtml(text)}</>
+
+  return (
+    <form
+      hx-put={`entity/${definedIn}/${putRoute}`}
+      // trigger when textarea loses focus and value has changed
+      hx-trigger={`blur[this.querySelector('textarea').value !== '${text}'] from:find textarea`}
+      hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagramType"
+      hx-swap="outerHTML transition:true"
+      hx-target="#mermaid-output"
+      hx-indicator="#spinner"
+    >
+      <textarea
+        name="value"
+        class={`nav-panel-editable ${multiline ? 'multiline' : ''}`}
+        contenteditable="plaintext-only"
+        onkeyup="globalThis.validateDtdlValue(this)"
+        {...(maxLength ? { maxlength: maxLength } : {})}
+      >
+        {escapeHtml(text)}
+      </textarea>
+    </form>
+  )
+}

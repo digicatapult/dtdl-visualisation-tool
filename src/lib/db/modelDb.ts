@@ -2,11 +2,11 @@ import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { singleton } from 'tsyringe'
 import { InternalError } from '../server/errors.js'
 import { FileSourceKeys } from '../server/models/openTypes.js'
-import { type UUID } from '../server/models/strings.js'
+import { DtdlId, type UUID } from '../server/models/strings.js'
 import { allInterfaceFilter } from '../server/utils/dtdl/extract.js'
 import Parser from '../server/utils/dtdl/parser.js'
 import Database from './index.js'
-import { DtdlFile, ModelRow } from './types.js'
+import { DtdlFile, DtdlRow, ModelRow } from './types.js'
 
 @singleton()
 export class ModelDb {
@@ -57,10 +57,23 @@ export class ModelDb {
   async getDtdlModel(id: UUID): Promise<DtdlObjectModel> {
     const files = await this.db.get('dtdl', { model_id: id })
     if (files.length === 0) throw new InternalError(`Failed to find model: ${id}`)
+    const filesStringified = files.map((file) => ({ path: file.path, contents: JSON.stringify(file.contents) }))
+    const parsedDtdl = await this.parser.parse(filesStringified)
+    return parsedDtdl
+  }
 
-    const parsedDtdl = await this.parser.parse(
-      files.map((file) => ({ path: file.path, contents: JSON.stringify(file.contents) }))
-    )
+  // validate the updated file works with rest of model
+  async parseWithUpdatedFile(model_id: UUID, updateId: UUID, updateContents: string) {
+    const files = await this.db.get('dtdl', { model_id })
+    if (files.length === 0) throw new InternalError(`Failed to find model: ${model_id}`)
+    const filesStringified = files.map((file) => {
+      if (file.id === updateId) {
+        return { path: file.path, contents: updateContents }
+      }
+      return { path: file.path, contents: JSON.stringify(file.contents) }
+    })
+
+    const parsedDtdl = await this.parser.parse(filesStringified)
     return parsedDtdl
   }
 
@@ -69,5 +82,28 @@ export class ModelDb {
     return Object.entries(dtdlModel)
       .filter(allInterfaceFilter)
       .map(([, entity]) => entity)
+  }
+
+  async getDtdlByEntityId(model_id: UUID, entityId: DtdlId): Promise<DtdlRow> {
+    const [dtdl] = await this.db.getJsonb(
+      'dtdl',
+      'jsonb_path_exists',
+      'contents',
+      // filter root of json ($), recursively (**), for the (@id) field where (?) it matches (@ == ??) entity id (prepared statement)
+      // recursive is required because DTDL can be a single entity or an array of entities (multiple IDs in one file)
+      `$.**."@id" \\? (@ == ??)`,
+      [entityId],
+      {
+        model_id,
+      }
+    )
+    if (!dtdl) throw new InternalError(`Failed to find dtdl containing @id: ${entityId} for model: ${model_id}`)
+    return dtdl
+  }
+
+  async updateDtdlContents(id: UUID, contents: string): Promise<DtdlRow> {
+    const [dtdl] = await this.db.update('dtdl', { id }, { contents })
+    if (!dtdl) throw new InternalError(`Failed to find dtdl: ${id}`)
+    return dtdl
   }
 }

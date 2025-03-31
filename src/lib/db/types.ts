@@ -15,7 +15,7 @@ const insertModel = z.object({
 const insertDtdl = z.object({
   path: z.string(),
   model_id: z.string(),
-  contents: z.unknown(),
+  contents: z.unknown().refine((value) => value !== null && value !== undefined),
 })
 
 const Zod = {
@@ -66,6 +66,7 @@ export type WhereMatch<M extends TABLE> = {
 }
 
 export type Where<M extends TABLE> = WhereMatch<M> | (WhereMatch<M> | WhereComparison<M>[keyof Models[M]['get']])[]
+export type Update<M extends TABLE> = Partial<Models[M]['get']>
 
 export type IDatabase = {
   [key in TABLE]: () => Knex.QueryBuilder

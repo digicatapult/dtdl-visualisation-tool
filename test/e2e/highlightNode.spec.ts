@@ -10,9 +10,7 @@ test.describe('highlight', () => {
       page.locator('#mermaid-output').getByText('ACDCTerminal', { exact: true }).click()
     )
 
-    await expect(
-      page.locator('#navigation-panel-content').getByText('Display Name: ACDCTerminal', { exact: true })
-    ).toBeVisible()
+    await expect(page.locator('#navigation-panel-content').getByText('ACDCTerminal', { exact: true })).toBeVisible()
 
     const rect = page.locator('#mermaid-output').locator('[id*=ACDCTerminal]').locator('rect.label-container')
 
@@ -27,9 +25,7 @@ test.describe('highlight', () => {
       page.locator('#mermaid-output').getByText('CurveDatas', { exact: true }).click()
     )
 
-    await expect(
-      page.locator('#navigation-panel-content').getByText('Display Name: CurveDatas', { exact: true })
-    ).toBeVisible()
+    await expect(page.locator('#navigation-panel-content').getByText('CurveDatas', { exact: true })).toBeVisible()
 
     const text = page.locator('#mermaid-output').getByText('CurveDatas', { exact: true })
 
@@ -44,9 +40,7 @@ test.describe('highlight', () => {
       page.locator('#mermaid-output').getByText('Terminal', { exact: true }).click()
     )
 
-    await expect(
-      page.locator('#navigation-panel-content').getByText('Display Name: Terminal', { exact: true })
-    ).toBeVisible()
+    await expect(page.locator('#navigation-panel-content').getByText('Terminal', { exact: true })).toBeVisible()
 
     const path = page
       .locator('#mermaid-output')
@@ -72,7 +66,7 @@ test.describe('highlight', () => {
     )
 
     await expect(
-      page.locator('#navigation-panel-content').getByText('Display Name: memberOfSubstation', { exact: true })
+      page.locator('#navigation-panel-content').getByText('memberOfSubstation', { exact: true })
     ).toBeVisible()
 
     const text = page.locator('#mermaid-output').getByText('memberOfSubstation', { exact: true })
