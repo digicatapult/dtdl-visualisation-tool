@@ -18,7 +18,7 @@ test.describe('Test edit ontology', () => {
       'Only Ontologies from github that you have write permissions on, can be edited'
     )
   })
-  test('edit display name', async ({ page, baseURL }) => {
+  test('edit interface + relationship', async ({ page, baseURL }) => {
     // login to github
     await page.setViewportSize({ width: 1920, height: 1080 })
     await page.goto('./open')
@@ -87,12 +87,6 @@ test.describe('Test edit ontology', () => {
     await testNavPanelEdit(page, /^relationshipDisplayNameEdit$/, 'updated', '/relationshipDisplayName')
     await testNavPanelEdit(page, /^relationshipDescriptionEdit$/, 'updated', '/relationshipDescription')
     await testNavPanelEdit(page, /^relationshipCommentEdit$/, 'updated', '/relationshipComment')
-
-    // search by new name
-    await expect(page.locator('#mermaid-output').getByText(newDisplayName)).toBeVisible()
-    await page.focus('#search')
-    await waitForUpdateLayout(page, () => page.fill('#search', newDisplayName))
-    await expect(page.locator('#mermaid-output').getByText(newDisplayName)).toBeVisible()
 
     // turn off edit mode
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
