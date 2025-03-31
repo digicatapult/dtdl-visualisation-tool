@@ -75,8 +75,8 @@ test.describe('Test edit ontology', () => {
     await testNavPanelEdit(page, /^displayNameEdit$/, newDisplayName, '/displayName')
     await testNavPanelEdit(page, /^descriptionEdit$/, 'updated', '/description')
     await testNavPanelEdit(page, /^commentEdit$/, 'updated', '/comment')
-    await testNavPanelEdit(page, /^propertyNameEdit$/, 'updated', '/propertyName')
     await testNavPanelEdit(page, /^propertyCommentEdit$/, 'updated', '/propertyComment')
+    await testNavPanelEdit(page, /^propertyNameEdit$/, 'updated', '/propertyName')
 
     // test relationship edits
     await waitForSuccessResponse(
