@@ -88,6 +88,12 @@ test.describe('Test edit ontology', () => {
     await testNavPanelEdit(page, /^relationshipDescriptionEdit$/, 'updated', '/relationshipDescription')
     await testNavPanelEdit(page, /^relationshipCommentEdit$/, 'updated', '/relationshipComment')
 
+    // search by new name
+    await expect(page.locator('#mermaid-output').getByText(newDisplayName)).toBeVisible()
+    await page.focus('#search')
+    await waitForUpdateLayout(page, () => page.fill('#search', newDisplayName))
+    await expect(page.locator('#mermaid-output').getByText(newDisplayName)).toBeVisible()
+
     // turn off edit mode
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page.locator('#edit-toggle').getByText('View')).toBeVisible()
@@ -107,7 +113,7 @@ const testNavPanelEdit = async (page: Page, textToEdit: RegExp, newValue: string
   const textArea = page.locator('.nav-panel-editable').getByText(textToEdit)
   await textArea.fill(newValue)
   await waitForSuccessResponse(page, () => page.mouse.click(0, 0), successRoute)
-  await page.waitForFunction(() => !document.querySelector('.htmx-request'))
+  await page.waitForTimeout(500)
 }
 
 const getStyledComponent = async (page: Page, selector: string, pseudoElement: string, property: string) => {
