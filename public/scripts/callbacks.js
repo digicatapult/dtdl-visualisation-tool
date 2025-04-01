@@ -62,6 +62,23 @@ htmx.on('htmx:load', (e) => {
   }
 })
 
+// maintain nav panel scroll position after swap
+let navPanelContentScrollTop = 0
+document.addEventListener('htmx:beforeSwap', (event) => {
+  const navPanelContent = document.getElementById('navigation-panel-content')
+  if (navPanelContent) {
+    navPanelContentScrollTop = navPanelContent.scrollTop
+  }
+})
+document.addEventListener('htmx:afterSwap', (event) => {
+  if (event.target.id === 'navigation-panel') {
+    const navPanelContent = document.getElementById('navigation-panel-content')
+    if (navPanelContent) {
+      navPanelContent.scrollTop = navPanelContentScrollTop
+    }
+  }
+})
+
 /**
  * Takes an input element id and extracts the value from it as a number if it has a value. Otherwise returns a default value provided
  * @param {String} elementId - Id of the element to get the value attribute from

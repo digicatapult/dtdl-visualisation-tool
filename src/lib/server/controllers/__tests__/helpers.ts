@@ -42,30 +42,77 @@ const mockModelTable = {
 }
 
 export const simpleDtdlFileEntityId = 'dtmi:com:one;1'
-export const simpleDtdlFile = {
-  '@context': ['dtmi:dtdl:context;4'],
-  '@id': simpleDtdlFileEntityId,
-  '@type': 'Interface',
-  displayName: 'displayName',
-  description: 'description',
-  comment: 'comment',
-}
-export const arrayDtdlFileEntityId = 'dtmi:com:array;1'
-export const arrayDtdlFile = [
-  simpleDtdlFile,
-  {
+export const propertyName = 'someProperty'
+export const otherPropertyName = 'someOtherProperty'
+export const relationshipName = 'someRelationship'
+export const otherRelationshipName = 'someOtherRelationship'
+
+export const dtdlFileFixture =
+  (id: string) =>
+  ({
+    interfaceUpdate,
+    relationshipUpdate,
+    propertyUpdate,
+  }: {
+    interfaceUpdate?: Record<string, string>
+    relationshipUpdate?: Record<string, string>
+    propertyUpdate?: Record<string, string>
+  }) => ({
     '@context': ['dtmi:dtdl:context;4'],
-    '@id': arrayDtdlFileEntityId,
+    '@id': id,
     '@type': 'Interface',
     displayName: 'displayName',
     description: 'description',
     comment: 'comment',
-  },
-]
+    contents: [
+      {
+        '@type': 'Property',
+        name: propertyName,
+        comment: 'comment',
+        ...propertyUpdate,
+      },
+      {
+        '@type': 'Property',
+        name: otherPropertyName,
+      },
+      {
+        '@type': 'Relationship',
+        name: relationshipName,
+        comment: 'comment',
+        displayName: 'displayName',
+        description: 'description',
+        ...relationshipUpdate,
+      },
+      {
+        '@type': 'Relationship',
+        name: otherRelationshipName,
+      },
+    ],
+    ...interfaceUpdate,
+  })
+
+export const simpleDtdlFileFixture = dtdlFileFixture(simpleDtdlFileEntityId)
+
+export const arrayDtdlFileEntityId = 'dtmi:com:array;1'
+export const arrayDtdlFileFixture = (updates: {
+  interfaceUpdate?: Record<string, string>
+  relationshipUpdate?: Record<string, string>
+  propertyUpdate?: Record<string, string>
+}) => [simpleDtdlFileFixture({}), dtdlFileFixture(arrayDtdlFileEntityId)(updates)]
 
 const mockDtdlTable = {
-  [simpleDtdlFileEntityId]: { id: simpleDtdlRowId, model_id: simpleDtdlId, path: 'path', contents: simpleDtdlFile },
-  [arrayDtdlFileEntityId]: { id: arrayDtdlRowId, model_id: simpleDtdlId, path: 'path', contents: arrayDtdlFile },
+  [simpleDtdlFileEntityId]: {
+    id: simpleDtdlRowId,
+    model_id: simpleDtdlId,
+    path: 'path',
+    contents: simpleDtdlFileFixture({}),
+  },
+  [arrayDtdlFileEntityId]: {
+    id: arrayDtdlRowId,
+    model_id: simpleDtdlId,
+    path: 'path',
+    contents: arrayDtdlFileFixture({}),
+  },
 }
 
 export const templateMock = {

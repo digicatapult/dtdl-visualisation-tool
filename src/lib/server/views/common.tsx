@@ -64,6 +64,7 @@ export const EditableText = ({
   definedIn,
   putRoute,
   text,
+  additionalBody,
   multiline,
   maxLength,
 }: {
@@ -71,16 +72,18 @@ export const EditableText = ({
   definedIn: DtdlId
   putRoute: string
   text: string
+  additionalBody?: Record<string, string>
   multiline?: boolean
   maxLength?: number
 }): JSX.Element => {
-  if (!edit) return <>{escapeHtml(text)}</>
+  if (!edit) return <p>{escapeHtml(text)}</p>
 
   return (
     <form
       hx-put={`entity/${definedIn}/${putRoute}`}
       // trigger when textarea loses focus and value has changed
       hx-trigger={`blur[this.querySelector('textarea').value !== '${text}'] from:find textarea`}
+      hx-vals={JSON.stringify(additionalBody)}
       hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagramType"
       hx-swap="outerHTML transition:true"
       hx-target="#mermaid-output"

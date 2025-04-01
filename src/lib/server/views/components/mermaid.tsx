@@ -7,7 +7,7 @@ import { container, singleton } from 'tsyringe'
 import { Env } from '../../env/index.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { DtdlId, UUID } from '../../models/strings.js'
-import { getDisplayNameOrId, isInterface, isRelationship } from '../../utils/dtdl/extract.js'
+import { getDisplayNameOrId, isInterface, isProperty, isRelationship } from '../../utils/dtdl/extract.js'
 import { AccordionSection, EditableText, Page } from '../common.js'
 
 const env = container.resolve(Env)
@@ -162,7 +162,7 @@ export default class MermaidTemplates {
       return <section>Click on a node to view attributes</section>
     }
     const definedIn = entity.DefinedIn ?? entityId // entities only have definedIn if defined in a different file
-
+    const isRship = isRelationship(entity)
     return (
       <>
         <section>
@@ -170,47 +170,57 @@ export default class MermaidTemplates {
           <p>
             <b>Display Name:</b>
           </p>
-          <p>
-            {entity?.displayName?.en
-              ? EditableText({
-                  edit: edit && !isRelationship(entity),
-                  definedIn,
-                  putRoute: 'displayName',
-                  text: entity?.displayName?.en,
-                  maxLength: 64,
-                })
-              : "'displayName' key missing in original file"}
-          </p>
+          {entity?.displayName?.en ? (
+            EditableText({
+              edit,
+              definedIn,
+              putRoute: isRship ? 'relationshipDisplayName' : 'displayName',
+              additionalBody: {
+                ...(isRship ? { relationshipName: entity.name } : {}),
+              },
+              text: entity?.displayName?.en,
+              maxLength: 64,
+            })
+          ) : (
+            <p>'displayName' key missing in original file</p>
+          )}
           <p>
             <b>Description:</b>
           </p>
-          <p>
-            {entity.description?.en
-              ? EditableText({
-                  edit: edit && !isRelationship(entity),
-                  definedIn,
-                  putRoute: 'description',
-                  text: entity.description.en,
-                  multiline: true,
-                  maxLength: 512,
-                })
-              : "'description' key missing in original file"}
-          </p>
+
+          {entity.description?.en ? (
+            EditableText({
+              edit,
+              definedIn,
+              putRoute: isRship ? 'relationshipDescription' : 'description',
+              additionalBody: {
+                ...(isRship ? { relationshipName: entity.name } : {}),
+              },
+              text: entity.description.en,
+              multiline: true,
+              maxLength: 512,
+            })
+          ) : (
+            <p>'description' key missing in original file</p>
+          )}
           <p>
             <b>Comment:</b>
           </p>
-          <p>
-            {entity.comment
-              ? EditableText({
-                  edit: edit && !isRelationship(entity),
-                  definedIn,
-                  putRoute: 'interfaceComment',
-                  text: entity.comment,
-                  multiline: true,
-                  maxLength: 512,
-                })
-              : "'comment' key missing in original file"}
-          </p>
+          {entity.comment ? (
+            EditableText({
+              edit,
+              definedIn,
+              putRoute: isRship ? 'relationshipComment' : 'comment',
+              additionalBody: {
+                ...(isRship ? { relationshipName: entity.name } : {}),
+              },
+              text: entity.comment,
+              multiline: true,
+              maxLength: 512,
+            })
+          ) : (
+            <p>'comment' key missing in original file</p>
+          )}
         </section>
         <AccordionSection heading={'Entity Identifiers'} collapsed={false}>
           <p>
@@ -230,12 +240,36 @@ export default class MermaidTemplates {
         </AccordionSection>
         <AccordionSection heading={'Properties'} collapsed={false}>
           {isInterface(entity) && Object.keys(entity.properties).length > 0
-            ? Object.entries(entity.properties).map(([name, id]) => (
-                <p>
-                  <b>{escapeHtml(name)}: </b>
-                  {escapeHtml(model[id].comment ?? '-')}
-                </p>
-              ))
+            ? Object.entries(entity.properties).map(([name, id]) => {
+                const property = model[id]
+                if (!isProperty(property) || !property.DefinedIn) return
+                return (
+                  <>
+                    <EditableText
+                      edit={edit}
+                      definedIn={property.DefinedIn}
+                      putRoute="propertyName"
+                      text={name}
+                      additionalBody={{ propertyName: name }}
+                      maxLength={64}
+                    />
+                    {property.comment ? (
+                      EditableText({
+                        edit,
+                        definedIn: property.DefinedIn,
+                        putRoute: 'propertyComment',
+                        text: property.comment,
+                        additionalBody: { propertyName: name },
+                        multiline: true,
+                        maxLength: 512,
+                      })
+                    ) : (
+                      <p>'comment' key missing in original file</p>
+                    )}
+                    <br />
+                  </>
+                )
+              })
             : 'None'}
         </AccordionSection>
         <AccordionSection heading={'Relationships'} collapsed={false}>
