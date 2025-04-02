@@ -46,7 +46,7 @@ export class SvgGenerator {
   } = {
     flowchart: new Flowchart(),
     classDiagram: new ClassDiagram(),
-    }
+  }
 
   constructor(
     @inject(Logger) private logger: ILogger,
