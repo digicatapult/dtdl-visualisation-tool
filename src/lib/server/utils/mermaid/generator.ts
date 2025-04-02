@@ -7,7 +7,7 @@ import type { LayoutLoaderDefinition, Mermaid, MermaidConfig } from 'mermaid'
 import puppeteer, { Browser, Page } from 'puppeteer'
 import { container, inject, singleton } from 'tsyringe'
 
-import { Mutex, Semaphore } from 'async-mutex'
+import { Semaphore } from 'async-mutex'
 import { Env } from '../../env/index.js'
 import { Logger, type ILogger } from '../../logger.js'
 import { DiagramType } from '../../models/mermaidDiagrams.js'
@@ -37,17 +37,24 @@ type GlobalExtMermaidAndElk = {
 
 @singleton()
 export class SvgGenerator {
-  private init: Promise<{ browser: Browser; pagePool: Page[]; semaphore: Semaphore }>
+  private init: Promise<Browser>
+  private pagePool: Page[] = []
+  private numPages: number
+  private semaphore: Semaphore
   private mermaidMarkdownByDiagramType: {
     [k in DiagramType]: IDiagram<k>
   } = {
     flowchart: new Flowchart(),
     classDiagram: new ClassDiagram(),
-  }
-  protected mutex = new Mutex()
+    }
 
-  constructor(@inject(Logger) private logger: ILogger) {
+  constructor(
+    @inject(Logger) private logger: ILogger,
+    numPages: number = os.cpus().length - 2
+  ) {
+    this.numPages = numPages
     this.init = this.initialise()
+    this.semaphore = new Semaphore(this.numPages)
   }
 
   async run(
@@ -56,19 +63,18 @@ export class SvgGenerator {
     layout: Layout,
     isRetry: boolean = false
   ): Promise<MermaidSvgRender | PlainTextRender> {
-    // If a call to render for whatever reason cannot acquire a page it throws here without interrupting other renders
-    const lockedPage = await this.getAvailablePage()
-    if (!lockedPage) {
-      throw new Error('No available page could be acquired')
-    }
-    const [page, releaseSemaphore] = lockedPage
+    const { page, release } = await this.getAvailablePage()
     try {
+      // Try this first to fail before using resources creating graph
       const graph = this.mermaidMarkdownByDiagramType[diagramType].generateMarkdown(dtdlObject, ' TD')
       if (!graph) {
+        this.releasePage(page, release)
         return new PlainTextRender('No graph')
       }
+
       const data = await this.render(page, layout, graph)
-      releaseSemaphore()
+
+      this.releasePage(page, release)
       return new MermaidSvgRender(data)
     } catch (err) {
       this.logger.warn('Something went wrong rendering mermaid layout', err)
@@ -76,7 +82,7 @@ export class SvgGenerator {
         this.logger.info('Attempting to relaunch puppeteer')
 
         await this.tryCloseBrowser(page)
-        this.init = this.initialise()
+        this.reInitialise()
         return this.run(dtdlObject, diagramType, layout, true)
       }
       this.logger.error('Something went wrong rendering mermaid layout', err)
@@ -86,22 +92,52 @@ export class SvgGenerator {
 
   private async tryCloseBrowser(page: Page) {
     try {
-      const { browser } = await this.init
-      if (browser === page.browser()) await browser.close()
+      // Another run function could have caused a browser to change so await it again
+      const browser = await this.init
+      // This logic would only close the browser if the pages browser was older than the new browser created from a different crash/create new browser event
+      if (!page || page.browser() === browser) await browser.close()
     } catch (err) {
       this.logger.warn('Failed to close browser %s', err instanceof Error ? err.message : err)
     }
   }
 
-  async initialise() {
-    const browser = await puppeteer.launch({
-      args: env.get('PUPPETEER_ARGS'),
-    })
-    const numPages = os.cpus().length - 2
-    this.logger.info(`Initializing ${numPages} Puppeteer pages`)
+  private async getAvailablePage(): Promise<{ page: Page; release: () => void }> {
+    await this.init
+    const acquireLock = await this.semaphore.acquire()
+    const page = this.pagePool.pop()
+    const release = acquireLock[1]
+    if (!page) {
+      throw new Error('No page available, potential semaphore fail')
+    }
+    return { page, release }
+  }
 
-    const pagePool: Page[] = []
-    for (let i = 1; i <= numPages; i++) {
+  private releasePage(page: Page, release: () => void) {
+    this.pagePool.push(page)
+    release()
+  }
+
+  async initialise(isRetry: boolean = false) {
+    // this can throw
+    let browser: Browser
+    try {
+      browser = await puppeteer.launch({
+        args: env.get('PUPPETEER_ARGS'),
+      })
+    } catch (err) {
+      if (!isRetry) {
+        this.logger.info('Attempting to relaunch puppeteer')
+
+        browser = await puppeteer.launch({
+          args: env.get('PUPPETEER_ARGS'),
+        })
+      } else {
+        this.logger.error('Something went wrong rendering mermaid layout', err)
+        throw err
+      }
+    }
+
+    for (let i = 0; i < this.numPages; i++) {
       const page = await browser.newPage()
 
       page.on('console', (msg) => {
@@ -115,11 +151,15 @@ export class SvgGenerator {
         const { mermaid, elkLayouts } = globalThis as unknown as GlobalExtMermaidAndElk
         mermaid.registerLayoutLoaders(elkLayouts)
       })
-
-      pagePool.push(page)
+      this.pagePool.push(page)
     }
-    const semaphore = new Semaphore(numPages)
-    return { browser, pagePool, semaphore }
+    return browser
+  }
+
+  async reInitialise() {
+    this.pagePool = []
+    this.semaphore = new Semaphore(this.numPages)
+    this.init = this.initialise()
   }
 
   private async render(page: Page, layout: Layout, definition: string) {
@@ -154,24 +194,5 @@ export class SvgGenerator {
     )
 
     return Buffer.from(svg)
-  }
-
-  private async getAvailablePage(): Promise<[Page, () => void] | undefined> {
-    const { pagePool, semaphore } = await this.init
-    // waits here to receive a value from the semaphore
-    const acquiredSemaphore = await semaphore.acquire()
-    const release = acquiredSemaphore[1]
-    const page = pagePool.pop()
-    if (!page) {
-      release()
-      return undefined
-    }
-    return [
-      page,
-      () => {
-        pagePool.push(page)
-        release()
-      },
-    ]
   }
 }

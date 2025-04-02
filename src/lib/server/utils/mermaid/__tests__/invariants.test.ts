@@ -19,7 +19,7 @@ describe('Mermaid Invariants', function () {
 
     before(async () => {
       const logger = pino({ level: 'silent' })
-      const generator = new SvgGenerator(logger)
+      const generator = new SvgGenerator(logger, 1)
       const render = await generator.run(mockDtdlObjectModel, 'flowchart', 'elk')
       if (render instanceof PlainTextRender) {
         expect.fail('Expected a MermaidSvgRender')
@@ -175,7 +175,7 @@ describe('Mermaid Invariants', function () {
 
     before(async () => {
       const logger = pino({ level: 'silent' })
-      const generator = new SvgGenerator(logger)
+      const generator = new SvgGenerator(logger, 1)
       const render = await generator.run(mockDtdlObjectModel, 'classDiagram', 'elk')
       if (render instanceof PlainTextRender) {
         expect.fail('Expected a MermaidSvgRender')

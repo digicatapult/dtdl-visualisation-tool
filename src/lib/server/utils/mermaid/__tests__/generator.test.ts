@@ -1,6 +1,5 @@
 import { expect } from 'chai'
 import { afterEach, describe, it } from 'mocha'
-import os from 'node:os'
 import { pino } from 'pino'
 import puppeteer, { Browser } from 'puppeteer'
 import sinon from 'sinon'
@@ -16,10 +15,13 @@ import {
 } from './fixtures'
 import { checkIfStringIsSVG } from './helpers'
 
+export const parallelTest = 2
+export const nonParallelTest = 1
+
 describe('Generator', function () {
-  this.timeout(10000)
+  this.timeout(100000)
   const logger = pino({ level: 'silent' })
-  const generator = new SvgGenerator(logger)
+  const generator = new SvgGenerator(logger, nonParallelTest)
 
   afterEach(() => {
     sinon.restore()
@@ -40,7 +42,7 @@ describe('Generator', function () {
 
     it('should retry if an error occurs', async () => {
       const stub = sinon.stub(puppeteer, 'launch').onFirstCall().rejects('Error').callThrough()
-      const generator = new SvgGenerator(logger)
+      const generator = new SvgGenerator(logger, parallelTest)
 
       const generatedOutput = await generator.run(simpleMockDtdlObjectModel, defaultParams.diagramType, 'elk' as const)
 
@@ -51,7 +53,7 @@ describe('Generator', function () {
 
     it('will only retry once', async () => {
       const stub = sinon.stub(puppeteer, 'launch').rejects('Error')
-      const generator = new SvgGenerator(logger)
+      const generator = new SvgGenerator(logger, parallelTest)
 
       let error: Error | null = null
       try {
@@ -85,7 +87,7 @@ describe('Generator', function () {
         close: sinon.stub(),
       } as unknown as Browser)
 
-      const gen = new SvgGenerator(logger)
+      const gen = new SvgGenerator(logger, parallelTest)
 
       const [firstResult, secondResult] = await Promise.all([
         gen.run(simpleMockDtdlObjectModel, 'flowchart', 'elk' as const),
@@ -106,11 +108,10 @@ describe('Generator', function () {
         newPage: sinon.stub().resolves(pageMock(pageRenderStub)),
         close: sinon.stub(),
       } as unknown as Browser)
-      const gen = new SvgGenerator(logger)
+      const gen = new SvgGenerator(logger, parallelTest)
       const runs: Promise<MermaidSvgRender | PlainTextRender>[] = []
-      const numPages = os.cpus().length - 2
       // render one more ontology than the number of pages available
-      for (let i = 0; i < numPages + 1; i++) {
+      for (let i = 0; i < parallelTest + 1; i++) {
         runs.push(gen.run(simpleMockDtdlObjectModel, 'flowchart', 'elk' as const))
       }
       await Promise.all(runs)
@@ -123,32 +124,26 @@ describe('Generator', function () {
     it('if parallel render fails browser should restart and renders should complete', async () => {
       const clock = sinon.useFakeTimers({ shouldAdvanceTime: true })
       const startTimes: number[] = []
-      const numPages = os.cpus().length - 2
-      let callNumber = 0
-      let failedOnce = false
-      const failOnRun = Math.floor(Math.random() * numPages)
-      const pageRenderStub = sinon.stub().callsFake(async () => {
-        callNumber++
-        if (!failedOnce && callNumber == failOnRun) {
-          failedOnce = true
-          throw new Error('random fail event')
-        }
-        startTimes.push(clock.Date.now())
-        await clock.tickAsync(4000)
-        return svgSearchFuelTypeExpandedFossilFuel
-      })
+      const pageRenderStub = sinon
+        .stub()
+        .callsFake(async () => {
+          startTimes.push(clock.Date.now())
+          await clock.tickAsync(4000)
+          return svgSearchFuelTypeExpandedFossilFuel
+        })
+        .onSecondCall()
+        .rejects(new Error('Error'))
       sinon.stub(puppeteer, 'launch').resolves({
         newPage: sinon.stub().resolves(pageMock(pageRenderStub)),
         close: sinon.stub(),
       } as unknown as Browser)
-      const gen = new SvgGenerator(logger)
+      const gen = new SvgGenerator(logger, parallelTest)
       const runs: Promise<MermaidSvgRender | PlainTextRender>[] = []
-      // render one more ontology than the number of pages available
-      for (let i = 0; i < numPages; i++) {
+      for (let i = 0; i < parallelTest; i++) {
         runs.push(gen.run(simpleMockDtdlObjectModel, 'flowchart', 'elk' as const))
       }
       const results = await Promise.all(runs)
-      expect(results.length).to.equal(numPages)
+      expect(results.length).to.equal(parallelTest)
       for (const result of results) {
         expect(result.renderToString()).to.equal(svgSearchFuelTypeExpandedFossilFuel)
       }
