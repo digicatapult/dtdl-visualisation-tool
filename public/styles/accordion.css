@@ -10,6 +10,7 @@
   
   .accordion-content > div {
     overflow: hidden;
+    padding: 0 2px;
   }
   
   .accordion-button {

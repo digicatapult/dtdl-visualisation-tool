@@ -39,6 +39,12 @@ globalThis.validatePublicRepoInput = (e) => {
   e.reportValidity()
 }
 
+globalThis.validateDtdlValue = (e) => {
+  const invalidChars = /["\\]/
+  e.setCustomValidity(invalidChars.test(e.value) ? 'Invalid characters: " and \\' : '')
+  e.reportValidity()
+}
+
 htmx.on('htmx:beforeSwap', (e) => {
   if (e.detail.pathInfo.requestPath === '/github/branches?page=1') {
     if (e.detail.xhr.status === 400 && e.detail.requestConfig.triggeringEvent.type !== 'keyup') {
@@ -53,6 +59,23 @@ htmx.on('htmx:load', (e) => {
 
     // Update the browser history so modal only opens once
     window.history.replaceState({}, '', `/open`)
+  }
+})
+
+// maintain nav panel scroll position after swap
+let navPanelContentScrollTop = 0
+document.addEventListener('htmx:beforeSwap', (event) => {
+  const navPanelContent = document.getElementById('navigation-panel-content')
+  if (navPanelContent) {
+    navPanelContentScrollTop = navPanelContent.scrollTop
+  }
+})
+document.addEventListener('htmx:afterSwap', (event) => {
+  if (event.target.id === 'navigation-panel') {
+    const navPanelContent = document.getElementById('navigation-panel-content')
+    if (navPanelContent) {
+      navPanelContent.scrollTop = navPanelContentScrollTop
+    }
   }
 })
 

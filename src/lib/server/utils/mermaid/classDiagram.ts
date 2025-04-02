@@ -1,7 +1,7 @@
 import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 import { InternalError } from '../../errors.js'
 import { DtdlId } from '../../models/strings.js'
-import { getDisplayName } from '../dtdl/extract.js'
+import { getDisplayNameOrId } from '../dtdl/extract.js'
 import { getVisualisationState } from '../dtdl/filter.js'
 import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
 import {
@@ -73,7 +73,7 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
     return `${this.diagramType}\n direction ${direction}\n${graph.join('\n')}`
   }
   createNodeString(entity: EntityType, withClick: boolean = true): string {
-    let entityMarkdown = `class ${this.safeClassName(entity.Id)}["${getDisplayName(entity)}"] `
+    let entityMarkdown = `class ${this.safeClassName(entity.Id)}["${getDisplayNameOrId(entity)}"] `
     entityMarkdown += withClick ? `\nclick ${this.safeClassName(entity.Id)} call getEntity()` : ``
     return entityMarkdown
   }

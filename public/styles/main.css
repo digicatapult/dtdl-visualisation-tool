@@ -561,6 +561,7 @@ label[for='diagramType'] {
   justify-content: center;
   overflow: hidden;
   overflow-wrap: break-word;
+  height: 100%;
 }
 
 #toast-container img.internal-error {
@@ -583,8 +584,8 @@ label[for='diagramType'] {
 
 #toast-container p {
   font-size: 1rem;
-  line-height: 1;
   margin: 0;
+  overflow-y: auto;
 }
 
 .modal-button {
@@ -629,6 +630,7 @@ label[for='diagramType'] {
   transition: transform var(--transition-duration);
   display: grid;
   row-gap: 20px;
+  pointer-events: none;
 }
 
 #edit-toggle {
@@ -640,6 +642,7 @@ label[for='diagramType'] {
   border-radius: 7px;
   width: 140px;
   color: #83898C;
+  pointer-events: all;
 }
 #edit-toggle.edit {
   background-color: #00b79b;
@@ -710,6 +713,7 @@ label[for='diagramType'] {
   justify-self: end;
   justify-content: center;
   grid-auto-rows: 1fr 1fr 1fr;
+  pointer-events: all;
 }
 
 #edit-buttons button {
@@ -735,4 +739,20 @@ label[for='diagramType'] {
 }
 #delete-node-button {
   background-image: url('../images/delete-node.svg');
+}
+
+.nav-panel-editable {
+  width: 100%; 
+  background-color: #F5F6FA;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+  resize:none;
+  height: 1.8em;
+}
+
+textarea.multiline {
+  height: 10rem;
+  resize:vertical;
+
 }

@@ -3,7 +3,7 @@ import { container, singleton } from 'tsyringe'
 import { z } from 'zod'
 
 import { Env } from '../server/env/index.js'
-import Zod, { IDatabase, Models, TABLE, tablesList, Where } from './types.js'
+import Zod, { IDatabase, Models, TABLE, tablesList, Update, Where } from './types.js'
 import { reduceWhere } from './util.js'
 
 const env = container.resolve(Env)
@@ -52,6 +52,19 @@ export default class Database {
     if (limit !== undefined) query = query.limit(limit)
     const result = await query
     return z.array(Zod[model].get).parse(result)
+  }
+
+  update = async <M extends TABLE>(
+    model: M,
+    where: Where<M>,
+    updates: Update<M>
+  ): Promise<Models[typeof model]['get'][]> => {
+    let query = this.db[model]().update({
+      ...updates,
+    })
+    query = reduceWhere(query, where)
+
+    return z.array(Zod[model].get).parse(await query.returning('*'))
   }
 
   getJsonb = async <M extends TABLE>(

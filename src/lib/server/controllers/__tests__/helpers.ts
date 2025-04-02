@@ -25,6 +25,8 @@ export const simpleDtdlId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed7'
 export const complexDtdlId: UUID = 'e89f119a-fc3b-4ce8-8722-2000a7ebeeab'
 export const previewDtdlId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed8'
 export const defaultDtdlId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed9'
+export const simpleDtdlRowId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed6'
+export const arrayDtdlRowId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed5'
 
 const mockModelTable = {
   [simpleDtdlId]: { id: simpleDtdlId, name: 'Simple Model', parsed: simpleMockDtdlObjectModel },
@@ -36,6 +38,80 @@ const mockModelTable = {
     parsed: simpleMockDtdlObjectModel,
     preview: 'Preview',
     source: 'default',
+  },
+}
+
+export const simpleDtdlFileEntityId = 'dtmi:com:one;1'
+export const propertyName = 'someProperty'
+export const otherPropertyName = 'someOtherProperty'
+export const relationshipName = 'someRelationship'
+export const otherRelationshipName = 'someOtherRelationship'
+
+export const dtdlFileFixture =
+  (id: string) =>
+  ({
+    interfaceUpdate,
+    relationshipUpdate,
+    propertyUpdate,
+  }: {
+    interfaceUpdate?: Record<string, string>
+    relationshipUpdate?: Record<string, string>
+    propertyUpdate?: Record<string, string>
+  }) => ({
+    '@context': ['dtmi:dtdl:context;4'],
+    '@id': id,
+    '@type': 'Interface',
+    displayName: 'displayName',
+    description: 'description',
+    comment: 'comment',
+    contents: [
+      {
+        '@type': 'Property',
+        name: propertyName,
+        comment: 'comment',
+        ...propertyUpdate,
+      },
+      {
+        '@type': 'Property',
+        name: otherPropertyName,
+      },
+      {
+        '@type': 'Relationship',
+        name: relationshipName,
+        comment: 'comment',
+        displayName: 'displayName',
+        description: 'description',
+        ...relationshipUpdate,
+      },
+      {
+        '@type': 'Relationship',
+        name: otherRelationshipName,
+      },
+    ],
+    ...interfaceUpdate,
+  })
+
+export const simpleDtdlFileFixture = dtdlFileFixture(simpleDtdlFileEntityId)
+
+export const arrayDtdlFileEntityId = 'dtmi:com:array;1'
+export const arrayDtdlFileFixture = (updates: {
+  interfaceUpdate?: Record<string, string>
+  relationshipUpdate?: Record<string, string>
+  propertyUpdate?: Record<string, string>
+}) => [simpleDtdlFileFixture({}), dtdlFileFixture(arrayDtdlFileEntityId)(updates)]
+
+const mockDtdlTable = {
+  [simpleDtdlFileEntityId]: {
+    id: simpleDtdlRowId,
+    model_id: simpleDtdlId,
+    path: 'path',
+    contents: simpleDtdlFileFixture({}),
+  },
+  [arrayDtdlFileEntityId]: {
+    id: arrayDtdlRowId,
+    model_id: simpleDtdlId,
+    path: 'path',
+    contents: arrayDtdlFileFixture({}),
   },
 }
 
@@ -79,6 +155,7 @@ export const mockDb = {
   }),
 } as unknown as Database
 
+export const updateDtdlContentsStub = sinon.stub().resolves()
 export const simpleMockModelDb = {
   getModelById: (id: UUID) => {
     if (id === 'badId') throw new InternalError(`Failed to find model: ${id}`)
@@ -88,6 +165,11 @@ export const simpleMockModelDb = {
       return Promise.resolve(null)
     }
   },
+  getDtdlByEntityId: (_modelId: UUID, id: UUID) => {
+    return Promise.resolve(mockDtdlTable[id])
+  },
+  parseWithUpdatedFile: () => Promise.resolve(),
+  updateDtdlContents: updateDtdlContentsStub,
   getDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
   insertModel: () => Promise.resolve(1),
   deleteDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),

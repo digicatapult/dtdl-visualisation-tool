@@ -2,9 +2,9 @@ import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import express from 'express'
 import { randomUUID } from 'node:crypto'
 import { Get, Path, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
-import { inject, injectable, singleton } from 'tsyringe'
+import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../../db/modelDb.js'
-import { InternalError, InvalidQueryError } from '../../errors.js'
+import { InternalError } from '../../errors.js'
 import { Logger, type ILogger } from '../../logger.js'
 import {
   A11yPreference,
@@ -30,7 +30,6 @@ import MermaidTemplates from '../../views/components/mermaid.js'
 import { HTML, HTMLController } from '../HTMLController.js'
 import { dtdlCacheKey } from '../helpers.js'
 
-@singleton()
 @injectable()
 @Route('/ontology')
 @Produces('text/html')
@@ -124,16 +123,7 @@ export class OntologyController extends HTMLController {
   ): Promise<HTML> {
     this.logger.debug('search: %o', { search: params.search })
 
-    // pull out the stored session. If this is invalid the request is invalid
     const session = this.sessionStore.get(params.sessionId)
-    if (!session) {
-      throw new InvalidQueryError(
-        'Session Error',
-        'Please refresh the page or try again later',
-        `Session ${params.sessionId} not found in session store`,
-        false
-      )
-    }
 
     // get the base dtdl model that we will derive the graph from
     const baseModel = await this.modelDb.getDtdlModel(dtdlModelId)
@@ -213,7 +203,7 @@ export class OntologyController extends HTMLController {
         entityId: dtdlIdReinstateSemicolon(newSession.highlightNodeId ?? ''),
         model: baseModel,
         expanded: newSession.highlightNodeId !== undefined,
-        edit: session.editMode,
+        edit: session.editMode!,
       }),
       this.templates.svgControls({
         swapOutOfBand: true,
@@ -237,8 +227,6 @@ export class OntologyController extends HTMLController {
     const baseModel = await this.modelDb.getDtdlModel(dtdlModelId)
 
     this.sessionStore.update(sessionId, { editMode })
-
-    this.setHeader('HX-Push-Url') // clear push URL
 
     return this.html(
       this.templates.navigationPanel({
