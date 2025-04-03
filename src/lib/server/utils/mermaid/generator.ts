@@ -1,4 +1,3 @@
-import os from 'node:os'
 import path from 'node:path'
 import url from 'node:url'
 
@@ -13,6 +12,7 @@ import { Logger, type ILogger } from '../../logger.js'
 import { DiagramType } from '../../models/mermaidDiagrams.js'
 import { Layout } from '../../models/mermaidLayouts.js'
 import { MermaidSvgRender, PlainTextRender } from '../../models/renderedDiagram/index.js'
+import { Pool, type IPool } from '../../pool.js'
 import ClassDiagram from './classDiagram.js'
 import { IDiagram } from './diagramInterface.js'
 import Flowchart from './flowchart.js'
@@ -37,10 +37,8 @@ type GlobalExtMermaidAndElk = {
 
 @singleton()
 export class SvgGenerator {
-  private init: Promise<Browser>
-  private pagePool: Page[] = []
-  private numPages: number
-  private semaphore: Semaphore
+  private browser: Promise<Browser>
+  private pagePool: Promise<{ pages: Page[]; semaphore: Semaphore }>
   private mermaidMarkdownByDiagramType: {
     [k in DiagramType]: IDiagram<k>
   } = {
@@ -50,11 +48,10 @@ export class SvgGenerator {
 
   constructor(
     @inject(Logger) private logger: ILogger,
-    numPages: number = os.cpus().length - 2
+    @inject(Pool) private poolSize: IPool
   ) {
-    this.numPages = numPages
-    this.init = this.initialise()
-    this.semaphore = new Semaphore(this.numPages)
+    this.browser = this.initialiseBrowser()
+    this.pagePool = this.initialisePagePool(this.poolSize)
   }
 
   async run(
@@ -82,7 +79,8 @@ export class SvgGenerator {
         this.logger.info('Attempting to relaunch puppeteer')
 
         await this.tryCloseBrowser(page)
-        this.reInitialise()
+        this.browser = this.initialiseBrowser()
+        this.pagePool = this.initialisePagePool(this.poolSize)
         return this.run(dtdlObject, diagramType, layout, true)
       }
       this.logger.error('Something went wrong rendering mermaid layout', err)
@@ -93,7 +91,7 @@ export class SvgGenerator {
   private async tryCloseBrowser(page: Page) {
     try {
       // Another run function could have caused a browser to change so await it again
-      const browser = await this.init
+      const browser = await this.browser
       // This logic would only close the browser if the pages browser was older than the new browser created from a different crash/create new browser event
       if (!page || page.browser() === browser) await browser.close()
     } catch (err) {
@@ -102,9 +100,9 @@ export class SvgGenerator {
   }
 
   private async getAvailablePage(): Promise<{ page: Page; release: () => void }> {
-    await this.init
-    const acquireLock = await this.semaphore.acquire()
-    const page = this.pagePool.pop()
+    const { pages, semaphore } = await this.pagePool
+    const acquireLock = await semaphore.acquire()
+    const page = pages.pop()
     const release = acquireLock[1]
     if (!page) {
       throw new Error('No page available, potential semaphore fail')
@@ -112,32 +110,31 @@ export class SvgGenerator {
     return { page, release }
   }
 
-  private releasePage(page: Page, release: () => void) {
-    this.pagePool.push(page)
+  private async releasePage(page: Page, release: () => void) {
+    const { pages } = await this.pagePool
+    pages.push(page)
     release()
   }
 
-  async initialise(isRetry: boolean = false) {
-    // this can throw
-    let browser: Browser
+  async initialiseBrowser(isRetry: boolean = false): Promise<Browser> {
     try {
-      browser = await puppeteer.launch({
+      return await puppeteer.launch({
         args: env.get('PUPPETEER_ARGS'),
       })
     } catch (err) {
       if (!isRetry) {
         this.logger.info('Attempting to relaunch puppeteer')
-
-        browser = await puppeteer.launch({
-          args: env.get('PUPPETEER_ARGS'),
-        })
-      } else {
-        this.logger.error('Something went wrong rendering mermaid layout', err)
-        throw err
+        return await this.initialiseBrowser(true)
       }
+      this.logger.error('Something went wrong rendering mermaid layout', err)
+      throw err
     }
+  }
 
-    for (let i = 0; i < this.numPages; i++) {
+  async initialisePagePool(poolSize: number) {
+    const browser = await this.browser
+    const pages: Page[] = []
+    for (let i = 0; i < poolSize; i++) {
       const page = await browser.newPage()
 
       page.on('console', (msg) => {
@@ -151,15 +148,12 @@ export class SvgGenerator {
         const { mermaid, elkLayouts } = globalThis as unknown as GlobalExtMermaidAndElk
         mermaid.registerLayoutLoaders(elkLayouts)
       })
-      this.pagePool.push(page)
+      pages.push(page)
     }
-    return browser
-  }
 
-  async reInitialise() {
-    this.pagePool = []
-    this.semaphore = new Semaphore(this.numPages)
-    this.init = this.initialise()
+    const semaphore = new Semaphore(poolSize)
+
+    return { pages, semaphore }
   }
 
   private async render(page: Page, layout: Layout, definition: string) {
