@@ -3,6 +3,7 @@ import { container } from 'tsyringe'
 
 import { Env } from './env/index.js'
 import { logger, Logger, type ILogger } from './logger.js'
+import { pool, Pool, type IPool } from './pool.js'
 import { Cache, type ICache } from './utils/cache.js'
 import { LRUCache } from './utils/lruCache.js'
 
@@ -15,6 +16,8 @@ container.register<ILogger>(Logger, {
 container.register<ICache>(Cache, {
   useValue: new LRUCache(env.get('CACHE_SIZE'), env.get('CACHE_TTL')),
 })
+
+container.register<IPool>(Pool, { useValue: pool })
 
 export const iocContainer: IocContainer = {
   get: <T>(controller) => {
