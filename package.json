@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.4.77",
+  "version": "0.4.78",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -51,7 +51,7 @@
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
     "envalid": "^8.0.0",
-    "express": "^4.21.2",
+    "express": "^5.1.0",
     "fuse.js": "^7.1.0",
     "htmx-ext-json-enc": "^2.0.2",
     "htmx-ext-response-targets": "^2.0.3",
