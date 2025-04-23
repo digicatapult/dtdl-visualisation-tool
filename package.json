@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.4.86",
+  "version": "0.4.87",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -33,7 +33,7 @@
   "author": "Digital Catapult",
   "license": "Apache-2.0",
   "dependencies": {
-    "@digicatapult/dtdl-parser": "^0.2.14",
+    "@digicatapult/dtdl-parser": "^0.2.16",
     "@kitajs/html": "^4.2.7",
     "@kitajs/ts-html-plugin": "^4.1.1",
     "@mermaid-js/mermaid-cli": "^11.4.2",
@@ -71,15 +71,15 @@
     "tsoa": "^6.6.0",
     "tsyringe": "^4.10.0",
     "unzipper": "^0.12.3",
-    "zod": "^3.24.2"
+    "zod": "^3.24.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
-    "@eslint/js": "^9.24.0",
+    "@eslint/js": "^9.25.0",
     "@octokit/request-error": "^6.1.8",
-    "@playwright/test": "^1.51.1",
+    "@playwright/test": "^1.52.0",
     "@swc-node/register": "^1.10.10",
-    "@swc/cli": "^0.7.2",
+    "@swc/cli": "^0.7.3",
     "@swc/core": "^1.11.21",
     "@types/chai": "^5.2.1",
     "@types/chai-as-promised": "^8.0.2",
@@ -95,7 +95,7 @@
     "@typescript-eslint/parser": "^8.30.1",
     "chai-as-promised": "^8.0.1",
     "depcheck": "^1.4.7",
-    "eslint": "^9.24.0",
+    "eslint": "^9.25.0",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-prettier": "^5.2.6",
     "globals": "^16.0.0",
