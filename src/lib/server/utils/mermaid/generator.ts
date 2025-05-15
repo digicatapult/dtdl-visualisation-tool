@@ -6,12 +6,13 @@ import type { LayoutLoaderDefinition, Mermaid, MermaidConfig } from 'mermaid'
 import puppeteer, { Browser, Page } from 'puppeteer'
 import { container, inject, singleton } from 'tsyringe'
 
-import { Mutex } from 'async-mutex'
+import { Semaphore } from 'async-mutex'
 import { Env } from '../../env/index.js'
 import { Logger, type ILogger } from '../../logger.js'
 import { DiagramType } from '../../models/mermaidDiagrams.js'
 import { Layout } from '../../models/mermaidLayouts.js'
 import { MermaidSvgRender, PlainTextRender } from '../../models/renderedDiagram/index.js'
+import { Pool, type IPool } from '../../pool.js'
 import ClassDiagram from './classDiagram.js'
 import { IDiagram } from './diagramInterface.js'
 import Flowchart from './flowchart.js'
@@ -36,17 +37,21 @@ type GlobalExtMermaidAndElk = {
 
 @singleton()
 export class SvgGenerator {
-  private init: Promise<{ browser: Browser; page: Page }>
+  private browser: Promise<Browser>
+  private pagePool: Promise<{ pages: Page[]; semaphore: Semaphore }>
   private mermaidMarkdownByDiagramType: {
     [k in DiagramType]: IDiagram<k>
   } = {
     flowchart: new Flowchart(),
     classDiagram: new ClassDiagram(),
   }
-  protected mutex = new Mutex()
 
-  constructor(@inject(Logger) private logger: ILogger) {
-    this.init = this.initialise()
+  constructor(
+    @inject(Logger) private logger: ILogger,
+    @inject(Pool) private poolSize: IPool
+  ) {
+    this.browser = this.initialiseBrowser()
+    this.pagePool = this.initialisePagePool(this.poolSize)
   }
 
   async run(
@@ -55,21 +60,27 @@ export class SvgGenerator {
     layout: Layout,
     isRetry: boolean = false
   ): Promise<MermaidSvgRender | PlainTextRender> {
+    const { page, release } = await this.getAvailablePage()
     try {
+      // Try this first to fail before using resources creating graph
       const graph = this.mermaidMarkdownByDiagramType[diagramType].generateMarkdown(dtdlObject, ' TD')
       if (!graph) {
+        this.releasePage(page, release)
         return new PlainTextRender('No graph')
       }
 
-      const data = await this.render(layout, graph)
+      const data = await this.render(page, layout, graph)
+
+      this.releasePage(page, release)
       return new MermaidSvgRender(data)
     } catch (err) {
       this.logger.warn('Something went wrong rendering mermaid layout', err)
       if (!isRetry) {
         this.logger.info('Attempting to relaunch puppeteer')
 
-        await this.tryCloseBrowser()
-        this.init = this.initialise()
+        await this.tryCloseBrowser(page)
+        this.browser = this.initialiseBrowser()
+        this.pagePool = this.initialisePagePool(this.poolSize)
         return this.run(dtdlObject, diagramType, layout, true)
       }
       this.logger.error('Something went wrong rendering mermaid layout', err)
@@ -77,71 +88,105 @@ export class SvgGenerator {
     }
   }
 
-  private async tryCloseBrowser() {
+  private async tryCloseBrowser(page: Page) {
     try {
-      const { browser } = await this.init
-      await browser.close()
+      // Another run function could have caused a browser to change so await it again
+      const browser = await this.browser
+      // This logic would only close the browser if the pages browser was older than the new browser created from a different crash/create new browser event
+      if (!page || page.browser() === browser) await browser.close()
     } catch (err) {
       this.logger.warn('Failed to close browser %s', err instanceof Error ? err.message : err)
     }
   }
 
-  async initialise() {
-    const browser = await puppeteer.launch({
-      args: env.get('PUPPETEER_ARGS'),
-    })
-    const page = await browser.newPage()
-
-    page.on('console', (msg) => {
-      this.logger.warn(msg.text())
-    })
-
-    await page.goto(url.pathToFileURL(mermaidHTMLPath).href)
-    await page.addScriptTag({ path: mermaidJsPath })
-    await page.evaluate(async () => {
-      await Promise.all(Array.from(document.fonts, (font) => font.load()))
-      const { mermaid, elkLayouts } = globalThis as unknown as GlobalExtMermaidAndElk
-      mermaid.registerLayoutLoaders(elkLayouts)
-    })
-
-    return { browser, page }
+  private async getAvailablePage(): Promise<{ page: Page; release: () => void }> {
+    const { pages, semaphore } = await this.pagePool
+    const acquireLock = await semaphore.acquire()
+    const page = pages.pop()
+    const release = acquireLock[1]
+    if (!page) {
+      throw new Error('No page available, potential semaphore fail')
+    }
+    return { page, release }
   }
 
-  private async render(layout: Layout, definition: string) {
-    const buffer = await this.mutex.runExclusive(async () => {
-      const svgId = 'mermaid-svg'
-      const mermaidConfig: MermaidConfig = {
-        flowchart: {
-          useMaxWidth: false,
-          htmlLabels: false,
-        },
-        maxTextSize: 99999999,
-        securityLevel: 'strict',
-        maxEdges: 99999999,
-        layout,
+  private async releasePage(page: Page, release: () => void) {
+    const { pages } = await this.pagePool
+    pages.push(page)
+    release()
+  }
+
+  async initialiseBrowser(isRetry: boolean = false): Promise<Browser> {
+    try {
+      return await puppeteer.launch({
+        args: env.get('PUPPETEER_ARGS'),
+      })
+    } catch (err) {
+      if (!isRetry) {
+        this.logger.info('Attempting to relaunch puppeteer')
+        return await this.initialiseBrowser(true)
       }
+      this.logger.error('Something went wrong rendering mermaid layout', err)
+      throw err
+    }
+  }
 
-      const { page } = await this.init
-      const svg = await page.$eval(
-        '#container',
-        async (container, mermaidConfig, definition, svgId) => {
-          const { mermaid } = globalThis as unknown as GlobalExtMermaidAndElk
+  async initialisePagePool(poolSize: number) {
+    const browser = await this.browser
+    const pages: Page[] = []
+    for (let i = 0; i < poolSize; i++) {
+      const page = await browser.newPage()
 
-          mermaid.initialize({ startOnLoad: false, ...mermaidConfig })
-          const { svg: svgText } = await mermaid.render(svgId, definition, container)
-          container.innerHTML = svgText
+      page.on('console', (msg) => {
+        this.logger.warn(msg.text())
+      })
 
-          const svg = container.getElementsByTagName?.('svg')?.[0]
-          const xmlSerializer = new XMLSerializer()
-          return xmlSerializer.serializeToString(svg)
-        },
-        mermaidConfig,
-        definition,
-        svgId
-      )
+      await page.goto(url.pathToFileURL(mermaidHTMLPath).href)
+      await page.addScriptTag({ path: mermaidJsPath })
+      await page.evaluate(async () => {
+        await Promise.all(Array.from(document.fonts, (font) => font.load()))
+        const { mermaid, elkLayouts } = globalThis as unknown as GlobalExtMermaidAndElk
+        mermaid.registerLayoutLoaders(elkLayouts)
+      })
+      pages.push(page)
+    }
 
-      return Buffer.from(svg)
-    })
-    return buffer
+    const semaphore = new Semaphore(poolSize)
+
+    return { pages, semaphore }
+  }
+
+  private async render(page: Page, layout: Layout, definition: string) {
+    const svgId = 'mermaid-svg'
+    const mermaidConfig: MermaidConfig = {
+      flowchart: {
+        useMaxWidth: false,
+        htmlLabels: false,
+      },
+      maxTextSize: 99999999,
+      securityLevel: 'strict',
+      maxEdges: 99999999,
+      layout,
+    }
+
+    const svg = await page.$eval(
+      '#container',
+      async (container, mermaidConfig, definition, svgId) => {
+        const { mermaid } = globalThis as unknown as GlobalExtMermaidAndElk
+
+        mermaid.initialize({ startOnLoad: false, ...mermaidConfig })
+        const { svg: svgText } = await mermaid.render(svgId, definition, container)
+        container.innerHTML = svgText
+
+        const svg = container.getElementsByTagName?.('svg')?.[0]
+        const xmlSerializer = new XMLSerializer()
+        return xmlSerializer.serializeToString(svg)
+      },
+      mermaidConfig,
+      definition,
+      svgId
+    )
+
+    return Buffer.from(svg)
   }
 }

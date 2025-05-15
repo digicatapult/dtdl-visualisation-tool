@@ -1,18 +1,27 @@
 import { expect } from 'chai'
 import { afterEach, describe, it } from 'mocha'
 import { pino } from 'pino'
-import puppeteer, { Browser, Page } from 'puppeteer'
+import puppeteer, { Browser } from 'puppeteer'
 import sinon from 'sinon'
 
 import { defaultParams } from '../../../controllers/__tests__/root.test'
+import { MermaidSvgRender, PlainTextRender } from '../../../models/renderedDiagram'
 import { SvgGenerator } from '../generator'
-import { generatedSVGFixture, simpleMockDtdlObjectModel, svgSearchFuelTypeExpandedFossilFuel } from './fixtures'
+import {
+  generatedSVGFixture,
+  pageMock,
+  simpleMockDtdlObjectModel,
+  svgSearchFuelTypeExpandedFossilFuel,
+} from './fixtures'
 import { checkIfStringIsSVG } from './helpers'
+
+export const parallelTest = 2
+export const nonParallelTest = 1
 
 describe('Generator', function () {
   this.timeout(10000)
   const logger = pino({ level: 'silent' })
-  const generator = new SvgGenerator(logger)
+  const generator = new SvgGenerator(logger, nonParallelTest)
 
   afterEach(() => {
     sinon.restore()
@@ -33,7 +42,7 @@ describe('Generator', function () {
 
     it('should retry if an error occurs', async () => {
       const stub = sinon.stub(puppeteer, 'launch').onFirstCall().rejects('Error').callThrough()
-      const generator = new SvgGenerator(logger)
+      const generator = new SvgGenerator(logger, parallelTest)
 
       const generatedOutput = await generator.run(simpleMockDtdlObjectModel, defaultParams.diagramType, 'elk' as const)
 
@@ -44,7 +53,7 @@ describe('Generator', function () {
 
     it('will only retry once', async () => {
       const stub = sinon.stub(puppeteer, 'launch').rejects('Error')
-      const generator = new SvgGenerator(logger)
+      const generator = new SvgGenerator(logger, parallelTest)
 
       let error: Error | null = null
       try {
@@ -56,40 +65,88 @@ describe('Generator', function () {
       expect(error?.name).to.equal('Error')
       expect(stub.callCount).to.equal(2)
     })
-
-    it('should wait for a render to complete before requesting another', async () => {
+    it('should render two ontologies in parallel', async () => {
       const clock = sinon.useFakeTimers({ shouldAdvanceTime: true })
+      let firstCallStartTime = 0
+      let secondCallStartTime = 0
       const pageRenderStub = sinon.stub().callsFake(async (_container, _mermaidConfig, _definition, _svgId) => {
         if (
           _svgId ===
           'flowchart TD\ndtmi:com:example:1@{ shape: rect, label: "example 1"}\nclick dtmi:com:example:1 getEntity\nclass dtmi:com:example:1 search'
         ) {
+          firstCallStartTime = clock.Date.now()
           await clock.tickAsync(4000)
           return svgSearchFuelTypeExpandedFossilFuel
         }
+        secondCallStartTime = clock.Date.now()
         return generatedSVGFixture
       })
 
-      const pageStub = {
-        $eval: pageRenderStub,
-        on: sinon.stub(),
-        goto: sinon.stub().resolves(),
-        addScriptTag: sinon.stub().resolves(),
-        evaluate: sinon.stub().resolves(),
-      } as unknown as Page
-
       sinon.stub(puppeteer, 'launch').resolves({
-        newPage: sinon.stub().resolves(pageStub),
+        newPage: sinon.stub().resolves(pageMock(pageRenderStub)),
         close: sinon.stub(),
       } as unknown as Browser)
 
-      const gen = new SvgGenerator(logger)
+      const gen = new SvgGenerator(logger, parallelTest)
+
       const [firstResult, secondResult] = await Promise.all([
         gen.run(simpleMockDtdlObjectModel, 'flowchart', 'elk' as const),
         gen.run(simpleMockDtdlObjectModel, 'classDiagram', 'elk' as const),
       ])
-
+      expect(secondCallStartTime).to.not.be.greaterThan(firstCallStartTime + 10)
       expect(firstResult.renderToString()).to.not.equal(secondResult.renderToString())
+    })
+    it('should render multiple ontologies and queue one', async () => {
+      const clock = sinon.useFakeTimers({ shouldAdvanceTime: true })
+      const startTimes: number[] = []
+      const pageRenderStub = sinon.stub().callsFake(async () => {
+        startTimes.push(clock.Date.now())
+        await clock.tickAsync(4000)
+        return svgSearchFuelTypeExpandedFossilFuel
+      })
+      sinon.stub(puppeteer, 'launch').resolves({
+        newPage: sinon.stub().resolves(pageMock(pageRenderStub)),
+        close: sinon.stub(),
+      } as unknown as Browser)
+      const gen = new SvgGenerator(logger, parallelTest)
+      const runs: Promise<MermaidSvgRender | PlainTextRender>[] = []
+      // render one more ontology than the number of pages available
+      for (let i = 0; i < parallelTest + 1; i++) {
+        runs.push(gen.run(simpleMockDtdlObjectModel, 'flowchart', 'elk' as const))
+      }
+      await Promise.all(runs)
+      expect(
+        startTimes.find((startTime) => {
+          return startTime >= 4000
+        })
+      ).to.not.equal(undefined)
+    })
+    it('if parallel render fails browser should restart and renders should complete', async () => {
+      const clock = sinon.useFakeTimers({ shouldAdvanceTime: true })
+      const startTimes: number[] = []
+      const pageRenderStub = sinon
+        .stub()
+        .callsFake(async () => {
+          startTimes.push(clock.Date.now())
+          await clock.tickAsync(4000)
+          return svgSearchFuelTypeExpandedFossilFuel
+        })
+        .onSecondCall()
+        .rejects(new Error('Error'))
+      sinon.stub(puppeteer, 'launch').resolves({
+        newPage: sinon.stub().resolves(pageMock(pageRenderStub)),
+        close: sinon.stub(),
+      } as unknown as Browser)
+      const gen = new SvgGenerator(logger, parallelTest)
+      const runs: Promise<MermaidSvgRender | PlainTextRender>[] = []
+      for (let i = 0; i < parallelTest; i++) {
+        runs.push(gen.run(simpleMockDtdlObjectModel, 'flowchart', 'elk' as const))
+      }
+      const results = await Promise.all(runs)
+      expect(results.length).to.equal(parallelTest)
+      for (const result of results) {
+        expect(result.renderToString()).to.equal(svgSearchFuelTypeExpandedFossilFuel)
+      }
     })
   })
 })
