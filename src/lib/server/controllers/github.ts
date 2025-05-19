@@ -87,6 +87,9 @@ export class GithubController extends HTMLController {
     }))
 
     return this.html(
+      this.templates.githubPathLabel({
+        path: `Repos:`,
+      }),
       this.templates.githubListItems({
         list: repos,
         nextPageLink: safeUrl(`/github/repos`, { page: `${page + 1}` }),
@@ -117,6 +120,9 @@ export class GithubController extends HTMLController {
     }))
 
     return this.html(
+      this.templates.githubPathLabel({
+        path: `${owner}/${repo}`,
+      }),
       this.templates.githubListItems({
         list: branches,
         nextPageLink: safeUrl(`/github/branches`, {
@@ -176,6 +182,9 @@ export class GithubController extends HTMLController {
           })
 
     return this.html(
+      this.templates.githubPathLabel({
+        path: `${owner}/${repo}/${ref}${path === '.' ? '' : `/${path}`}`,
+      }),
       this.templates.githubListItems({
         list: contents,
         backLink,
@@ -230,5 +239,45 @@ export class GithubController extends HTMLController {
     setCacheWithDefaultParams(this.cache, id, output)
     this.setHeader('HX-Redirect', `/ontology/${id}/view`)
     return
+  }
+
+  @SuccessResponse(200, '')
+  @Get('/navigate')
+  public async navigate(@Query() url: string, @Request() req: express.Request): Promise<HTML | void> {
+    const octokitToken = req.signedCookies[octokitTokenCookie]
+    if (!octokitToken) {
+      this.setStatus(302)
+      this.setHeader('HX-Redirect', authRedirectURL(`/github/picker`))
+      return
+    }
+    const match = url.match(
+      /^(?:https:\/\/(?:www\.)?github\.com\/)?([^/]+)\/([^/]+)(?:\/(?:tree\/)?([^/]+)(?:\/(.+))?)?$/
+    )
+    const [, owner, repo, branch, path] = match || []
+
+    if (!owner || !repo) {
+      throw new GithubReqError(`Invalid URL: ${url}`)
+    }
+
+    if (path && branch) {
+      const contents = await this.attemptNavigation(this.contents(owner, repo, path, branch, req))
+      if (contents) return contents
+    }
+
+    if (branch) {
+      const contents = await this.attemptNavigation(this.contents(owner, repo, '.', branch, req))
+      if (contents) return contents
+    }
+
+    return this.branches(owner, repo, 1, req)
+  }
+
+  async attemptNavigation(nav: Promise<HTML | void>): Promise<HTML | void> {
+    try {
+      return await nav
+    } catch (e) {
+      if (e instanceof GithubReqError) return
+      throw e
+    }
   }
 }
