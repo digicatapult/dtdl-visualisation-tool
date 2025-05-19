@@ -95,7 +95,7 @@ export default class OpenOntologyTemplates {
   public githubPathLabel = ({ path }: { path: string }) => {
     return (
       <h4 id="github-path-label" hx-swap-oob="true" hx-swap="outerHTML">
-        {path}
+        {escapeHtml(path)}
       </h4>
     )
   }
