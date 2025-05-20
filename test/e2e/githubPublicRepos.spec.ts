@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 import { getValidationMessage } from './helpers/genericHelpers'
-import { waitFor400Response, waitForSuccessResponse } from './helpers/waitForHelpers'
+import { waitFor404Response, waitForSuccessResponse } from './helpers/waitForHelpers'
 
 test.describe('Public GitHub URL input validation', () => {
   test('Success + error responses for different URLs', async ({ page }) => {
@@ -30,7 +30,7 @@ test.describe('Public GitHub URL input validation', () => {
           'https://github.com/digicatapult/dtdl-visualisation-tool-fake/',
           'digicatapult/dtdl-visualisation-tool-fake',
         ],
-        handler: waitFor400Response,
+        handler: waitFor404Response,
       },
       {
         paths: [
@@ -47,9 +47,9 @@ test.describe('Public GitHub URL input validation', () => {
         if (handler === waitForSuccessResponse) {
           await handler(page, () => page.press('#public-github-input', 'Enter'), '/navigate')
           await expect(page.locator('.github-list li').filter({ hasText: /^<$/ })).toBeVisible()
-        } else if (handler === waitFor400Response) {
+        } else if (handler === waitFor404Response) {
           await handler(page, () => page.press('#public-github-input', 'Enter'), '/navigate')
-          await expect(page.locator('#toast-container').filter({ hasText: 'GitHub Request Error' })).toBeInViewport()
+          await expect(page.locator('#toast-container').filter({ hasText: 'GitHub Not Found Error' })).toBeInViewport()
         } else if (handler === getValidationMessage) {
           expect(await getValidationMessage(page, '#public-github-input')).toBe('invalid owner/repo combination or url')
         }
