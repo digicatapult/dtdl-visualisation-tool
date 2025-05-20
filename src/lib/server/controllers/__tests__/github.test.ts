@@ -7,7 +7,7 @@ import { container } from 'tsyringe'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { Env } from '../../env/index.js'
-import { GithubReqError } from '../../errors.js'
+import { GithubNotFound, GithubReqError } from '../../errors.js'
 import { octokitTokenCookie } from '../../models/cookieNames.js'
 import { OAuthToken } from '../../models/github.js'
 import Parser from '../../utils/dtdl/parser.js'
@@ -339,7 +339,7 @@ describe('GithubController', async () => {
     })
 
     it('invalid nested path but valid parent dir - should fallback and return contents of parent dir', async () => {
-      getContentsStub.onCall(0).rejects(new GithubReqError('Some error'))
+      getContentsStub.onCall(0).rejects(new GithubNotFound('Some error'))
       getContentsStub.onCall(1).resolves(nestedContents)
 
       await testValidNestedPath({
@@ -369,7 +369,7 @@ describe('GithubController', async () => {
     })
 
     it('invalid path but valid branch - should fallback and return contents of branch at root path in list', async () => {
-      getContentsStub.onCall(0).rejects(new GithubReqError('Some error'))
+      getContentsStub.onCall(0).rejects(new GithubNotFound('Some error'))
       getContentsStub.onCall(1).resolves(contents)
       const nextPageLink = undefined
       const onClickLinkFile = undefined
@@ -410,7 +410,7 @@ describe('GithubController', async () => {
     })
 
     it('invalid branch but valid owner/repo - should fallback and return branch names in list', async () => {
-      getContentsStub.onCall(0).rejects(new GithubReqError('Some error'))
+      getContentsStub.onCall(0).rejects(new GithubNotFound('Some error'))
 
       const onClickLink = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=.&ref=${mockBranch}`
       const nextPageLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=${2}`

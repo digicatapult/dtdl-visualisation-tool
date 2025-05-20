@@ -3,7 +3,7 @@ import { dirname } from 'node:path'
 import { Get, Produces, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../db/modelDb.js'
-import { GithubReqError } from '../errors.js'
+import { GithubNotFound, GithubReqError } from '../errors.js'
 import { type ILogger, Logger } from '../logger.js'
 import { octokitTokenCookie } from '../models/cookieNames.js'
 import { ListItem } from '../models/github.js'
@@ -286,11 +286,12 @@ export class GithubController extends HTMLController {
     return this.branches(owner, repo, 1, req)
   }
 
+  // Attempt to return GitHub contents, 404 can safely be ignored
   async attemptNavigation(nav: Promise<HTML | void>): Promise<HTML | void> {
     try {
       return await nav
     } catch (e) {
-      if (e instanceof GithubReqError) return
+      if (e instanceof GithubNotFound) return
       throw e
     }
   }
