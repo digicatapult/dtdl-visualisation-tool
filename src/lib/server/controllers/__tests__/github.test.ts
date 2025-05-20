@@ -324,9 +324,26 @@ describe('GithubController', async () => {
       })
     })
 
+    it('trailing slash - should return contents of branch at a nested path in list', async () => {
+      await testValidNestedPath({
+        path: `${mockOwner}/${mockRepo}/tree/${mockBranch}/${mockDirPath}/`,
+        expectedLabel: `${mockOwner}/${mockRepo}/${mockBranch}/${mockDirPath}`,
+      })
+    })
+
     it('github domain in URL - should return contents of branch at a nested path in list', async () => {
       await testValidNestedPath({
         path: `https://github.com/${mockOwner}/${mockRepo}/tree/${mockBranch}/${mockDirPath}`,
+        expectedLabel: `${mockOwner}/${mockRepo}/${mockBranch}/${mockDirPath}`,
+      })
+    })
+
+    it('invalid nested path but valid parent dir - should fallback and return contents of parent dir', async () => {
+      getContentsStub.onCall(0).rejects(new GithubReqError('Some error'))
+      getContentsStub.onCall(1).resolves(nestedContents)
+
+      await testValidNestedPath({
+        path: `https://github.com/${mockOwner}/${mockRepo}/tree/${mockBranch}/${mockDirPath}/invalidPath`,
         expectedLabel: `${mockOwner}/${mockRepo}/${mockBranch}/${mockDirPath}`,
       })
     })

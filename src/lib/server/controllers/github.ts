@@ -241,6 +241,15 @@ export class GithubController extends HTMLController {
     return
   }
 
+  /*
+   * Returns repo contents of a user-supplied GitHub URL.
+   * Attempts the full path, then progressively less nested paths until valid contents are found.
+   * e.g. the following paths are attempted in order:
+   * `digicatapult/dtdl-visualisation-tool/tree/main/src/lib`
+   * `digicatapult/dtdl-visualisation-tool/tree/main/src`
+   * `digicatapult/dtdl-visualisation-tool/tree/main/.`
+   * `digicatapult/dtdl-visualisation-tool` (returns branches)
+   */
   @SuccessResponse(200, '')
   @Get('/navigate')
   public async navigate(@Query() url: string, @Request() req: express.Request): Promise<HTML | void> {
@@ -250,7 +259,8 @@ export class GithubController extends HTMLController {
       this.setHeader('HX-Redirect', authRedirectURL(`/github/picker`))
       return
     }
-    const match = url.match(
+    const safeUrl = url.replace(/\/$/, '') // remove any trailing slash
+    const match = safeUrl.match(
       /^(?:https:\/\/(?:www\.)?github\.com\/)?([^/]+)\/([^/]+)(?:\/(?:tree\/)?([^/]+)(?:\/(.+))?)?$/
     )
     const [, owner, repo, branch, path] = match || []
@@ -260,8 +270,12 @@ export class GithubController extends HTMLController {
     }
 
     if (path && branch) {
-      const contents = await this.attemptNavigation(this.contents(owner, repo, path, branch, req))
-      if (contents) return contents
+      // Generate all possible paths and attempt each, starting from the most nested
+      const paths = path.split('/').map((_, i, arr) => arr.slice(0, arr.length - i).join('/'))
+      for (const p of paths) {
+        const contents = await this.attemptNavigation(this.contents(owner, repo, p, branch, req))
+        if (contents) return contents
+      }
     }
 
     if (branch) {
