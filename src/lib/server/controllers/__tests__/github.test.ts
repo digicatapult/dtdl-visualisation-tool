@@ -7,7 +7,7 @@ import { container } from 'tsyringe'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { Env } from '../../env/index.js'
-import { GithubReqError } from '../../errors.js'
+import { GithubNotFound, GithubReqError } from '../../errors.js'
 import { octokitTokenCookie } from '../../models/cookieNames.js'
 import { OAuthToken } from '../../models/github.js'
 import Parser from '../../utils/dtdl/parser.js'
@@ -191,7 +191,10 @@ describe('GithubController', async () => {
       const html = await toHTMLString(result)
 
       expect(html).to.equal(
-        `githubListItems_${mockFullName}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`
+        [
+          `githubPathLabel_Repos:_githubPathLabel`,
+          `githubListItems_${mockFullName}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`,
+        ].join('')
       )
     })
 
@@ -216,6 +219,7 @@ describe('GithubController', async () => {
 
       expect(html).to.equal(
         [
+          `githubPathLabel_${mockOwner}/${mockRepo}_githubPathLabel`,
           `githubListItems_${mockBranch}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`,
           `selectFolder_undefined_true_selectFolder`,
         ].join('')
@@ -245,6 +249,7 @@ describe('GithubController', async () => {
 
       expect(html).to.equal(
         [
+          `githubPathLabel_${mockOwner}/${mockRepo}/${mockBranch}_githubPathLabel`,
           `githubListItems_📄 ${mockFileName}_${onClickLinkFile}_📂 ${mockDir}_${onClickLinkDir}_${nextPageLink}_${backLink}_githubListItems`,
           `selectFolder_${selectFolderLink}_true_selectFolder`,
         ].join('')
@@ -267,6 +272,7 @@ describe('GithubController', async () => {
 
       expect(html).to.equal(
         [
+          `githubPathLabel_${mockOwner}/${mockRepo}/${mockBranch}/${mockDirPath}_githubPathLabel`,
           `githubListItems_📄 ${mockFileName}_${onClickLinkFile}_${nextPageLink}_${backLink}_githubListItems`,
           `selectFolder_${selectFolderLink}_true_selectFolder`,
         ].join('')
@@ -302,4 +308,160 @@ describe('GithubController', async () => {
       )
     })
   })
+
+  describe('/navigate', () => {
+    it('valid paths and branch - should return contents of branch at a nested path in list', async () => {
+      await testValidNestedPath({
+        path: `${mockOwner}/${mockRepo}/${mockBranch}/${mockDirPath}`,
+        expectedLabel: `${mockOwner}/${mockRepo}/${mockBranch}/${mockDirPath}`,
+      })
+    })
+
+    it('tree in URL - should return contents of branch at a nested path in list', async () => {
+      await testValidNestedPath({
+        path: `${mockOwner}/${mockRepo}/tree/${mockBranch}/${mockDirPath}`,
+        expectedLabel: `${mockOwner}/${mockRepo}/${mockBranch}/${mockDirPath}`,
+      })
+    })
+
+    it('trailing slash - should return contents of branch at a nested path in list', async () => {
+      await testValidNestedPath({
+        path: `${mockOwner}/${mockRepo}/tree/${mockBranch}/${mockDirPath}/`,
+        expectedLabel: `${mockOwner}/${mockRepo}/${mockBranch}/${mockDirPath}`,
+      })
+    })
+
+    it('github domain in URL - should return contents of branch at a nested path in list', async () => {
+      await testValidNestedPath({
+        path: `https://github.com/${mockOwner}/${mockRepo}/tree/${mockBranch}/${mockDirPath}`,
+        expectedLabel: `${mockOwner}/${mockRepo}/${mockBranch}/${mockDirPath}`,
+      })
+    })
+
+    it('invalid nested path but valid parent dir - should fallback and return contents of parent dir', async () => {
+      getContentsStub.onCall(0).rejects(new GithubNotFound('Some error'))
+      getContentsStub.onCall(1).resolves(nestedContents)
+
+      await testValidNestedPath({
+        path: `https://github.com/${mockOwner}/${mockRepo}/tree/${mockBranch}/${mockDirPath}/invalidPath`,
+        expectedLabel: `${mockOwner}/${mockRepo}/${mockBranch}/${mockDirPath}`,
+      })
+    })
+
+    it('valid branch - should return contents of branch at root path in list', async () => {
+      getContentsStub.resolves(contents)
+      const nextPageLink = undefined
+      const onClickLinkFile = undefined
+      const onClickLinkDir = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=${mockDirPath}&ref=${mockBranch}`
+      const backLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=1`
+      const selectFolderLink = `/github/directory?owner=${mockOwner}&repo=${mockRepo}&path=${mockRootPath}&ref=${mockBranch}`
+      const result = await controller.navigate(`${mockOwner}/${mockRepo}/${mockBranch}`, mockReqWithCookie(cookie))
+
+      if (!result) throw new Error('Expected HTML response')
+
+      expect(await toHTMLString(result)).to.equal(
+        [
+          `githubPathLabel_${mockOwner}/${mockRepo}/${mockBranch}_githubPathLabel`,
+          `githubListItems_📄 ${mockFileName}_${onClickLinkFile}_📂 ${mockDir}_${onClickLinkDir}_${nextPageLink}_${backLink}_githubListItems`,
+          `selectFolder_${selectFolderLink}_true_selectFolder`,
+        ].join('')
+      )
+    })
+
+    it('invalid path but valid branch - should fallback and return contents of branch at root path in list', async () => {
+      getContentsStub.onCall(0).rejects(new GithubNotFound('Some error'))
+      getContentsStub.onCall(1).resolves(contents)
+      const nextPageLink = undefined
+      const onClickLinkFile = undefined
+      const onClickLinkDir = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=${mockDirPath}&ref=${mockBranch}`
+      const backLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=1`
+      const selectFolderLink = `/github/directory?owner=${mockOwner}&repo=${mockRepo}&path=${mockRootPath}&ref=${mockBranch}`
+      const result = await controller.navigate(
+        `${mockOwner}/${mockRepo}/${mockBranch}/invalidPath`,
+        mockReqWithCookie(cookie)
+      )
+
+      if (!result) throw new Error('Expected HTML response')
+
+      expect(await toHTMLString(result)).to.equal(
+        [
+          `githubPathLabel_${mockOwner}/${mockRepo}/${mockBranch}_githubPathLabel`,
+          `githubListItems_📄 ${mockFileName}_${onClickLinkFile}_📂 ${mockDir}_${onClickLinkDir}_${nextPageLink}_${backLink}_githubListItems`,
+          `selectFolder_${selectFolderLink}_true_selectFolder`,
+        ].join('')
+      )
+    })
+
+    it('valid owner/repo - should return branch names in list', async () => {
+      const onClickLink = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=.&ref=${mockBranch}`
+      const nextPageLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=${2}`
+      const backLink = `/github/repos?page=1`
+      const result = await controller.navigate(`${mockOwner}/${mockRepo}`, mockReqWithCookie(cookie))
+
+      if (!result) throw new Error('Expected HTML response')
+
+      expect(await toHTMLString(result)).to.equal(
+        [
+          `githubPathLabel_${mockOwner}/${mockRepo}_githubPathLabel`,
+          `githubListItems_${mockBranch}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`,
+          `selectFolder_undefined_true_selectFolder`,
+        ].join('')
+      )
+    })
+
+    it('invalid branch but valid owner/repo - should fallback and return branch names in list', async () => {
+      getContentsStub.onCall(0).rejects(new GithubNotFound('Some error'))
+
+      const onClickLink = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=.&ref=${mockBranch}`
+      const nextPageLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=${2}`
+      const backLink = `/github/repos?page=1`
+      const result = await controller.navigate(`${mockOwner}/${mockRepo}/invalidBranch`, mockReqWithCookie(cookie))
+
+      if (!result) throw new Error('Expected HTML response')
+
+      expect(await toHTMLString(result)).to.equal(
+        [
+          `githubPathLabel_${mockOwner}/${mockRepo}_githubPathLabel`,
+          `githubListItems_${mockBranch}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`,
+          `selectFolder_undefined_true_selectFolder`,
+        ].join('')
+      )
+    })
+
+    it('should throw error if path missing owner/repo', async () => {
+      await expect(controller.navigate('', mockReqWithCookie(cookie))).to.be.rejectedWith(GithubReqError, `Invalid URL`)
+    })
+
+    it('should redirect if octokit token NOT present in cookies', async () => {
+      await assertRedirectOnNoToken(() => controller.navigate(`${mockOwner}/${mockRepo}`, mockReqWithCookie({})))
+    })
+
+    it('should throw error if unknown error thrown in navigation attempt', async () => {
+      const unknownError = new Error('Unknown error')
+      getContentsStub.onCall(0).rejects(unknownError)
+
+      await expect(
+        controller.navigate(`${mockOwner}/${mockRepo}/${mockBranch}/${mockDirPath}`, mockReqWithCookie(cookie))
+      ).to.be.rejectedWith(unknownError)
+    })
+  })
+
+  const testValidNestedPath = async ({ path, expectedLabel }: { path: string; expectedLabel: string }) => {
+    getContentsStub.resolves(nestedContents)
+    const nextPageLink = undefined
+    const onClickLinkFile = undefined
+    const backLink = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=${mockRootPath}&ref=${mockBranch}`
+    const selectFolderLink = `/github/directory?owner=${mockOwner}&repo=${mockRepo}&path=${mockDirPath}&ref=${mockBranch}`
+    const result = await controller.navigate(path, mockReqWithCookie(cookie))
+
+    if (!result) throw new Error('Expected HTML response')
+
+    expect(await toHTMLString(result)).to.equal(
+      [
+        `githubPathLabel_${expectedLabel}_githubPathLabel`,
+        `githubListItems_📄 ${mockFileName}_${onClickLinkFile}_${nextPageLink}_${backLink}_githubListItems`,
+        `selectFolder_${selectFolderLink}_true_selectFolder`,
+      ].join('')
+    )
+  }
 })
