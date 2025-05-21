@@ -47,6 +47,7 @@ export async function startDatabaseContainer(env: databaseConfig): Promise<Start
       POSTGRES_DB: env.db,
     })
     .withNetwork(network)
+    .withReuse()
     .withWaitStrategy(Wait.forLogMessage('database system is ready to accept connections'))
     .start()
   return postgresContainer
@@ -88,6 +89,7 @@ export async function startVisualisationContainer(env: VisualisationUIConfig): P
       EDIT_ONTOLOGY: 'true',
     })
     .withAddedCapabilities('SYS_ADMIN')
+    .withReuse()
     .withCommand(['sh', '-c', 'npx knex migrate:latest --env production; dtdl-visualiser parse -p /sample/energygrid'])
     .start()
   logger.info(`Started container ${containerName}`)

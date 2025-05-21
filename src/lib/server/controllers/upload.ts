@@ -1,5 +1,5 @@
 import express from 'express'
-import { Get, Post, Produces, Query, Request, Route, SuccessResponse, UploadedFile } from 'tsoa'
+import { Get, Middlewares, Post, Produces, Query, Request, Route, SuccessResponse, UploadedFile } from 'tsoa'
 import { inject, injectable } from 'tsyringe'
 
 import { UploadError } from '../errors.js'
@@ -11,11 +11,11 @@ import { ModelDb } from '../../db/modelDb.js'
 import { Logger, type ILogger } from '../logger.js'
 import { Cache, type ICache } from '../utils/cache.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
+import { strictLimitMiddleware } from '../utils/rateLimit.js'
 import { recentFilesFromCookies, setCacheWithDefaultParams } from './helpers.js'
 
 @injectable()
 @Route('/open')
-@Produces('text/html')
 export class OpenOntologyController extends HTMLController {
   constructor(
     private modelDb: ModelDb,
@@ -30,6 +30,7 @@ export class OpenOntologyController extends HTMLController {
   }
 
   @SuccessResponse(200)
+  @Produces('text/html')
   @Get('/')
   public async open(@Request() req: express.Request): Promise<HTML> {
     this.setHeader('HX-Push-Url', `/open`)
@@ -39,12 +40,14 @@ export class OpenOntologyController extends HTMLController {
   }
 
   @SuccessResponse(200)
+  @Produces('text/html')
   @Get('/menu')
   public async getMenu(@Query() showContent: boolean): Promise<HTML> {
     return this.html(this.openOntologyTemplates.getMenu({ showContent }))
   }
 
   @SuccessResponse(302, 'File uploaded successfully')
+  @Middlewares(strictLimitMiddleware)
   @Post('/')
   public async uploadZip(@UploadedFile('file') file: Express.Multer.File): Promise<void> {
     if (file.mimetype !== 'application/zip') {

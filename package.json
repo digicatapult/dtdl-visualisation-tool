@@ -52,6 +52,7 @@
     "dotenv": "^16.5.0",
     "envalid": "^8.0.0",
     "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
     "fuse.js": "^7.1.0",
     "htmx-ext-json-enc": "^2.0.2",
     "htmx-ext-response-targets": "^2.0.3",
