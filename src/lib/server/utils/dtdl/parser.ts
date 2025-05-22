@@ -5,7 +5,7 @@ import { join, relative } from 'node:path'
 import { inject, singleton } from 'tsyringe'
 import unzipper from 'unzipper'
 import { DtdlFile } from '../../../db/types.js'
-import { DataError, UploadError } from '../../errors.js'
+import { ModellingError, UploadError } from '../../errors.js'
 import { Logger, type ILogger } from '../../logger.js'
 
 @singleton()
@@ -74,10 +74,10 @@ export default class Parser {
     const allContents = `[${files.map((file) => file.contents).join(',')}]`
 
     const parser = await getInterop()
-    const parsedDtdl = parseDtdl(allContents, parser)
 
-    if (!parsedDtdl) {
-      throw new DataError('Failed to parse DTDL model')
+    const parsedDtdl = parseDtdl(allContents, parser)
+    if (parsedDtdl.ExceptionKind) {
+      throw new ModellingError('Modelling error', JSON.stringify(parsedDtdl))
     }
     return parsedDtdl
   }

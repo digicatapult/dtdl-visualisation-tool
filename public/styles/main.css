@@ -527,6 +527,7 @@ label[for='diagramType'] {
 #toast-container dialog {
   display: flex;
   align-items: center;
+  bottom: calc(-1lh - var(--dialog-height)); /* anchors bottom of dialog to viewport */
   gap: 3ch;
   width: 45ch;
   padding: 24px;
@@ -546,6 +547,14 @@ label[for='diagramType'] {
     animation: fade-out var(--open-close-duration) forwards;
   }
 }
+/*transitions the details smoothly */
+#toast-container dialog:has(details) {
+  transition: height var(--dialog-shift-duration) var(--open-close-duration);
+}
+/*Opens the details */
+#toast-container dialog:has(details[open]) {
+  height: calc(var(--dialog-height) * 5);
+}
 
 #toast-container dialog + .toast-wrapper {
   transition: transform var(--dialog-shift-duration) var(--open-close-duration);
@@ -553,6 +562,15 @@ label[for='diagramType'] {
 
 #toast-container dialog[open] + .toast-wrapper {
   transform: translateY(calc(-1lh - var(--dialog-height)));
+}
+
+/*transitions the toast-wrapper smoothly */
+#toast-container dialog:has(details) + .toast-wrapper {
+  transition: transform var(--dialog-shift-duration) var(--open-close-duration);
+}
+/*moves the toast-wrapper up by the same height as the details */
+#toast-container dialog:has(details[open]) + .toast-wrapper {
+  transform: translateY(calc(-1lh - (calc(var(--dialog-height) * 5))));
 }
 
 #toast-container .toast-content {
@@ -586,6 +604,28 @@ label[for='diagramType'] {
   font-size: 1rem;
   margin: 0;
   overflow-y: auto;
+}
+
+#toast-container details {
+  margin-top: 1rem;
+  font-size: 0.875rem;
+}
+
+#toast-container .detail-summary {
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+}
+
+#toast-container pre {
+  background-color: #f2f2f2;
+  color: #333;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin-top: 0.5rem;
+  font-family: monospace;
+  white-space: pre-wrap;
 }
 
 .modal-button {

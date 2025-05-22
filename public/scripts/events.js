@@ -5,6 +5,10 @@ document.body.addEventListener('dtdlVisualisationError', (ev) => {
   }
 
   setTimeout(() => {
+    const detailsElement = document.getElementById(id)?.querySelector('details');
+    if (detailsElement && detailsElement.open) {
+      return;
+    }
     document.getElementById(id)?.close()
   }, 10000)
 })
