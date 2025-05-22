@@ -142,6 +142,7 @@ export const openOntologyMock = {
     backLink?: string
   }): JSX.Element =>
     `githubListItems_${list.map((item) => `${item.text}_${item.link}`).join('_')}_${nextPageLink}_${backLink}_githubListItems`,
+  githubPathLabel: ({ path }: { path: string }): JSX.Element => `githubPathLabel_${path}_githubPathLabel`,
   selectFolder: ({ link, swapOutOfBand }: { link?: string; swapOutOfBand?: boolean }): JSX.Element =>
     `selectFolder_${link}_${swapOutOfBand}_selectFolder`,
 } as unknown as OpenOntologyTemplates

@@ -51,7 +51,7 @@ test.describe('Upload ontology from GitHub via OAuth', () => {
     // enter a public repo
     await expect(page.locator('.github-list li').first()).toBeVisible()
     await page.fill('#public-github-input', 'digicatapult/dtdl-visualisation-tool')
-    await waitForSuccessResponse(page, () => page.press('#public-github-input', 'Enter'), '/branches')
+    await waitForSuccessResponse(page, () => page.press('#public-github-input', 'Enter'), '/navigate')
 
     // click main branch
     await expect(page.locator('.github-list li').filter({ hasText: /^main$/ })).toBeVisible()

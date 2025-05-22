@@ -31,9 +31,9 @@ export async function waitForUploadFileFromRoot<T>(page: Page, action: () => Pro
   await waitForUploadFile(page, action, filePath)
 }
 
-export const waitFor400Response = async <T>(page: Page, action: () => Promise<T>, includeRoute: string) => {
+export const waitFor404Response = async <T>(page: Page, action: () => Promise<T>, includeRoute: string) => {
   const response = page.waitForResponse((resp) => {
-    return resp.url().includes(includeRoute) && resp.status() === 400
+    return resp.url().includes(includeRoute) && resp.status() === 404
   })
   await action()
   await response

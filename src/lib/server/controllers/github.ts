@@ -3,7 +3,7 @@ import { dirname } from 'node:path'
 import { Get, Produces, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../db/modelDb.js'
-import { GithubReqError } from '../errors.js'
+import { GithubNotFound, GithubReqError } from '../errors.js'
 import { type ILogger, Logger } from '../logger.js'
 import { octokitTokenCookie } from '../models/cookieNames.js'
 import { ListItem } from '../models/github.js'
@@ -87,6 +87,9 @@ export class GithubController extends HTMLController {
     }))
 
     return this.html(
+      this.templates.githubPathLabel({
+        path: `Repos:`,
+      }),
       this.templates.githubListItems({
         list: repos,
         nextPageLink: safeUrl(`/github/repos`, { page: `${page + 1}` }),
@@ -117,6 +120,9 @@ export class GithubController extends HTMLController {
     }))
 
     return this.html(
+      this.templates.githubPathLabel({
+        path: `${owner}/${repo}`,
+      }),
       this.templates.githubListItems({
         list: branches,
         nextPageLink: safeUrl(`/github/branches`, {
@@ -176,6 +182,9 @@ export class GithubController extends HTMLController {
           })
 
     return this.html(
+      this.templates.githubPathLabel({
+        path: `${owner}/${repo}/${ref}${path === '.' ? '' : `/${path}`}`,
+      }),
       this.templates.githubListItems({
         list: contents,
         backLink,
@@ -230,5 +239,60 @@ export class GithubController extends HTMLController {
     setCacheWithDefaultParams(this.cache, id, output)
     this.setHeader('HX-Redirect', `/ontology/${id}/view`)
     return
+  }
+
+  /*
+   * Returns repo contents of a user-supplied GitHub URL.
+   * Attempts the full path, then progressively less nested paths until valid contents are found.
+   * e.g. the following paths are attempted in order:
+   * `digicatapult/dtdl-visualisation-tool/tree/main/src/lib`
+   * `digicatapult/dtdl-visualisation-tool/tree/main/src`
+   * `digicatapult/dtdl-visualisation-tool/tree/main/.`
+   * `digicatapult/dtdl-visualisation-tool` (returns branches)
+   */
+  @SuccessResponse(200, '')
+  @Get('/navigate')
+  public async navigate(@Query() url: string, @Request() req: express.Request): Promise<HTML | void> {
+    const octokitToken = req.signedCookies[octokitTokenCookie]
+    if (!octokitToken) {
+      this.setStatus(302)
+      this.setHeader('HX-Redirect', authRedirectURL(`/github/picker`))
+      return
+    }
+    const safeUrl = url.replace(/\/$/, '') // remove any trailing slash
+    const match = safeUrl.match(
+      /^(?:https:\/\/(?:www\.)?github\.com\/)?([^/]+)\/([^/]+)(?:\/(?:tree\/)?([^/]+)(?:\/(.+))?)?$/
+    )
+    const [, owner, repo, branch, path] = match || []
+
+    if (!owner || !repo) {
+      throw new GithubReqError(`Invalid URL: ${url}`)
+    }
+
+    if (path && branch) {
+      // Generate all possible paths and attempt each, starting from the most nested
+      const paths = path.split('/').map((_, i, arr) => arr.slice(0, arr.length - i).join('/'))
+      for (const p of paths) {
+        const contents = await this.attemptNavigation(this.contents(owner, repo, p, branch, req))
+        if (contents) return contents
+      }
+    }
+
+    if (branch) {
+      const contents = await this.attemptNavigation(this.contents(owner, repo, '.', branch, req))
+      if (contents) return contents
+    }
+
+    return this.branches(owner, repo, 1, req)
+  }
+
+  // Attempt to return GitHub contents, 404 can safely be ignored
+  async attemptNavigation(nav: Promise<HTML | void>): Promise<HTML | void> {
+    try {
+      return await nav
+    } catch (e) {
+      if (e instanceof GithubNotFound) return
+      throw e
+    }
   }
 }

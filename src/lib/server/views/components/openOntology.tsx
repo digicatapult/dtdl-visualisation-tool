@@ -69,9 +69,10 @@ export default class OpenOntologyTemplates {
             <input
               id="public-github-input"
               placeholder="Enter public GitHub repo {org}/{repo} e.g. 'digicatapult/dtdl-visualisation-tool'"
-              hx-get="/github/branches?page=1"
+              hx-get="/github/navigate"
+              hx-indicator="#spin"
               hx-trigger="keyup[event.key=='Enter'], input changed delay:500ms"
-              hx-vals="js:{...globalThis.getOwnerRepoFromInput()}"
+              name="url"
               hx-target=".github-list"
               hx-validate={true}
               oninput="globalThis.validatePublicRepoInput(this)"
@@ -79,6 +80,7 @@ export default class OpenOntologyTemplates {
             />
             <img src="/public/images/arrow-enter.svg" />
           </div>
+          <this.githubPathLabel path="Repos:" />
           <div id="spin" class="spinner" />
           <ul class="github-list" hx-indicator="#spin" hx-get={populateListLink} hx-trigger="load"></ul>
           <this.selectFolder />
@@ -87,6 +89,14 @@ export default class OpenOntologyTemplates {
           <button class="modal-button" />
         </form>
       </dialog>
+    )
+  }
+
+  public githubPathLabel = ({ path }: { path: string }) => {
+    return (
+      <h4 id="github-path-label" hx-swap-oob="true" hx-swap="outerHTML">
+        {escapeHtml(path)}
+      </h4>
     )
   }
 

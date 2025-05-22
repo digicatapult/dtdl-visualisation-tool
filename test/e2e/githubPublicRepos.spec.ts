@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 import { getValidationMessage } from './helpers/genericHelpers'
-import { waitFor400Response, waitForSuccessResponse } from './helpers/waitForHelpers'
+import { waitFor404Response, waitForSuccessResponse } from './helpers/waitForHelpers'
 
 test.describe('Public GitHub URL input validation', () => {
   test('Success + error responses for different URLs', async ({ page }) => {
@@ -20,6 +20,7 @@ test.describe('Public GitHub URL input validation', () => {
           'https://github.com/digicatapult/dtdl-visualisation-tool',
           'https://github.com/digicatapult/dtdl-visualisation-tool/extra/path',
           'https://www.github.com/digicatapult/dtdl-visualisation-tool/extra/path',
+          'https://www.github.com/digicatapult/dtdl-visualisation-tool/tree/main/extra/path',
           'digicatapult/dtdl-visualisation-tool',
         ],
         handler: waitForSuccessResponse,
@@ -29,7 +30,7 @@ test.describe('Public GitHub URL input validation', () => {
           'https://github.com/digicatapult/dtdl-visualisation-tool-fake/',
           'digicatapult/dtdl-visualisation-tool-fake',
         ],
-        handler: waitFor400Response,
+        handler: waitFor404Response,
       },
       {
         paths: [
@@ -44,16 +45,11 @@ test.describe('Public GitHub URL input validation', () => {
       for (const path of paths) {
         await page.fill('#public-github-input', path)
         if (handler === waitForSuccessResponse) {
-          await handler(page, () => page.press('#public-github-input', 'Enter'), '/branches')
+          await handler(page, () => page.press('#public-github-input', 'Enter'), '/navigate')
           await expect(page.locator('.github-list li').filter({ hasText: /^<$/ })).toBeVisible()
-          await waitForSuccessResponse(
-            page,
-            () => page.locator('.github-list li').filter({ hasText: /^<$/ }).click(),
-            '/repos'
-          )
-        } else if (handler === waitFor400Response) {
-          await handler(page, () => page.press('#public-github-input', 'Enter'), '/branches')
-          await expect(page.locator('#toast-container').filter({ hasText: 'GitHub Request Error' })).toBeInViewport()
+        } else if (handler === waitFor404Response) {
+          await handler(page, () => page.press('#public-github-input', 'Enter'), '/navigate')
+          await expect(page.locator('#toast-container').filter({ hasText: 'GitHub Not Found Error' })).toBeInViewport()
         } else if (handler === getValidationMessage) {
           expect(await getValidationMessage(page, '#public-github-input')).toBe('invalid owner/repo combination or url')
         }

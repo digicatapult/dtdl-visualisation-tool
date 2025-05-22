@@ -3,7 +3,7 @@ import { RequestError } from '@octokit/request-error'
 import { container, inject, singleton } from 'tsyringe'
 
 import { Env } from '../env/index.js'
-import { GithubReqError } from '../errors.js'
+import { GithubNotFound, GithubReqError } from '../errors.js'
 import { Logger, type ILogger } from '../logger.js'
 import { OAuthToken } from '../models/github.js'
 import { safeUrl } from './url.js'
@@ -139,7 +139,7 @@ export class GithubRequest {
       this.logger.debug('GitHub API request failed', err)
 
       if (err instanceof RequestError && err.status === 404) {
-        throw new GithubReqError(`'${err.response?.url}' not found`)
+        throw new GithubNotFound(`'${err.response?.url}' not found`)
       }
 
       throw new GithubReqError('GitHub API request failed')
