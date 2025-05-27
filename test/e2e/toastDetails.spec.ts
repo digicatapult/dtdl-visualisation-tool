@@ -31,6 +31,8 @@ test.describe('Upload ontology from local drive', () => {
     await warningSVGResponsePromise
 
     await expect(page.getByText('Open details for more information')).toBeVisible()
-    await page.locator('')
+    await page.locator('#toast-container').getByText('Parsing error, Open details for more information').click()
+
+    await expect(page.getByText('Top-level JSON object has no @context specifier')).toBeVisible()
   })
 })

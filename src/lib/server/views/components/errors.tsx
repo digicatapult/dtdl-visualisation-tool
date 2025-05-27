@@ -41,11 +41,13 @@ export function errorToast(error: unknown) {
           />
           <div class="toast-content">
             <h1>{escapeHtml(httpError.userTitle)}</h1>
-            {httpError.message && (
+            {httpError.message ? (
               <details class="toast-detail">
                 <summary class="detail-summary">{escapeHtml(httpError.userMessage)}</summary>
                 <pre>{escapeHtml(modellingErrorDetail())}</pre>
               </details>
+            ) : (
+              <p>{escapeHtml(httpError.userMessage)}</p>
             )}
           </div>
           <form method="dialog">

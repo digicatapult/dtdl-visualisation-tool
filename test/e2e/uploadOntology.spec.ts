@@ -30,7 +30,7 @@ test.describe('Upload ontology from local drive', () => {
     await waitForUploadFile(page, () => page.locator('#main-view').getByText('Local Zip File').click(), filePath)
     await warningSVGResponsePromise
 
-    await expect(page.getByText('Failed to parse DTDL model')).toBeVisible()
+    await expect(page.getByText('Modelling error')).toBeVisible()
 
     filePath = path.join(__dirname, '../../src/lib/server/controllers/__tests__/simple.zip')
 

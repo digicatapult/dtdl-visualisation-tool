@@ -592,6 +592,12 @@ label[for='diagramType'] {
   margin: 0;
 }
 
+#toast-container p {
+  font-size: 1rem;
+  margin: 0;
+  overflow-y: auto;
+}
+
 #toast-container details {
   margin-top: 0.5rem;
   font-size: 0.8rem;
