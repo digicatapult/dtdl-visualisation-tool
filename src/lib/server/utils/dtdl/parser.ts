@@ -1,4 +1,4 @@
-import { getInterop, parseDtdl } from '@digicatapult/dtdl-parser'
+import { DtdlObjectModel, getInterop, parseDtdl } from '@digicatapult/dtdl-parser'
 import { Dirent } from 'node:fs'
 import { readdir, readFile } from 'node:fs/promises'
 import { join, relative } from 'node:path'
@@ -70,14 +70,17 @@ export default class Parser {
     }
   }
 
-  async parse(files: DtdlFile[]) {
+  async parse(files: DtdlFile[]): Promise<DtdlObjectModel> {
     const allContents = `[${files.map((file) => file.contents).join(',')}]`
 
     const parser = await getInterop()
 
     const parsedDtdl = parseDtdl(allContents, parser)
     if (parsedDtdl.ExceptionKind) {
-      throw new ModellingError('Modelling error', JSON.stringify(parsedDtdl))
+      throw new ModellingError(
+        `${parsedDtdl.ExceptionKind} error, Open details for more information`,
+        JSON.stringify(parsedDtdl)
+      )
     }
     return parsedDtdl
   }

@@ -7,7 +7,7 @@ import Parser from '../parser.js'
 import { expect } from 'chai'
 import { readFile } from 'node:fs/promises'
 import { mockLogger } from '../../../controllers/__tests__/helpers.js'
-import { DataError } from '../../../errors.js'
+import { ModellingError } from '../../../errors.js'
 import bom from './fixtures/bom/bom.json' assert { type: 'json' }
 import nestedTwo from './fixtures/nestedDtdl/nested/two.json' assert { type: 'json' }
 import nestedOne from './fixtures/nestedDtdl/one.json' assert { type: 'json' }
@@ -91,6 +91,6 @@ describe('parse', function () {
 
   test('throws error if bad DTDL', async () => {
     const files = [{ path: '', contents: JSON.stringify({}) }]
-    await expect(parser.parse(files)).to.be.rejectedWith(DataError)
+    await expect(parser.parse(files)).to.be.rejectedWith(ModellingError)
   })
 })

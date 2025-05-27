@@ -527,11 +527,11 @@ label[for='diagramType'] {
 #toast-container dialog {
   display: flex;
   align-items: center;
-  bottom: calc(-1lh - var(--dialog-height)); /* anchors bottom of dialog to viewport */
+  bottom: calc(-1lh - var(--dialog-height)); /* anchors bottom of dialog to #toaster-wrapper */
   gap: 3ch;
   width: 45ch;
   padding: 24px;
-  height: var(--dialog-height);
+  height: auto;
   margin-inline: 20px auto;
   margin-block-end: 20px;
   border: none;
@@ -546,14 +546,6 @@ label[for='diagramType'] {
   &:not([open]) {
     animation: fade-out var(--open-close-duration) forwards;
   }
-}
-/*transitions the details smoothly */
-#toast-container dialog:has(details) {
-  transition: height var(--dialog-shift-duration) var(--open-close-duration);
-}
-/*Opens the details */
-#toast-container dialog:has(details[open]) {
-  height: calc(var(--dialog-height) * 5);
 }
 
 #toast-container dialog + .toast-wrapper {
@@ -570,7 +562,7 @@ label[for='diagramType'] {
 }
 /*moves the toast-wrapper up by the same height as the details */
 #toast-container dialog:has(details[open]) + .toast-wrapper {
-  transform: translateY(calc(-1lh - (calc(var(--dialog-height) * 5))));
+  transform: translateY(calc(-1lh - (calc(var(--dialog-height) * 4))));
 }
 
 #toast-container .toast-content {
@@ -600,21 +592,28 @@ label[for='diagramType'] {
   margin: 0;
 }
 
-#toast-container p {
-  font-size: 1rem;
-  margin: 0;
-  overflow-y: auto;
-}
-
 #toast-container details {
-  margin-top: 1rem;
-  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
 }
 
-#toast-container .detail-summary {
-  font-weight: bold;
+#toast-container details::details-content {
+  block-size: 0;
+  transition: 
+    block-size var(--dialog-shift-duration) var(--open-close-duration),
+    content-visibility var(--dialog-shift-duration) var(--open-close-duration);
+  transition-behavior: allow-discrete;
+}
+
+#toast-container details[open]::details-content {
+  block-size: calc((var(--dialog-height) * 4) - 1lh);
+}
+
+
+#toast-container summary {
   cursor: pointer;
-  margin-bottom: 0.5rem;
+  margin-inline-start: 1rem;
+  list-style-position: outside;
 }
 
 #toast-container pre {
@@ -626,6 +625,7 @@ label[for='diagramType'] {
   margin-top: 0.5rem;
   font-family: monospace;
   white-space: pre-wrap;
+  max-height: calc((var(--dialog-height) * 4) - 1lh);
 }
 
 .modal-button {
