@@ -19,6 +19,14 @@ const categoryToClass = (category: ErrorCategory): 'internal-error' | 'data-erro
 export function errorToast(error: unknown) {
   const httpError = error instanceof HttpError ? error : new InternalError(error)
   const dialogId = randomUUID()
+  const modellingErrorDetail = () => {
+    try {
+      const parsed = JSON.parse(httpError.message)
+      return JSON.stringify(parsed, null, 2)
+    } catch {
+      return httpError.message
+    }
+  }
 
   return {
     dialogId,
@@ -33,7 +41,14 @@ export function errorToast(error: unknown) {
           />
           <div class="toast-content">
             <h1>{escapeHtml(httpError.userTitle)}</h1>
-            <p>{escapeHtml(httpError.userMessage)}</p>
+            {httpError.message ? (
+              <details class="toast-detail">
+                <summary class="detail-summary">{escapeHtml(httpError.userMessage)}</summary>
+                <pre>{escapeHtml(modellingErrorDetail())}</pre>
+              </details>
+            ) : (
+              <p>{escapeHtml(httpError.userMessage)}</p>
+            )}
           </div>
           <form method="dialog">
             <button class="modal-button" />

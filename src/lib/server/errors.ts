@@ -62,6 +62,12 @@ export class DataError extends HttpError {
   }
 }
 
+export class ModellingError extends HttpError {
+  constructor(userMessage: string, detail: string) {
+    super('User', 400, 'Modelling Error', userMessage, detail)
+  }
+}
+
 export class SessionError extends HttpError {
   constructor(userMessage: string) {
     super('User', 408, 'Session Error', userMessage, userMessage)

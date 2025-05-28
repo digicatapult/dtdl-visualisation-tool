@@ -1,11 +1,11 @@
-import { getInterop, parseDtdl } from '@digicatapult/dtdl-parser'
+import { DtdlObjectModel, getInterop, parseDtdl } from '@digicatapult/dtdl-parser'
 import { Dirent } from 'node:fs'
 import { readdir, readFile } from 'node:fs/promises'
 import { join, relative } from 'node:path'
 import { inject, singleton } from 'tsyringe'
 import unzipper from 'unzipper'
 import { DtdlFile } from '../../../db/types.js'
-import { DataError, UploadError } from '../../errors.js'
+import { ModellingError, UploadError } from '../../errors.js'
 import { Logger, type ILogger } from '../../logger.js'
 
 @singleton()
@@ -70,14 +70,17 @@ export default class Parser {
     }
   }
 
-  async parse(files: DtdlFile[]) {
+  async parse(files: DtdlFile[]): Promise<DtdlObjectModel> {
     const allContents = `[${files.map((file) => file.contents).join(',')}]`
 
     const parser = await getInterop()
-    const parsedDtdl = parseDtdl(allContents, parser)
 
-    if (!parsedDtdl) {
-      throw new DataError('Failed to parse DTDL model')
+    const parsedDtdl = parseDtdl(allContents, parser)
+    if (parsedDtdl.ExceptionKind) {
+      throw new ModellingError(
+        `${parsedDtdl.ExceptionKind} error, Open details for more information`,
+        JSON.stringify(parsedDtdl)
+      )
     }
     return parsedDtdl
   }

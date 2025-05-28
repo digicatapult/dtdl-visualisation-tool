@@ -85,7 +85,7 @@ export default async (): Promise<Express> => {
     // really ugly workaround for https://github.com/bigskysoftware/htmx/issues/2518
     res.setHeader('HX-Reselect', ':not(* > *)')
     res.setHeader('Content-Type', 'text/html')
-    res.setHeader('HX-Trigger', JSON.stringify({ dtdlVisualisationError: { dialogId: toast.dialogId } }))
+    res.setHeader('HX-Trigger-After-Settle', JSON.stringify({ dtdlVisualisationError: { dialogId: toast.dialogId } }))
     res.status(code).send(toast.response)
 
     next()
