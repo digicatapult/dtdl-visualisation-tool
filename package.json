@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.4.110",
+  "version": "0.4.111",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -107,7 +107,7 @@
     "prettier-plugin-organize-imports": "^4.1.0",
     "rimraf": "^6.0.1",
     "sinon": "^20.0.0",
-    "testcontainers": "^10.27.0",
+    "testcontainers": "^11.0.0",
     "typescript": "^5.8.3"
   },
   "engines": {
