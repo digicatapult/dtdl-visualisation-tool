@@ -22,7 +22,7 @@ test.describe('Upload ontology from local drive', () => {
     await expect(page.locator('#main-view').getByText('Local Zip File')).toBeVisible()
 
     // Upload ontology and wait for file to load dtdl
-    let filePath = path.join(__dirname, '../../src/lib/server/controllers/__tests__/error.zip')
+    const filePath = path.join(__dirname, '../../src/lib/server/controllers/__tests__/error.zip')
 
     const warningSVGResponsePromise = page.waitForResponse(
       (resp) => resp.url().includes('/warning.svg') && resp.status() === 200
@@ -30,24 +30,9 @@ test.describe('Upload ontology from local drive', () => {
     await waitForUploadFile(page, () => page.locator('#main-view').getByText('Local Zip File').click(), filePath)
     await warningSVGResponsePromise
 
-    await expect(page.getByText('Modelling error')).toBeVisible()
+    await expect(page.getByText('Open details for more information')).toBeVisible()
+    await page.locator('#toast-container').getByText('Parsing error, Open details for more information').click()
 
-    filePath = path.join(__dirname, '../../src/lib/server/controllers/__tests__/simple.zip')
-
-    await waitForUploadFile(page, () => page.locator('#main-view').getByText('Local Zip File').click(), filePath)
-
-    await expect(page.locator('#mermaid-output').getByText('dtmi:com:example;1')).toBeVisible()
-
-    // Check classDiagram functionality
-    await waitForUpdateLayout(page, () => page.getByLabel('Diagram Type').selectOption('classDiagram'))
-    await expect(page.locator('#mermaid-output #mermaid-svg')).toHaveClass('classDiagram')
-
-    // Render root page and test if default dtdl has loaded
-    await waitForUpdateLayout(page, () => page.goto('./'))
-    await expect(page.locator('#mermaid-output').getByText('ConnectivityNode', { exact: true })).toBeVisible()
-
-    // Check classDiagram functionality
-    await waitForUpdateLayout(page, () => page.getByLabel('Diagram Type').selectOption('classDiagram'))
-    await expect(page.locator('#mermaid-output #mermaid-svg')).toHaveClass('classDiagram')
+    await expect(page.getByText('Top-level JSON object has no @context specifier')).toBeVisible()
   })
 })

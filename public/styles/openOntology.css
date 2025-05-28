@@ -144,6 +144,7 @@
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   padding-block: 10px;
   gap: 20px;
+  width: 100%;
 }
 
 .file-card {
