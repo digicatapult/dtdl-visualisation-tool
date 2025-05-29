@@ -1,6 +1,6 @@
 import express from 'express'
 import { Get, Middlewares, Post, Produces, Query, Request, Route, SuccessResponse, UploadedFile } from 'tsoa'
-import { inject, injectable } from 'tsyringe'
+import { container, inject, injectable } from 'tsyringe'
 
 import { UploadError } from '../errors.js'
 import Parser from '../utils/dtdl/parser.js'
@@ -11,8 +11,10 @@ import { ModelDb } from '../../db/modelDb.js'
 import { Logger, type ILogger } from '../logger.js'
 import { Cache, type ICache } from '../utils/cache.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
-import { strictLimitMiddleware } from '../utils/rateLimit.js'
+import { RateLimiter } from '../utils/rateLimit.js'
 import { recentFilesFromCookies, setCacheWithDefaultParams } from './helpers.js'
+
+const rateLimiter = container.resolve(RateLimiter)
 
 @injectable()
 @Route('/open')
@@ -47,7 +49,7 @@ export class OpenOntologyController extends HTMLController {
   }
 
   @SuccessResponse(302, 'File uploaded successfully')
-  @Middlewares(strictLimitMiddleware)
+  @Middlewares(rateLimiter.strictLimitMiddleware)
   @Post('/')
   public async uploadZip(@UploadedFile('file') file: Express.Multer.File): Promise<void> {
     if (file.mimetype !== 'application/zip') {
