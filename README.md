@@ -114,6 +114,7 @@ The application can be run in Docker. `sample/energygrid` is automatically parse
 | COOKIE_SESSION_KEYS | y        | -                         | Secret for signed cookies, devDefault `secret`                                                                                               |
 | PUPPETEER_ARGS      | n        | ''                        | Comma separated string of puppeteer [launch args](https://pptr.dev/api/puppeteer.launchoptions) e.g. `--no-sandbox,--disable-setuid-sandbox` |
 | EDIT_ONTOLOGY       | n        | 'false'                   | Edit toggle is disabled on all ontologys when false and works as normal when true                                                            |
+| JSON_DEPTH_LIMIT    | n        | '10'                      | Maximum depth allowed of DTDL files                                                                                                          |
 
 ## Database migrations
 
