@@ -46,7 +46,7 @@ test.describe('Test edit ontology', () => {
 
     // get dtdl from github
     await waitForSuccessResponse(page, () => page.click('#select-folder'), '/ontology')
-    await expect(page.locator('#mermaid-output').getByText('displayNameEdit')).toBeVisible()
+    await expect(page.locator('#mermaid-output').getByText('displayNameEdit', { exact: true })).toBeVisible()
 
     // turn on edit mode
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
