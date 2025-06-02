@@ -14,6 +14,8 @@ import { SvgGenerator } from '../utils/mermaid/generator.js'
 import { RateLimiter } from '../utils/rateLimit.js'
 import { recentFilesFromCookies, setCacheWithDefaultParams } from './helpers.js'
 
+const rateLimiter = container.resolve(RateLimiter)
+
 @injectable()
 @Route('/open')
 export class OpenOntologyController extends HTMLController {
@@ -47,7 +49,7 @@ export class OpenOntologyController extends HTMLController {
   }
 
   @SuccessResponse(302, 'File uploaded successfully')
-  @Middlewares(container.resolve(RateLimiter).strictLimitMiddleware)
+  @Middlewares(rateLimiter.strictLimitMiddleware)
   @Post('/')
   public async uploadZip(@UploadedFile('file') file: Express.Multer.File): Promise<void> {
     if (file.mimetype !== 'application/zip') {

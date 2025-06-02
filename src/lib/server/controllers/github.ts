@@ -17,6 +17,8 @@ import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
 import { recentFilesFromCookies, setCacheWithDefaultParams } from './helpers.js'
 
+const rateLimiter = container.resolve(RateLimiter)
+
 @injectable()
 @Route('/github')
 export class GithubController extends HTMLController {
@@ -209,7 +211,7 @@ export class GithubController extends HTMLController {
 
   @SuccessResponse(200, '')
   @Produces('text/html')
-  @Middlewares(container.resolve(RateLimiter).strictLimitMiddleware)
+  @Middlewares(rateLimiter.strictLimitMiddleware)
   @Get('/directory')
   public async directory(
     @Query() owner: string,
