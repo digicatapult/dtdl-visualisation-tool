@@ -1,0 +1,12 @@
+name: Fake Release
+
+on:
+  push:
+    branches-ignore: ['main']
+
+jobs:
+  success:
+      runs-on: ubuntu-latest
+      steps:
+      - name: echo
+        run: echo "Success"
