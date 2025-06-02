@@ -136,8 +136,8 @@ export class GithubController extends HTMLController {
         ...(page === 1 && { backLink: safeUrl(`/github/repos`, { page: '1' }) }),
       }),
       this.templates.selectFolder({
-        // disable the select folder button on branch view
         swapOutOfBand: true,
+        stage: 'branch',
       })
     )
   }
@@ -202,6 +202,7 @@ export class GithubController extends HTMLController {
           ref,
         }),
         swapOutOfBand: true,
+        stage: 'folder',
       })
     )
   }

@@ -1,50 +1,80 @@
 #github-modal {
-    height: 50%;
-    width: 60ch;
-    align-self: center;
-  }
-  
+  height: 50%;
+  width: 60ch;
+  align-self: center;
+}
+
 .github-list {
-    overflow: auto;
-    list-style-type: none;
-    padding: 0;
-    border: 1px solid #e8e8e8;
-    line-height: 1.8rem;
-    height: 100%;
-    width: 100%;
+  overflow: auto;
+  list-style-type: none;
+  padding: 0;
+  border: 1px solid #e8e8e8;
+  line-height: 1.8rem;
+  height: 100%;
+  width: 100%;
+  cursor: pointer;
 }
 
 #modal-wrapper {
-    justify-items: center;
-    align-items: center;
-    display: grid;
-    grid-template-rows: auto auto 1fr auto;
-    height: 100%;
-    gap: 1rem;
-    padding: 2rem 1rem 0 1rem;
+  justify-items: center;
+  align-items: center;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  height: 100%;
+  gap: 1rem;
+  padding: 2rem 1rem 0 1rem;
 }
 
 #public-github-input-wrapper {
-    display: grid;
-    width: 100%;
-    grid-template-columns: 1fr auto;
+  display: grid;
+  width: 100%;
+  grid-template-columns: 1fr auto;
+}
+
+#public-github-input-wrapper::after {
+  content: 'Please select your ontology to load from GitHub';
+  padding-block: 0.5rem;
 }
 
 #public-github-input {
-    font-size: 0.9rem;
+  font-size: 0.9rem;
 }
 
 #public-github-input-wrapper img {
-    width: 20px; /* Adjust as needed */
-    height: 20px;
-    margin-left: 8px; /* Space between input and image */
-    align-self: center;
+  width: 20px; /* Adjust as needed */
+  height: 20px;
+  margin-left: 8px; /* Space between input and image */
+  align-self: center;
 }
 
-.github-list li:nth-child(odd) { background: var(--background-color); }
+.github-list li:nth-child(odd) {
+  background: var(--background-color);
+}
 
 #github-path-label {
-    display: grid;
-    width: 100%;
-    margin: 0;
+  display: grid;
+  width: 100%;
+  margin: 0;
+}
+
+#select-folder {
+  background-color: var(--disabled-button-color);
+  padding: 0.25rem 3rem;
+  outline: none;
+  border: none;
+  border-radius: 5px;
+  filter: opacity(0.5);
+  cursor: not-allowed;
+}
+
+#select-folder:enabled:hover {
+  background-color: hsl(from var(--active-button-color) h s 40%);
+  transition: background-color 0.3s;
+}
+
+#select-folder:enabled {
+  color: white;
+  background-color: var(--active-button-color);
+  filter: none;
+  cursor: pointer;
 }

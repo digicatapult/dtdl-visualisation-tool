@@ -7,6 +7,17 @@ import { ListItem } from '../../models/github.js'
 import { RecentFile } from '../../models/openTypes.js'
 import { Page } from '../common.js'
 
+type SelectFolderProps =
+  | {
+      link: string
+      swapOutOfBand?: boolean
+      stage: 'folder'
+    }
+  | {
+      swapOutOfBand?: boolean
+      stage: 'repo' | 'branch'
+    }
+
 @singleton()
 export default class OpenOntologyTemplates {
   constructor() {}
@@ -43,7 +54,7 @@ export default class OpenOntologyTemplates {
   public getMenu = ({ showContent }: { showContent: boolean }) => {
     return (
       <section id="upload-method">
-        <label
+        <button
           id="upload-file-button"
           hx-swap="outerHTML transition:true"
           hx-target="#upload-method"
@@ -52,7 +63,7 @@ export default class OpenOntologyTemplates {
         >
           Upload New File
           <div class={showContent ? 'toggle-icon show-content' : 'toggle-icon'}>⋁</div>
-        </label>
+        </button>
         <div id="upload-options" class={showContent ? 'show-content' : ''}>
           <this.uploadZip />
           <this.uploadGithub />
@@ -83,7 +94,7 @@ export default class OpenOntologyTemplates {
           <this.githubPathLabel path="Repos:" />
           <div id="spin" class="spinner" />
           <ul class="github-list" hx-indicator="#spin" hx-get={populateListLink} hx-trigger="load"></ul>
-          <this.selectFolder />
+          <this.selectFolder stage="repo" />
         </div>
         <form method="dialog">
           <button class="modal-button" />
@@ -100,20 +111,34 @@ export default class OpenOntologyTemplates {
     )
   }
 
-  public selectFolder = ({ link, swapOutOfBand }: { link?: string; swapOutOfBand?: boolean }) => (
+  private tooltipForSelectFolder = (stage: 'repo' | 'branch' | 'folder') => {
+    switch (stage) {
+      case 'repo':
+        return 'Please select a repository'
+      case 'branch':
+        return 'Please select a repository branch'
+      case 'folder':
+        return 'Please select a folder containing the ontology'
+      default:
+        return 'Open Ontology'
+    }
+  }
+
+  public selectFolder = (props: SelectFolderProps) => (
     <button
       id="select-folder"
       hx-trigger="click"
-      hx-get={link}
-      hx-swap-oob={swapOutOfBand ? 'true' : undefined}
+      hx-get={props.stage === 'folder' ? props.link : undefined}
+      hx-swap-oob={props.swapOutOfBand ? 'true' : undefined}
       hx-swap="outerHTML"
       hx-target="#content-main"
       hx-select="#content-main"
       hx-indicator="#spinner"
-      disabled={!link}
+      disabled={props.stage !== 'folder'}
       onclick="document.getElementById('github-modal').close();"
+      title={this.tooltipForSelectFolder(props.stage)}
     >
-      Select Folder to Open Ontology
+      Open Ontology
     </button>
   )
 
