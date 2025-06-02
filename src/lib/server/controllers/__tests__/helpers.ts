@@ -143,8 +143,15 @@ export const openOntologyMock = {
   }): JSX.Element =>
     `githubListItems_${list.map((item) => `${item.text}_${item.link}`).join('_')}_${nextPageLink}_${backLink}_githubListItems`,
   githubPathLabel: ({ path }: { path: string }): JSX.Element => `githubPathLabel_${path}_githubPathLabel`,
-  selectFolder: ({ link, swapOutOfBand }: { link?: string; swapOutOfBand?: boolean }): JSX.Element =>
-    `selectFolder_${link}_${swapOutOfBand}_selectFolder`,
+  selectFolder: ({
+    link,
+    swapOutOfBand,
+    stage,
+  }: {
+    link?: string
+    swapOutOfBand?: boolean
+    stage: string
+  }): JSX.Element => `selectFolder_${link}_${swapOutOfBand}_${stage}_selectFolder`,
 } as unknown as OpenOntologyTemplates
 export const mockLogger = pino({ level: 'silent' })
 export const mockCache = new LRUCache(10, 1000 * 60)

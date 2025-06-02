@@ -14,6 +14,8 @@ body {
   margin: 0;
   overflow-x: hidden;
   --background-color: #f5f6fa;
+  --active-button-color: #397edd;
+  --disabled-button-color: var(--background-color);
   --svg-pan-x: 0px;
   --svg-pan-y: 0px;
   --svg-zoom: 1;
@@ -95,9 +97,10 @@ input[type='search'] {
 #search-panel > select {
   margin-inline: 10px;
   font-weight: 200;
+  cursor: pointer;
 }
 
-label[for='diagramType'] {
+label[for='diagram-type-select'] {
   white-space: nowrap;
 }
 
@@ -192,6 +195,7 @@ label[for='diagramType'] {
   top: 2rem;
   left: -1rem;
   z-index: 1;
+  cursor: pointer;
 }
 
 #navigation-panel-button::before {
@@ -223,6 +227,10 @@ label[for='diagramType'] {
   white-space: pre-wrap;
   background: white;
   font-size: 0.6rem;
+}
+
+#navigation-panel section h3 * {
+  cursor: pointer;
 }
 
 #navigation-panel.edit section h3::after {
@@ -443,6 +451,7 @@ label[for='diagramType'] {
   overflow: hidden;
   padding: 5px;
   align-content: center;
+  cursor: pointer;
 }
 
 #minimap-svg {
@@ -605,7 +614,7 @@ label[for='diagramType'] {
 
 #toast-container details::details-content {
   block-size: 0;
-  transition: 
+  transition:
     block-size var(--dialog-shift-duration) var(--open-close-duration),
     content-visibility var(--dialog-shift-duration) var(--open-close-duration);
   transition-behavior: allow-discrete;
@@ -614,7 +623,6 @@ label[for='diagramType'] {
 #toast-container details[open]::details-content {
   block-size: calc((var(--dialog-height) * 4) - 1lh);
 }
-
 
 #toast-container summary {
   cursor: pointer;
@@ -687,7 +695,7 @@ label[for='diagramType'] {
   padding: 10px 20px;
   border-radius: 7px;
   width: 140px;
-  color: #83898C;
+  color: #83898c;
   pointer-events: all;
 }
 #edit-toggle.edit {
@@ -729,7 +737,7 @@ label[for='diagramType'] {
   bottom: -5px;
   transition: transform var(--transition-duration);
   border-radius: 50%;
-  background: #83898C center no-repeat;
+  background: #83898c center no-repeat;
   background-size: 60% 60%;
 }
 #edit-toggle .slider:hover::before {
@@ -747,11 +755,11 @@ label[for='diagramType'] {
   background-color: white;
   transform: translateX(25px);
 }
-#edit-buttons{
+#edit-buttons {
   display: none;
 }
 
-#edit-buttons.edit{
+#edit-buttons.edit {
   display: grid;
   align-items: center;
   background-color: #00b79b;
@@ -788,17 +796,16 @@ label[for='diagramType'] {
 }
 
 .nav-panel-editable {
-  width: 100%; 
-  background-color: #F5F6FA;
+  width: 100%;
+  background-color: #f5f6fa;
   border: none;
   font-family: inherit;
   font-size: inherit;
-  resize:none;
+  resize: none;
   height: 1.8em;
 }
 
 textarea.multiline {
   height: 10rem;
-  resize:vertical;
-
+  resize: vertical;
 }
