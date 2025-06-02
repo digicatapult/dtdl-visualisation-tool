@@ -9,6 +9,7 @@ import { readFile } from 'node:fs/promises'
 import { mockLogger } from '../../../controllers/__tests__/helpers.js'
 import { ModellingError, UploadError } from '../../../errors.js'
 import bom from './fixtures/bom/bom.json' assert { type: 'json' }
+import complexNested from './fixtures/complexNested/complexNested.json' assert { type: 'json' }
 import nestedTwo from './fixtures/nestedDtdl/nested/two.json' assert { type: 'json' }
 import nestedOne from './fixtures/nestedDtdl/one.json' assert { type: 'json' }
 import valid from './fixtures/someInvalid/valid.json' assert { type: 'json' }
@@ -39,7 +40,13 @@ describe('getJsonfiles', function () {
     expect(JSON.parse(result[0].contents)).to.deep.equal(valid)
   })
 
-  test('should throw error if json too deeply nested', async () => {
+  test('accepts complex nested json', async () => {
+    const dir = path.resolve(__dirname, './fixtures/complexNested')
+    const result = await parser.getJsonFiles(dir)
+    expect(JSON.parse(result[0].contents)).to.deep.equal(complexNested)
+  })
+
+  test('should throw error if json too deeply nested on a single branch', async () => {
     const dir = path.resolve(__dirname, './fixtures/tooNested')
 
     await expect(parser.getJsonFiles(dir)).to.be.rejectedWith(UploadError, 'too deeply nested')
@@ -83,7 +90,15 @@ describe('unzipJsonfiles', function () {
     expect(JSON.parse(result[0].contents)).to.deep.equal(valid)
   })
 
-  test('should throw error if json too deeply nested', async () => {
+  test('accepts complex nested json', async () => {
+    const zip = path.resolve(__dirname, './fixtures/complexNested.zip')
+    const buffer = await readFile(zip)
+
+    const result = await parser.unzipJsonFiles(buffer)
+    expect(JSON.parse(result[0].contents)).to.deep.equal(complexNested)
+  })
+
+  test('should throw error if json too deeply nested on a single branch', async () => {
     const zip = path.resolve(__dirname, './fixtures/tooNested.zip')
     const buffer = await readFile(zip)
 
