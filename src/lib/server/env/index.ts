@@ -28,6 +28,7 @@ export const envConfig = {
   GH_REDIRECT_ORIGIN: envalid.str({ default: 'http://localhost:3000' }),
   PUPPETEER_ARGS: strArrayValidator({ default: [''] }),
   EDIT_ONTOLOGY: envalid.bool({ default: false, devDefault: true }),
+  JSON_DEPTH_LIMIT: envalid.num({ default: 10 }),
   STRICT_RATE_LIMIT: envalid.num({ default: 1000 }),
   GLOBAL_RATE_LIMIT: envalid.num({ default: 10000 }),
   IP_ALLOW_LIST: strArrayValidator({ default: [''] }),
