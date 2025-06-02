@@ -1,4 +1,4 @@
-name: Test deploy
+name: Check deployment
 
 on:
   workflow_run:
@@ -6,7 +6,7 @@ on:
     types: [completed]
 
 jobs:
-  check-success:
+  check-release-success:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion != 'success' }}
     steps:
@@ -50,7 +50,7 @@ jobs:
           BASE_URL: ${{ secrets.DEPLOYED_BASE_URL }}
         run: |
           EXPECTED_VERSION="${{ needs.get-repo-version.outputs.version }}"
-          echo "Waiting for deployed version to match: $EXPECTED_VERSION"
+          echo "Polling for deployed version to match: $EXPECTED_VERSION"
           for i in {1..60}; do
             RESPONSE=$(curl -s "$BASE_URL/api/health")
             DEPLOYED_VERSION=$(echo "$RESPONSE" | jq -r '.version')
@@ -67,7 +67,7 @@ jobs:
             sleep 60
           done
 
-          echo "Timed out after 60 minutes. Deployed version did not match expected version."
+          echo "Timed out. Deployed version did not match expected version."
           exit 1
 
   deployed:
