@@ -40,14 +40,16 @@
 }
 #upload-file-button {
   display: inline-block;
-  background-color: #397edd;
+  background-color: var(--active-button-color);
   transition: background-color 0.3s;
   color: white;
   border-radius: 5px;
+  border: none;
   padding: 10px 20px;
+  cursor: pointer;
 }
 #upload-file-button:hover {
-  background-color: #0256cb;
+  background-color: hsl(from var(--active-button-color) h s 40%);
   transition: background-color 0.3s;
 }
 
@@ -198,4 +200,3 @@
   left: 50%;
   top: 50%;
 }
-
