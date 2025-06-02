@@ -1,11 +1,17 @@
-name: Check deployment
+name: Test deploy
 
 on:
-  workflow_dispatch:
-  repository_dispatch:
-    types: [deployment]
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
 
 jobs:
+  check-success:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion != 'success' }}
+    steps:
+      - run: echo 1
+
   get-repo-version:
     name: 'Get repo version'
     runs-on: ubuntu-latest
@@ -38,22 +44,31 @@ jobs:
     outputs:
       deployed_version: ${{ steps.check.outputs.DEPLOYED_VERSION }}
     steps:
-      - name: Check deployed health endpoint
+      - name: Wait for deployed version to match
         id: check
         env:
-          BASE_URL: ${{ secrets.DEPLOYED_BASE_URL}}
+          BASE_URL: ${{ secrets.DEPLOYED_BASE_URL }}
         run: |
-          RESPONSE=$(curl -s "$BASE_URL/api/health")
-          DEPLOYED_VERSION=$(echo "$RESPONSE" | jq -r '.version')
+          EXPECTED_VERSION="${{ needs.get-repo-version.outputs.version }}"
+          echo "Waiting for deployed version to match: $EXPECTED_VERSION"
+          for i in {1..60}; do
+            RESPONSE=$(curl -s "$BASE_URL/api/health")
+            DEPLOYED_VERSION=$(echo "$RESPONSE" | jq -r '.version')
 
-          if [ $? -ne 0 ]; then
-            echo "Error: Failed to extract version from response."
-            echo "Full response: $RESPONSE"
-            exit 1
-          fi
+            echo "Attempt $i: Deployed version is $DEPLOYED_VERSION"
 
-          echo "DEPLOYED_VERSION=$DEPLOYED_VERSION" >> $GITHUB_OUTPUT
-          echo "Deployed version: $DEPLOYED_VERSION"
+            if [ "$DEPLOYED_VERSION" == "$EXPECTED_VERSION" ]; then
+              echo "Deployed"
+              echo "DEPLOYED_VERSION=$DEPLOYED_VERSION" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+
+            echo "No match. Waiting 60 seconds..."
+            sleep 60
+          done
+
+          echo "Timed out after 60 minutes. Deployed version did not match expected version."
+          exit 1
 
   deployed:
     runs-on: ubuntu-latest
@@ -65,5 +80,5 @@ jobs:
           echo "Latest tag version: ${{ needs.get-repo-version.outputs.version }}"
           echo "Deployed version: ${{ needs.get-deployed-version.outputs.deployed_version }}"
       
-      - name: Run success tests
+      - name: Success
         run: echo "Success - versions match"
