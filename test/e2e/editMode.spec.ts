@@ -71,8 +71,8 @@ test.describe('Test edit ontology', () => {
     expect(navigationAfterContent).toBe(`url("${baseURL}/public/images/pencil.svg")`)
 
     // test interface edits
-    const newDisplayName = 'new display name'
-    await testNavPanelEdit(page, /^displayNameEdit$/, newDisplayName, '/displayName')
+    const newInterfaceDisplayName = 'new display name'
+    await testNavPanelEdit(page, /^displayNameEdit$/, newInterfaceDisplayName, '/displayName')
     await testNavPanelEdit(page, /^descriptionEdit$/, 'updated', '/description')
     await testNavPanelEdit(page, /^commentEdit$/, 'updated', '/comment')
     await testNavPanelEdit(page, /^propertyCommentEdit$/, 'updated', '/propertyComment')
@@ -84,15 +84,25 @@ test.describe('Test edit ontology', () => {
       () => page.locator('#mermaid-output').getByText('relationshipName').first().click(),
       '/update-layout'
     )
-    await testNavPanelEdit(page, /^relationshipDisplayNameEdit$/, 'updated', '/relationshipDisplayName')
+    const newRelationshipDisplayName = 'new relationship display name'
+    await testNavPanelEdit(
+      page,
+      /^relationshipDisplayNameEdit$/,
+      newRelationshipDisplayName,
+      '/relationshipDisplayName'
+    )
     await testNavPanelEdit(page, /^relationshipDescriptionEdit$/, 'updated', '/relationshipDescription')
     await testNavPanelEdit(page, /^relationshipCommentEdit$/, 'updated', '/relationshipComment')
 
-    // search by new name
-    await expect(page.locator('#mermaid-output').getByText(newDisplayName)).toBeVisible()
+    // search by new interface name
     await page.focus('#search')
-    await waitForUpdateLayout(page, () => page.fill('#search', newDisplayName))
-    await expect(page.locator('#mermaid-output').getByText(newDisplayName)).toBeVisible()
+    await waitForUpdateLayout(page, () => page.fill('#search', newInterfaceDisplayName))
+    await expect(page.locator('#mermaid-output').getByText(newInterfaceDisplayName)).toBeVisible()
+
+    // search by new relationship name
+    await page.focus('#search')
+    await waitForUpdateLayout(page, () => page.fill('#search', newRelationshipDisplayName))
+    await expect(page.locator('#mermaid-output').getByText(newRelationshipDisplayName)).toBeVisible()
 
     // turn off edit mode
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
