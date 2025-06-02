@@ -31,12 +31,15 @@ export default class Parser {
       const contents = await readFile(fullPath, 'utf-8')
       const noBomJson = contents.replace(/^\uFEFF/, '')
 
+      let json = {}
       try {
-        JSON.parse(noBomJson) // Validate JSON
-        return [{ path: relative(dir, fullPath), contents: noBomJson }]
+        json = JSON.parse(noBomJson) // Validate JSON
       } catch {
         this.logger.trace(`Ignoring invalid json: '${fullPath}'`)
+        return
       }
+      this.isWithinDepthLimit(json)
+      return [{ path: relative(dir, fullPath), contents: noBomJson }]
     }
   }
 
@@ -69,12 +72,15 @@ export default class Parser {
       const fileBuffer = await file.buffer()
       const contents = fileBuffer.toString().replace(/^\uFEFF/, '') // Remove BOM
 
+      let json = {}
       try {
-        JSON.parse(contents) // Validate JSON
-        return [{ path: relative(topDir, file.path), contents }]
+        json = JSON.parse(contents) // Validate JSON
       } catch {
         this.logger.trace(`Ignoring invalid json: '${file.path}'`)
+        return
       }
+      this.isWithinDepthLimit(json)
+      return [{ path: relative(topDir, file.path), contents }]
     }
   }
 
@@ -91,5 +97,14 @@ export default class Parser {
       )
     }
     return parsedDtdl
+  }
+
+  isWithinDepthLimit(obj: object, currentDepth = 1) {
+    if (currentDepth > env.get('JSON_DEPTH_LIMIT'))
+      throw new UploadError(`JSON too deeply nested, max depth is ${env.get('JSON_DEPTH_LIMIT')}`)
+
+    if (obj !== null && typeof obj === 'object') {
+      return Object.values(obj).every((value) => this.isWithinDepthLimit(value, currentDepth + 1))
+    }
   }
 }
