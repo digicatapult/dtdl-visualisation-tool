@@ -1,3 +1,5 @@
+name: Test deploy
+
 on:
   workflow_run:
     workflows: [Fake Release]
