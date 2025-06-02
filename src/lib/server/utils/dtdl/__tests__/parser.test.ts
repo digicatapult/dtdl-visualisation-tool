@@ -89,6 +89,12 @@ describe('unzipJsonfiles', function () {
 
     await expect(parser.unzipJsonFiles(buffer)).to.be.rejectedWith(UploadError, 'too deeply nested')
   })
+
+  test('throws error if unzipped files go over size limit', async () => {
+    const zip = path.resolve(__dirname, './fixtures/bomb.zip')
+    const buffer = await readFile(zip)
+    await expect(parser.unzipJsonFiles(buffer)).to.be.rejectedWith(UploadError, `Uncompressed zip exceeds`)
+  })
 })
 
 describe('parse', function () {
