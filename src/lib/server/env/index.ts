@@ -28,6 +28,7 @@ const envConfig = {
   GH_REDIRECT_ORIGIN: envalid.str({ default: 'http://localhost:3000' }),
   PUPPETEER_ARGS: strArrayValidator({ default: [''] }),
   EDIT_ONTOLOGY: envalid.bool({ default: false, devDefault: true }),
+  JSON_DEPTH_LIMIT: envalid.num({ default: 10 }),
 }
 
 export type ENV_CONFIG = typeof envConfig
