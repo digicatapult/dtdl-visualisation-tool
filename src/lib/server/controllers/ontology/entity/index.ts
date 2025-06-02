@@ -1,5 +1,5 @@
 import express from 'express'
-import { Body, Middlewares, Path, Produces, Put, Request, Route, SuccessResponse } from 'tsoa'
+import { Body, Path, Produces, Put, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../../../db/modelDb.js'
 import { DataError } from '../../../errors.js'
@@ -16,12 +16,10 @@ import {
   updateRelationshipDescription,
   updateRelationshipDisplayName,
 } from '../../../utils/dtdl/entityUpdate.js'
-import { strictLimitMiddleware } from '../../../utils/rateLimit.js'
 import { HTML, HTMLController } from '../../HTMLController.js'
 import { OntologyController } from '../index.js'
 
 @injectable()
-@Middlewares(strictLimitMiddleware)
 @Route('/ontology/{ontologyId}/entity')
 @Produces('text/html')
 export class EntityController extends HTMLController {

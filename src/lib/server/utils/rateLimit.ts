@@ -1,34 +1,35 @@
 import { NextFunction, Request, Response } from 'express'
-import rateLimit from 'express-rate-limit'
-import { container } from 'tsyringe'
+import rateLimit, { RateLimitRequestHandler } from 'express-rate-limit'
+import { inject, singleton } from 'tsyringe'
 import { Env } from '../env/index.js'
 import { TooManyRequestsError } from '../errors.js'
 
-const env = container.resolve(Env)
+@singleton()
+export class RateLimiter {
+  private strict: RateLimitRequestHandler
+  public global: RateLimitRequestHandler
 
-const allowList = ['193.221.133.170']
+  constructor(@inject(Env) private env: Env) {
+    this.strict = rateLimit({
+      windowMs: this.env.get('RATE_LIMIT_WINDOW_MS'),
+      limit: this.env.get('STRICT_RATE_LIMIT'),
+      skip: (req: Request) => this.env.get('IP_ALLOW_LIST').includes(req.ip!),
+      handler: (req: Request) => {
+        throw new TooManyRequestsError(`${req.ip} blocked - please try again later.`)
+      },
+    })
 
-const strictLimit = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  limit: env.get('STRICT_RATE_LIMIT'),
-  skip: (req) => allowList.includes(req.ip!),
-  handler: (req: Request) => {
-    console.log(req.ip)
-    throw new TooManyRequestsError('Please try again later.')
-  },
-})
+    this.global = rateLimit({
+      windowMs: this.env.get('RATE_LIMIT_WINDOW_MS'),
+      limit: this.env.get('GLOBAL_RATE_LIMIT'),
+      skip: (req: Request) => this.env.get('IP_ALLOW_LIST').includes(req.ip!),
+      handler: (req: Request) => {
+        throw new TooManyRequestsError(`${req.ip} blocked - please try again later.`)
+      },
+    })
+  }
 
-export const globalLimit = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  limit: env.get('GLOBAL_RATE_LIMIT'),
-  skip: (req) => allowList.includes(req.ip!),
-  handler: (req: Request) => {
-    console.log(req.ip)
-    throw new TooManyRequestsError('Please try again later.')
-  },
-})
-
-export async function strictLimitMiddleware(req: Request, res: Response, next: NextFunction) {
-  strictLimit(req, res, next)
-  next()
+  public strictLimitMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+    this.strict(req, res, next)
+  }
 }

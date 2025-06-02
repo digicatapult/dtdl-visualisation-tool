@@ -11,12 +11,13 @@ import { Env } from './env/index.js'
 import { HttpError, SessionError, UploadError } from './errors.js'
 import { logger } from './logger.js'
 import { RegisterRoutes } from './routes.js'
-import { globalLimit } from './utils/rateLimit.js'
+import { RateLimiter } from './utils/rateLimit.js'
 import { errorToast } from './views/components/errors.js'
 
-const env = container.resolve(Env)
-
 export default async (): Promise<Express> => {
+  const env = container.resolve(Env)
+  const rateLimit = container.resolve(RateLimiter)
+
   const app: Express = express()
 
   app.use(
@@ -47,7 +48,7 @@ export default async (): Promise<Express> => {
   )
   app.use('/lib/svg-pan-zoom', express.static('node_modules/svg-pan-zoom/dist'))
 
-  app.use(globalLimit)
+  app.use(rateLimit.global)
   RegisterRoutes(app, { multer: multerOptions })
 
   app.use(function errorHandler(

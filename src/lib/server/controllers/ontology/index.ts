@@ -1,7 +1,7 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import express from 'express'
 import { randomUUID } from 'node:crypto'
-import { Get, Middlewares, Path, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
+import { Get, Path, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../../db/modelDb.js'
 import { InternalError } from '../../errors.js'
@@ -25,7 +25,6 @@ import { authRedirectURL, GithubRequest } from '../../utils/githubRequest.js'
 import { SvgGenerator } from '../../utils/mermaid/generator.js'
 import { dtdlIdReinstateSemicolon } from '../../utils/mermaid/helpers.js'
 import { SvgMutator } from '../../utils/mermaid/svgMutator.js'
-import { strictLimitMiddleware } from '../../utils/rateLimit.js'
 import SessionStore, { Session } from '../../utils/sessions.js'
 import MermaidTemplates from '../../views/components/mermaid.js'
 import { HTML, HTMLController } from '../HTMLController.js'
@@ -116,7 +115,6 @@ export class OntologyController extends HTMLController {
   }
 
   @SuccessResponse(200)
-  @Middlewares(strictLimitMiddleware)
   @Get('{dtdlModelId}/update-layout')
   public async updateLayout(
     @Request() req: express.Request,

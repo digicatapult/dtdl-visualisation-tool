@@ -10,7 +10,7 @@ if (process.env.NODE_ENV === 'test') {
   dotenv.config()
 }
 
-const envConfig = {
+export const envConfig = {
   LOG_LEVEL: envalid.str({ default: 'info', devDefault: 'debug' }),
   CACHE_TTL: envalid.num({ default: 1000 * 60 * 5 }),
   CACHE_SIZE: envalid.num({ default: 100 }),
@@ -30,6 +30,8 @@ const envConfig = {
   EDIT_ONTOLOGY: envalid.bool({ default: false, devDefault: true }),
   STRICT_RATE_LIMIT: envalid.num({ default: 1000 }),
   GLOBAL_RATE_LIMIT: envalid.num({ default: 10000 }),
+  IP_ALLOW_LIST: strArrayValidator({ default: [''] }),
+  RATE_LIMIT_WINDOW_MS: envalid.num({ default: 10 * 60 * 1000 }),
 }
 
 export type ENV_CONFIG = typeof envConfig

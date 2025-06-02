@@ -1,7 +1,7 @@
 import express from 'express'
 import { dirname } from 'node:path'
 import { Get, Middlewares, Produces, Query, Request, Route, SuccessResponse } from 'tsoa'
-import { inject, injectable } from 'tsyringe'
+import { container, inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../db/modelDb.js'
 import { GithubNotFound, GithubReqError } from '../errors.js'
 import { type ILogger, Logger } from '../logger.js'
@@ -11,7 +11,7 @@ import { type ICache, Cache } from '../utils/cache.js'
 import Parser from '../utils/dtdl/parser.js'
 import { GithubRequest, authRedirectURL } from '../utils/githubRequest.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
-import { strictLimitMiddleware } from '../utils/rateLimit.js'
+import { RateLimiter } from '../utils/rateLimit.js'
 import { safeUrl } from '../utils/url.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
@@ -208,7 +208,7 @@ export class GithubController extends HTMLController {
 
   @SuccessResponse(200, '')
   @Produces('text/html')
-  @Middlewares(strictLimitMiddleware)
+  @Middlewares(container.resolve(RateLimiter).strictLimitMiddleware)
   @Get('/directory')
   public async directory(
     @Query() owner: string,
