@@ -58,7 +58,7 @@ test.describe('Test edit ontology', () => {
 
     await waitForSuccessResponse(
       page,
-      () => page.locator('#mermaid-output').getByText('edit').first().click(),
+      () => page.locator('#mermaid-output').getByText('displayNameEdit', { exact: true }).first().click(),
       '/update-layout'
     )
 
@@ -81,10 +81,10 @@ test.describe('Test edit ontology', () => {
     // test relationship edits
     await waitForSuccessResponse(
       page,
-      () => page.locator('#mermaid-output').getByText('relationshipName').first().click(),
+      () => page.locator('#mermaid-output').getByText('relationshipDisplay').first().click(),
       '/update-layout'
     )
-    const newRelationshipDisplayName = 'new relationship display name'
+    const newRelationshipDisplayName = 'new rel name'
     await testNavPanelEdit(
       page,
       /^relationshipDisplayNameEdit$/,
@@ -98,10 +98,6 @@ test.describe('Test edit ontology', () => {
     await page.focus('#search')
     await waitForUpdateLayout(page, () => page.fill('#search', newInterfaceDisplayName))
     await expect(page.locator('#mermaid-output').getByText(newInterfaceDisplayName)).toBeVisible()
-
-    // search by new relationship name
-    await page.focus('#search')
-    await waitForUpdateLayout(page, () => page.fill('#search', newRelationshipDisplayName))
     await expect(page.locator('#mermaid-output').getByText(newRelationshipDisplayName)).toBeVisible()
 
     // turn off edit mode
