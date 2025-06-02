@@ -35,7 +35,6 @@ services:
       - GH_CLIENT_SECRET=${GH_CLIENT_SECRET}
       - COOKIE_SESSION_KEYS=${COOKIE_SESSION_KEYS}
       - EDIT_ONTOLOGY=true
-      - NODE_ENV=test
     command: >
       sh -c "
         npx knex migrate:latest --env production
