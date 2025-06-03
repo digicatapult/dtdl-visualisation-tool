@@ -11,11 +11,13 @@ import { Env } from './env/index.js'
 import { HttpError, SessionError, UploadError } from './errors.js'
 import { logger } from './logger.js'
 import { RegisterRoutes } from './routes.js'
+import { RateLimiter } from './utils/rateLimit.js'
 import { errorToast } from './views/components/errors.js'
 
-const env = container.resolve(Env)
-
 export default async (): Promise<Express> => {
+  const env = container.resolve(Env)
+  const rateLimit = container.resolve(RateLimiter)
+
   const app: Express = express()
 
   app.use(
@@ -37,8 +39,6 @@ export default async (): Promise<Express> => {
   app.use(bodyParser.urlencoded({ extended: true }))
   app.use(bodyParser.json())
 
-  RegisterRoutes(app, { multer: multerOptions })
-
   app.use('/public', express.static('public'))
   app.use('/lib/htmx.org', express.static('node_modules/htmx.org/dist'))
   app.use('/lib/htmx-ext-json-enc/json-enc.js', express.static('node_modules/htmx-ext-json-enc/json-enc.js'))
@@ -47,6 +47,9 @@ export default async (): Promise<Express> => {
     express.static('node_modules/htmx-ext-response-targets/response-targets.js')
   )
   app.use('/lib/svg-pan-zoom', express.static('node_modules/svg-pan-zoom/dist'))
+
+  app.use(rateLimit.global)
+  RegisterRoutes(app, { multer: multerOptions })
 
   app.use(function errorHandler(
     err: unknown,
