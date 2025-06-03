@@ -56,6 +56,7 @@ export default class OpenOntologyTemplates {
       <section id="upload-method" class={showContent ? 'show-content' : ''}>
         <button
           id="upload-ontology-button"
+          title="Upload New Ontology"
           hx-swap="outerHTML"
           hx-target="#upload-method"
           hx-trigger="click"

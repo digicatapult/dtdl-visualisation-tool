@@ -8,7 +8,11 @@ test.describe('Upload ontology from GitHub via OAuth', () => {
     await page.setViewportSize({ width: 1920, height: 1080 })
     await waitForUpdateLayout(page, () => page.goto('./'))
     await waitForSuccessResponse(page, () => page.locator('#open-button').click(), '/open')
-    await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('Upload New File').click(), '/menu')
+    await waitForSuccessResponse(
+      page,
+      () => page.locator('#main-view').getByTitle('Upload New Ontology').click(),
+      '/menu'
+    )
     await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/repos')
 
     // click test repo
@@ -41,9 +45,13 @@ test.describe('Upload ontology from GitHub via OAuth', () => {
 
     // test public repo
     await waitForSuccessResponse(page, () => page.locator('#open-button').click(), '/open')
-    await expect(page.locator('#main-view').getByText('Upload New File')).toBeVisible()
+    await expect(page.locator('#main-view').getByTitle('Upload New Ontology')).toBeVisible()
 
-    await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('Upload New File').click(), '/menu')
+    await waitForSuccessResponse(
+      page,
+      () => page.locator('#main-view').getByTitle('Upload New Ontology').click(),
+      '/menu'
+    )
     await expect(page.locator('#main-view').getByText('GitHub')).toBeVisible()
 
     await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/repos')

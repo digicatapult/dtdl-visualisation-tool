@@ -16,9 +16,13 @@ test.describe('Upload ontology from local drive', () => {
     await expect(page.locator('#toolbar').getByText('Open Ontology')).toBeVisible()
 
     await waitForSuccessResponse(page, () => page.locator('#open-button').click(), '/open')
-    await expect(page.locator('#main-view').getByText('Upload New File')).toBeVisible()
+    await expect(page.locator('#main-view').getByTitle('Upload New Ontology')).toBeVisible()
 
-    await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('Upload New File').click(), '/menu')
+    await waitForSuccessResponse(
+      page,
+      () => page.locator('#main-view').getByTitle('Upload New Ontology').click(),
+      '/menu'
+    )
     await expect(page.locator('#main-view').getByText('Local Zip File')).toBeVisible()
 
     // Upload ontology and wait for file to load dtdl
