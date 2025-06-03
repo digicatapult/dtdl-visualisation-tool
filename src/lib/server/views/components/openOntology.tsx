@@ -210,25 +210,22 @@ export default class OpenOntologyTemplates {
 
   public recentFiles = ({ recentFiles }: { recentFiles: RecentFile[] }) => {
     return (
-      <>
-        <h4>Recent Files</h4>
-        <section id="recent-files" class="file-grid">
-          {recentFiles.map((recentFile, index) => {
-            const preview: JSX.Element = recentFile.preview
-            return (
-              <a href={`/ontology/${recentFile.dtdlModelId}/view`}>
-                <div class="file-card" role="button" title={escapeHtml(recentFile.fileName)} tabindex={`${index + 1}`}>
-                  <div class="file-preview">{preview}</div>
-                  <div class="file-details">
-                    <p class="file-name">{escapeHtml(recentFile.fileName)}</p>
-                    <p class="file-viewed">Viewed {escapeHtml(recentFile.lastVisited)}</p>
-                  </div>
+      <section id="recent-files" class="file-grid">
+        {recentFiles.map((recentFile, index) => {
+          const preview: JSX.Element = recentFile.preview
+          return (
+            <a href={`/ontology/${recentFile.dtdlModelId}/view`}>
+              <div class="file-card" role="button" title={escapeHtml(recentFile.fileName)} tabindex={`${index + 1}`}>
+                <div class="file-preview">{preview}</div>
+                <div class="file-details">
+                  <p class="file-name">{escapeHtml(recentFile.fileName)}</p>
+                  <p class="file-viewed">Viewed {escapeHtml(recentFile.lastVisited)}</p>
                 </div>
-              </a>
-            )
-          })}
-        </section>
-      </>
+              </div>
+            </a>
+          )
+        })}
+      </section>
     )
   }
 }
