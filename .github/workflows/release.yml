@@ -15,6 +15,7 @@ jobs:
     with:
       docker_compose_file: ''
       npm_build_command: 'npm run build'
+      tests: '["test:unit", "test:integration", "test:ratelimit"]'
       env_vars: |
         {
           "TMPDIR": "${{ github.workspace }}",
