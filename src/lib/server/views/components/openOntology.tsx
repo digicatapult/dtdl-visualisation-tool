@@ -53,20 +53,22 @@ export default class OpenOntologyTemplates {
 
   public getMenu = ({ showContent }: { showContent: boolean }) => {
     return (
-      <section id="upload-method">
+      <section id="upload-method" class={showContent ? 'show-content' : ''}>
         <button
-          id="upload-file-button"
-          hx-swap="outerHTML transition:true"
+          id="upload-ontology-button"
+          hx-swap="outerHTML"
           hx-target="#upload-method"
           hx-trigger="click"
           hx-get={`/open/menu?showContent=${!showContent}`}
         >
-          Upload New File
-          <div class={showContent ? 'toggle-icon show-content' : 'toggle-icon'}>⋁</div>
+          <div class="upload-icon" />
+          <div class="toggle-icon">⋁</div>
         </button>
-        <div id="upload-options" class={showContent ? 'show-content' : ''}>
-          <this.uploadZip />
-          <this.uploadGithub />
+        <div id="upload-options-wrapper">
+          <div id="upload-options">
+            <this.uploadZip />
+            <this.uploadGithub />
+          </div>
         </div>
       </section>
     )
@@ -212,13 +214,14 @@ export default class OpenOntologyTemplates {
         <h4>Recent Files</h4>
         <section id="recent-files" class="file-grid">
           {recentFiles.map((recentFile, index) => {
+            const fileName = escapeHtml(recentFile.fileName)
             const preview: JSX.Element = recentFile.preview
             return (
               <a href={`/ontology/${recentFile.dtdlModelId}/view`}>
-                <div class="file-card" role="button" tabindex={`${index + 1}`}>
+                <div class="file-card" role="button" title={fileName} tabindex={`${index + 1}`}>
                   <div class="file-preview">{preview}</div>
                   <div class="file-details">
-                    <p class="file-name">{escapeHtml(recentFile.fileName)}</p>
+                    <p class="file-name">{fileName}</p>
                     <p class="file-viewed">Viewed {escapeHtml(recentFile.lastVisited)}</p>
                   </div>
                 </div>
