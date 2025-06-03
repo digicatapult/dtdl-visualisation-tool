@@ -5,7 +5,7 @@ import { Get, Path, Produces, Queries, Query, Request, Route, SuccessResponse } 
 import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../../db/modelDb.js'
 import { InternalError } from '../../errors.js'
-import { Logger, type ILogger } from '../../logger.js'
+import { Logger, withTimer, withTimerSync, type ILogger } from '../../logger.js'
 import {
   A11yPreference,
   GenerateParams,
@@ -123,7 +123,9 @@ export class OntologyController extends HTMLController {
   ): Promise<HTML> {
     this.logger.debug('search: %o', { search: params.search })
 
-    const session = this.sessionStore.get(params.sessionId)
+    const session = withTimerSync('Getting the session', this.logger, () => {
+      return this.sessionStore.get(params.sessionId)
+    })
 
     // get the base dtdl model that we will derive the graph from
     const baseModel = await this.modelDb.getDtdlModel(dtdlModelId)
@@ -167,14 +169,20 @@ export class OntologyController extends HTMLController {
     }
 
     // get the raw mermaid generated svg
-    const output = await this.generateRawOutput(dtdlModelId, filteredModel, newSession)
+    const output = await withTimer('Generating Raw Output', this.logger, async () => {
+      return this.generateRawOutput(dtdlModelId, filteredModel, newSession)
+    })
     const outputRawSize = output instanceof MermaidSvgRender ? output.svgRawSize : null
 
     // perform out manipulations on the svg
-    const { pan, zoom } = this.manipulateOutput(output, dtdlModelId, filteredModel, session, newSession, params)
+    const { pan, zoom } = withTimerSync('manipulate output', this.logger, () => {
+      return this.manipulateOutput(output, dtdlModelId, filteredModel, session, newSession, params)
+    })
 
     // store the updated session
-    this.sessionStore.set(params.sessionId, { ...session, ...newSession })
+    withTimerSync('', this.logger, () => {
+      this.sessionStore.set(params.sessionId, { ...session, ...newSession })
+    })
 
     // replace the current url
     const current = this.getCurrentPathQuery(req)

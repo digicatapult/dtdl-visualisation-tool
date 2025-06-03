@@ -7,7 +7,7 @@ import unzipper from 'unzipper'
 import { DtdlFile } from '../../../db/types.js'
 import { Env } from '../../env/index.js'
 import { ModellingError, UploadError } from '../../errors.js'
-import { Logger, type ILogger } from '../../logger.js'
+import { Logger, withTimer, type ILogger } from '../../logger.js'
 
 const env = container.resolve(Env)
 @singleton()
@@ -80,10 +80,14 @@ export default class Parser {
 
   async parse(files: DtdlFile[]): Promise<DtdlObjectModel> {
     const allContents = `[${files.map((file) => file.contents).join(',')}]`
+    this.logger.info(`Parsing ${allContents.length} files`)
 
     const parser = await getInterop()
 
-    const parsedDtdl = parseDtdl(allContents, parser)
+    const parsedDtdl = await withTimer('', this.logger, async () => {
+      return parseDtdl(allContents, parser)
+    })
+
     if (parsedDtdl.ExceptionKind) {
       throw new ModellingError(
         `${parsedDtdl.ExceptionKind} error, Open details for more information`,
