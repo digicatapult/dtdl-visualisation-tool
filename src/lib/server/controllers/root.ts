@@ -8,7 +8,6 @@ import { HTML, HTMLController } from './HTMLController.js'
 
 @injectable()
 @Route()
-@Produces('text/html')
 export class RootController extends HTMLController {
   constructor(
     private modelDb: ModelDb,
@@ -32,6 +31,7 @@ export class RootController extends HTMLController {
   }
 
   @SuccessResponse(200)
+  @Produces('text/html')
   @Get('/legend')
   public async getLegend(@Query() showContent: boolean): Promise<HTML> {
     return this.html(this.templates.Legend({ showContent }))
