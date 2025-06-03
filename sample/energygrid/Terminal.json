@@ -30,7 +30,7 @@
             "name": "connectivityNode",
             "target": "dtmi:digitaltwins:ngsi_ld:cim:energy:ConnectivityNode;1",
             "comment": "The connectivity node to which this terminal connects with zero impedance.",
-            "displayName": "ConnectivityNode"
+            "displayName": "connectivityNode"
         },
         {
             "@type": "Relationship",
