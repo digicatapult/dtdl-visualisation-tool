@@ -85,3 +85,9 @@ export class GithubNotFound extends HttpError {
     super('User', 404, 'GitHub Not Found Error', userMessage, userMessage)
   }
 }
+
+export class TooManyRequestsError extends HttpError {
+  constructor(userMessage: string) {
+    super('User', 429, 'Too Many Requests', userMessage, userMessage)
+  }
+}

@@ -1,7 +1,7 @@
 import express from 'express'
 import { dirname } from 'node:path'
-import { Get, Produces, Query, Request, Route, SuccessResponse } from 'tsoa'
-import { inject, injectable } from 'tsyringe'
+import { Get, Middlewares, Produces, Query, Request, Route, SuccessResponse } from 'tsoa'
+import { container, inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../db/modelDb.js'
 import { GithubNotFound, GithubReqError } from '../errors.js'
 import { type ILogger, Logger } from '../logger.js'
@@ -11,14 +11,16 @@ import { type ICache, Cache } from '../utils/cache.js'
 import Parser from '../utils/dtdl/parser.js'
 import { GithubRequest, authRedirectURL } from '../utils/githubRequest.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
+import { RateLimiter } from '../utils/rateLimit.js'
 import { safeUrl } from '../utils/url.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
 import { recentFilesFromCookies, setCacheWithDefaultParams } from './helpers.js'
 
+const rateLimiter = container.resolve(RateLimiter)
+
 @injectable()
 @Route('/github')
-@Produces('text/html')
 export class GithubController extends HTMLController {
   constructor(
     private modelDb: ModelDb,
@@ -34,6 +36,7 @@ export class GithubController extends HTMLController {
   }
 
   @SuccessResponse(200, '')
+  @Produces('text/html')
   @Get('/picker')
   public async picker(@Request() req: express.Request): Promise<HTML | void> {
     if (!req.signedCookies[octokitTokenCookie]) {
@@ -70,6 +73,7 @@ export class GithubController extends HTMLController {
   }
 
   @SuccessResponse(200, '')
+  @Produces('text/html')
   @Get('/repos')
   public async repos(@Query() page: number, @Request() req: express.Request): Promise<HTML | void> {
     const octokitToken = req.signedCookies[octokitTokenCookie]
@@ -98,6 +102,7 @@ export class GithubController extends HTMLController {
   }
 
   @SuccessResponse(200, '')
+  @Produces('text/html')
   @Get('/branches')
   public async branches(
     @Query() owner: string,
@@ -133,13 +138,14 @@ export class GithubController extends HTMLController {
         ...(page === 1 && { backLink: safeUrl(`/github/repos`, { page: '1' }) }),
       }),
       this.templates.selectFolder({
-        // disable the select folder button on branch view
         swapOutOfBand: true,
+        stage: 'branch',
       })
     )
   }
 
   @SuccessResponse(200, '')
+  @Produces('text/html')
   @Get('/contents')
   public async contents(
     @Query() owner: string,
@@ -198,11 +204,14 @@ export class GithubController extends HTMLController {
           ref,
         }),
         swapOutOfBand: true,
+        stage: 'folder',
       })
     )
   }
 
   @SuccessResponse(200, '')
+  @Produces('text/html')
+  @Middlewares(rateLimiter.strictLimitMiddleware)
   @Get('/directory')
   public async directory(
     @Query() owner: string,
@@ -251,6 +260,7 @@ export class GithubController extends HTMLController {
    * `digicatapult/dtdl-visualisation-tool` (returns branches)
    */
   @SuccessResponse(200, '')
+  @Produces('text/html')
   @Get('/navigate')
   public async navigate(@Query() url: string, @Request() req: express.Request): Promise<HTML | void> {
     const octokitToken = req.signedCookies[octokitTokenCookie]

@@ -22,9 +22,13 @@ test.describe('Test edit ontology', () => {
     // login to github
     await page.setViewportSize({ width: 1920, height: 1080 })
     await page.goto('./open')
-    await expect(page.locator('#main-view').getByText('Upload New File')).toBeVisible()
+    await expect(page.locator('#main-view').getByTitle('Upload New Ontology')).toBeVisible()
 
-    await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('Upload New File').click(), '/menu')
+    await waitForSuccessResponse(
+      page,
+      () => page.locator('#main-view').getByTitle('Upload New Ontology').click(),
+      '/menu'
+    )
     await expect(page.locator('#main-view').getByText('GitHub')).toBeVisible()
 
     await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/github/picker')
@@ -46,7 +50,7 @@ test.describe('Test edit ontology', () => {
 
     // get dtdl from github
     await waitForSuccessResponse(page, () => page.click('#select-folder'), '/ontology')
-    await expect(page.locator('#mermaid-output').getByText('displayNameEdit')).toBeVisible()
+    await expect(page.locator('#mermaid-output').getByText('displayNameEdit', { exact: true })).toBeVisible()
 
     // turn on edit mode
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
@@ -58,7 +62,7 @@ test.describe('Test edit ontology', () => {
 
     await waitForSuccessResponse(
       page,
-      () => page.locator('#mermaid-output').getByText('edit').first().click(),
+      () => page.locator('#mermaid-output').getByText('displayNameEdit', { exact: true }).first().click(),
       '/update-layout'
     )
 
@@ -71,8 +75,8 @@ test.describe('Test edit ontology', () => {
     expect(navigationAfterContent).toBe(`url("${baseURL}/public/images/pencil.svg")`)
 
     // test interface edits
-    const newDisplayName = 'new display name'
-    await testNavPanelEdit(page, /^displayNameEdit$/, newDisplayName, '/displayName')
+    const newInterfaceDisplayName = 'new display name'
+    await testNavPanelEdit(page, /^displayNameEdit$/, newInterfaceDisplayName, '/displayName')
     await testNavPanelEdit(page, /^descriptionEdit$/, 'updated', '/description')
     await testNavPanelEdit(page, /^commentEdit$/, 'updated', '/comment')
     await testNavPanelEdit(page, /^propertyCommentEdit$/, 'updated', '/propertyComment')
@@ -81,18 +85,24 @@ test.describe('Test edit ontology', () => {
     // test relationship edits
     await waitForSuccessResponse(
       page,
-      () => page.locator('#mermaid-output').getByText('relationshipName').first().click(),
+      () => page.locator('#mermaid-output').getByText('relationshipDisplay').first().click(),
       '/update-layout'
     )
-    await testNavPanelEdit(page, /^relationshipDisplayNameEdit$/, 'updated', '/relationshipDisplayName')
+    const newRelationshipDisplayName = 'new rel name'
+    await testNavPanelEdit(
+      page,
+      /^relationshipDisplayNameEdit$/,
+      newRelationshipDisplayName,
+      '/relationshipDisplayName'
+    )
     await testNavPanelEdit(page, /^relationshipDescriptionEdit$/, 'updated', '/relationshipDescription')
     await testNavPanelEdit(page, /^relationshipCommentEdit$/, 'updated', '/relationshipComment')
 
-    // search by new name
-    await expect(page.locator('#mermaid-output').getByText(newDisplayName)).toBeVisible()
+    // search by new interface name
     await page.focus('#search')
-    await waitForUpdateLayout(page, () => page.fill('#search', newDisplayName))
-    await expect(page.locator('#mermaid-output').getByText(newDisplayName)).toBeVisible()
+    await waitForUpdateLayout(page, () => page.fill('#search', newInterfaceDisplayName))
+    await expect(page.locator('#mermaid-output').getByText(newInterfaceDisplayName)).toBeVisible()
+    await expect(page.locator('#mermaid-output').getByText(newRelationshipDisplayName)).toBeVisible()
 
     // turn off edit mode
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')

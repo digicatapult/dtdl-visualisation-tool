@@ -353,8 +353,8 @@ export default class MermaidTemplates {
         <input id="currentPanX" name="currentPanX" type="hidden" value={maybeNumberToAttr(currentPanX, 0)} />
         <input id="currentPanY" name="currentPanY" type="hidden" value={maybeNumberToAttr(currentPanY, 0)} />
 
-        <label for="diagramType">Diagram Type</label>
-        <select id="diagramType" name="diagramType" hx-trigger="input changed" {...commonUpdateAttrs}>
+        <label for="diagram-type-select">Diagram Type</label>
+        <select id="diagram-type-select" name="diagramType" hx-trigger="input changed" {...commonUpdateAttrs}>
           {diagramTypes.map((entry) => (
             <option value={entry} selected={entry === diagramType}>
               {escapeHtml(entry)}

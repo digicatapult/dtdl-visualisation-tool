@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.4.117",
+  "version": "0.4.124",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -13,6 +13,7 @@
     "test:e2e": "NODE_ENV=test playwright test --ui",
     "test:playwright": "NODE_ENV=test playwright test --trace on --max-failures=1",
     "test:integration": "SWRC=true NODE_ENV=test ./node_modules/.bin/mocha --config ./test/mocharc.json --file ./test/integration/init.ts ./test/integration/*.test.ts",
+    "test:ratelimit": "SWRC=true NODE_ENV=test ./node_modules/.bin/mocha --config ./test/mocharc.json ./test/ratelimit/*.test.ts",
     "build": "npm run tsoa:build && swc ./src -d ./build --copy-files --strip-leading-paths",
     "clean": "rimraf -rf ./build",
     "dev": "npm run tsoa:build && NODE_ENV=dev node --import '@swc-node/register/esm-register' ./src/index.ts",
@@ -52,6 +53,7 @@
     "dotenv": "^16.5.0",
     "envalid": "^8.0.0",
     "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
     "fuse.js": "^7.1.0",
     "htmx-ext-json-enc": "^2.0.2",
     "htmx-ext-response-targets": "^2.0.3",
@@ -71,11 +73,11 @@
     "tsoa": "^6.6.0",
     "tsyringe": "^4.10.0",
     "unzipper": "^0.12.3",
-    "zod": "^3.25.36"
+    "zod": "^3.25.42"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
-    "@eslint/js": "^9.27.0",
+    "@eslint/js": "^9.28.0",
     "@octokit/request-error": "^7.0.0",
     "@playwright/test": "^1.52.0",
     "@swc-node/register": "^1.10.10",
@@ -87,17 +89,18 @@
     "@types/express": "^5.0.2",
     "@types/jsdom": "^21.1.7",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^22.15.24",
+    "@types/node": "^22.15.29",
     "@types/pino-http": "^5.8.4",
     "@types/sinon": "^17.0.4",
+    "@types/supertest": "^6.0.3",
     "@types/unzipper": "^0.10.11",
     "@typescript-eslint/eslint-plugin": "^8.33.0",
     "@typescript-eslint/parser": "^8.33.0",
     "chai-as-promised": "^8.0.1",
     "depcheck": "^1.4.7",
-    "eslint": "^9.27.0",
+    "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
-    "eslint-plugin-prettier": "^5.4.0",
+    "eslint-plugin-prettier": "^5.4.1",
     "globals": "^16.2.0",
     "mocha": "^11.5.0",
     "otpauth": "^9.4.0",
@@ -107,8 +110,10 @@
     "prettier-plugin-organize-imports": "^4.1.0",
     "rimraf": "^6.0.1",
     "sinon": "^20.0.0",
+    "supertest": "^7.1.1",
     "testcontainers": "^11.0.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "undici": "^7.10.0"
   },
   "engines": {
     "node": ">= 20"

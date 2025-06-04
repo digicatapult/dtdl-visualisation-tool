@@ -153,7 +153,11 @@ export class SvgMutator {
             return null
           }
           return [
-            [dtdlIdReplaceSemicolon(entity.ChildOf), dtdlIdReplaceSemicolon(entity.target), entity.name].join('_'),
+            [
+              dtdlIdReplaceSemicolon(entity.ChildOf),
+              dtdlIdReplaceSemicolon(entity.target),
+              entity.displayName?.en ?? entity.name,
+            ].join('_'),
             entity.Id,
           ] as const
         })

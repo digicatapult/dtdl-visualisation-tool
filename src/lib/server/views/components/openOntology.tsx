@@ -7,6 +7,17 @@ import { ListItem } from '../../models/github.js'
 import { RecentFile } from '../../models/openTypes.js'
 import { Page } from '../common.js'
 
+type SelectFolderProps =
+  | {
+      link: string
+      swapOutOfBand?: boolean
+      stage: 'folder'
+    }
+  | {
+      swapOutOfBand?: boolean
+      stage: 'repo' | 'branch'
+    }
+
 @singleton()
 export default class OpenOntologyTemplates {
   constructor() {}
@@ -42,20 +53,23 @@ export default class OpenOntologyTemplates {
 
   public getMenu = ({ showContent }: { showContent: boolean }) => {
     return (
-      <section id="upload-method">
-        <label
-          id="upload-file-button"
-          hx-swap="outerHTML transition:true"
+      <section id="upload-method" class={showContent ? 'show-content' : ''}>
+        <button
+          id="upload-ontology-button"
+          title="Upload New Ontology"
+          hx-swap="outerHTML"
           hx-target="#upload-method"
           hx-trigger="click"
           hx-get={`/open/menu?showContent=${!showContent}`}
         >
-          Upload New File
-          <div class={showContent ? 'toggle-icon show-content' : 'toggle-icon'}>⋁</div>
-        </label>
-        <div id="upload-options" class={showContent ? 'show-content' : ''}>
-          <this.uploadZip />
-          <this.uploadGithub />
+          <div class="upload-icon" />
+          <div class="toggle-icon">⋁</div>
+        </button>
+        <div id="upload-options-wrapper">
+          <div id="upload-options">
+            <this.uploadZip />
+            <this.uploadGithub />
+          </div>
         </div>
       </section>
     )
@@ -83,7 +97,7 @@ export default class OpenOntologyTemplates {
           <this.githubPathLabel path="Repos:" />
           <div id="spin" class="spinner" />
           <ul class="github-list" hx-indicator="#spin" hx-get={populateListLink} hx-trigger="load"></ul>
-          <this.selectFolder />
+          <this.selectFolder stage="repo" />
         </div>
         <form method="dialog">
           <button class="modal-button" />
@@ -100,20 +114,34 @@ export default class OpenOntologyTemplates {
     )
   }
 
-  public selectFolder = ({ link, swapOutOfBand }: { link?: string; swapOutOfBand?: boolean }) => (
+  private tooltipForSelectFolder = (stage: 'repo' | 'branch' | 'folder') => {
+    switch (stage) {
+      case 'repo':
+        return 'Please select a repository'
+      case 'branch':
+        return 'Please select a repository branch'
+      case 'folder':
+        return 'Please select a folder containing the ontology'
+      default:
+        return 'Open Ontology'
+    }
+  }
+
+  public selectFolder = (props: SelectFolderProps) => (
     <button
       id="select-folder"
       hx-trigger="click"
-      hx-get={link}
-      hx-swap-oob={swapOutOfBand ? 'true' : undefined}
+      hx-get={props.stage === 'folder' ? props.link : undefined}
+      hx-swap-oob={props.swapOutOfBand ? 'true' : undefined}
       hx-swap="outerHTML"
       hx-target="#content-main"
       hx-select="#content-main"
       hx-indicator="#spinner"
-      disabled={!link}
+      disabled={props.stage !== 'folder'}
       onclick="document.getElementById('github-modal').close();"
+      title={this.tooltipForSelectFolder(props.stage)}
     >
-      Select Folder to Open Ontology
+      Open Ontology
     </button>
   )
 
@@ -183,25 +211,22 @@ export default class OpenOntologyTemplates {
 
   public recentFiles = ({ recentFiles }: { recentFiles: RecentFile[] }) => {
     return (
-      <>
-        <h4>Recent Files</h4>
-        <section id="recent-files" class="file-grid">
-          {recentFiles.map((recentFile, index) => {
-            const preview: JSX.Element = recentFile.preview
-            return (
-              <a href={`/ontology/${recentFile.dtdlModelId}/view`}>
-                <div class="file-card" role="button" tabindex={`${index + 1}`}>
-                  <div class="file-preview">{preview}</div>
-                  <div class="file-details">
-                    <p class="file-name">{escapeHtml(recentFile.fileName)}</p>
-                    <p class="file-viewed">Viewed {escapeHtml(recentFile.lastVisited)}</p>
-                  </div>
+      <section id="recent-files" class="file-grid">
+        {recentFiles.map((recentFile, index) => {
+          const preview: JSX.Element = recentFile.preview
+          return (
+            <a href={`/ontology/${recentFile.dtdlModelId}/view`}>
+              <div class="file-card" role="button" title={escapeHtml(recentFile.fileName)} tabindex={`${index + 1}`}>
+                <div class="file-preview">{preview}</div>
+                <div class="file-details">
+                  <p class="file-name">{escapeHtml(recentFile.fileName)}</p>
+                  <p class="file-viewed">Viewed {escapeHtml(recentFile.lastVisited)}</p>
                 </div>
-              </a>
-            )
-          })}
-        </section>
-      </>
+              </div>
+            </a>
+          )
+        })}
+      </section>
     )
   }
 }

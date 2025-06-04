@@ -221,7 +221,7 @@ describe('GithubController', async () => {
         [
           `githubPathLabel_${mockOwner}/${mockRepo}_githubPathLabel`,
           `githubListItems_${mockBranch}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`,
-          `selectFolder_undefined_true_selectFolder`,
+          `selectFolder_undefined_true_branch_selectFolder`,
         ].join('')
       )
     })
@@ -251,7 +251,7 @@ describe('GithubController', async () => {
         [
           `githubPathLabel_${mockOwner}/${mockRepo}/${mockBranch}_githubPathLabel`,
           `githubListItems_📄 ${mockFileName}_${onClickLinkFile}_📂 ${mockDir}_${onClickLinkDir}_${nextPageLink}_${backLink}_githubListItems`,
-          `selectFolder_${selectFolderLink}_true_selectFolder`,
+          `selectFolder_${selectFolderLink}_true_folder_selectFolder`,
         ].join('')
       )
     })
@@ -274,7 +274,7 @@ describe('GithubController', async () => {
         [
           `githubPathLabel_${mockOwner}/${mockRepo}/${mockBranch}/${mockDirPath}_githubPathLabel`,
           `githubListItems_📄 ${mockFileName}_${onClickLinkFile}_${nextPageLink}_${backLink}_githubListItems`,
-          `selectFolder_${selectFolderLink}_true_selectFolder`,
+          `selectFolder_${selectFolderLink}_true_folder_selectFolder`,
         ].join('')
       )
     })
@@ -363,7 +363,7 @@ describe('GithubController', async () => {
         [
           `githubPathLabel_${mockOwner}/${mockRepo}/${mockBranch}_githubPathLabel`,
           `githubListItems_📄 ${mockFileName}_${onClickLinkFile}_📂 ${mockDir}_${onClickLinkDir}_${nextPageLink}_${backLink}_githubListItems`,
-          `selectFolder_${selectFolderLink}_true_selectFolder`,
+          `selectFolder_${selectFolderLink}_true_folder_selectFolder`,
         ].join('')
       )
     })
@@ -387,7 +387,7 @@ describe('GithubController', async () => {
         [
           `githubPathLabel_${mockOwner}/${mockRepo}/${mockBranch}_githubPathLabel`,
           `githubListItems_📄 ${mockFileName}_${onClickLinkFile}_📂 ${mockDir}_${onClickLinkDir}_${nextPageLink}_${backLink}_githubListItems`,
-          `selectFolder_${selectFolderLink}_true_selectFolder`,
+          `selectFolder_${selectFolderLink}_true_folder_selectFolder`,
         ].join('')
       )
     })
@@ -404,7 +404,7 @@ describe('GithubController', async () => {
         [
           `githubPathLabel_${mockOwner}/${mockRepo}_githubPathLabel`,
           `githubListItems_${mockBranch}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`,
-          `selectFolder_undefined_true_selectFolder`,
+          `selectFolder_undefined_true_branch_selectFolder`,
         ].join('')
       )
     })
@@ -423,7 +423,7 @@ describe('GithubController', async () => {
         [
           `githubPathLabel_${mockOwner}/${mockRepo}_githubPathLabel`,
           `githubListItems_${mockBranch}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`,
-          `selectFolder_undefined_true_selectFolder`,
+          `selectFolder_undefined_true_branch_selectFolder`,
         ].join('')
       )
     })
@@ -460,7 +460,7 @@ describe('GithubController', async () => {
       [
         `githubPathLabel_${expectedLabel}_githubPathLabel`,
         `githubListItems_📄 ${mockFileName}_${onClickLinkFile}_${nextPageLink}_${backLink}_githubListItems`,
-        `selectFolder_${selectFolderLink}_true_selectFolder`,
+        `selectFolder_${selectFolderLink}_true_folder_selectFolder`,
       ].join('')
     )
   }
