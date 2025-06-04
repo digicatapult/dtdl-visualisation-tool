@@ -39,6 +39,8 @@
   position: relative;
 
   --highlight-color: var(--active-button-color);
+  --transition-time: 0.5s;
+  --border-radius: 5px;
 }
 #upload-method:has(#upload-ontology-button:hover) {
   --highlight-color: hsl(from var(--active-button-color) h s 40%);
@@ -49,15 +51,14 @@
 
   width: 12rem;
   background-color: var(--highlight-color);
-  transition: background-color 0.3s;
+  transition:
+    background-color 0.3s,
+    border-radius var(--transition-time) ease-in-out;
   color: white;
-  border-radius: 5px;
+  border-radius: var(--border-radius);
   border: none;
   padding: 10px 20px;
   cursor: pointer;
-}
-#upload-ontology-button:hover {
-  transition: background-color 0.3s;
 }
 #upload-ontology-button > .upload-icon {
   justify-self: center;
@@ -83,13 +84,16 @@
     width: 10%;
   }
 }
+#upload-method.show-content > #upload-ontology-button {
+  border-radius: var(--border-radius) var(--border-radius) 0px 0px;
+}
 
 #upload-method .toggle-icon {
   vertical-align: middle;
   display: inline-block;
   font-weight: bolder;
   transform: scaleX(1.7) scaleY(1);
-  transition: transform 0.5s ease-in-out;
+  transition: transform var(--transition-time) ease-in-out;
   position: absolute;
   right: 0;
   margin-right: 1rem;
@@ -104,21 +108,21 @@
   display: grid;
   grid-template-rows: 0fr;
   transition:
-    grid-template-rows 0.5s ease-in-out,
-    border 0s ease-in-out 0.5s;
+    grid-template-rows var(--transition-time) ease-in-out,
+    border 0s ease-in-out var(--transition-time);
   width: 100%;
   top: 100%;
-  padding-top: 5px;
-  transform: translateY(-5px);
+  padding-top: var(--border-radius);
+  transform: translateY(calc(-1 * var(--border-radius)));
   position: absolute;
 
   border: 0px solid var(--highlight-color);
-  border-radius: 0px 0px 5px 5px;
+  border-radius: 0px 0px var(--border-radius) var(--border-radius);
 }
 
 #upload-method.show-content #upload-options-wrapper {
   grid-template-rows: 1fr;
-  transition: grid-template-rows 0.5s ease-in-out;
+  transition: grid-template-rows var(--transition-time) ease-in-out;
   border: 1px solid var(--highlight-color);
   border-top: none;
 }
@@ -129,7 +133,7 @@
 }
 #upload-options,
 #upload-options > *:last-child {
-  border-radius: 0px 0px 5px 5px;
+  border-radius: 0px 0px var(--border-radius) var(--border-radius);
 }
 
 .upload-option {
