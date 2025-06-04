@@ -10,12 +10,15 @@ import { Env } from '../../env/index.js'
 import { ModellingError, UploadError } from '../../errors.js'
 import { Logger, type ILogger } from '../../logger.js'
 import { dtdlObjectModelParser } from '../../models/dtdlOmParser.js'
-import { Cache, ICache } from '../cache.js'
+import { Cache, type ICache } from '../cache.js'
 
 const env = container.resolve(Env)
 @singleton()
 export default class Parser {
-  constructor(@inject(Logger) private logger: ILogger) {}
+  constructor(
+    @inject(Logger) private logger: ILogger,
+    @inject(Cache) private cache: ICache
+  ) {}
 
   async getJsonFiles(dir: string) {
     const entries = await readdir(dir, { withFileTypes: true })
@@ -89,14 +92,12 @@ export default class Parser {
 
   async parse(files: DtdlFile[]): Promise<DtdlObjectModel> {
     const allContents = `[${files.map((file) => file.contents).join(',')}]`
-    const cache = container.resolve<ICache>(Cache)
-    const dtdlHashKey = createHash('sha256').update(allContents).digest('hex')
-    if (cache.has(dtdlHashKey)) {
-      const cachedParsedDtdl = cache.get(dtdlHashKey, dtdlObjectModelParser)
+
+    const dtdlHashKey = createHash('sha256').update(allContents).digest('base64')
+    if (this.cache.has(dtdlHashKey)) {
+      const cachedParsedDtdl = this.cache.get(dtdlHashKey, dtdlObjectModelParser)
       if (cachedParsedDtdl) return cachedParsedDtdl
     }
-
-    this.logger.info(`Parsing ${allContents.length} files`)
 
     const parser = await getInterop()
 
@@ -108,7 +109,7 @@ export default class Parser {
         JSON.stringify(parsedDtdl)
       )
     }
-    cache.set<DtdlObjectModel>(dtdlHashKey, parsedDtdl)
+    this.cache.set<DtdlObjectModel>(dtdlHashKey, parsedDtdl)
 
     return parsedDtdl
   }
