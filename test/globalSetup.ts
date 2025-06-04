@@ -52,7 +52,11 @@ async function getGithubToken(config: FullConfig) {
   await waitForUpdateLayout(page, () => page.goto(baseURL!))
 
   await waitForSuccessResponse(page, () => page.locator('#open-button').click(), '/open')
-  await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('Upload New File').click(), '/menu')
+  await waitForSuccessResponse(
+    page,
+    () => page.locator('#main-view').getByTitle('Upload New Ontology').click(),
+    '/menu'
+  )
   await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), 'github.com/login')
 
   // Wait for GitHub login form

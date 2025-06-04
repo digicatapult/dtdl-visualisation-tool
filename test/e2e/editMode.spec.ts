@@ -22,9 +22,13 @@ test.describe('Test edit ontology', () => {
     // login to github
     await page.setViewportSize({ width: 1920, height: 1080 })
     await page.goto('./open')
-    await expect(page.locator('#main-view').getByText('Upload New File')).toBeVisible()
+    await expect(page.locator('#main-view').getByTitle('Upload New Ontology')).toBeVisible()
 
-    await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('Upload New File').click(), '/menu')
+    await waitForSuccessResponse(
+      page,
+      () => page.locator('#main-view').getByTitle('Upload New Ontology').click(),
+      '/menu'
+    )
     await expect(page.locator('#main-view').getByText('GitHub')).toBeVisible()
 
     await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/github/picker')

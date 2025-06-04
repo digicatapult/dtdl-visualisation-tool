@@ -26,7 +26,11 @@ export async function waitForUploadFile<T>(page: Page, action: () => Promise<T>,
 
 export async function waitForUploadFileFromRoot<T>(page: Page, action: () => Promise<T>, filePath: string) {
   await waitForSuccessResponse(page, () => page.locator('#open-button').click(), '/open')
-  await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('Upload New File').click(), '/menu')
+  await waitForSuccessResponse(
+    page,
+    () => page.locator('#main-view').getByTitle('Upload New Ontology').click(),
+    '/menu'
+  )
 
   await waitForUploadFile(page, action, filePath)
 }
