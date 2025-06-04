@@ -8,7 +8,7 @@ import { container, inject, singleton } from 'tsyringe'
 
 import { Semaphore } from 'async-mutex'
 import { Env } from '../../env/index.js'
-import { Logger, withTimer, type ILogger } from '../../logger.js'
+import { Logger, type ILogger } from '../../logger.js'
 import { DiagramType } from '../../models/mermaidDiagrams.js'
 import { Layout } from '../../models/mermaidLayouts.js'
 import { MermaidSvgRender, PlainTextRender } from '../../models/renderedDiagram/index.js'
@@ -169,26 +169,24 @@ export class SvgGenerator {
       layout,
     }
 
-    return await withTimer('SvgGenerator.render', this.logger, async () => {
-      const svg = await page.$eval(
-        '#container',
-        async (container, mermaidConfig, definition, svgId) => {
-          const { mermaid } = globalThis as unknown as GlobalExtMermaidAndElk
+    const svg = await page.$eval(
+      '#container',
+      async (container, mermaidConfig, definition, svgId) => {
+        const { mermaid } = globalThis as unknown as GlobalExtMermaidAndElk
 
-          mermaid.initialize({ startOnLoad: false, ...mermaidConfig })
-          const { svg: svgText } = await mermaid.render(svgId, definition, container)
-          container.innerHTML = svgText
+        mermaid.initialize({ startOnLoad: false, ...mermaidConfig })
+        const { svg: svgText } = await mermaid.render(svgId, definition, container)
+        container.innerHTML = svgText
 
-          const svg = container.getElementsByTagName?.('svg')?.[0]
-          const xmlSerializer = new XMLSerializer()
-          return xmlSerializer.serializeToString(svg)
-        },
-        mermaidConfig,
-        definition,
-        svgId
-      )
+        const svg = container.getElementsByTagName?.('svg')?.[0]
+        const xmlSerializer = new XMLSerializer()
+        return xmlSerializer.serializeToString(svg)
+      },
+      mermaidConfig,
+      definition,
+      svgId
+    )
 
-      return Buffer.from(svg)
-    })
+    return Buffer.from(svg)
   }
 }

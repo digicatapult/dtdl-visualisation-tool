@@ -1,4 +1,5 @@
 import { DtdlObjectModel, getInterop, parseDtdl } from '@digicatapult/dtdl-parser'
+import { createHash } from 'crypto'
 import { Dirent } from 'node:fs'
 import { readdir, readFile } from 'node:fs/promises'
 import { join, relative } from 'node:path'
@@ -7,7 +8,9 @@ import unzipper from 'unzipper'
 import { DtdlFile } from '../../../db/types.js'
 import { Env } from '../../env/index.js'
 import { ModellingError, UploadError } from '../../errors.js'
-import { Logger, withTimer, type ILogger } from '../../logger.js'
+import { Logger, type ILogger } from '../../logger.js'
+import { dtdlObjectModelParser } from '../../models/dtdlOmParser.js'
+import { Cache, ICache } from '../cache.js'
 
 const env = container.resolve(Env)
 @singleton()
@@ -80,13 +83,18 @@ export default class Parser {
 
   async parse(files: DtdlFile[]): Promise<DtdlObjectModel> {
     const allContents = `[${files.map((file) => file.contents).join(',')}]`
+    const cache = container.resolve<ICache>(Cache)
+    const dtdlHashKey = createHash('sha256').update(allContents).digest('hex')
+    if (cache.has(dtdlHashKey)) {
+      const cachedParsedDtdl = cache.get(dtdlHashKey, dtdlObjectModelParser)
+      if (cachedParsedDtdl) return cachedParsedDtdl
+    }
+
     this.logger.info(`Parsing ${allContents.length} files`)
 
     const parser = await getInterop()
 
-    const parsedDtdl = await withTimer('', this.logger, async () => {
-      return parseDtdl(allContents, parser)
-    })
+    const parsedDtdl = parseDtdl(allContents, parser)
 
     if (parsedDtdl.ExceptionKind) {
       throw new ModellingError(
@@ -94,6 +102,8 @@ export default class Parser {
         JSON.stringify(parsedDtdl)
       )
     }
+    cache.set<DtdlObjectModel>(dtdlHashKey, parsedDtdl)
+
     return parsedDtdl
   }
 }

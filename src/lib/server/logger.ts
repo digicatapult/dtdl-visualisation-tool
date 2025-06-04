@@ -17,7 +17,7 @@ export const logger = pino(
 export const Logger = Symbol('Logger')
 export type ILogger = typeof logger
 
-export async function withTimer<T>(label: string, logger: ILogger, fn: () => Promise<T>): Promise<T> {
+export async function withTimerAsync<T>(label: string, logger: ILogger, fn: () => Promise<T>): Promise<T> {
   const start = process.hrtime.bigint()
   const result = await fn()
   const duration = Number(process.hrtime.bigint() - start) / 1_000_000
@@ -25,7 +25,7 @@ export async function withTimer<T>(label: string, logger: ILogger, fn: () => Pro
   return result
 }
 
-export function withTimerSync<T>(label: string, logger: ILogger, fn: () => T): T {
+export function withTimer<T>(label: string, logger: ILogger, fn: () => T): T {
   const start = process.hrtime.bigint()
   const result = fn()
   const duration = Number(process.hrtime.bigint() - start) / 1_000_000

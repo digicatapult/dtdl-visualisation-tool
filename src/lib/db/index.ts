@@ -3,7 +3,6 @@ import { container, singleton } from 'tsyringe'
 import { z } from 'zod'
 
 import { Env } from '../server/env/index.js'
-import { logger, withTimer } from '../server/logger.js'
 import Zod, { IDatabase, Models, TABLE, tablesList, Update, Where } from './types.js'
 import { reduceWhere } from './util.js'
 
@@ -48,13 +47,11 @@ export default class Database {
   }
 
   get = async <M extends TABLE>(model: M, where?: Where<M>, limit?: number): Promise<Models[typeof model]['get'][]> => {
-    return await withTimer(`Database.get(${model}) where ${where}`, logger, async () => {
-      let query = this.db[model]()
-      query = reduceWhere(query, where)
-      if (limit !== undefined) query = query.limit(limit)
-      const result = await query
-      return z.array(Zod[model].get).parse(result)
-    })
+    let query = this.db[model]()
+    query = reduceWhere(query, where)
+    if (limit !== undefined) query = query.limit(limit)
+    const result = await query
+    return z.array(Zod[model].get).parse(result)
   }
 
   update = async <M extends TABLE>(
