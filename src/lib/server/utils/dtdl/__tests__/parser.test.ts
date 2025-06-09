@@ -6,8 +6,9 @@ import Parser from '../parser.js'
 
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { expect } from 'chai'
+import { createHash } from 'crypto'
 import { readFile } from 'node:fs/promises'
-import { mockLogger } from '../../../controllers/__tests__/helpers.js'
+import { mockCache, mockLogger } from '../../../controllers/__tests__/helpers.js'
 import { ModellingError, UploadError } from '../../../errors.js'
 import bom from './fixtures/bom/bom.json' assert { type: 'json' }
 import complexNested from './fixtures/complexNested/complexNested.json' assert { type: 'json' }
@@ -15,11 +16,12 @@ import nestedTwo from './fixtures/nestedDtdl/nested/two.json' assert { type: 'js
 import nestedOne from './fixtures/nestedDtdl/one.json' assert { type: 'json' }
 import valid from './fixtures/someInvalid/valid.json' assert { type: 'json' }
 import withPropsAndRels from './fixtures/withPropertiesAndRelationships.json' assert { type: 'json' }
+import { createMockCache } from './helpers.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const parser = new Parser(mockLogger)
+const parser = new Parser(mockLogger, mockCache)
 
 describe('getJsonfiles', function () {
   test('nested directories', async () => {
@@ -128,6 +130,54 @@ describe('parse', function () {
   test('throws error if bad DTDL', async () => {
     const files = [{ path: '', contents: JSON.stringify({}) }]
     await expect(parser.parse(files)).to.be.rejectedWith(ModellingError)
+  })
+
+  test('parsed dtdl loaded from cache', async () => {
+    const files = [{ path: '', contents: JSON.stringify(nestedOne) }]
+
+    const allContents = `[${files.map((f) => f.contents).join(',')}]`
+    const dtdlHashKey = createHash('sha256').update(allContents).digest('base64')
+
+    const parsedDtdl = {
+      [nestedOne['@id']]: {
+        EntityKind: 'Interface',
+        Id: nestedOne['@id'],
+      },
+    }
+
+    const { mockCache, hasStub, getStub, setSpy } = createMockCache(dtdlHashKey, parsedDtdl, true)
+
+    const parser = new Parser(mockLogger, mockCache)
+
+    const result = await parser.parse(files)
+
+    expect(result[nestedOne['@id']].Id).to.equal(nestedOne['@id'])
+    expect(hasStub.calledOnceWithExactly(dtdlHashKey)).to.equal(true)
+    expect(getStub.calledOnce).to.equal(true)
+    expect(setSpy.notCalled).to.equal(true)
+  })
+
+  test('parses DTDL and sets cache if not found', async () => {
+    const files = [{ path: '', contents: JSON.stringify(nestedOne) }]
+    const allContents = `[${files.map((f) => f.contents).join(',')}]`
+    const dtdlHashKey = createHash('sha256').update(allContents).digest('base64')
+    const parsedDtdl = {
+      [nestedOne['@id']]: {
+        EntityKind: 'Interface',
+        Id: nestedOne['@id'],
+      },
+    }
+
+    const { mockCache, hasStub, getStub, setSpy } = createMockCache(dtdlHashKey, parsedDtdl, false)
+
+    const parser = new Parser(mockLogger, mockCache)
+
+    const result = await parser.parse(files)
+
+    expect(hasStub.calledOnceWithExactly(dtdlHashKey)).to.equal(true)
+    expect(getStub.notCalled).to.equal(true)
+    expect(setSpy.calledOnceWithExactly(dtdlHashKey, result)).to.equal(true)
+    expect(result[nestedOne['@id']].Id).to.equal(nestedOne['@id'])
   })
 })
 

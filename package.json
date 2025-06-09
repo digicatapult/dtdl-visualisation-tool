@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.4.124",
+  "version": "0.4.129",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -34,7 +34,7 @@
   "author": "Digital Catapult",
   "license": "Apache-2.0",
   "dependencies": {
-    "@digicatapult/dtdl-parser": "^1.0.4",
+    "@digicatapult/dtdl-parser": "^1.0.8",
     "@kitajs/html": "^4.2.9",
     "@kitajs/ts-html-plugin": "^4.1.1",
     "@mermaid-js/mermaid-cli": "^11.4.2",
@@ -62,10 +62,10 @@
     "knex": "^3.1.0",
     "lru-cache": "^11.1.0",
     "mermaid": "^11.6.0",
-    "multer": "^2.0.0",
+    "multer": "^2.0.1",
     "pg": "^8.16.0",
     "pino": "^9.7.0",
-    "pino-http": "^10.4.0",
+    "pino-http": "^10.5.0",
     "puppeteer": "^23.11.1",
     "react": "^19.1.0",
     "reflect-metadata": "^0.2.2",
@@ -73,7 +73,7 @@
     "tsoa": "^6.6.0",
     "tsyringe": "^4.10.0",
     "unzipper": "^0.12.3",
-    "zod": "^3.25.42"
+    "zod": "^3.25.50"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -94,8 +94,8 @@
     "@types/sinon": "^17.0.4",
     "@types/supertest": "^6.0.3",
     "@types/unzipper": "^0.10.11",
-    "@typescript-eslint/eslint-plugin": "^8.33.0",
-    "@typescript-eslint/parser": "^8.33.0",
+    "@typescript-eslint/eslint-plugin": "^8.33.1",
+    "@typescript-eslint/parser": "^8.33.1",
     "chai-as-promised": "^8.0.1",
     "depcheck": "^1.4.7",
     "eslint": "^9.28.0",
