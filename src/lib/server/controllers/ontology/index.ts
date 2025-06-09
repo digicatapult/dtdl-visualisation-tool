@@ -130,7 +130,7 @@ export class OntologyController extends HTMLController {
     const session = this.sessionStore.get(params.sessionId)
 
     // get the base dtdl model that we will derive the graph from
-    const baseModel = await this.modelDb.getDtdlModel(dtdlModelId)
+    const { model: baseModel } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
     const search = new FuseSearch(this.modelDb.getCollection(baseModel))
 
     const newSession: Session = {
@@ -228,7 +228,7 @@ export class OntologyController extends HTMLController {
     const session = this.sessionStore.get(sessionId)
 
     // get the base dtdl model that we will derive the graph from
-    const baseModel = await this.modelDb.getDtdlModel(dtdlModelId)
+    const { model: baseModel } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
 
     this.sessionStore.update(sessionId, { editMode })
 

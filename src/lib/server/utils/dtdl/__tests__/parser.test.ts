@@ -4,6 +4,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import Parser from '../parser.js'
 
+import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { expect } from 'chai'
 import { readFile } from 'node:fs/promises'
 import { mockLogger } from '../../../controllers/__tests__/helpers.js'
@@ -13,6 +14,7 @@ import complexNested from './fixtures/complexNested/complexNested.json' assert {
 import nestedTwo from './fixtures/nestedDtdl/nested/two.json' assert { type: 'json' }
 import nestedOne from './fixtures/nestedDtdl/one.json' assert { type: 'json' }
 import valid from './fixtures/someInvalid/valid.json' assert { type: 'json' }
+import withPropsAndRels from './fixtures/withPropertiesAndRelationships.json' assert { type: 'json' }
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -126,5 +128,248 @@ describe('parse', function () {
   test('throws error if bad DTDL', async () => {
     const files = [{ path: '', contents: JSON.stringify({}) }]
     await expect(parser.parse(files)).to.be.rejectedWith(ModellingError)
+  })
+})
+
+describe('extractDtdlPaths', function () {
+  const model = {
+    [nestedOne['@id']]: {
+      Id: nestedOne['@id'],
+      EntityKind: 'Interface',
+    },
+    [nestedTwo['@id']]: {
+      Id: nestedTwo['@id'],
+      EntityKind: 'Interface',
+    },
+  } as DtdlObjectModel
+
+  test('extracts paths from simple DTDL', () => {
+    const files = [{ path: 'file.json', contents: JSON.stringify(nestedOne) }]
+    const result = parser.extractDtdlPaths(files, model)
+    expect(result).to.deep.equal([
+      {
+        type: 'file',
+        name: 'file.json',
+        entities: [
+          {
+            type: 'fileEntry',
+            dtdlType: 'Interface',
+            name: nestedOne['@id'],
+            id: nestedOne['@id'],
+            entries: [],
+          },
+        ],
+      },
+    ])
+  })
+
+  test('extracts and nests paths from simple DTDL', () => {
+    const files = [{ path: 'some/path/file.json', contents: JSON.stringify(nestedOne) }]
+    const result = parser.extractDtdlPaths(files, model)
+    expect(result).to.deep.equal([
+      {
+        type: 'directory',
+        name: 'some',
+        entries: [
+          {
+            type: 'directory',
+            name: 'path',
+            entries: [
+              {
+                type: 'file',
+                name: 'file.json',
+                entities: [
+                  {
+                    type: 'fileEntry',
+                    dtdlType: 'Interface',
+                    name: nestedOne['@id'],
+                    id: nestedOne['@id'],
+                    entries: [],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
+  })
+
+  test('extracts and merges paths from multiple files', () => {
+    const files = [
+      { path: 'some/path/file.json', contents: JSON.stringify(nestedOne) },
+      { path: 'some/other/file2.json', contents: JSON.stringify(nestedTwo) },
+    ]
+    const result = parser.extractDtdlPaths(files, model)
+    expect(result).to.deep.equal([
+      {
+        type: 'directory',
+        name: 'some',
+        entries: [
+          {
+            type: 'directory',
+            name: 'path',
+            entries: [
+              {
+                type: 'file',
+                name: 'file.json',
+                entities: [
+                  {
+                    type: 'fileEntry',
+                    dtdlType: 'Interface',
+                    name: nestedOne['@id'],
+                    id: nestedOne['@id'],
+                    entries: [],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            type: 'directory',
+            name: 'other',
+            entries: [
+              {
+                type: 'file',
+                name: 'file2.json',
+                entities: [
+                  {
+                    type: 'fileEntry',
+                    dtdlType: 'Interface',
+                    name: nestedTwo['@id'],
+                    id: nestedTwo['@id'],
+                    entries: [],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
+  })
+
+  test('extracts and merges multiple entries in single file', () => {
+    const files = [{ path: 'some/path/file.json', contents: JSON.stringify([nestedOne, nestedTwo]) }]
+    const result = parser.extractDtdlPaths(files, model)
+    expect(result).to.deep.equal([
+      {
+        type: 'directory',
+        name: 'some',
+        entries: [
+          {
+            type: 'directory',
+            name: 'path',
+            entries: [
+              {
+                type: 'file',
+                name: 'file.json',
+                entities: [
+                  {
+                    type: 'fileEntry',
+                    dtdlType: 'Interface',
+                    name: nestedOne['@id'],
+                    id: nestedOne['@id'],
+                    entries: [],
+                  },
+                  {
+                    type: 'fileEntry',
+                    dtdlType: 'Interface',
+                    name: nestedTwo['@id'],
+                    id: nestedTwo['@id'],
+                    entries: [],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
+  })
+
+  test('extracts and merges multiple entries in single file (deep)', () => {
+    const files = [{ path: 'some/path/file.json', contents: JSON.stringify([[[nestedOne, nestedTwo]]]) }]
+    const result = parser.extractDtdlPaths(files, model)
+    expect(result).to.deep.equal([
+      {
+        type: 'directory',
+        name: 'some',
+        entries: [
+          {
+            type: 'directory',
+            name: 'path',
+            entries: [
+              {
+                type: 'file',
+                name: 'file.json',
+                entities: [
+                  {
+                    type: 'fileEntry',
+                    dtdlType: 'Interface',
+                    name: nestedOne['@id'],
+                    id: nestedOne['@id'],
+                    entries: [],
+                  },
+                  {
+                    type: 'fileEntry',
+                    dtdlType: 'Interface',
+                    name: nestedTwo['@id'],
+                    id: nestedTwo['@id'],
+                    entries: [],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
+  })
+
+  test('extracts properties and relationships', async () => {
+    const files = [{ path: 'file.json', contents: JSON.stringify(withPropsAndRels) }]
+    const model = await parser.parse(files)
+
+    const result = parser.extractDtdlPaths(files, model)
+    expect(result).to.deep.equal([
+      {
+        type: 'file',
+        name: 'file.json',
+        entities: [
+          {
+            type: 'fileEntry',
+            dtdlType: 'Interface',
+            entries: [
+              {
+                dtdlType: 'Property',
+                id: 'dtmi:com:first:_contents:__property_a;1',
+                name: 'property_a',
+              },
+              {
+                dtdlType: 'Relationship',
+                id: 'dtmi:com:first:_contents:__relationship_a;1',
+                name: 'relationship a',
+              },
+            ],
+            id: 'dtmi:com:first;1',
+            name: 'First',
+          },
+          {
+            dtdlType: 'Interface',
+            entries: [
+              {
+                dtdlType: 'Property',
+                id: 'dtmi:com:second:_contents:__property_b;1',
+                name: 'property_b',
+              },
+            ],
+            id: 'dtmi:com:second;1',
+            name: 'Second',
+            type: 'fileEntry',
+          },
+        ],
+      },
+    ])
   })
 })
