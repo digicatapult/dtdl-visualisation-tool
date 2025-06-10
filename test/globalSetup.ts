@@ -2,11 +2,22 @@ import { FullConfig, Page, chromium } from '@playwright/test'
 import { TOTP } from 'otpauth'
 import 'reflect-metadata'
 import { waitForSuccessResponse, waitForUpdateLayout } from './e2e/helpers/waitForHelpers.js'
-import { bringUpDatabaseContainer, bringUpVisualisationContainer } from './testcontainers/testContainersSetup.js'
+import {
+  bringUpDatabaseContainer,
+  bringUpVisualisationContainer,
+  bringUpVisualisationContainerWithCustomConfig,
+} from './testcontainers/testContainersSetup.js'
 
 async function globalSetup(config: FullConfig) {
   await bringUpDatabaseContainer()
   await bringUpVisualisationContainer()
+  await bringUpVisualisationContainerWithCustomConfig({
+    containerName: 'dtdl-visualiser-custom',
+    hostPort: 3001,
+    containerPort: 3000,
+    cookieSessionKeys: 'test',
+    maxOntologySize: 4,
+  })
   await getGithubToken(config)
 }
 

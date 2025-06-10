@@ -6,6 +6,7 @@ interface VisualisationUIConfig {
   hostPort: number
   containerPort: number
   cookieSessionKeys: string
+  maxOntologySize?: number
 }
 interface databaseConfig {
   containerName: string
@@ -63,8 +64,15 @@ export async function bringUpVisualisationContainer(): Promise<StartedTestContai
   return visualisationUIContainer
 }
 
+export async function bringUpVisualisationContainerWithCustomConfig(
+  env: VisualisationUIConfig
+): Promise<StartedTestContainer> {
+  visualisationUIContainer = await startVisualisationContainer(env)
+  return visualisationUIContainer
+}
+
 export async function startVisualisationContainer(env: VisualisationUIConfig): Promise<StartedTestContainer> {
-  const { containerName, containerPort, hostPort, cookieSessionKeys } = env
+  const { containerName, containerPort, hostPort, cookieSessionKeys, maxOntologySize } = env
   logger.info(`Building container...`)
   const containerBase = await GenericContainer.fromDockerfile('./').withCache(true).build()
   logger.info(`Built container.`)
@@ -86,6 +94,7 @@ export async function startVisualisationContainer(env: VisualisationUIConfig): P
       GH_CLIENT_SECRET: process.env.GH_CLIENT_SECRET || '',
       COOKIE_SESSION_KEYS: cookieSessionKeys,
       EDIT_ONTOLOGY: 'true',
+      MAX_DTDL_OBJECT_SIZE: maxOntologySize ? maxOntologySize.toString() : '1000',
     })
     .withAddedCapabilities('SYS_ADMIN')
     .withCommand(['sh', '-c', 'npx knex migrate:latest --env production; dtdl-visualiser parse -p /sample/energygrid'])

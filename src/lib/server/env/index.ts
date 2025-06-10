@@ -33,6 +33,7 @@ export const envConfig = {
   GLOBAL_RATE_LIMIT: envalid.num({ default: 10000 }),
   IP_ALLOW_LIST: strArrayValidator({ default: [''] }),
   RATE_LIMIT_WINDOW_MS: envalid.num({ default: 10 * 60 * 1000 }),
+  MAX_DTDL_OBJECT_SIZE: envalid.num({ default: 1000 }),
 }
 
 export type ENV_CONFIG = typeof envConfig

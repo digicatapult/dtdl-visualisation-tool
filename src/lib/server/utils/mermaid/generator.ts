@@ -4,7 +4,7 @@ import url from 'node:url'
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import type { LayoutLoaderDefinition, Mermaid, MermaidConfig } from 'mermaid'
 import puppeteer, { Browser, Page } from 'puppeteer'
-import { container, inject, singleton } from 'tsyringe'
+import { inject, singleton } from 'tsyringe'
 
 import { Semaphore } from 'async-mutex'
 import { Env } from '../../env/index.js'
@@ -16,8 +16,6 @@ import { Pool, type IPool } from '../../pool.js'
 import ClassDiagram from './classDiagram.js'
 import { IDiagram } from './diagramInterface.js'
 import Flowchart from './flowchart.js'
-
-const env = container.resolve(Env)
 
 const mermaidJsPath = path.resolve(
   path.dirname(url.fileURLToPath(import.meta.resolve('mermaid', import.meta.url))),
@@ -48,7 +46,8 @@ export class SvgGenerator {
 
   constructor(
     @inject(Logger) private logger: ILogger,
-    @inject(Pool) private poolSize: IPool
+    @inject(Pool) private poolSize: IPool,
+    @inject(Env) private env: Env
   ) {
     this.browser = this.initialiseBrowser()
     this.pagePool = this.initialisePagePool(this.poolSize)
@@ -60,6 +59,12 @@ export class SvgGenerator {
     layout: Layout,
     isRetry: boolean = false
   ): Promise<MermaidSvgRender | PlainTextRender> {
+    if (this.countRenderableEntities(dtdlObject) > this.env.get('MAX_DTDL_OBJECT_SIZE')) {
+      this.logger.warn(
+        `DtdlObject size ${dtdlObject.size} exceeds maximum allowed size ${this.env.get('MAX_DTDL_OBJECT_SIZE')}`
+      )
+      return new PlainTextRender('DtdlObject size exceeds maximum allowed size')
+    }
     const { page, release } = await this.getAvailablePage()
     try {
       // Try this first to fail before using resources creating graph
@@ -86,6 +91,19 @@ export class SvgGenerator {
       this.logger.error('Something went wrong rendering mermaid layout', err)
       throw err
     }
+  }
+
+  private countRenderableEntities(dtdlObject: DtdlObjectModel): number {
+    return Object.entries(dtdlObject).reduce((count, [, entityType]) => {
+      if (
+        entityType.EntityKind === 'Interface' ||
+        entityType.EntityKind === 'Property' ||
+        entityType.EntityKind === 'Relationship'
+      ) {
+        return count + 1
+      }
+      return count
+    }, 0)
   }
 
   private async tryCloseBrowser(page: Page) {
@@ -119,7 +137,7 @@ export class SvgGenerator {
   async initialiseBrowser(isRetry: boolean = false): Promise<Browser> {
     try {
       return await puppeteer.launch({
-        args: env.get('PUPPETEER_ARGS'),
+        args: this.env.get('PUPPETEER_ARGS'),
       })
     } catch (err) {
       if (!isRetry) {

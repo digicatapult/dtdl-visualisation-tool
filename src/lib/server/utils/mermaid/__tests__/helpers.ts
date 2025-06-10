@@ -1,10 +1,11 @@
 import { expect } from 'chai'
+import * as envalid from 'envalid'
 import { JSDOM } from 'jsdom'
 import mermaid, { ParseResult } from 'mermaid'
 import path from 'path'
 import puppeteer from 'puppeteer'
 import { container } from 'tsyringe'
-import { Env } from '../../../env/index.js'
+import { Env, ENV_CONFIG, envConfig } from '../../../env/index.js'
 
 const env = container.resolve(Env)
 
@@ -65,3 +66,14 @@ export const getChildrenByClass = (element: Element, className: string): Element
     return classSet.has(className)
   }) as Element[]
 }
+
+export const mockEnvClass = (overrides: Partial<Record<keyof ENV_CONFIG, string | number>> = {}) =>
+  ({
+    get: (key: keyof ENV_CONFIG): string | number => {
+      const value = envalid.cleanEnv({ ...process.env, ...overrides }, envConfig)[key]
+      if (typeof value === 'string' || typeof value === 'number') {
+        return value
+      }
+      throw new Error(`Unsupported env value type for key ${String(key)}: ${typeof value}`)
+    },
+  }) as Env

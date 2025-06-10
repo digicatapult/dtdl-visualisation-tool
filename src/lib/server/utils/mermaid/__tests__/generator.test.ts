@@ -9,11 +9,12 @@ import { MermaidSvgRender, PlainTextRender } from '../../../models/renderedDiagr
 import { SvgGenerator } from '../generator'
 import {
   generatedSVGFixture,
+  mockDtdlObjectModel,
   pageMock,
   simpleMockDtdlObjectModel,
   svgSearchFuelTypeExpandedFossilFuel,
 } from './fixtures'
-import { checkIfStringIsSVG } from './helpers'
+import { checkIfStringIsSVG, mockEnvClass } from './helpers'
 
 export const parallelTest = 2
 export const nonParallelTest = 1
@@ -21,7 +22,8 @@ export const nonParallelTest = 1
 describe('Generator', function () {
   this.timeout(10000)
   const logger = pino({ level: 'silent' })
-  const generator = new SvgGenerator(logger, nonParallelTest)
+  const mockEnv = mockEnvClass()
+  const generator = new SvgGenerator(logger, nonParallelTest, mockEnv)
 
   afterEach(() => {
     sinon.restore()
@@ -42,7 +44,7 @@ describe('Generator', function () {
 
     it('should retry if an error occurs', async () => {
       const stub = sinon.stub(puppeteer, 'launch').onFirstCall().rejects('Error').callThrough()
-      const generator = new SvgGenerator(logger, parallelTest)
+      const generator = new SvgGenerator(logger, parallelTest, mockEnv)
 
       const generatedOutput = await generator.run(simpleMockDtdlObjectModel, defaultParams.diagramType, 'elk' as const)
 
@@ -53,7 +55,7 @@ describe('Generator', function () {
 
     it('will only retry once', async () => {
       const stub = sinon.stub(puppeteer, 'launch').rejects('Error')
-      const generator = new SvgGenerator(logger, parallelTest)
+      const generator = new SvgGenerator(logger, parallelTest, mockEnv)
 
       let error: Error | null = null
       try {
@@ -87,7 +89,7 @@ describe('Generator', function () {
         close: sinon.stub(),
       } as unknown as Browser)
 
-      const gen = new SvgGenerator(logger, parallelTest)
+      const gen = new SvgGenerator(logger, parallelTest, mockEnv)
 
       const [firstResult, secondResult] = await Promise.all([
         gen.run(simpleMockDtdlObjectModel, 'flowchart', 'elk' as const),
@@ -108,7 +110,7 @@ describe('Generator', function () {
         newPage: sinon.stub().resolves(pageMock(pageRenderStub)),
         close: sinon.stub(),
       } as unknown as Browser)
-      const gen = new SvgGenerator(logger, parallelTest)
+      const gen = new SvgGenerator(logger, parallelTest, mockEnv)
       const runs: Promise<MermaidSvgRender | PlainTextRender>[] = []
       // render one more ontology than the number of pages available
       for (let i = 0; i < parallelTest + 1; i++) {
@@ -137,7 +139,7 @@ describe('Generator', function () {
         newPage: sinon.stub().resolves(pageMock(pageRenderStub)),
         close: sinon.stub(),
       } as unknown as Browser)
-      const gen = new SvgGenerator(logger, parallelTest)
+      const gen = new SvgGenerator(logger, parallelTest, mockEnv)
       const runs: Promise<MermaidSvgRender | PlainTextRender>[] = []
       for (let i = 0; i < parallelTest; i++) {
         runs.push(gen.run(simpleMockDtdlObjectModel, 'flowchart', 'elk' as const))
@@ -147,6 +149,12 @@ describe('Generator', function () {
       for (const result of results) {
         expect(result.renderToString()).to.equal(svgSearchFuelTypeExpandedFossilFuel)
       }
+    })
+    it('should not render ontologies larger than the env and return user message', async () => {
+      const mockEnvWithLimit = mockEnvClass({ MAX_DTDL_OBJECT_SIZE: 4 })
+      const gen = new SvgGenerator(logger, nonParallelTest, mockEnvWithLimit)
+      const result = await gen.run(mockDtdlObjectModel, 'flowchart', 'elk' as const)
+      expect(result.type).to.equal('text')
     })
   })
 })
