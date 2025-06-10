@@ -53,7 +53,7 @@ program
     }
 
     if (currentDefault) {
-      const parsedDtdl = await modelDb.getDtdlModel(currentDefault.id)
+      const { model: parsedDtdl } = await modelDb.getDtdlModelAndTree(currentDefault.id)
       const output = await generator.run(parsedDtdl, 'flowchart', 'elk')
       setCacheWithDefaultParams(cache, currentDefault.id, output)
     } else {

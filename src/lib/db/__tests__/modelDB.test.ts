@@ -5,7 +5,10 @@ import sinon from 'sinon'
 import { InternalError } from '../../server/errors.js'
 import { FileSourceKeys } from '../../server/models/openTypes.js'
 import { UUID } from '../../server/models/strings.js'
-import { singleInterfaceFirst as defaultModel } from '../../server/utils/dtdl/__tests__/fixtures.js'
+import {
+  singleInterfaceFirst as defaultModel,
+  singleInterfaceFirstFilePaths,
+} from '../../server/utils/dtdl/__tests__/fixtures.js'
 import Parser from '../../server/utils/dtdl/parser.js'
 import Database from '../index.js'
 import { ModelDb } from '../modelDb.js'
@@ -49,16 +52,18 @@ const mockDbNoDefault = {
   insert: sinon.stub().resolves([{ id: '3' as UUID }]),
   delete: sinon.stub().resolves(),
 } as unknown as Database
-const mockParserStub = sinon.stub().resolves(defaultModel)
+const mockParserParseStub = sinon.stub().resolves(defaultModel)
+const mockParserExtractPathsStub = sinon.stub().returns(singleInterfaceFirstFilePaths)
 const mockParser = {
-  parse: mockParserStub,
+  parse: mockParserParseStub,
+  extractDtdlPaths: mockParserExtractPathsStub,
 } as unknown as Parser
 const model = new ModelDb(mockDb, mockParser)
 const modelNoDefault = new ModelDb(mockDbNoDefault, mockParser)
 
 describe('modelDB', function () {
   afterEach(() => {
-    mockParserStub.resetHistory()
+    mockParserParseStub.resetHistory()
   })
 
   describe('getModelById', () => {
@@ -108,13 +113,20 @@ describe('modelDB', function () {
 
   describe('getDtdlModel', () => {
     it('should get parsed DTDL for a model', async () => {
-      expect(await model.getDtdlModel('1')).to.deep.equal(defaultModel)
-      expect(mockParserStub.firstCall.args[0]).to.deep.equal([
+      expect(await model.getDtdlModelAndTree('1')).to.deep.equal({
+        model: defaultModel,
+        fileTree: singleInterfaceFirstFilePaths,
+      })
+      expect(mockParserParseStub.firstCall.args[0]).to.deep.equal([
         { path: 'path', contents: JSON.stringify({ someDtdlKey: 'someDtdlValue' }) },
+      ])
+      expect(mockParserExtractPathsStub.firstCall.args).to.deep.equal([
+        [{ path: 'path', contents: JSON.stringify({ someDtdlKey: 'someDtdlValue' }) }],
+        defaultModel,
       ])
     })
     it('should throw error if given ID not found', async () => {
-      await expect(model.getDtdlModel('badId')).to.be.rejectedWith(InternalError)
+      await expect(model.getDtdlModelAndTree('badId')).to.be.rejectedWith(InternalError)
     })
   })
 
@@ -127,7 +139,7 @@ describe('modelDB', function () {
   describe('parseWithUpdatedFile', () => {
     it('should get parse DTDL with updated value', async () => {
       const parsedModel = await model.parseWithUpdatedFile('1', '1', JSON.stringify({ someDtdlKey: 'newValue' }))
-      expect(mockParserStub.firstCall.args[0]).to.deep.equal([
+      expect(mockParserParseStub.firstCall.args[0]).to.deep.equal([
         { path: 'path', contents: JSON.stringify({ someDtdlKey: 'newValue' }) },
       ])
       expect(parsedModel).to.deep.equal(defaultModel)

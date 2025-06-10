@@ -1,4 +1,5 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
+import { DtdlPath } from '../parser'
 
 export const singleInterfaceFirst: DtdlObjectModel = {
   first: {
@@ -7,6 +8,14 @@ export const singleInterfaceFirst: DtdlObjectModel = {
     displayName: { en: 'display name' },
   },
 } as unknown as DtdlObjectModel
+
+export const singleInterfaceFirstFilePaths: DtdlPath[] = [
+  {
+    type: 'file',
+    name: 'firstFile.json',
+    entities: [{ type: 'fileEntry', dtdlType: 'Interface', name: 'display name', id: 'first', entries: [] }],
+  },
+]
 
 export const multipleInterfaces: DtdlObjectModel = {
   ...singleInterfaceFirst,

@@ -1,0 +1,34 @@
+[
+  {
+    "@id": "dtmi:com:first;1",
+    "@type": "Interface",
+    "@context": ["dtmi:dtdl:context;4"],
+    "displayName": "First",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "property_a",
+        "schema": "string"
+      },
+      {
+        "@type": "Relationship",
+        "name": "relationship_a",
+        "target": "dtmi:com:second;1",
+        "displayName": "relationship a"
+      }
+    ]
+  },
+  {
+    "@id": "dtmi:com:second;1",
+    "@type": "Interface",
+    "@context": ["dtmi:dtdl:context;4"],
+    "displayName": "Second",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "property_b",
+        "schema": "string"
+      }
+    ]
+  }
+]
