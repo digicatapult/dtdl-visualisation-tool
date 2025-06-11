@@ -376,7 +376,11 @@ export default class MermaidTemplates {
       <>
         {fileTree.map((path) => {
           if (path.type === 'fileEntryContent' || path.entries.length === 0) {
-            return <div class={`navigation-panel-tree-leaf ${this.navigationPanelNodeClass(path)}`}>{path.name}</div>
+            return (
+              <div class={`navigation-panel-tree-leaf ${this.navigationPanelNodeClass(path)}`}>
+                {escapeHtml(path.name)}
+              </div>
+            )
           }
 
           const isHighlighted = highlightedEntitySet.has(path)
