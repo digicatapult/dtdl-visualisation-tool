@@ -384,11 +384,6 @@ export default class MermaidTemplates {
           const isHighlighted = 'id' in path ? path.id === highlightedEntityId : false
           const highlightClass = isHighlighted ? 'nav-tree-leaf-highlighted' : ''
 
-          if (path.name === 'CurveStyle') {
-            console.log(JSON.stringify(path, null, 2))
-            console.log(highlightedEntityId)
-          }
-
           if (path.type === 'fileEntryContent' || path.entries.length === 0) {
             return (
               <div
