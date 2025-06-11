@@ -4,7 +4,7 @@ import { InternalError } from '../server/errors.js'
 import { FileSourceKeys } from '../server/models/openTypes.js'
 import { DtdlId, type UUID } from '../server/models/strings.js'
 import { allInterfaceFilter } from '../server/utils/dtdl/extract.js'
-import Parser from '../server/utils/dtdl/parser.js'
+import Parser, { DtdlPath } from '../server/utils/dtdl/parser.js'
 import Database from './index.js'
 import { DtdlFile, DtdlRow, ModelRow } from './types.js'
 
@@ -54,12 +54,13 @@ export class ModelDb {
     })
   }
 
-  async getDtdlModel(id: UUID): Promise<DtdlObjectModel> {
+  async getDtdlModelAndTree(id: UUID): Promise<{ model: DtdlObjectModel; fileTree: DtdlPath[] }> {
     const files = await this.db.get('dtdl', { model_id: id })
     if (files.length === 0) throw new InternalError(`Failed to find model: ${id}`)
     const filesStringified = files.map((file) => ({ path: file.path, contents: JSON.stringify(file.contents) }))
     const parsedDtdl = await this.parser.parse(filesStringified)
-    return parsedDtdl
+    const fileTree = this.parser.extractDtdlPaths(filesStringified, parsedDtdl)
+    return { model: parsedDtdl, fileTree }
   }
 
   // validate the updated file works with rest of model

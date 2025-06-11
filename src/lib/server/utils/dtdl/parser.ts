@@ -1,16 +1,51 @@
-import { DtdlObjectModel, getInterop, parseDtdl } from '@digicatapult/dtdl-parser'
+import { DtdlObjectModel, EntityType, getInterop, parseDtdl } from '@digicatapult/dtdl-parser'
 import { createHash } from 'crypto'
 import { Dirent } from 'node:fs'
 import { readdir, readFile } from 'node:fs/promises'
-import { join, relative } from 'node:path'
+import path, { join, relative } from 'node:path'
 import { container, inject, singleton } from 'tsyringe'
 import unzipper from 'unzipper'
+import z from 'zod'
 import { DtdlFile } from '../../../db/types.js'
 import { Env } from '../../env/index.js'
 import { ModellingError, UploadError } from '../../errors.js'
 import { Logger, type ILogger } from '../../logger.js'
 import { dtdlObjectModelParser } from '../../models/dtdlOmParser.js'
 import { Cache, type ICache } from '../cache.js'
+
+type DtdlPathFileEntryContent = {
+  id: string
+  name: string
+  dtdlType: string
+}
+type DtdlPathFileEntry = {
+  type: 'fileEntry'
+  name: string
+  id: string
+  dtdlType: string
+  entries: DtdlPathFileEntryContent[]
+}
+type DtdlPathFile = {
+  type: 'file'
+  name: string
+  entities: DtdlPathFileEntry[]
+}
+type DtdlPathDirectory = {
+  type: 'directory'
+  name: string
+  entries: DtdlPath[]
+}
+export type DtdlPath = DtdlPathDirectory | DtdlPathFile
+
+const entityParser = z.object({
+  '@id': z.string(),
+})
+type DtdlFileEntry = z.infer<typeof entityParser>
+type DtdlFileContents = DtdlFileContents[] | DtdlFileEntry
+const dtdlFileContentParser: z.ZodSchema<DtdlFileContents> = z.union([
+  z.array(z.lazy(() => dtdlFileContentParser)),
+  entityParser,
+])
 
 const env = container.resolve(Env)
 @singleton()
@@ -20,17 +55,18 @@ export default class Parser {
     @inject(Cache) private cache: ICache
   ) {}
 
-  async getJsonFiles(dir: string) {
+  async getJsonFiles(dir: string, topDir?: string) {
+    topDir = topDir || dir
     const entries = await readdir(dir, { withFileTypes: true })
-    const files = await Promise.all(entries.map((entry) => this.handleFileOrDir(dir, entry)))
+    const files = await Promise.all(entries.map((entry) => this.handleFileOrDir(topDir, dir, entry)))
     return files.flat().filter((f) => f !== undefined)
   }
 
-  private async handleFileOrDir(dir: string, entry: Dirent): Promise<DtdlFile[] | undefined> {
+  private async handleFileOrDir(topDir: string, dir: string, entry: Dirent): Promise<DtdlFile[] | undefined> {
     const fullPath = join(dir, entry.name)
 
     if (entry.isDirectory()) {
-      return this.getJsonFiles(fullPath)
+      return this.getJsonFiles(fullPath, topDir)
     }
 
     if (entry.isFile() && entry.name.endsWith('.json')) {
@@ -45,7 +81,7 @@ export default class Parser {
         return
       }
       this.isWithinDepthLimit(json)
-      return [{ path: relative(dir, fullPath), contents: noBomJson }]
+      return [{ path: relative(topDir, fullPath), contents: noBomJson }]
     }
   }
 
@@ -112,6 +148,131 @@ export default class Parser {
     this.cache.set<DtdlObjectModel>(dtdlHashKey, parsedDtdl)
 
     return parsedDtdl
+  }
+
+  extractDtdlPaths(files: DtdlFile[], model: DtdlObjectModel): DtdlPath[] {
+    // for each file parse the contents and extract the entities along their file system path
+    const dtdlFilePaths = files.map((file) => {
+      const json = dtdlFileContentParser.parse(JSON.parse(file.contents))
+      const filePath = path.parse(file.path)
+      const pathFile = this.extractDtdlEntities(filePath.base, json, model)
+      return this.wrapDtdlPathEntry(filePath, pathFile)
+    })
+
+    // combine the paths into a single tree structure
+    return dtdlFilePaths.reduce(this.dtdlPathReducer.bind(this), [])
+  }
+
+  // reducer function to combine DtdlPath entries. Note this is recursively called via mergeDtdlPaths
+  private dtdlPathReducer(acc: DtdlPath[], entry: DtdlPath): DtdlPath[] {
+    if (entry.type === 'file') {
+      acc.push(entry)
+      return acc
+    }
+
+    const existing = acc.find((e): e is DtdlPath => e.type === 'directory' && e.name === entry.name)
+    if (!existing) {
+      acc.push(entry)
+      return acc
+    }
+
+    this.mergeDtdlPaths(existing, entry)
+    return acc
+  }
+
+  private mergeDtdlPaths(dest: DtdlPath, src: DtdlPath): void {
+    if (dest.type !== 'directory' || src.type !== 'directory') {
+      throw new Error('Cannot merge non-directory paths')
+    }
+
+    if (dest.name !== src.name) {
+      throw new Error(`Cannot merge directories with different names: ${dest.name} and ${src.name}`)
+    }
+
+    for (const srcEntry of src.entries) {
+      this.dtdlPathReducer(dest.entries, srcEntry)
+    }
+  }
+
+  // recursively builds up an object path structure of directories using extracted path segments
+  private wrapDtdlPathEntry(parsedPath: path.ParsedPath, entry: DtdlPath): DtdlPath {
+    if (parsedPath.root === parsedPath.dir) {
+      return entry
+    }
+
+    const parentPath = path.parse(parsedPath.dir)
+    const wrapped = {
+      type: 'directory' as const,
+      name: parentPath.base,
+      entries: [entry],
+    }
+
+    return this.wrapDtdlPathEntry(parentPath, wrapped)
+  }
+
+  // extracts DTDL entities from the parsed contents and builds a DtdlPathFile structure
+  private extractDtdlEntities(name: string, contents: DtdlFileContents, model: DtdlObjectModel): DtdlPathFile {
+    if (Array.isArray(contents)) {
+      return {
+        type: 'file',
+        name,
+        entities: contents.map((c) => this.extractDtdlEntities(name, c, model).entities).flat(),
+      }
+    }
+
+    const entityId = contents['@id']
+    const parsedEntry = model[entityId]
+
+    if (!parsedEntry) {
+      throw new Error('Missing entry in model for id: ' + entityId)
+    }
+
+    const refEntries: DtdlPathFileEntryContent[] = [
+      'properties' in parsedEntry ? this.extractDtdlPathFileContents(parsedEntry.properties, model, entityId) : [],
+      'relationships' in parsedEntry
+        ? this.extractDtdlPathFileContents(parsedEntry.relationships, model, entityId)
+        : [],
+    ].flat()
+
+    const entities = [
+      {
+        type: 'fileEntry' as const,
+        entries: refEntries,
+        ...this.extractDtdlPathFileEntry(parsedEntry),
+      },
+    ]
+
+    return {
+      type: 'file',
+      name,
+      entities,
+    }
+  }
+
+  // extracts the contents of properties and relationships from the model, filtering by the definedIn property matching parent entity ID
+  private extractDtdlPathFileContents(
+    contents: string[] | Record<string, string>,
+    model: DtdlObjectModel,
+    parentEntityId: string
+  ): DtdlPathFileEntryContent[] {
+    const ids = Array.isArray(contents) ? contents : Object.values(contents)
+
+    const result: DtdlPathFileEntryContent[] = []
+    for (const propId of ids) {
+      const entry = model[propId]
+      if (entry.DefinedIn === parentEntityId) {
+        result.push(this.extractDtdlPathFileEntry(entry))
+      }
+    }
+    return result
+  }
+
+  private extractDtdlPathFileEntry(entry: EntityType) {
+    return {
+      id: entry.Id,
+      dtdlType: entry.EntityKind,
+      name: entry.displayName?.en ?? ('name' in entry ? entry.name : entry.Id),
+    }
   }
 
   isWithinDepthLimit(obj: object, currentDepth = 1) {

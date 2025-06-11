@@ -181,7 +181,7 @@ export const simpleMockModelDb = {
   getDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
   insertModel: () => Promise.resolve(1),
   deleteDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
-  getDtdlModel: () => Promise.resolve(simpleMockDtdlObjectModel),
+  getDtdlModelAndTree: () => Promise.resolve({ model: simpleMockDtdlObjectModel, fileTree: [] }),
   getCollection: (dtdlModel: DtdlObjectModel) =>
     Object.entries(dtdlModel)
       .filter(allInterfaceFilter)
@@ -200,7 +200,7 @@ export const complexMockModelDb = {
   getDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
   insertModel: () => Promise.resolve(1),
   deleteDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
-  getDtdlModel: () => Promise.resolve(complexMockDtdlModel),
+  getDtdlModelAndTree: () => Promise.resolve({ model: complexMockDtdlModel, fileTree: [] }),
   getCollection: (dtdlModel: DtdlObjectModel) =>
     Object.entries(dtdlModel)
       .filter(allInterfaceFilter)

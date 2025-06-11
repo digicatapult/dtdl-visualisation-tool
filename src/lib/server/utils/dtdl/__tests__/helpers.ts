@@ -1,11 +1,5 @@
-import { createHash } from 'crypto'
 import sinon from 'sinon'
 import { type ICache } from '../../cache'
-
-export function createHashKey(files: { contents: string }[]): { allContents: string; hashKey: string } {
-  const allContents = `[${files.map((f) => f.contents).join(',')}]`
-  return { allContents, hashKey: createHash('sha256').update(allContents).digest('base64') }
-}
 
 export function createMockCache(
   hashKey: string,
@@ -20,8 +14,8 @@ export function createMockCache(
   sizeStub: sinon.SinonStub
 } {
   const hasStub = sinon.stub().returns(hasCache)
-  // eslint warning, _variable works elsewhere in the codebase, not sure why this is an issue here
-  const getStub = sinon.stub().callsFake((key, _parser) => {
+
+  const getStub = sinon.stub().callsFake((key) => {
     if (hashKey === key) return parsedValue
     return undefined
   })
