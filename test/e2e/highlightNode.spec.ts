@@ -5,12 +5,14 @@ test.describe('highlight', () => {
   test('flowchart - interface should change to highlight colour and navigation panel open', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 })
     await page.goto('./')
+    await page.waitForSelector(`text='Terminal'`)
 
     await waitForUpdateLayout(page, () =>
       page.locator('#mermaid-output').getByText('ACDCTerminal', { exact: true }).click()
     )
+    await page.locator('#navigation-panel').getByText('Details', { exact: true }).click()
 
-    await expect(page.locator('#navigation-panel-content').getByText('ACDCTerminal', { exact: true })).toBeVisible()
+    await expect(page.locator('#navigation-panel-details').getByText('ACDCTerminal', { exact: true })).toBeVisible()
 
     const rect = page.locator('#mermaid-output').locator('[id*=ACDCTerminal]').locator('rect.label-container')
 
@@ -20,12 +22,14 @@ test.describe('highlight', () => {
   test('flowchart - relationship should change to highlight colour and navigation panel open', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 })
     await page.goto('./')
+    await page.waitForSelector(`text='Terminal'`)
 
     await waitForUpdateLayout(page, () =>
       page.locator('#mermaid-output').getByText('CurveDatas', { exact: true }).click()
     )
+    await page.locator('#navigation-panel').getByText('Details', { exact: true }).click()
 
-    await expect(page.locator('#navigation-panel-content').getByText('CurveDatas', { exact: true })).toBeVisible()
+    await expect(page.locator('#navigation-panel-details').getByText('CurveDatas', { exact: true })).toBeVisible()
 
     const text = page.locator('#mermaid-output').getByText('CurveDatas', { exact: true })
 
@@ -35,12 +39,14 @@ test.describe('highlight', () => {
   test('class diagram - interface should change to highlight colour and navigation panel open', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 })
     await page.goto('./?diagramType=classDiagram')
+    await page.waitForSelector(`text='Terminal'`)
 
     await waitForUpdateLayout(page, () =>
       page.locator('#mermaid-output').getByText('Terminal', { exact: true }).click()
     )
+    await page.locator('#navigation-panel').getByText('Details', { exact: true }).click()
 
-    await expect(page.locator('#navigation-panel-content').getByText('Terminal', { exact: true })).toBeVisible()
+    await expect(page.locator('#navigation-panel-details').getByText('Terminal', { exact: true })).toBeVisible()
 
     const path = page
       .locator('#mermaid-output')
@@ -64,9 +70,10 @@ test.describe('highlight', () => {
     await waitForUpdateLayout(page, () =>
       page.locator('#mermaid-output').getByText('memberOfSubstation', { exact: true }).click()
     )
+    await page.locator('#navigation-panel').getByText('Details', { exact: true }).click()
 
     await expect(
-      page.locator('#navigation-panel-content').getByText('memberOfSubstation', { exact: true })
+      page.locator('#navigation-panel-details').getByText('memberOfSubstation', { exact: true })
     ).toBeVisible()
 
     const text = page.locator('#mermaid-output').getByText('memberOfSubstation', { exact: true })

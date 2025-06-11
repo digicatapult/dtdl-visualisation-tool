@@ -27,6 +27,7 @@ export interface UpdateParams extends RootParams {
   currentPanX: number
   currentPanY: number
   a11y?: A11yPreference[]
+  navigationPanelTab?: 'details' | 'tree'
 }
 
 export interface CookieHistoryParams {

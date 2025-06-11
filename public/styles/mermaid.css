@@ -7,7 +7,7 @@
   }
 
   g.node[highlighted] > rect {
-    fill: #fbf291;
+    fill: var(--highlighted-color);
   }
 
   g.node:is(.expanded, .unexpanded) > rect {
@@ -28,7 +28,7 @@
   }
 
   g.node[highlighted] > .label-container > path {
-    fill: #fbf291;
+    fill: var(--highlighted-color);
   }
 
   g.node:is(.expanded, .unexpanded) > :is(.label-container, .divider) > path {
