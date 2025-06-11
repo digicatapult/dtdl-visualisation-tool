@@ -130,7 +130,7 @@ export class OntologyController extends HTMLController {
     const session = this.sessionStore.get(params.sessionId)
 
     // get the base dtdl model that we will derive the graph from
-    const { model: baseModel } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
+    const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
     const search = new FuseSearch(this.modelDb.getCollection(baseModel))
 
     const newSession: Session = {
@@ -208,6 +208,8 @@ export class OntologyController extends HTMLController {
         model: baseModel,
         expanded: newSession.highlightNodeId !== undefined,
         edit: session.editMode!,
+        tab: params.navigationPanelTab ?? (newSession.highlightNodeId ? 'details' : 'tree'),
+        fileTree,
       }),
       this.templates.svgControls({
         swapOutOfBand: true,
@@ -228,7 +230,7 @@ export class OntologyController extends HTMLController {
     const session = this.sessionStore.get(sessionId)
 
     // get the base dtdl model that we will derive the graph from
-    const { model: baseModel } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
+    const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
 
     this.sessionStore.update(sessionId, { editMode })
 
@@ -239,6 +241,8 @@ export class OntologyController extends HTMLController {
         model: baseModel,
         expanded: session.highlightNodeId !== undefined,
         edit: editMode,
+        tab: 'details',
+        fileTree,
       })
     )
   }

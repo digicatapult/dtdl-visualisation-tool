@@ -13,29 +13,30 @@ import { Logger, type ILogger } from '../../logger.js'
 import { dtdlObjectModelParser } from '../../models/dtdlOmParser.js'
 import { Cache, type ICache } from '../cache.js'
 
-type DtdlPathFileEntryContent = {
+export type DtdlPathFileEntryContent = {
+  type: 'fileEntryContent'
   id: string
   name: string
-  dtdlType: string
+  dtdlType: EntityType['EntityKind']
 }
-type DtdlPathFileEntry = {
+export type DtdlPathFileEntry = {
   type: 'fileEntry'
   name: string
   id: string
-  dtdlType: string
+  dtdlType: EntityType['EntityKind']
   entries: DtdlPathFileEntryContent[]
 }
 type DtdlPathFile = {
   type: 'file'
   name: string
-  entities: DtdlPathFileEntry[]
+  entries: DtdlPathFileEntry[]
 }
 type DtdlPathDirectory = {
   type: 'directory'
   name: string
   entries: DtdlPath[]
 }
-export type DtdlPath = DtdlPathDirectory | DtdlPathFile
+export type DtdlPath = DtdlPathDirectory | DtdlPathFile | DtdlPathFileEntry | DtdlPathFileEntryContent
 
 const entityParser = z.object({
   '@id': z.string(),
@@ -216,7 +217,7 @@ export default class Parser {
       return {
         type: 'file',
         name,
-        entities: contents.map((c) => this.extractDtdlEntities(name, c, model).entities).flat(),
+        entries: contents.map((c) => this.extractDtdlEntities(name, c, model).entries).flat(),
       }
     }
 
@@ -234,18 +235,18 @@ export default class Parser {
         : [],
     ].flat()
 
-    const entities = [
+    const entries = [
       {
+        ...this.extractDtdlPathFileEntry(parsedEntry),
         type: 'fileEntry' as const,
         entries: refEntries,
-        ...this.extractDtdlPathFileEntry(parsedEntry),
       },
     ]
 
     return {
       type: 'file',
       name,
-      entities,
+      entries,
     }
   }
 
@@ -269,6 +270,7 @@ export default class Parser {
 
   private extractDtdlPathFileEntry(entry: EntityType) {
     return {
+      type: 'fileEntryContent' as const,
       id: entry.Id,
       dtdlType: entry.EntityKind,
       name: entry.displayName?.en ?? ('name' in entry ? entry.name : entry.Id),

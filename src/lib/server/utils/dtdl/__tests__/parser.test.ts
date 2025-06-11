@@ -200,7 +200,7 @@ describe('extractDtdlPaths', function () {
       {
         type: 'file',
         name: 'file.json',
-        entities: [
+        entries: [
           {
             type: 'fileEntry',
             dtdlType: 'Interface',
@@ -228,7 +228,7 @@ describe('extractDtdlPaths', function () {
               {
                 type: 'file',
                 name: 'file.json',
-                entities: [
+                entries: [
                   {
                     type: 'fileEntry',
                     dtdlType: 'Interface',
@@ -263,7 +263,7 @@ describe('extractDtdlPaths', function () {
               {
                 type: 'file',
                 name: 'file.json',
-                entities: [
+                entries: [
                   {
                     type: 'fileEntry',
                     dtdlType: 'Interface',
@@ -282,7 +282,7 @@ describe('extractDtdlPaths', function () {
               {
                 type: 'file',
                 name: 'file2.json',
-                entities: [
+                entries: [
                   {
                     type: 'fileEntry',
                     dtdlType: 'Interface',
@@ -314,7 +314,7 @@ describe('extractDtdlPaths', function () {
               {
                 type: 'file',
                 name: 'file.json',
-                entities: [
+                entries: [
                   {
                     type: 'fileEntry',
                     dtdlType: 'Interface',
@@ -353,7 +353,7 @@ describe('extractDtdlPaths', function () {
               {
                 type: 'file',
                 name: 'file.json',
-                entities: [
+                entries: [
                   {
                     type: 'fileEntry',
                     dtdlType: 'Interface',
@@ -386,17 +386,19 @@ describe('extractDtdlPaths', function () {
       {
         type: 'file',
         name: 'file.json',
-        entities: [
+        entries: [
           {
             type: 'fileEntry',
             dtdlType: 'Interface',
             entries: [
               {
+                type: 'fileEntryContent',
                 dtdlType: 'Property',
                 id: 'dtmi:com:first:_contents:__property_a;1',
                 name: 'property_a',
               },
               {
+                type: 'fileEntryContent',
                 dtdlType: 'Relationship',
                 id: 'dtmi:com:first:_contents:__relationship_a;1',
                 name: 'relationship a',
@@ -409,6 +411,7 @@ describe('extractDtdlPaths', function () {
             dtdlType: 'Interface',
             entries: [
               {
+                type: 'fileEntryContent',
                 dtdlType: 'Property',
                 id: 'dtmi:com:second:_contents:__property_b;1',
                 name: 'property_b',

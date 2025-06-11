@@ -13,7 +13,7 @@ export const singleInterfaceFirstFilePaths: DtdlPath[] = [
   {
     type: 'file',
     name: 'firstFile.json',
-    entities: [{ type: 'fileEntry', dtdlType: 'Interface', name: 'display name', id: 'first', entries: [] }],
+    entries: [{ type: 'fileEntry', dtdlType: 'Interface', name: 'display name', id: 'first', entries: [] }],
   },
 ]
 

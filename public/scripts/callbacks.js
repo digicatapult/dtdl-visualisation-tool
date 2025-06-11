@@ -1,9 +1,11 @@
 let panZoom = null
 
 globalThis.toggleAccordion = (event) => {
-  const content = event.target.closest('section')?.querySelector('.accordion-content')
+  const content = event.target.closest('.accordion-parent')?.querySelector('.accordion-content')
 
   event.target.toggleAttribute('aria-expanded')
+  event.target.toggleAttribute('aria-hidden')
+  content?.toggleAttribute('aria-expanded')
   content?.toggleAttribute('aria-hidden')
 }
 
@@ -11,6 +13,7 @@ globalThis.toggleNavPanel = (event) => {
   const panel = event.target.parentElement
 
   panel?.toggleAttribute('aria-expanded')
+  panel?.toggleAttribute('aria-hidden')
 }
 
 globalThis.toggleEditSwitch = (event) => {
