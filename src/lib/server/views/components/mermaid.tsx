@@ -159,7 +159,7 @@ export default class MermaidTemplates {
         <div id="navigation-panel-controls">
           <label>
             <h2>Details</h2>
-            <input type="radio" name="navigationPanelTab" value="details" checked={taxb === 'details'} />
+            <input type="radio" name="navigationPanelTab" value="details" checked={tab === 'details'} />
           </label>
           <label>
             <h2>Tree</h2>
