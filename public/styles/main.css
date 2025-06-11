@@ -16,6 +16,7 @@ body {
   --border-color: #e8e8e8;
   --background-color: #f5f6fa;
   --active-button-color: #397edd;
+  --highlighted-color: #fbf291;
   --disabled-button-color: var(--background-color);
   --svg-pan-x: 0px;
   --svg-pan-y: 0px;
@@ -340,18 +341,92 @@ label[for='diagram-type-select'] {
 #navigation-panel-tree {
   padding-block: 30px;
   padding-inline: 20px;
+  font-size: 1rem;
 
   .accordion-content > div > .accordion-parent,
   .navigation-panel-tree-leaf {
-    padding-left: 1rem;
+    padding-left: 0.5rem;
     border-left: 1px solid var(--border-color);
   }
 
+  .navigation-panel-tree-leaf.tree-icon {
+    position: relative;
+    padding-left: 1.75em;
+
+    &::after {
+      left: 0.5em;
+    }
+  }
+
+  .nav-tree-leaf-highlighted {
+    background-color: var(--highlighted-color);
+  }
+
   button {
+    grid-template-columns: repeat(3, auto);
     background: transparent;
     border: 0;
     padding: 0;
+    width: 100%;
+    text-align: start;
     cursor: pointer;
+    position: relative;
+    padding-left: 2.25em;
+    margin-left: -0.25em;
+
+    &:hover {
+      background-color: var(--border-color);
+    }
+
+    &::before {
+      display: inline-block;
+      content: '⌃';
+      transform: rotate(90deg);
+      transition: transform var(--transition-duration);
+      position: absolute;
+      left: 0;
+    }
+
+    &.tree-icon {
+      &::after {
+        left: 1em;
+      }
+    }
+
+    &[aria-expanded] {
+      &::before {
+        transform: rotate(180deg);
+      }
+    }
+  }
+
+  .tree-icon {
+    &::after {
+      display: inline-block;
+      content: '';
+      width: 0.8em;
+      height: 0.8em;
+      background-size: cover;
+      position: absolute;
+      inset: 0;
+      margin-block: auto;
+    }
+  }
+
+  .directory::after {
+    background-image: url('../images/directory.svg');
+  }
+  .file::after {
+    background-image: url('../images/file.svg');
+  }
+  .interface::after {
+    background-image: url('../images/interface.svg');
+  }
+  .property::after {
+    background-image: url('../images/property.svg');
+  }
+  .relationship::after {
+    background-image: url('../images/relationship.svg');
   }
 }
 
