@@ -39,6 +39,11 @@ test.describe('Upload ontology from GitHub via OAuth', () => {
       '/contents'
     )
 
+    // click edit
+    const dirName = page.locator('.github-list li').filter({ hasText: /edit$/ })
+    await expect(dirName).toBeVisible()
+    await waitForSuccessResponse(page, () => dirName.click(), '/contents')
+
     // get dtdl from github
     await waitForSuccessResponse(page, () => page.click('#select-folder'), '/ontology')
     await expect(page.locator('#mermaid-output').getByText('dtmi:com:example;1')).toBeVisible()
