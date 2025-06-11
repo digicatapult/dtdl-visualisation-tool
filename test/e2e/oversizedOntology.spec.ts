@@ -6,8 +6,8 @@ test.describe('Testing against large ontologies', () => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     await page.setViewportSize({ width: 1920, height: 1080 })
     await page.goto(`${limitedOntologySizeHost}`)
-      await expect(
-          page.locator('#mermaid-output').getByText('DtdlObject size exceeds maximum allowed size', { exact: true })
-      ).toBeVisible()
+    await expect(
+      page.locator('#mermaid-output').getByText('DtdlObject size exceeds maximum allowed size', { exact: true })
+    ).toBeVisible()
   })
 })

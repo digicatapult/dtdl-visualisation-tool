@@ -67,13 +67,11 @@ export const getChildrenByClass = (element: Element, className: string): Element
   }) as Element[]
 }
 
-export const mockEnvClass = (overrides: Partial<Record<keyof ENV_CONFIG, string | number>> = {}) =>
+export const mockEnvClass = (
+  overrides: Partial<Record<keyof ENV_CONFIG, string | number | boolean | [string, ...string[]]>> = {}
+) =>
   ({
-    get: (key: keyof ENV_CONFIG): string | number => {
-      const value = envalid.cleanEnv({ ...process.env, ...overrides }, envConfig)[key]
-      if (typeof value === 'string' || typeof value === 'number') {
-        return value
-      }
-      throw new Error(`Unsupported env value type for key ${String(key)}: ${typeof value}`)
+    get: (key: keyof ENV_CONFIG) => {
+      return envalid.cleanEnv({ ...process.env, ...overrides }, envConfig)[key]
     },
   }) as Env
