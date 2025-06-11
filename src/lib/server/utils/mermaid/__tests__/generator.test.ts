@@ -155,6 +155,7 @@ describe('Generator', function () {
       const gen = new SvgGenerator(logger, nonParallelTest, mockEnvWithLimit)
       const result = await gen.run(mockDtdlObjectModel, 'flowchart', 'elk' as const)
       expect(result.type).to.equal('text')
+      expect(result.renderToString()).to.equal('DtdlObject size exceeds maximum allowed size')
     })
   })
 })
