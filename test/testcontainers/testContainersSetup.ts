@@ -64,13 +64,6 @@ export async function bringUpVisualisationContainer(): Promise<StartedTestContai
   return visualisationUIContainer
 }
 
-export async function bringUpVisualisationContainerWithCustomConfig(
-  env: VisualisationUIConfig
-): Promise<StartedTestContainer> {
-  visualisationUIContainer = await startVisualisationContainer(env)
-  return visualisationUIContainer
-}
-
 export async function startVisualisationContainer(env: VisualisationUIConfig): Promise<StartedTestContainer> {
   const { containerName, containerPort, hostPort, cookieSessionKeys, maxOntologySize } = env
   logger.info(`Building container...`)

@@ -5,13 +5,13 @@ import { waitForSuccessResponse, waitForUpdateLayout } from './e2e/helpers/waitF
 import {
   bringUpDatabaseContainer,
   bringUpVisualisationContainer,
-  bringUpVisualisationContainerWithCustomConfig,
+  startVisualisationContainer,
 } from './testcontainers/testContainersSetup.js'
 
 async function globalSetup(config: FullConfig) {
   await bringUpDatabaseContainer()
   await bringUpVisualisationContainer()
-  await bringUpVisualisationContainerWithCustomConfig({
+  await startVisualisationContainer({
     containerName: 'dtdl-visualiser-custom',
     hostPort: 3001,
     containerPort: 3000,
