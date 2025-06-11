@@ -16,7 +16,7 @@ async function globalSetup(config: FullConfig) {
     hostPort: 3001,
     containerPort: 3000,
     cookieSessionKeys: 'test',
-    maxOntologySize: 4,
+    maxOntologySize: 10,
   })
   await getGithubToken(config)
 }

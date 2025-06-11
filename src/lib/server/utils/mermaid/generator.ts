@@ -59,9 +59,10 @@ export class SvgGenerator {
     layout: Layout,
     isRetry: boolean = false
   ): Promise<MermaidSvgRender | PlainTextRender> {
-    if (this.countRenderableEntities(dtdlObject) > this.env.get('MAX_DTDL_OBJECT_SIZE')) {
+    const dtdlSize = this.countRenderableEntities(dtdlObject)
+    if (dtdlSize > this.env.get('MAX_DTDL_OBJECT_SIZE')) {
       this.logger.warn(
-        `DtdlObject size ${dtdlObject.size} exceeds maximum allowed size ${this.env.get('MAX_DTDL_OBJECT_SIZE')}`
+        `DtdlObject size ${dtdlSize} exceeds maximum allowed size ${this.env.get('MAX_DTDL_OBJECT_SIZE')}`
       )
       return new PlainTextRender('DtdlObject size exceeds maximum allowed size')
     }
