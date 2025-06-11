@@ -8,7 +8,7 @@
   overflow: auto;
   list-style-type: none;
   padding: 0;
-  border: 1px solid #e8e8e8;
+  border: 1px solid var(--border-color);
   line-height: 1.8rem;
   height: 100%;
   width: 100%;

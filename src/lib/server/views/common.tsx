@@ -43,7 +43,7 @@ export const Page = (props: PropsWithChildren<{ title: string }>): JSX.Element =
 )
 
 export const AccordionSection = (props: PropsWithChildren<{ heading: string; collapsed: boolean }>): JSX.Element => (
-  <section>
+  <section class="accordion-parent">
     <h3>
       <button
         class="accordion-button"

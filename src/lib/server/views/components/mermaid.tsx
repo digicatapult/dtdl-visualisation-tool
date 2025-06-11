@@ -8,6 +8,7 @@ import { Env } from '../../env/index.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { DtdlId, UUID } from '../../models/strings.js'
 import { getDisplayNameOrId, isInterface, isProperty, isRelationship } from '../../utils/dtdl/extract.js'
+import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { AccordionSection, EditableText, Page } from '../common.js'
 
 const env = container.resolve(Env)
@@ -16,7 +17,7 @@ const commonUpdateAttrs = {
   'hx-target': '#mermaid-output',
   'hx-get': 'update-layout',
   'hx-swap': 'outerHTML  transition:true',
-  'hx-include': '#sessionId, #search-panel',
+  'hx-include': '#sessionId, #search-panel, input[name="navigationPanelTab"]',
   'hx-indicator': '#spinner',
   'hx-disabled-elt': 'select',
 }
@@ -56,7 +57,7 @@ export default class MermaidTemplates {
         <div id="spinner" class="spinner" />
       </div>
       <this.Legend showContent={false} />
-      <this.navigationPanel expanded={false} edit={canEdit} />
+      <this.navPanelPlaceholder expanded={false} edit={canEdit} />
       <this.svgControls svgRawHeight={svgHeight} svgRawWidth={svgWidth} />
       <this.editToggle canEdit={canEdit} />
     </Page>
@@ -115,39 +116,65 @@ export default class MermaidTemplates {
     )
   }
 
+  public navPanelPlaceholder = ({ expanded, edit }: { expanded: boolean; edit: boolean }): JSX.Element => {
+    return (
+      <aside id="navigation-panel" {...(expanded && { 'aria-expanded': '' })} class={edit ? 'edit' : 'view'}>
+        <button
+          id="navigation-panel-button"
+          onclick="globalThis.toggleNavPanel(event)"
+          {...{ [expanded ? 'aria-expanded' : 'aria-hidden']: '' }}
+        ></button>
+        <div id="navigation-panel-content">
+          return <section>Loading Ontology...</section>
+        </div>
+      </aside>
+    )
+  }
+
   public navigationPanel = ({
     swapOutOfBand,
     entityId,
     model,
     expanded,
     edit,
+    tab,
+    fileTree,
   }: {
     swapOutOfBand?: boolean
     entityId?: DtdlId
-    model?: DtdlObjectModel
+    model: DtdlObjectModel
     expanded: boolean
     edit: boolean
+    tab: 'details' | 'tree'
+    fileTree: DtdlPath[]
   }): JSX.Element => {
     return (
       <aside
         id="navigation-panel"
         hx-swap-oob={swapOutOfBand ? 'true' : undefined}
-        {...(expanded && { 'aria-expanded': '' })}
+        {...{ [expanded ? 'aria-expanded' : 'aria-hidden']: '' }}
         class={edit ? 'edit' : 'view'}
       >
-        <button
-          id="navigation-panel-button"
-          onclick="globalThis.toggleNavPanel(event)"
-          {...(expanded && { 'aria-expanded': '' })}
-        ></button>
-        <div id="navigation-panel-content" {...(expanded && { 'aria-expanded': '' })}>
-          <this.navigationPanelContent entityId={entityId} model={model} edit={edit} />
+        <button id="navigation-panel-button" onclick="globalThis.toggleNavPanel(event)"></button>
+        <div id="navigation-panel-controls">
+          <label>
+            <h2>Details</h2>
+            <input type="radio" name="navigationPanelTab" value="details" checked={taxb === 'details'} />
+          </label>
+          <label>
+            <h2>Tree</h2>
+            <input type="radio" name="navigationPanelTab" value="tree" checked={tab === 'tree'} />
+          </label>
+        </div>
+        <div id="navigation-panel-content">
+          <this.navigationPanelDetails entityId={entityId} model={model} edit={edit} />
+          <this.navigationPanelTree entityId={entityId} fileTree={fileTree} />
         </div>
       </aside>
     )
   }
 
-  public navigationPanelContent = ({
+  navigationPanelDetails = ({
     entityId,
     model,
     edit,
@@ -159,12 +186,16 @@ export default class MermaidTemplates {
     const entity = entityId && model ? model[entityId] : undefined
 
     if (!entityId || !entity || !model) {
-      return <section>Click on a node to view attributes</section>
+      return (
+        <div id="navigation-panel-details">
+          <section>Click on a node to view attributes</section>
+        </div>
+      )
     }
     const definedIn = entity.DefinedIn ?? entityId // entities only have definedIn if defined in a different file
     const isRship = isRelationship(entity)
     return (
-      <>
+      <div id="navigation-panel-details">
         <section>
           <h3>Basic Information</h3>
           <p>
@@ -299,8 +330,91 @@ export default class MermaidTemplates {
             <code>{escapeHtml(JSON.stringify(entity, null, 4))}</code>
           </pre>
         </AccordionSection>
+      </div>
+    )
+  }
+
+  navigationPanelTree = ({ entityId, fileTree }: { entityId?: DtdlId; fileTree: DtdlPath[] }): JSX.Element => {
+    const reducer = (set: Set<DtdlPath> | null, path: DtdlPath): Set<DtdlPath> | null => {
+      if (set) {
+        return set
+      }
+
+      if (path.type === 'file' || path.type === 'directory' || (path.type === 'fileEntry' && path.id !== entityId)) {
+        const entries = path.entries.reduce(reducer, null)
+        if (entries === null) {
+          return null
+        }
+        entries.add(path)
+        return entries
+      }
+
+      if (path.id === entityId) {
+        return new Set([path])
+      }
+
+      return null
+    }
+
+    const defaultExpandSet = fileTree.reduce(reducer, null) || new Set<DtdlPath>()
+
+    return (
+      <div id="navigation-panel-tree">
+        <this.navigationPanelTreeLevel highlightedEntitySet={defaultExpandSet} fileTree={fileTree} />
+      </div>
+    )
+  }
+
+  navigationPanelTreeLevel = ({
+    highlightedEntitySet,
+    fileTree,
+  }: {
+    highlightedEntitySet: Set<DtdlPath>
+    fileTree: DtdlPath[]
+  }): JSX.Element => {
+    return (
+      <>
+        {fileTree.map((path) => {
+          if (path.type === 'fileEntryContent' || path.entries.length === 0) {
+            return <div class={`navigation-panel-tree-leaf ${this.navigationPanelNodeClass(path)}`}>{path.name}</div>
+          }
+
+          const isHighlighted = highlightedEntitySet.has(path)
+          return (
+            <div class="accordion-parent">
+              <button
+                class={`navigation-panel-tree-node ${this.navigationPanelNodeClass(path)}`}
+                {...{ [isHighlighted ? 'aria-expanded' : 'aria-hidden']: '' }}
+                onclick="globalThis.toggleAccordion(event)"
+              >
+                {escapeHtml(path.name)}
+              </button>
+              <div class="accordion-content" {...{ [isHighlighted ? 'aria-expanded' : 'aria-hidden']: '' }}>
+                <div>
+                  <this.navigationPanelTreeLevel highlightedEntitySet={highlightedEntitySet} fileTree={path.entries} />
+                </div>
+              </div>
+            </div>
+          )
+        })}
       </>
     )
+  }
+
+  navigationPanelNodeClass = (path: DtdlPath): 'directory' | 'file' | 'interface' | 'relationship' | 'property' => {
+    if (path.type === 'directory' || path.type === 'file') {
+      return path.type
+    }
+    switch (path.dtdlType) {
+      case 'Interface':
+        return 'interface'
+      case 'Relationship':
+        return 'relationship'
+      case 'Property':
+        return 'property'
+      default:
+        return 'property'
+    }
   }
 
   public searchPanel = ({
