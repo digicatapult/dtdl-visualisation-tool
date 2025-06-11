@@ -179,7 +179,10 @@ label[for='diagram-type-select'] {
   align-items: stretch;
   justify-items: stretch;
   gap: 1px;
-  cursor: pointer;
+
+  * {
+    cursor: pointer;
+  }
 
   & > label:not(:last-child) {
     border-right: 1px solid var(--border-color);
