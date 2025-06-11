@@ -4,6 +4,8 @@ globalThis.toggleAccordion = (event) => {
   const content = event.target.closest('.accordion-parent')?.querySelector('.accordion-content')
 
   event.target.toggleAttribute('aria-expanded')
+  event.target.toggleAttribute('aria-hidden')
+  content?.toggleAttribute('aria-expanded')
   content?.toggleAttribute('aria-hidden')
 }
 

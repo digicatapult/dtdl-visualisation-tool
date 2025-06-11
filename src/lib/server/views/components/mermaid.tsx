@@ -360,42 +360,62 @@ export default class MermaidTemplates {
 
     return (
       <div id="navigation-panel-tree">
-        <this.navigationPanelTreeLevel highlightedEntitySet={defaultExpandSet} fileTree={fileTree} />
+        <this.navigationPanelTreeLevel
+          highlightedEntityId={entityId}
+          highlightedEntitySet={defaultExpandSet}
+          fileTree={fileTree}
+        />
       </div>
     )
   }
 
   navigationPanelTreeLevel = ({
+    highlightedEntityId,
     highlightedEntitySet,
     fileTree,
   }: {
+    highlightedEntityId?: DtdlId
     highlightedEntitySet: Set<DtdlPath>
     fileTree: DtdlPath[]
   }): JSX.Element => {
     return (
       <>
         {fileTree.map((path) => {
+          const isHighlighted = 'id' in path ? path.id === highlightedEntityId : false
+          const highlightClass = isHighlighted ? 'nav-tree-leaf-highlighted' : ''
+
+          if (path.name === 'CurveStyle') {
+            console.log(JSON.stringify(path, null, 2))
+            console.log(highlightedEntityId)
+          }
+
           if (path.type === 'fileEntryContent' || path.entries.length === 0) {
             return (
-              <div class={`navigation-panel-tree-leaf ${this.navigationPanelNodeClass(path)}`}>
+              <div
+                class={`navigation-panel-tree-leaf tree-icon ${this.navigationPanelNodeClass(path)} ${highlightClass}`}
+              >
                 {escapeHtml(path.name)}
               </div>
             )
           }
 
-          const isHighlighted = highlightedEntitySet.has(path)
+          const isExpanded = highlightedEntitySet.has(path)
           return (
             <div class="accordion-parent">
               <button
-                class={`navigation-panel-tree-node ${this.navigationPanelNodeClass(path)}`}
-                {...{ [isHighlighted ? 'aria-expanded' : 'aria-hidden']: '' }}
+                class={`navigation-panel-tree-node tree-icon ${this.navigationPanelNodeClass(path)} ${highlightClass}`}
+                {...{ [isExpanded ? 'aria-expanded' : 'aria-hidden']: '' }}
                 onclick="globalThis.toggleAccordion(event)"
               >
                 {escapeHtml(path.name)}
               </button>
-              <div class="accordion-content" {...{ [isHighlighted ? 'aria-expanded' : 'aria-hidden']: '' }}>
+              <div class="accordion-content" {...{ [isExpanded ? 'aria-expanded' : 'aria-hidden']: '' }}>
                 <div>
-                  <this.navigationPanelTreeLevel highlightedEntitySet={highlightedEntitySet} fileTree={path.entries} />
+                  <this.navigationPanelTreeLevel
+                    highlightedEntityId={highlightedEntityId}
+                    highlightedEntitySet={highlightedEntitySet}
+                    fileTree={path.entries}
+                  />
                 </div>
               </div>
             </div>
