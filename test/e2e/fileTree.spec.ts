@@ -5,9 +5,10 @@ test.describe('file tree', () => {
   test('no interface/relationship selected', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 })
     await page.goto('./')
+    await page.waitForSelector(`text='Terminal'`)
 
     await page.click('#navigation-panel-button')
-    await page.waitForTimeout(1000) // wait for animation
+    //await page.waitForTimeout(1000) // wait for animation
     const navigationPanelTree = page.locator('#navigation-panel-tree')
 
     // defaults to file tree
@@ -38,9 +39,9 @@ test.describe('file tree', () => {
   test('interface selected', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 })
     await page.goto('./')
+    await page.waitForSelector(`text='Terminal'`)
 
     await waitForUpdateLayout(page, () => page.locator('#mermaid-output').getByText('Bay', { exact: true }).click())
-    await page.waitForTimeout(1000) // wait for animation
     const navigationPanelTree = page.locator('#navigation-panel-tree')
 
     // shows file tree with file expanded and interface highlighted
@@ -68,11 +69,11 @@ test.describe('file tree', () => {
   test('relationship selected', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 })
     await page.goto('./')
+    await page.waitForSelector(`text='Terminal'`)
 
     await waitForUpdateLayout(page, () =>
       page.locator('#mermaid-output').getByText('CurveDatas', { exact: true }).click()
     )
-    await page.waitForTimeout(1000) // wait for animation
     const navigationPanelTree = page.locator('#navigation-panel-tree')
 
     // shows file tree with file expanded and relationship highlighted
