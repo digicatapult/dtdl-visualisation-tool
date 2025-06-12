@@ -21,6 +21,7 @@ const network = await new Network().start()
 
 let visualisationUIContainer: StartedTestContainer
 let postgresContainer: StartedTestContainer
+let visualisationImage: GenericContainer
 
 export async function bringUpDatabaseContainer(): Promise<StartedTestContainer> {
   const postgresConfig: databaseConfig = {
@@ -49,29 +50,25 @@ export async function startDatabaseContainer(env: databaseConfig): Promise<Start
     })
     .withNetwork(network)
     .withWaitStrategy(Wait.forLogMessage('database system is ready to accept connections'))
+    .withReuse()
     .start()
   return postgresContainer
 }
 
-export async function bringUpVisualisationContainer(): Promise<StartedTestContainer> {
-  const visualisationUIConfig: VisualisationUIConfig = {
-    containerName: 'dtdl-visualiser',
-    hostPort: 3000,
-    containerPort: 3000,
-    cookieSessionKeys: 'secret',
-  }
-  visualisationUIContainer = await startVisualisationContainer(visualisationUIConfig)
-  return visualisationUIContainer
+//build
+export async function buildVisualisationImage(): Promise<GenericContainer> {
+  logger.info(`Building container...`)
+  visualisationImage = await GenericContainer.fromDockerfile('./').withCache(true).build()
+  logger.info(`Built container.`)
+  return visualisationImage
 }
 
+//start with environment variables
 export async function startVisualisationContainer(env: VisualisationUIConfig): Promise<StartedTestContainer> {
   const { containerName, containerPort, hostPort, cookieSessionKeys, maxOntologySize } = env
-  logger.info(`Building container...`)
-  const containerBase = await GenericContainer.fromDockerfile('./').withCache(true).build()
-  logger.info(`Built container.`)
 
   logger.info(`Starting container ${containerName} on port ${containerPort}...`)
-  visualisationUIContainer = await containerBase
+  visualisationUIContainer = await visualisationImage
     .withNetwork(network)
     .withExposedPorts({
       container: containerPort,
