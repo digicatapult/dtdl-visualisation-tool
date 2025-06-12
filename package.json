@@ -33,6 +33,11 @@
   },
   "author": "Digital Catapult",
   "license": "Apache-2.0",
+  "overrides": {
+    "@mermaid-js/mermaid-cli": {
+      "puppeteer": "$puppeteer"
+    }
+  },
   "dependencies": {
     "@digicatapult/dtdl-parser": "^1.0.9",
     "@kitajs/html": "^4.2.9",
