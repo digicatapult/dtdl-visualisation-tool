@@ -33,7 +33,7 @@ describe('Generator', function () {
     it('should return no graph for empty object model', async () => {
       const generatedOutput = await generator.run({}, defaultParams.diagramType, 'elk' as const)
       expect(generatedOutput.type).to.equal('text')
-      expect(generatedOutput.renderToString()).to.equal(`No graph`)
+      expect(generatedOutput.renderToString()).to.equal(`The filtered ontology has no entities to display`)
     })
 
     it('should return a simple svg', async () => {
@@ -155,7 +155,9 @@ describe('Generator', function () {
       const gen = new SvgGenerator(logger, nonParallelTest, mockEnvWithLimit)
       const result = await gen.run(mockDtdlObjectModel, 'flowchart', 'elk' as const)
       expect(result.type).to.equal('text')
-      expect(result.renderToString()).to.equal('DtdlObject size exceeds maximum allowed size')
+      expect(result.renderToString()).to.equal(
+        'The ontology opened is too large to be displayed in full. Please filter the size of the ontology by searching within it above'
+      )
     })
   })
 })
