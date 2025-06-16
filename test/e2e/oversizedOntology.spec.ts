@@ -10,7 +10,12 @@ test.describe('Testing against large ontologies', () => {
     await page.goto(`${limitedOntologySizeHost}`)
     // Load default ontology which is larger than the max size
     await expect(
-      page.locator('#mermaid-output').getByText('DtdlObject size exceeds maximum allowed size', { exact: true })
+      page
+        .locator('#mermaid-output')
+        .getByText(
+          'The ontology opened is too large to be displayed in full. Please filter the size of the ontology by searching within it above',
+          { exact: true }
+        )
     ).toBeVisible()
     // Filter for a smaller ontology from search
     await page.focus('#search')
@@ -28,7 +33,12 @@ test.describe('Testing against large ontologies', () => {
 
     // Dtdl becomes oversized again
     await expect(
-      page.locator('#mermaid-output').getByText('DtdlObject size exceeds maximum allowed size', { exact: true })
+      page
+        .locator('#mermaid-output')
+        .getByText(
+          'The ontology opened is too large to be displayed in full. Please filter the size of the ontology by searching within it above',
+          { exact: true }
+        )
     ).toBeVisible()
   })
 })
