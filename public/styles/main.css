@@ -153,13 +153,16 @@ label[for='diagram-type-select'] {
 }
 
 #mermaid-output-message {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
   border: none;
   border-radius: 5px;
   padding: 2rem;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
   background-color: #FFFFFF;
   max-width: 420px;
-  width: 100%;
 }
 #mermaid-output-message p {
   font-size: 1rem;
