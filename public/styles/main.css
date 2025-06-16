@@ -152,6 +152,21 @@ label[for='diagram-type-select'] {
   opacity: 0;
 }
 
+#mermaid-output-message {
+  border: none;
+  border-radius: 5px;
+  padding: 2rem;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  background-color: #FFFFFF;
+  max-width: 420px;
+  width: 100%;
+}
+#mermaid-output-message p {
+  font-size: 1rem;
+  margin: 0 auto;
+  max-width: 100ch;
+}
+
 #navigation-panel {
   --nav-button-size: 2rem;
   --nav-button-top: 2rem;

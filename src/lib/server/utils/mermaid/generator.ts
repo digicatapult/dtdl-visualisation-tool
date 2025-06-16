@@ -61,10 +61,12 @@ export class SvgGenerator {
   ): Promise<MermaidSvgRender | PlainTextRender> {
     const dtdlSize = this.countRenderableEntities(dtdlObject)
     if (dtdlSize > this.env.get('MAX_DTDL_OBJECT_SIZE')) {
-      this.logger.warn(
+      this.logger.debug(
         `DtdlObject size ${dtdlSize} exceeds maximum allowed size ${this.env.get('MAX_DTDL_OBJECT_SIZE')}`
       )
-      return new PlainTextRender('DtdlObject size exceeds maximum allowed size')
+      return new PlainTextRender(
+        'The ontology opened is too large to be displayed in full. Please filter the size of the ontology by searching within it above'
+      )
     }
     const { page, release } = await this.getAvailablePage()
     try {
@@ -72,7 +74,7 @@ export class SvgGenerator {
       const graph = this.mermaidMarkdownByDiagramType[diagramType].generateMarkdown(dtdlObject, ' TD')
       if (!graph) {
         this.releasePage(page, release)
-        return new PlainTextRender('No graph')
+        return new PlainTextRender('The filtered ontology has no entities to display')
       }
 
       const data = await this.render(page, layout, graph)
