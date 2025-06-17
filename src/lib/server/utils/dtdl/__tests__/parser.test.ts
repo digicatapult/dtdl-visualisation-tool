@@ -122,20 +122,20 @@ describe('parse', function () {
       { path: '', contents: JSON.stringify(nestedOne) },
       { path: '', contents: JSON.stringify(nestedTwo) },
     ]
-    const result = await parser.parse(files)
+    const result = await parser.parseAll(files)
     expect(result[nestedOne['@id']].Id).to.equal(nestedOne['@id'])
     expect(result[nestedTwo['@id']].Id).to.equal(nestedTwo['@id'])
   })
 
   test('throws error if bad DTDL', async () => {
     const files = [{ path: '', contents: JSON.stringify({}) }]
-    await expect(parser.parse(files)).to.be.rejectedWith(ModellingError)
+    await expect(parser.parseAll(files)).to.be.rejectedWith(ModellingError)
   })
 
   test('parsed dtdl loaded from cache', async () => {
     const files = [{ path: '', contents: JSON.stringify(nestedOne) }]
 
-    const allContents = `[${files.map((f) => f.contents).join(',')}]`
+    const allContents = Parser.fileContentsToString(files)
     const dtdlHashKey = createHash('sha256').update(allContents).digest('base64')
 
     const parsedDtdl = {
@@ -149,7 +149,7 @@ describe('parse', function () {
 
     const parser = new Parser(mockLogger, mockCache)
 
-    const result = await parser.parse(files)
+    const result = await parser.parseAll(files)
 
     expect(result[nestedOne['@id']].Id).to.equal(nestedOne['@id'])
     expect(hasStub.calledOnceWithExactly(dtdlHashKey)).to.equal(true)
@@ -159,7 +159,7 @@ describe('parse', function () {
 
   test('parses DTDL and sets cache if not found', async () => {
     const files = [{ path: '', contents: JSON.stringify(nestedOne) }]
-    const allContents = `[${files.map((f) => f.contents).join(',')}]`
+    const allContents = Parser.fileContentsToString(files)
     const dtdlHashKey = createHash('sha256').update(allContents).digest('base64')
     const parsedDtdl = {
       [nestedOne['@id']]: {
@@ -172,7 +172,7 @@ describe('parse', function () {
 
     const parser = new Parser(mockLogger, mockCache)
 
-    const result = await parser.parse(files)
+    const result = await parser.parseAll(files)
 
     expect(hasStub.calledOnceWithExactly(dtdlHashKey)).to.equal(true)
     expect(getStub.notCalled).to.equal(true)
@@ -379,7 +379,7 @@ describe('extractDtdlPaths', function () {
 
   test('extracts properties and relationships', async () => {
     const files = [{ path: 'file.json', contents: JSON.stringify(withPropsAndRels) }]
-    const model = await parser.parse(files)
+    const model = await parser.parseAll(files)
 
     const result = parser.extractDtdlPaths(files, model)
     expect(result).to.deep.equal([

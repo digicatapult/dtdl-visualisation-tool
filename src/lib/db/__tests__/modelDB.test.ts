@@ -55,7 +55,8 @@ const mockDbNoDefault = {
 const mockParserParseStub = sinon.stub().resolves(defaultModel)
 const mockParserExtractPathsStub = sinon.stub().returns(singleInterfaceFirstFilePaths)
 const mockParser = {
-  parse: mockParserParseStub,
+  validate: sinon.stub().callsFake(async (files) => files),
+  parseAll: mockParserParseStub,
   extractDtdlPaths: mockParserExtractPathsStub,
 } as unknown as Parser
 const model = new ModelDb(mockDb, mockParser)

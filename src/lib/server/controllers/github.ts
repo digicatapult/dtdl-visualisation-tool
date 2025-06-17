@@ -228,11 +228,12 @@ export class GithubController extends HTMLController {
     }
 
     const zippedBranch = await this.githubRequest.getZip(octokitToken, owner, repo, ref)
-    const files = await this.parser.unzipJsonFiles(Buffer.from(zippedBranch), path)
+    const jsonFiles = await this.parser.unzipJsonFiles(Buffer.from(zippedBranch), path)
 
-    if (files.length === 0) throw new GithubReqError(`No valid '.json' files found`)
+    if (jsonFiles.length === 0) throw new GithubReqError(`No valid '.json' files found`)
 
-    const parsedDtdl = await this.parser.parse(files)
+    const files = await this.parser.validate(jsonFiles)
+    const parsedDtdl = await this.parser.parseAll(files)
 
     const output = await this.generator.run(parsedDtdl, 'flowchart', 'elk')
 
