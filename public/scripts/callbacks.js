@@ -166,6 +166,51 @@ globalThis.setMermaidListeners = function setMermaidListeners() {
   setMinimap()
 }
 
+globalThis.showShareModal = function showShareModal() {
+  document.getElementById('share-link-modal').showModal()
+  globalThis.updateShareLink()
+}
+
+globalThis.updateShareLink = function updateShareLink() {
+  const radios = document.querySelectorAll('input[name="link-type"]')
+  const linkInput = document.getElementById('link-output')
+
+  let selectedValue = 'full'
+  radios.forEach((radio) => {
+    if (radio.checked) {
+      selectedValue = radio.value;
+    }
+  });
+
+  const fullUrl = window.location.href
+  let finalUrl = fullUrl
+
+
+  if (selectedValue === 'short') {
+
+    finalUrl = fullUrl.split('view?')[0] + 'view'
+  }
+
+  linkInput.value = finalUrl;
+}
+
+globalThis.copyShareLink = function copyShareLink() {
+  const output = document.getElementById('link-output');
+  const tooltip = document.getElementById('copy-tooltip');
+  const copyIcon = document.getElementById('copy-icon');
+  if (output.value) {
+    navigator.clipboard.writeText(output.value).then(() => {
+      tooltip.textContent = 'Copied!'
+      copyIcon.classList.add('copied')
+
+      setTimeout(() => {
+        tooltip.textContent = 'Click to copy to clipboard'
+        copyIcon.classList.remove('copied')
+      }, 1500)
+    })
+  }
+}
+
 function setSizes() {
   const wrapper = document.getElementById('mermaid-wrapper')
   if (!wrapper) {

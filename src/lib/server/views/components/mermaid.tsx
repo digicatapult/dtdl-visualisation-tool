@@ -568,7 +568,7 @@ export default class MermaidTemplates {
     // htmx component to generate a shareable link for the ontology
     return (
       <>
-        <a id="share-ontology" onclick="document.getElementById('share-link-modal').showModal()" class="button">
+        <a id="share-ontology" onclick="globalThis.showShareModal()" class="button">
           Share Ontology
         </a>
         <dialog id="share-link-modal" class="modal">
@@ -576,11 +576,11 @@ export default class MermaidTemplates {
             <h3>Shareable Link</h3>
 
             <label>
-              <input type="radio" name="linkType" value="full" checked onchange="updateLink()" />
+              <input type="radio" name="link-type" value="short" checked onchange="globalThis.updateShareLink()" />
               <span>Entire ontology</span>
             </label>
             <label>
-              <input type="radio" name="linkType" value="short" onchange="updateLink()" />
+              <input type="radio" name="link-type" value="full" onchange="globalThis.updateShareLink()" />
               <span>Current search selection of ontology</span>
             </label>
 
@@ -589,7 +589,15 @@ export default class MermaidTemplates {
               🔒 Access to this ontology depends on your GitHub permissions. Ensure recipients have the necessary access
               before sharing.
             </p>
-            <button id="copy-link-button">Copy Link</button>
+            <div id="copy-button-wrapper">
+              <span id="copy-tooltip" class="tooltip">
+                Copy url to clipboard
+              </span>
+              <button id="copy-link-button" type="button" onclick="globalThis.copyShareLink()">
+                Copy URL
+                <span id="copy-icon" />
+              </button>
+            </div>
             <button class="modal-button" />
           </form>
         </dialog>
