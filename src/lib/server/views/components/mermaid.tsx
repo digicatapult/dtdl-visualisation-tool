@@ -365,6 +365,14 @@ export default class MermaidTemplates {
           highlightedEntitySet={defaultExpandSet}
           fileTree={fileTree}
         />
+        <div id="navigation-panel-tree-warning">
+          {fileTree.some((f) => f.type === 'file' && f.errors) && (
+            <>
+              <img src="/public/images/warning.svg" width="54px" height="50px" />
+              <p>Only a part of this ontology could be loaded, due to errors.</p>
+            </>
+          )}
+        </div>
       </div>
     )
   }
