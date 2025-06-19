@@ -133,7 +133,7 @@ If you have started both the database and the `dtdl-visualiser` service with `do
 
 ## GitHub integration
 
-With GitHub integration, users can choose to upload directories of DTDL files to the tool directly from their own private GitHub repositories. A [GitHub App](https://github.com/settings/apps) must be created and configured. Example values for local development:
+With GitHub integration, users can choose to upload directories of DTDL files to the tool directly from their own private GitHub repositories. A public [GitHub App](https://github.com/settings/apps) must be created and configured. Example values for local development:
 
 - Permissions: Contents (Read Only)
 - GitHub App name: `dtdl-visualisation-tool` (displayed to user when they authorise)

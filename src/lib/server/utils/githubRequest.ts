@@ -136,7 +136,6 @@ export class GithubRequest {
     try {
       return await request()
     } catch (err) {
-      console.log(err)
       this.logger.debug('GitHub API request failed', err)
 
       if (err instanceof RequestError && err.status === 404) {
