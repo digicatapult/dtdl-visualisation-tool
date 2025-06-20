@@ -490,6 +490,8 @@ label[for='diagram-type-select'] {
   border-radius: 50%;
   border-top-color: #fff;
   animation: spin 1s ease-in-out infinite;
+  justify-self: center;
+  align-self: center;
 }
 
 @keyframes spin {

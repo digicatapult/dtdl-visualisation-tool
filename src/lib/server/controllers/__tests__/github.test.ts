@@ -165,7 +165,7 @@ describe('GithubController', async () => {
       const req = mockReqWithCookie({})
       const returnUrl = 'return.url'
 
-      await controller.callback('', returnUrl, req)
+      await controller.callback(req, '', returnUrl)
 
       const cookieSpy = req.res?.cookie as sinon.SinonSpy
 

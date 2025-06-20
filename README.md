@@ -107,6 +107,7 @@ The application can be run in Docker. `sample/energygrid` is automatically parse
 | DB_PASSWORD          | n        | `postgres`                | The database password                                                                                                                        |
 | DB_PORT              | n        | `5432`                    | The database port number                                                                                                                     |
 | UPLOAD_LIMIT_MB      | n        | `10`                      | Upload limit for DTDLs in MB                                                                                                                 |
+| GH_APP_NAME          | y        | -                         | See [GitHub Integration](#github-integration)                                                                                                |
 | GH_CLIENT_ID         | y        | -                         | See [GitHub Integration](#github-integration)                                                                                                |
 | GH_CLIENT_SECRET     | y        | -                         | See [GitHub Integration](#github-integration)                                                                                                |
 | GH_PER_PAGE          | n        | `50`                      | The number of results per GitHub API request (max 100)                                                                                       |
@@ -132,7 +133,7 @@ If you have started both the database and the `dtdl-visualiser` service with `do
 
 ## GitHub integration
 
-With GitHub integration, users can choose to upload directories of DTDL files to the tool directly from their own private GitHub repositories. A [GitHub App](https://github.com/settings/apps) must be created and configured. Example values for local development:
+With GitHub integration, users can choose to upload directories of DTDL files to the tool directly from their own private GitHub repositories. A public [GitHub App](https://github.com/settings/apps) must be created and configured. Example values for local development:
 
 - Permissions: Contents (Read Only)
 - GitHub App name: `dtdl-visualisation-tool` (displayed to user when they authorise)
@@ -141,10 +142,11 @@ With GitHub integration, users can choose to upload directories of DTDL files to
 
 Create a `.env` at root and set:
 
+- `GH_APP_NAME=` to the GitHub App's name.
 - `GH_CLIENT_ID=` to the GitHub App's Client ID.
 - `GH_CLIENT_SECRET=` a generated token on the GitHub App.
 
-Additionally end to end tests for GitHub integration require envs from a test user in GitHub with a single repository that contains valid DTDL at root. [Example user and repo](https://github.com/jonathanmgray/dtdl).
+Additionally end to end tests for GitHub integration require envs from a test user in GitHub (configured to use 2FA) with a single repository that contains valid DTDL at root. [Example user and repo](https://github.com/jonathanmgray/dtdl).
 
 - `GH_TEST_USER=` the account email address.
 - `GH_TEST_PASSWORD=` the account password.

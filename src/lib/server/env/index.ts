@@ -21,6 +21,7 @@ export const envConfig = {
   DB_PASSWORD: envalid.str({ default: 'postgres' }),
   DB_PORT: envalid.port({ default: 5432 }),
   COOKIE_SESSION_KEYS: strArrayValidator({ devDefault: ['secret'] }),
+  GH_APP_NAME: envalid.str(),
   GH_CLIENT_ID: envalid.str(),
   GH_CLIENT_SECRET: envalid.str(),
   GH_PER_PAGE: envalid.num({ default: 50 }),

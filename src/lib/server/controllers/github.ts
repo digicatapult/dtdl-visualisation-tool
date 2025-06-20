@@ -54,9 +54,9 @@ export class GithubController extends HTMLController {
   @SuccessResponse(200)
   @Get('/callback')
   public async callback(
+    @Request() req: express.Request,
     @Query() code: string,
-    @Query() returnUrl: string,
-    @Request() req: express.Request
+    @Query() returnUrl?: string
   ): Promise<void> {
     const { access_token, expires_in } = await this.githubRequest.getAccessToken(code)
 
@@ -68,7 +68,7 @@ export class GithubController extends HTMLController {
       secure: process.env.NODE_ENV === 'production',
     })
 
-    this.setHeader('Refresh', `0; url=${returnUrl || '/'}`)
+    this.setHeader('Refresh', `0; url=${returnUrl || '/github/picker'}`)
     return
   }
 
