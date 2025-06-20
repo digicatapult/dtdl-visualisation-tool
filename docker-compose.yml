@@ -31,6 +31,7 @@ services:
       - DB_USERNAME=postgres
       - DB_PASSWORD=postgres
       - DB_PORT=5432
+      - GH_APP_NAME=${GH_APP_NAME}
       - GH_CLIENT_ID=${GH_CLIENT_ID}
       - GH_CLIENT_SECRET=${GH_CLIENT_SECRET}
       - COOKIE_SESSION_KEYS=${COOKIE_SESSION_KEYS}
