@@ -1,18 +1,17 @@
 import 'reflect-metadata'
+import { StartedTestContainer } from 'testcontainers'
+import { bringUpDatabaseContainer, bringUpVisualisationContainer } from '../testcontainers/testContainersSetup.js'
 
-import {
-  bringUpDatabaseContainer,
-  bringUpVisualisationContainer,
-  stopAllContainers,
-} from '../testcontainers/testContainersSetup.js'
+let dbContainer: StartedTestContainer
+let visualisationContainer: StartedTestContainer
 
 before(async function () {
   this.timeout(420000)
-  await bringUpDatabaseContainer()
-  await bringUpVisualisationContainer()
+  dbContainer = await bringUpDatabaseContainer()
+  visualisationContainer = await bringUpVisualisationContainer()
 })
 
 after(async function () {
-  this.timeout(420000)
-  stopAllContainers()
+  await dbContainer.stop()
+  await visualisationContainer.stop()
 })

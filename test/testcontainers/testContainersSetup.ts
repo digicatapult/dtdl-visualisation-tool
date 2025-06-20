@@ -1,50 +1,31 @@
+import * as fs from 'node:fs'
 import { GenericContainer, Network, StartedTestContainer, Wait } from 'testcontainers'
+import { parse } from 'yaml'
 import { logger } from '../../src/lib/server/logger.js'
 
-interface VisualisationUIConfig {
-  containerName: string
-  hostPort: number
-  containerPort: number
-  cookieSessionKeys: string
-}
-interface databaseConfig {
-  containerName: string
-  hostPort: number
-  containerPort: number
-  db: string
-  dbUsername: string
-  dbPassword: string
-}
+//============ Start Network ====================
 
 const network = await new Network().start()
 
-let visualisationUIContainer: StartedTestContainer
-let postgresContainer: StartedTestContainer
+//============ Image Version Control ============
+
+const dockerCompose = fs.readFileSync('./docker-compose.yml', 'utf-8')
+const parsed = parse(dockerCompose)
+const postgresVersion = parsed.services['postgres-dtdl-visualisation-tool'].image
+
+//============ Postgres Container ================
 
 export async function bringUpDatabaseContainer(): Promise<StartedTestContainer> {
-  const postgresConfig: databaseConfig = {
-    containerName: 'postgres-dtdl-visualisation-tool',
-    hostPort: 5432,
-    containerPort: 5432,
-    db: 'dtdl-visualisation-tool',
-    dbUsername: 'postgres',
-    dbPassword: 'postgres',
-  }
-  postgresContainer = await startDatabaseContainer(postgresConfig)
-  return postgresContainer
-}
-
-export async function startDatabaseContainer(env: databaseConfig): Promise<StartedTestContainer> {
-  const postgresContainer = await new GenericContainer('postgres:17.2-alpine')
-    .withName(env.containerName)
+  const postgresContainer = await new GenericContainer(postgresVersion)
+    .withName('postgres-dtdl-visualisation-tool')
     .withExposedPorts({
-      container: env.containerPort,
-      host: env.hostPort,
+      container: 5432,
+      host: 5432,
     })
     .withEnvironment({
-      POSTGRES_PASSWORD: env.dbPassword,
-      POSTGRES_USER: env.dbUsername,
-      POSTGRES_DB: env.db,
+      POSTGRES_PASSWORD: 'postgres',
+      POSTGRES_USER: 'postgres',
+      POSTGRES_DB: 'dtdl-visualisation-tool',
     })
     .withNetwork(network)
     .withWaitStrategy(Wait.forLogMessage('database system is ready to accept connections'))
@@ -52,29 +33,19 @@ export async function startDatabaseContainer(env: databaseConfig): Promise<Start
   return postgresContainer
 }
 
-export async function bringUpVisualisationContainer(): Promise<StartedTestContainer> {
-  const visualisationUIConfig: VisualisationUIConfig = {
-    containerName: 'dtdl-visualiser',
-    hostPort: 3000,
-    containerPort: 3000,
-    cookieSessionKeys: 'secret',
-  }
-  visualisationUIContainer = await startVisualisationContainer(visualisationUIConfig)
-  return visualisationUIContainer
-}
+//============ Visualiser UI ====================
 
-export async function startVisualisationContainer(env: VisualisationUIConfig): Promise<StartedTestContainer> {
-  const { containerName, containerPort, hostPort, cookieSessionKeys } = env
-  logger.info(`Building container...`)
-  const containerBase = await GenericContainer.fromDockerfile('./').withCache(true).build()
+export async function bringUpVisualisationContainer(): Promise<StartedTestContainer> {
+  logger.info(`Building 'dtdl-visualiser' container...`)
+  const containerBase = await GenericContainer.fromDockerfile('./').build()
   logger.info(`Built container.`)
 
-  logger.info(`Starting container ${containerName} on port ${containerPort}...`)
-  visualisationUIContainer = await containerBase
+  const visualisationUIContainer = await containerBase
+    .withName('dtdl-visualiser')
     .withNetwork(network)
     .withExposedPorts({
-      container: containerPort,
-      host: hostPort,
+      container: 3000,
+      host: 3000,
     })
     .withEnvironment({
       DB_HOST: 'postgres-dtdl-visualisation-tool',
@@ -85,22 +56,12 @@ export async function startVisualisationContainer(env: VisualisationUIConfig): P
       GH_CLIENT_ID: process.env.GH_CLIENT_ID || '',
       GH_CLIENT_SECRET: process.env.GH_CLIENT_SECRET || '',
       GH_APP_NAME: process.env.GH_APP_NAME || '',
-      COOKIE_SESSION_KEYS: cookieSessionKeys,
+      COOKIE_SESSION_KEYS: 'secret',
       EDIT_ONTOLOGY: 'true',
     })
     .withAddedCapabilities('SYS_ADMIN')
     .withCommand(['sh', '-c', 'npx knex migrate:latest --env production; dtdl-visualiser parse -p /sample/energygrid'])
     .start()
-  logger.info(`Started container ${containerName}`)
-  logger.info(`Started container on port ${visualisationUIContainer.getMappedPort(containerPort)}`)
+  logger.info(`Started container 'dtdl-visualiser' on port 3000`)
   return visualisationUIContainer
-}
-
-export async function stopAllContainers() {
-  if (visualisationUIContainer) {
-    await visualisationUIContainer.stop()
-  }
-  if (postgresContainer) {
-    await postgresContainer.stop()
-  }
 }

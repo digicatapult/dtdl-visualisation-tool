@@ -4,7 +4,7 @@ FROM node:lts-bookworm-slim AS builder
 WORKDIR /dtdl-visualisation-tool
 
 # Install base dependencies
-RUN npm install -g npm@10.x.x
+RUN npm install -g npm@11.x.x
 
 COPY package*.json ./
 COPY tsconfig.json ./
@@ -31,7 +31,7 @@ RUN groupadd -r pptruser && useradd -u $PPTRUSER_UID -rm -g pptruser -G audio,vi
 
 WORKDIR /dtdl-visualisation-tool
 
-RUN npm -g install npm@10.x.x
+RUN npm -g install npm@11.x.x
 COPY package*.json ./
 RUN npm ci --omit=dev
 
