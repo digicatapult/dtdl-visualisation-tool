@@ -56,11 +56,12 @@ export class OpenOntologyController extends HTMLController {
       throw new UploadError('File must be a .zip')
     }
 
-    const files = await this.parser.unzipJsonFiles(Buffer.from(file.buffer))
+    const jsonFiles = await this.parser.unzipJsonFiles(Buffer.from(file.buffer))
 
-    if (files.length === 0) throw new UploadError(`No valid '.json' files found`)
+    if (jsonFiles.length === 0) throw new UploadError(`No valid '.json' files found`)
 
-    const parsedDtdl = await this.parser.parse(files)
+    const files = await this.parser.validate(jsonFiles)
+    const parsedDtdl = await this.parser.parseAll(files)
     const output = await this.generator.run(parsedDtdl, 'flowchart', 'elk')
     const id = await this.modelDb.insertModel(file.originalname, output.renderForMinimap(), 'zip', null, null, files)
 

@@ -206,7 +206,7 @@ export class OntologyController extends HTMLController {
         swapOutOfBand: true,
         entityId: dtdlIdReinstateSemicolon(newSession.highlightNodeId ?? ''),
         model: baseModel,
-        expanded: newSession.highlightNodeId !== undefined,
+        expanded: true,
         edit: session.editMode!,
         tab: params.navigationPanelTab ?? (newSession.highlightNodeId ? 'details' : 'tree'),
         fileTree,

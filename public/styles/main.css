@@ -433,6 +433,24 @@ label[for='diagram-type-select'] {
   }
 }
 
+#navigation-panel-tree-warning {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background-color: #fff8e1; /* optional: warning background */
+  border: 1px solid #ffcc00; /* optional: warning border */
+  border-radius: 4px;
+
+  img {
+    width: 2rem;
+    height: auto;
+  }
+}
+
+
+
 #svg-controls {
   display: grid;
   grid-template-columns: auto auto;

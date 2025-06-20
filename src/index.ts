@@ -57,10 +57,11 @@ program
       const output = await generator.run(parsedDtdl, 'flowchart', 'elk')
       setCacheWithDefaultParams(cache, currentDefault.id, output)
     } else {
-      const files = await parser.getJsonFiles(options.path)
-      if (files.length === 0) throw new Error(`No valid '.json' files found`)
+      const jsonFiles = await parser.getJsonFiles(options.path)
+      if (jsonFiles.length === 0) throw new Error(`No valid '.json' files found`)
 
-      const parsedDtdl = await parser.parse(files)
+      const files = await parser.validate(jsonFiles)
+      const parsedDtdl = await parser.parseAll(files)
       const output = await generator.run(parsedDtdl, 'flowchart', 'elk')
 
       const id = await modelDb.insertModel(`default`, output.renderForMinimap(), 'default', null, null, files)

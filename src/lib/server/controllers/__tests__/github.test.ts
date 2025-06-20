@@ -106,7 +106,8 @@ export const mockGithubRequest = {
 const unzipJsonFilesStub = sinon.stub()
 
 export const mockParser = {
-  parse: sinon.stub().resolves(simpleMockDtdlObjectModel),
+  validate: sinon.stub().callsFake(async (files) => files),
+  parseAll: sinon.stub().resolves(simpleMockDtdlObjectModel),
   unzipJsonFiles: unzipJsonFilesStub,
 } as unknown as Parser
 
