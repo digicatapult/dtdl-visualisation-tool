@@ -1,8 +1,9 @@
 /// <reference types="@kitajs/html/htmx.d.ts" />
 
 import { escapeHtml } from '@kitajs/html'
-import { singleton } from 'tsyringe'
+import { container, singleton } from 'tsyringe'
 import version from '../../../../version.js'
+import { Env } from '../../env/index.js'
 import { ListItem } from '../../models/github.js'
 import { RecentFile } from '../../models/openTypes.js'
 import { Page } from '../common.js'
@@ -17,6 +18,8 @@ type SelectFolderProps =
       swapOutOfBand?: boolean
       stage: 'repo' | 'branch'
     }
+
+const env = container.resolve(Env)
 
 @singleton()
 export default class OpenOntologyTemplates {
@@ -94,9 +97,19 @@ export default class OpenOntologyTemplates {
             />
             <img src="/public/images/arrow-enter.svg" />
           </div>
+          <a
+            class="authorise-link"
+            href={`https://github.com/apps/${env.get('GH_APP_NAME')}`}
+            target="_blank"
+            aria-label="Authorise private repos (opens in a new tab)"
+          >
+            Authorise private repos ↗
+          </a>
           <this.githubPathLabel path="Repos:" />
-          <div id="spin" class="spinner" />
-          <ul class="github-list" hx-indicator="#spin" hx-get={populateListLink} hx-trigger="load"></ul>
+          <div id="github-list-wrapper">
+            <div id="spin" class="spinner" />
+            <ul class="github-list" hx-indicator="#spin" hx-get={populateListLink} hx-trigger="load"></ul>
+          </div>
           <this.selectFolder stage="repo" />
         </div>
         <form method="dialog">
