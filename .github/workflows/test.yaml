@@ -33,7 +33,7 @@ jobs:
     with:
       docker_compose_file: ''
       pre_test_command: 'npm ci && npx playwright install-deps && npx playwright install'
-      test_command: 'npm run test:playwright || exit 1'
+      test_command: 'npm run test:e2e || exit 1'
       env_vars: |
         {
           "PUPPETEER_ARGS": "--no-sandbox,--disable-setuid-sandbox"
