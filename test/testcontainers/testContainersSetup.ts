@@ -60,7 +60,7 @@ export async function bringUpVisualisationContainer(): Promise<StartedTestContai
       EDIT_ONTOLOGY: 'true',
     })
     .withAddedCapabilities('SYS_ADMIN')
-    .withCommand(['sh', '-c', 'npx knex migrate:latest --env production; dtdl-visualiser parse -p /sample/energygrid'])
+    .withCommand(['sh', '-c', 'npx knex migrate:latest --env production'])
     .start()
   logger.info(`Started container 'dtdl-visualiser' on port 3000`)
   return visualisationUIContainer
