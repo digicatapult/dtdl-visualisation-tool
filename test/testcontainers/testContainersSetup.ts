@@ -84,6 +84,7 @@ export async function startVisualisationContainer(env: VisualisationUIConfig): P
       DB_PORT: '5432',
       GH_CLIENT_ID: process.env.GH_CLIENT_ID || '',
       GH_CLIENT_SECRET: process.env.GH_CLIENT_SECRET || '',
+      GH_APP_NAME: process.env.GH_APP_NAME || '',
       COOKIE_SESSION_KEYS: cookieSessionKeys,
       EDIT_ONTOLOGY: 'true',
     })
