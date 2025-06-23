@@ -1,4 +1,5 @@
-import { expect, Locator, test } from '@playwright/test'
+import { expect, test } from '@playwright/test'
+import { directlyClickElement } from './helpers/clickHelpers'
 import { waitForUpdateLayout } from './helpers/waitForHelpers'
 
 test.describe('expand', () => {
@@ -75,15 +76,3 @@ test.describe('expand', () => {
     await expect(expand).toBeVisible()
   })
 })
-
-// work around <rect> intercepting pointer events in Safari
-const directlyClickElement = async (locator: Locator) => {
-  await locator.evaluate((el) => {
-    const event = new MouseEvent('click', {
-      bubbles: true,
-      cancelable: true,
-      view: window,
-    })
-    el.dispatchEvent(event)
-  })
-}

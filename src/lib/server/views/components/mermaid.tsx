@@ -109,9 +109,19 @@ export default class MermaidTemplates {
           ...commonUpdateAttrs,
         }
     const output = generatedOutput ?? ''
+    const content = target === 'mermaid-output' ? output : this.mermaidMessage(output)
     return (
-      <div id={target} class="mermaid" {...attributes}>
-        {output}
+      <div id="mermaid-output" class="mermaid" {...attributes}>
+        {content}
+      </div>
+    )
+  }
+
+  private mermaidMessage = (message: JSX.Element): JSX.Element => {
+    return (
+      <div id="mermaid-output-message">
+        <div id="info-logo" />
+        <p>{message}</p>
       </div>
     )
   }
