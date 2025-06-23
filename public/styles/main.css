@@ -160,14 +160,20 @@ label[for='diagram-type-select'] {
   border: none;
   border-radius: 5px;
   padding: 2rem;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
-  background-color: #FFFFFF;
-  max-width: 420px;
+  max-width: 50ch;
+}
+#mermaid-output-message > #info-logo {
+  width: 75px;
+  height: 75px;
+  background: url('/public/images/info.svg') no-repeat center/contain;
+  margin-bottom: 2lh;
+  margin-inline: auto;
 }
 #mermaid-output-message p {
-  font-size: 1rem;
+  font-size: 1.5rem;
   margin: 0 auto;
-  max-width: 100ch;
+  text-align: justify;
+  text-justify: inter-word;
 }
 
 #navigation-panel {

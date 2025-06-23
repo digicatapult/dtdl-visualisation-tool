@@ -120,7 +120,7 @@ export default class MermaidTemplates {
   private mermaidMessage = (message: JSX.Element): JSX.Element => {
     return (
       <div id="mermaid-output-message">
-        <h1>Oops!</h1>
+        <div id="info-logo" />
         <p>{message}</p>
       </div>
     )
