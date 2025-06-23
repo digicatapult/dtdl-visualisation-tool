@@ -29,7 +29,7 @@ test.describe('Share Ontology Link', () => {
     await expect(page1.locator('#share-link-modal').getByText('Copied!')).toBeVisible()
     let clipboardText: string
     if (projectName.includes('webkit')) {
-      clipboardText = await page1.locator('#link-output').innerText()
+      clipboardText = await page1.locator('#link-output').inputValue()
     } else {
       clipboardText = await page1.evaluate(() => navigator.clipboard.readText())
     }
@@ -62,7 +62,7 @@ test.describe('Share Ontology Link', () => {
     await expect(page2.locator('#share-link-modal').getByText('Copied!')).toBeVisible()
     let clipboardTextSearch: string
     if (projectName.includes('webkit')) {
-      clipboardTextSearch = await page2.locator('#link-output').innerText()
+      clipboardTextSearch = await page2.locator('#link-output').inputValue()
     } else {
       clipboardTextSearch = await page2.evaluate(() => navigator.clipboard.readText())
     }
