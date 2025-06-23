@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { waitForUpdateLayout } from './helpers/waitForHelpers'
 
 test.describe('Share Ontology Link', () => {
-  test('uploaded from a zip file can be viewed correctly on another browser', async ({ browser }) => {
+  test('ontology can be viewed correctly on another browser', async ({ browser }) => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     const context = await browser.newContext()
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
@@ -18,7 +18,7 @@ test.describe('Share Ontology Link', () => {
     // assert the link is as expected
     await expect
       .poll(async () => {
-        return await page2.locator('#link-output').inputValue()
+        return await page1.locator('#link-output').inputValue()
       })
       .toBe(page1.url().split('?')[0])
     // click copy
