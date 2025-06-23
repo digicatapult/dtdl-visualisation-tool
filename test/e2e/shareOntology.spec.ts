@@ -61,10 +61,4 @@ test.describe('Share Ontology Link', () => {
     await expect(page3.locator('#mermaid-output').getByText('ConnectivityNode', { exact: true })).toBeVisible()
     await expect(page3.locator('#mermaid-output').getByText('IdentifiedObject')).not.toBeVisible()
   })
-
-  test('uploaded from github can view and edit', async () => {})
-
-  test('uploaded from github can view cannot edit', async () => {})
-
-  test('uploaded from github cannot view or edit', async () => {})
 })
