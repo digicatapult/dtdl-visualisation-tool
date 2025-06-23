@@ -65,7 +65,7 @@ export class SvgGenerator {
         `DtdlObject size ${dtdlSize} exceeds maximum allowed size ${this.env.get('MAX_DTDL_OBJECT_SIZE')}`
       )
       return new PlainTextRender(
-        'The ontology opened is too large to be displayed in full. Please filter the size of the ontology by searching within it above'
+        'For optimal performance, the full ontology file is too large to load at once. Please load a subset of nodes or relationships via the search bar'
       )
     }
     const { page, release } = await this.getAvailablePage()
