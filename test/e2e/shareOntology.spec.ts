@@ -6,7 +6,7 @@ test.describe('Share Ontology Link', () => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     const context = await browser.newContext()
     const projectName = test.info().project.name
-    if (projectName.includes('chromium')) {
+    if (projectName.includes('chromium') || projectName.includes('webkit')) {
       await context.grantPermissions(['clipboard-read', 'clipboard-write'])
     }
     const page1 = await context.newPage()
