@@ -6,7 +6,7 @@ test.describe('Share Ontology Link', () => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     const context = await browser.newContext()
     const projectName = test.info().project.name
-    if (projectName.includes('chromium') || projectName.includes('webkit')) {
+    if (projectName.includes('chromium')) {
       await context.grantPermissions(['clipboard-read', 'clipboard-write'])
     }
     const page1 = await context.newPage()
@@ -27,7 +27,12 @@ test.describe('Share Ontology Link', () => {
     // click copy
     page1.locator('#copy-link-button').click()
     await expect(page1.locator('#share-link-modal').getByText('Copied!')).toBeVisible()
-    const clipboardText = await page1.evaluate(() => navigator.clipboard.readText())
+    let clipboardText: string
+    if (projectName.includes('webkit')) {
+      clipboardText = await page1.locator('#link-output').innerText()
+    } else {
+      clipboardText = await page1.evaluate(() => navigator.clipboard.readText())
+    }
     // open a new page and test
     const page2 = await context.newPage()
     await page2.setViewportSize({ width: 1920, height: 1080 })
@@ -55,7 +60,12 @@ test.describe('Share Ontology Link', () => {
     // click copy
     page2.locator('#copy-link-button').click()
     await expect(page2.locator('#share-link-modal').getByText('Copied!')).toBeVisible()
-    const clipboardTextSearch = await page2.evaluate(() => navigator.clipboard.readText())
+    let clipboardTextSearch: string
+    if (projectName.includes('webkit')) {
+      clipboardTextSearch = await page1.locator('#link-output').innerText()
+    } else {
+      clipboardTextSearch = await page1.evaluate(() => navigator.clipboard.readText())
+    }
     // assert that the link is correct
     const page3 = await context.newPage()
     await page3.setViewportSize({ width: 1920, height: 1080 })
