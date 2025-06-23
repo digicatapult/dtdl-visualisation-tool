@@ -2,10 +2,13 @@ import { expect, test } from '@playwright/test'
 import { waitForUpdateLayout } from './helpers/waitForHelpers'
 
 test.describe('Share Ontology Link', () => {
+  const projectName = test.info().project.name
   test('ontology can be viewed correctly on another browser', async ({ browser }) => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     const context = await browser.newContext()
-    await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+    if (projectName.includes('chromium')) {
+      await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+    }
     const page1 = await context.newPage()
     await page1.setViewportSize({ width: 1920, height: 1080 })
     await waitForUpdateLayout(page1, () => page1.goto('./'))
