@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { waitForUpdateLayout } from './helpers/waitForHelpers'
 
 test.describe('Share Ontology Link', () => {
-  test.only('uploaded from a zip file can be viewed correctly on another browser', async ({ browser }) => {
+  test('uploaded from a zip file can be viewed correctly on another browser', async ({ browser }) => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     const context = await browser.newContext()
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
