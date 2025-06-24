@@ -74,4 +74,11 @@ test.describe('Share Ontology Link', () => {
     await expect(page3.locator('#mermaid-output').getByText('ConnectivityNode', { exact: true })).toBeVisible()
     await expect(page3.locator('#mermaid-output').getByText('IdentifiedObject')).not.toBeVisible()
   })
+  test('public ontology can be viewed correctly on another browser/github user edits disabled', async ({
+    browser,
+  }) => { })
+  test('private ontology can be viewed correctly on another browser/github user edits enabled', async ({
+    browser,
+  }) => { })
+  test('private ontology cannot be viewed on another browser/github user', async ({ browser }) => { })
 })

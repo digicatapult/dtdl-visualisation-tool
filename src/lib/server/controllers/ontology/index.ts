@@ -130,7 +130,23 @@ export class OntologyController extends HTMLController {
     @Request() req: express.Request,
     @Path() dtdlModelId: UUID,
     @Queries() params: UpdateParams
-  ): Promise<HTML> {
+  ): Promise<HTML | void> {
+    const { source, owner, repo } = await this.modelDb.getModelById(dtdlModelId)
+    let permission: ViewAndEditPermission = 'view'
+    if (source == 'github') {
+      const octokitToken = req.signedCookies[octokitTokenCookie]
+      if (!octokitToken) {
+        this.setStatus(302)
+        this.setHeader('Location', authRedirectURL(`/ontology/${dtdlModelId}/view`))
+        return
+      }
+      permission = await this.checkPermissions(octokitToken, owner, repo)
+    }
+
+    if (permission === 'unauthorised') {
+      this.setStatus(401)
+      return this.html('401 Unauthorised')
+    }
     this.logger.debug('search: %o', { search: params.search })
 
     const session = this.sessionStore.get(params.sessionId)
