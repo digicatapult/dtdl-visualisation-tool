@@ -16,6 +16,7 @@ import {
   type UpdateParams,
 } from '../../models/controllerTypes.js'
 import { modelHistoryCookie, octokitTokenCookie } from '../../models/cookieNames.js'
+import { ViewAndEditPermission } from '../../models/github.js'
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../models/renderedDiagram/index.js'
 import { type UUID } from '../../models/strings.js'
 import { Cache, type ICache } from '../../utils/cache.js'
@@ -96,7 +97,7 @@ export class OntologyController extends HTMLController {
     )
 
     const { source, owner, repo } = await this.modelDb.getModelById(dtdlModelId)
-    let canEdit = false
+    let permission: ViewAndEditPermission = 'view'
     if (source == 'github') {
       const octokitToken = req.signedCookies[octokitTokenCookie]
       if (!octokitToken) {
@@ -104,7 +105,12 @@ export class OntologyController extends HTMLController {
         this.setHeader('Location', authRedirectURL(`/ontology/${dtdlModelId}/view`))
         return
       }
-      canEdit = await this.checkEditPermissions(octokitToken, owner, repo)
+      permission = await this.checkPermissions(octokitToken, owner, repo)
+    }
+
+    if (permission === 'unauthorised') {
+      this.setStatus(401)
+      return this.html('401 Unauthorised')
     }
 
     return this.html(
@@ -112,7 +118,7 @@ export class OntologyController extends HTMLController {
         search: params.search,
         sessionId,
         diagramType: params.diagramType,
-        canEdit,
+        canEdit: permission === 'edit',
       })
     )
   }
@@ -460,11 +466,11 @@ export class OntologyController extends HTMLController {
     return cookieHistory
   }
 
-  private async checkEditPermissions(
+  private async checkPermissions(
     octokitToken: string,
     owner: string | null,
     repo: string | null
-  ): Promise<boolean> {
+  ): Promise<ViewAndEditPermission> {
     if (!owner || !repo) {
       throw new InternalError('owner or repo not found in database for GitHub source')
     }

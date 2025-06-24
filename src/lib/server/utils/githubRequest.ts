@@ -5,7 +5,7 @@ import { container, inject, singleton } from 'tsyringe'
 import { Env } from '../env/index.js'
 import { GithubNotFound, GithubReqError } from '../errors.js'
 import { Logger, type ILogger } from '../logger.js'
-import { OAuthToken } from '../models/github.js'
+import { OAuthToken, ViewAndEditPermission } from '../models/github.js'
 import { safeUrl } from './url.js'
 
 const env = container.resolve(Env)
@@ -93,9 +93,7 @@ export class GithubRequest {
     return json as OAuthToken
   }
 
-  getRepoPermissions = async (token: string | undefined, owner: string, repo: string): Promise<boolean> => {
-    if (!token) throw new GithubReqError('Missing GitHub token')
-
+  getRepoPermissions = async (token: string, owner: string, repo: string): Promise<ViewAndEditPermission> => {
     const octokit = new Octokit({ auth: token })
     const response = await this.requestWrapper(async () =>
       octokit.request('GET /repos/{owner}/{repo}', {
@@ -105,9 +103,11 @@ export class GithubRequest {
     )
     const data = response.data
     if (data.permissions?.push) {
-      return true
+      return 'edit'
+    } else if (data.permissions?.pull) {
+      return 'view'
     }
-    return false
+    return 'unauthorised'
   }
 
   getZip = async (token: string | undefined, owner: string, repo: string, ref: string) => {

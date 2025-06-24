@@ -37,7 +37,7 @@ export async function bringUpDatabaseContainer(): Promise<StartedTestContainer> 
 }
 
 export async function startDatabaseContainer(env: databaseConfig): Promise<StartedTestContainer> {
-  const postgresContainer = await new GenericContainer('postgres:17.2-alpine')
+  const postgresContainer = await new GenericContainer('postgres:17.5-alpine')
     .withName(env.containerName)
     .withExposedPorts({
       container: env.containerPort,

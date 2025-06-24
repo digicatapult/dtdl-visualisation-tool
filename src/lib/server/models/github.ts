@@ -11,3 +11,6 @@ export interface ListItem {
   text: string
   link?: string
 }
+
+export const viewAndEditPermissions = ['unauthorised', 'view', 'edit'] as const
+export type ViewAndEditPermission = (typeof viewAndEditPermissions)[number]

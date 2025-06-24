@@ -609,7 +609,7 @@ label[for='diagram-type-select'] {
 
 #toolbar {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr auto 1fr;
 }
 
 #zip {
@@ -628,12 +628,161 @@ label[for='diagram-type-select'] {
   justify-content: center;
   width: 20ch;
   padding: 10px;
+  margin-inline: 1ch;
   height: fit-content;
   align-self: center;
 }
 
 #open-button:hover {
   background-color: #e9e9ed;
+}
+
+#share-ontology {
+  display: flex;
+  border-color: #e3e3e4;
+  border-style: solid;
+  border-radius: 5px;
+  border-width: 1px;
+  padding: 5px;
+  cursor: pointer;
+  background-color: var(--background-color);
+  justify-content: center;
+  width: 20ch;
+  padding: 10px;
+  margin-inline: 1ch;
+  height: fit-content;
+  align-self: center;
+}
+
+#share-ontology:hover {
+  background-color: #e9e9ed;
+}
+
+#share-link-modal {
+  border: none;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  max-width: 420px;
+  width: 100%;
+  gap: 1.2rem;
+}
+
+#share-link-modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+#share-link-modal label {
+  display: flex;
+  gap: 0.5rem;
+  padding-bottom: 10px;
+}
+
+#share-link-modal label > span {
+  place-content: center;
+}
+
+#share-link-modal input[type='radio'] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #aaa;
+  border-radius: 50%;
+  display: flex;
+  place-content: center;
+  position: relative;
+  cursor: pointer;
+  background-color: white;
+  outline: none;
+}
+#share-link-modal input[type="radio"]::before {
+  content: "";
+  width: 20px;
+  height: 20px;
+  background-image: url('../images/tick-circle.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  transform: scale(0);
+  transition: transform 0.2s ease-in-out;
+  border-width:2px;
+}
+#share-link-modal input[type="radio"]:checked::before {
+  transform: scale(1);
+}
+#share-link-modal input[type='radio']:checked {
+  border-color: #555
+}
+
+#share-link-modal input[type='text'] {
+  background-color: var(--background-color);
+  border-color: #e3e3e4;
+  border-style: solid;
+  border-radius: 5px;
+  border-width: 1px;
+  font-size: 1em;
+  padding-block: 10px;
+  padding-inline: 2px;
+}
+
+#copy-link-button {
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem; 
+  background-color: var(--active-button-color); 
+  border: none; 
+  border-radius: 10px; 
+  font-size: 1rem;
+  color: #ffffff;
+  &:hover {
+      background-color: hsl(from var(--active-button-color) h s 40%);;
+    }
+}
+
+#copy-button-wrapper {
+  position: relative;
+  display: inline-block;
+  width: fit-content;
+}
+
+.tooltip {
+  position: absolute;
+  top:-10px;
+  background: #333;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-duration) ease-in-out;
+}
+
+#copy-button-wrapper:hover .tooltip {
+  opacity: 1;
+}
+
+#copy-icon.copied {
+  background-image: url('../images/tick.svg');
+  background-size: 20px 20px;
+  background-repeat: no-repeat;
+  transform: rotate(360deg);
+}
+
+#copy-icon {
+  display: inline-block;
+  background-image: url('../images/copy-document.svg');
+  background-size: 20px 20px;
+  background-repeat: no-repeat;
+  width: 20px;
+  height: 20px;
+  margin-left: 1ch;
+  transition: 
+    transform var(--transition-duration) ease, 
+    background-image var(--transition-duration) ease;
 }
 
 #upload-info {
