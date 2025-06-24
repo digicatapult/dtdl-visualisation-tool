@@ -41,7 +41,7 @@ export const defaultParams: UpdateParams = {
 }
 
 const updateLayoutOutput = [
-  `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
+  `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output-message_mermaidTarget`,
   `searchPanel_undefined_true_searchPanel`,
   `navigationPanel_true__navigationPanel`,
   `svgControls_${generatedSVGFixture}_svgControls`,

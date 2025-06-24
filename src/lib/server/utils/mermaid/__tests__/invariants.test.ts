@@ -12,7 +12,7 @@ import { type MermaidSvgRender, PlainTextRender } from '../../../models/rendered
 import { SvgGenerator } from '../generator.js'
 import { mockDtdlObjectModel } from './fixtures.js'
 import { nonParallelTest } from './generator.test.js'
-import { expectStringIsFiniteNumber, getChildrenByClass } from './helpers.js'
+import { expectStringIsFiniteNumber, getChildrenByClass, mockEnvClass } from './helpers.js'
 
 describe('Mermaid Invariants', function () {
   describe('flowchart', function () {
@@ -20,7 +20,8 @@ describe('Mermaid Invariants', function () {
 
     before(async () => {
       const logger = pino({ level: 'silent' })
-      const generator = new SvgGenerator(logger, nonParallelTest)
+      const env = mockEnvClass()
+      const generator = new SvgGenerator(logger, nonParallelTest, env)
       const render = await generator.run(mockDtdlObjectModel, 'flowchart', 'elk')
       if (render instanceof PlainTextRender) {
         expect.fail('Expected a MermaidSvgRender')
@@ -176,7 +177,8 @@ describe('Mermaid Invariants', function () {
 
     before(async () => {
       const logger = pino({ level: 'silent' })
-      const generator = new SvgGenerator(logger, nonParallelTest)
+      const env = mockEnvClass()
+      const generator = new SvgGenerator(logger, nonParallelTest, env)
       const render = await generator.run(mockDtdlObjectModel, 'classDiagram', 'elk')
       if (render instanceof PlainTextRender) {
         expect.fail('Expected a MermaidSvgRender')

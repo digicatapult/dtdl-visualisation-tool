@@ -179,6 +179,7 @@ export class OntologyController extends HTMLController {
     // get the raw mermaid generated svg
     const output = await this.generateRawOutput(dtdlModelId, filteredModel, newSession)
     const outputRawSize = output instanceof MermaidSvgRender ? output.svgRawSize : null
+    const targetId = output instanceof MermaidSvgRender ? `mermaid-output` : `mermaid-output-message`
 
     // perform out manipulations on the svg
     const { pan, zoom } = this.manipulateOutput(output, dtdlModelId, filteredModel, session, newSession, params)
@@ -196,7 +197,7 @@ export class OntologyController extends HTMLController {
     return this.html(
       this.templates.mermaidTarget({
         generatedOutput: output.renderToString(),
-        target: 'mermaid-output',
+        target: targetId,
       }),
       this.templates.searchPanel({
         search: newSession.search,
