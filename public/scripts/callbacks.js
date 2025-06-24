@@ -172,7 +172,7 @@ globalThis.showShareModal = function showShareModal() {
 }
 
 globalThis.updateShareLink = function updateShareLink() {
-  const radios = document.querySelectorAll('input[name="link-type"]')
+  const radios = document.getElementById('share-link-modal').querySelectorAll('input[name="link-type"]')
   const linkInput = document.getElementById('link-output')
 
   let selectedValue = 'full'
