@@ -360,19 +360,19 @@ export default class MermaidTemplates {
 
     return (
       <div id="navigation-panel-tree">
-        <this.navigationPanelTreeLevel
-          highlightedEntityId={entityId}
-          highlightedEntitySet={defaultExpandSet}
-          fileTree={fileTree}
-        />
-        <div id="navigation-panel-tree-warning">
-          {fileTree.some((f) => f.type === 'file' && f.errors) && (
-            <>
-              <img src="/public/images/warning.svg" width="54px" height="50px" />
-              <p>Only a part of this ontology could be loaded, due to errors.</p>
-            </>
-          )}
+        <div>
+          <this.navigationPanelTreeLevel
+            highlightedEntityId={entityId}
+            highlightedEntitySet={defaultExpandSet}
+            fileTree={fileTree}
+          />
         </div>
+        {fileTree.some((f) => f.type === 'file' && f.errors) && (
+          <div id="navigation-panel-tree-warning">
+            <img src="/public/images/warning.svg" width="54px" height="50px" />
+            <p>Only a part of this ontology could be loaded, due to errors.</p>
+          </div>
+        )}
       </div>
     )
   }

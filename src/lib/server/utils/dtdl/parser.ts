@@ -142,19 +142,14 @@ export default class Parser {
         ...(parsed.ExceptionKind === 'Parsing' && { errors: [parsed] }),
       }
     })
-
     if (filesWithErrors.every((f) => f.errors)) {
-      throw new ModellingError(
-        `All files have parsing errors. Open details of first file`,
-        JSON.stringify(filesWithErrors[0]?.errors)
-      )
+      throw new ModellingError(`Unable to parse any file. Open details:`, JSON.stringify(filesWithErrors[0]?.errors))
     }
 
     return filesWithErrors
   }
 
   async parseAll(files: DtdlFile[]): Promise<DtdlObjectModel> {
-    const parser = await getInterop()
     const allContents = Parser.fileContentsToString(files)
 
     const dtdlHashKey = createHash('sha256').update(allContents).digest('base64')
@@ -163,13 +158,11 @@ export default class Parser {
       if (cachedParsedDtdl) return cachedParsedDtdl
     }
 
+    const parser = await getInterop()
     const parsedDtdl = parseDtdl(allContents, parser)
 
     if (parsedDtdl.ExceptionKind) {
-      throw new ModellingError(
-        `${parsedDtdl.ExceptionKind} error. Open details for more information`,
-        JSON.stringify(parsedDtdl)
-      )
+      throw new ModellingError(`${parsedDtdl.ExceptionKind} error. Open details:`, JSON.stringify(parsedDtdl))
     }
     this.cache.set<DtdlObjectModel>(dtdlHashKey, parsedDtdl)
 

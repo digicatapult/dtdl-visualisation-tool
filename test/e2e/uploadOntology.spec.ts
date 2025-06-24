@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 test.describe('Upload ontology from local drive', () => {
-  test('Should error + success path for uploading ontology from local zip file', async ({ page }) => {
+  test('Should error + success path for uploading ontology from local zip files', async ({ page }) => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     await page.setViewportSize({ width: 1920, height: 1080 })
     await waitForUpdateLayout(page, () => page.goto('./'))
@@ -26,6 +26,7 @@ test.describe('Upload ontology from local drive', () => {
     await expect(page.locator('#main-view').getByText('Local Zip File')).toBeVisible()
 
     // Upload ontology and wait for file to load dtdl
+    // Error zip
     let filePath = path.join(__dirname, '../../src/lib/server/controllers/__tests__/error.zip')
 
     const warningSVGResponsePromise = page.waitForResponse(
@@ -36,17 +37,28 @@ test.describe('Upload ontology from local drive', () => {
 
     await expect(page.getByText('Modelling error')).toBeVisible()
 
+    // All valid zip
     filePath = path.join(__dirname, '../../src/lib/server/controllers/__tests__/simple.zip')
 
     await waitForUploadFile(page, () => page.locator('#main-view').getByText('Local Zip File').click(), filePath)
 
     await expect(page.locator('#mermaid-output').getByText('dtmi:com:example;1')).toBeVisible()
-
-    // Check classDiagram functionality
     await waitForUpdateLayout(page, () => page.getByLabel('Diagram Type').selectOption('classDiagram'))
     await expect(page.locator('#mermaid-output #mermaid-svg')).toHaveClass('classDiagram')
 
-    // Render root page and test if default dtdl has loaded
+    // Some valid/invalid zip
+    await page.goto('./open')
+    await waitForSuccessResponse(
+      page,
+      () => page.locator('#main-view').getByTitle('Upload New Ontology').click(),
+      '/menu'
+    )
+    filePath = path.join(__dirname, '../../src/lib/server/controllers/__tests__/someInvalid.zip')
+    await waitForUploadFile(page, () => page.locator('#main-view').getByText('Local Zip File').click(), filePath)
+    await expect(page.locator('#mermaid-output').getByText('IdentifiedObject')).toBeVisible()
+    await expect(page.locator('#navigation-panel-tree-warning')).toBeInViewport()
+
+    // Test default dtdl still loads
     await waitForUpdateLayout(page, () => page.goto('./'))
     await expect(page.locator('#mermaid-output').getByText('ConnectivityNode', { exact: true })).toBeVisible()
 

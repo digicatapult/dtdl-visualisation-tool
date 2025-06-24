@@ -345,6 +345,13 @@ label[for='diagram-type-select'] {
   padding-block: 30px;
   padding-inline: 20px;
   font-size: 1rem;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 5px;
+
+  & > * {
+    overflow-y: auto;
+  }
 
   .accordion-content > div > .accordion-parent,
   .navigation-panel-tree-leaf {

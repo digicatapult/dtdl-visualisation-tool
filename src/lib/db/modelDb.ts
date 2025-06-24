@@ -61,7 +61,7 @@ export class ModelDb {
     })
   }
 
-  async getDtdlWithErrors(model_id: UUID): Promise<DtdlFile[]> {
+  async getDtdlFiles(model_id: UUID): Promise<DtdlFile[]> {
     const files = await this.db.get('dtdl', { model_id })
     if (files.length === 0) throw new InternalError(`Failed to find model: ${model_id}`)
 
@@ -79,7 +79,7 @@ export class ModelDb {
   }
 
   async getDtdlModelAndTree(id: UUID): Promise<{ model: DtdlObjectModel; fileTree: DtdlPath[] }> {
-    const files = await this.getDtdlWithErrors(id)
+    const files = await this.getDtdlFiles(id)
     const parsedDtdl = await this.parser.parseAll(files)
     const fileTree = this.parser.extractDtdlPaths(files, parsedDtdl)
     return { model: parsedDtdl, fileTree }
