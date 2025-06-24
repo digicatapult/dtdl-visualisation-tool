@@ -141,10 +141,10 @@ describe('modelDB', function () {
         fileTree: singleInterfaceFirstFilePaths,
       })
       expect(mockParserParseStub.firstCall.args[0]).to.deep.equal([
-        { path: 'path', contents: JSON.stringify({ someDtdlKey: 'someDtdlValue' }) },
+        { path: 'path', contents: JSON.stringify({ someDtdlKey: 'someDtdlValue' }), errors: [errorFixture] },
       ])
       expect(mockParserExtractPathsStub.firstCall.args).to.deep.equal([
-        [{ path: 'path', contents: JSON.stringify({ someDtdlKey: 'someDtdlValue' }) }],
+        [{ path: 'path', contents: JSON.stringify({ someDtdlKey: 'someDtdlValue' }), errors: [errorFixture] }],
         defaultModel,
       ])
     })

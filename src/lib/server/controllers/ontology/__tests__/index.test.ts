@@ -109,7 +109,7 @@ describe('OntologyController', async () => {
       const result = await controller.updateLayout(req, simpleDtdlId, defaultParams).then(toHTMLString)
       expect(result).to.equal(
         [
-          `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
+          `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output-message_mermaidTarget`,
           `searchPanel_undefined_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
           `svgControls_${generatedSVGFixture}_svgControls`,
@@ -124,7 +124,7 @@ describe('OntologyController', async () => {
         .then(toHTMLString)
       expect(result).to.equal(
         [
-          `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
+          `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output-message_mermaidTarget`,
           `searchPanel_example 1_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
           `svgControls_${generatedSVGFixture}_svgControls`,
@@ -148,7 +148,7 @@ describe('OntologyController', async () => {
 
       expect(result).to.equal(
         [
-          `mermaidTarget_None_mermaid-output_mermaidTarget`,
+          `mermaidTarget_None_mermaid-output-message_mermaidTarget`,
           `searchPanel_undefined_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
           `svgControls__svgControls`,
@@ -365,7 +365,7 @@ describe('OntologyController', async () => {
 
       expect(result).to.equal(
         [
-          `mermaidTarget_${generatedSVGFixture}_attr_animate_mermaid-output_mermaidTarget`,
+          `mermaidTarget_${generatedSVGFixture}_attr_animate_mermaid-output-message_mermaidTarget`,
           `searchPanel_example_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
           `svgControls_${generatedSVGFixture}_svgControls`,
@@ -386,7 +386,7 @@ describe('OntologyController', async () => {
 
       expect(result).to.equal(
         [
-          `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
+          `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output-message_mermaidTarget`,
           `searchPanel_example_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
           `svgControls_${generatedSVGFixture}_svgControls`,
@@ -409,7 +409,7 @@ describe('OntologyController', async () => {
 
       expect(result).to.equal(
         [
-          `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
+          `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output-message_mermaidTarget`,
           `searchPanel_example_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
           `svgControls_${generatedSVGFixture}_svgControls`,
@@ -431,7 +431,7 @@ describe('OntologyController', async () => {
 
       expect(result).to.equal(
         [
-          `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
+          `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output-message_mermaidTarget`,
           `searchPanel_undefined_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
           `svgControls_${generatedSVGFixture}_svgControls`,
@@ -453,7 +453,7 @@ describe('OntologyController', async () => {
 
       expect(result).to.equal(
         [
-          `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output_mermaidTarget`,
+          `mermaidTarget_${generatedSVGFixture}_attr_mermaid-output-message_mermaidTarget`,
           `searchPanel_example_true_searchPanel`,
           `navigationPanel_true__navigationPanel`,
           `svgControls_${generatedSVGFixture}_svgControls`,

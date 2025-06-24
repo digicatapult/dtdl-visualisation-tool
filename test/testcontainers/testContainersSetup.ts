@@ -6,6 +6,7 @@ interface VisualisationUIConfig {
   hostPort: number
   containerPort: number
   cookieSessionKeys: string
+  maxOntologySize?: number
 }
 interface databaseConfig {
   containerName: string
@@ -20,6 +21,7 @@ const network = await new Network().start()
 
 let visualisationUIContainer: StartedTestContainer
 let postgresContainer: StartedTestContainer
+let visualisationImage: GenericContainer
 
 export async function bringUpDatabaseContainer(): Promise<StartedTestContainer> {
   const postgresConfig: databaseConfig = {
@@ -48,29 +50,25 @@ export async function startDatabaseContainer(env: databaseConfig): Promise<Start
     })
     .withNetwork(network)
     .withWaitStrategy(Wait.forLogMessage('database system is ready to accept connections'))
+    .withReuse()
     .start()
   return postgresContainer
 }
 
-export async function bringUpVisualisationContainer(): Promise<StartedTestContainer> {
-  const visualisationUIConfig: VisualisationUIConfig = {
-    containerName: 'dtdl-visualiser',
-    hostPort: 3000,
-    containerPort: 3000,
-    cookieSessionKeys: 'secret',
-  }
-  visualisationUIContainer = await startVisualisationContainer(visualisationUIConfig)
-  return visualisationUIContainer
+//build
+export async function buildVisualisationImage(): Promise<GenericContainer> {
+  logger.info(`Building container...`)
+  visualisationImage = await GenericContainer.fromDockerfile('./').withCache(true).build()
+  logger.info(`Built container.`)
+  return visualisationImage
 }
 
+//start with environment variables
 export async function startVisualisationContainer(env: VisualisationUIConfig): Promise<StartedTestContainer> {
-  const { containerName, containerPort, hostPort, cookieSessionKeys } = env
-  logger.info(`Building container...`)
-  const containerBase = await GenericContainer.fromDockerfile('./').withCache(true).build()
-  logger.info(`Built container.`)
+  const { containerName, containerPort, hostPort, cookieSessionKeys, maxOntologySize } = env
 
   logger.info(`Starting container ${containerName} on port ${containerPort}...`)
-  visualisationUIContainer = await containerBase
+  visualisationUIContainer = await visualisationImage
     .withNetwork(network)
     .withExposedPorts({
       container: containerPort,
@@ -87,6 +85,7 @@ export async function startVisualisationContainer(env: VisualisationUIConfig): P
       GH_APP_NAME: process.env.GH_APP_NAME || '',
       COOKIE_SESSION_KEYS: cookieSessionKeys,
       EDIT_ONTOLOGY: 'true',
+      MAX_DTDL_OBJECT_SIZE: maxOntologySize ? maxOntologySize.toString() : '1000',
     })
     .withAddedCapabilities('SYS_ADMIN')
     .withCommand(['sh', '-c', 'npx knex migrate:latest --env production; dtdl-visualiser parse -p /sample/energygrid'])
