@@ -76,9 +76,9 @@ test.describe('Share Ontology Link', () => {
   })
   test('public ontology can be viewed correctly on another browser/github user edits disabled', async ({
     browser,
-  }) => { })
+  }) => {})
   test('private ontology can be viewed correctly on another browser/github user edits enabled', async ({
     browser,
-  }) => { })
-  test('private ontology cannot be viewed on another browser/github user', async ({ browser }) => { })
+  }) => {})
+  test('private ontology cannot be viewed on another browser/github user', async ({ browser }) => {})
 })
