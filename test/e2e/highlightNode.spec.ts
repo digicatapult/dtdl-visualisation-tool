@@ -24,6 +24,10 @@ test.describe('highlight', () => {
     await page.goto('./')
     await page.waitForSelector(`text='Terminal'`)
 
+    for (let i = 0; i < 10; i++) {
+      await page.locator('#zoom-out').click()
+    }
+
     await waitForUpdateLayout(page, () =>
       page.locator('#mermaid-output').getByText('CurveDatas', { exact: true }).click()
     )

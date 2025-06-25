@@ -1,3 +1,4 @@
+import { ModelingException } from '@digicatapult/dtdl-parser'
 import * as chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import { describe, it } from 'mocha'
@@ -21,16 +22,18 @@ const defaultFixture = { id: 1, source: 'default' }
 const githubFixture = { id: 2, source: 'github' }
 const fileContents = { someDtdlKey: 'someDtdlValue' }
 const mockFile: DtdlFile = { path: 'path', contents: JSON.stringify(fileContents) }
+const errorFixture: ModelingException = { ExceptionKind: 'Resolution', UndefinedIdentifiers: [''] }
 
 const dbTransactionMock = {
   insert: sinon.stub().resolves([{ id: '1' as UUID }]),
 }
 
 const mockDb = {
-  get: sinon.stub().callsFake((_, { id, source, model_id }) => {
+  get: sinon.stub().callsFake((_, { id, source, model_id, dtdl_id }) => {
     if (id === '1') return Promise.resolve([defaultFixture])
     if (source === 'default') return Promise.resolve([defaultFixture])
     if (model_id === '1') return Promise.resolve([{ id: '1', path: 'path', contents: fileContents }])
+    if (dtdl_id === '1') return Promise.resolve([{ id: '1', error: errorFixture }])
     return Promise.resolve([])
   }),
   getJsonb: sinon.stub().callsFake((_model, _process, _column, _exp, [id]) => {
@@ -55,7 +58,8 @@ const mockDbNoDefault = {
 const mockParserParseStub = sinon.stub().resolves(defaultModel)
 const mockParserExtractPathsStub = sinon.stub().returns(singleInterfaceFirstFilePaths)
 const mockParser = {
-  parse: mockParserParseStub,
+  validate: sinon.stub().callsFake(async (files) => files),
+  parseAll: mockParserParseStub,
   extractDtdlPaths: mockParserExtractPathsStub,
 } as unknown as Parser
 const model = new ModelDb(mockDb, mockParser)
@@ -93,13 +97,17 @@ describe('modelDB', function () {
         'default' as FileSourceKeys,
         'owner',
         'repo',
-        [mockFile]
+        [{ ...mockFile, errors: [errorFixture] }]
       )
       expect(newModelId).to.equal('1')
-      expect((dbTransactionMock.insert as sinon.SinonStub).calledTwice).to.equal(true)
+      expect((dbTransactionMock.insert as sinon.SinonStub).calledThrice).to.equal(true)
       expect((dbTransactionMock.insert as sinon.SinonStub).secondCall.args).to.deep.equal([
         'dtdl',
         { ...mockFile, model_id: '1' },
+      ])
+      expect((dbTransactionMock.insert as sinon.SinonStub).thirdCall.args).to.deep.equal([
+        'dtdl_error',
+        { error: errorFixture, dtdl_id: '1' },
       ])
     })
   })
@@ -111,6 +119,21 @@ describe('modelDB', function () {
     })
   })
 
+  describe('getDtdlFiles', () => {
+    it('should get files with their error details', async () => {
+      expect(await model.getDtdlFiles('1')).to.deep.equal([
+        {
+          ...mockFile,
+          errors: [errorFixture],
+        },
+      ])
+    })
+
+    it('should throw error if given ID not found', async () => {
+      await expect(model.getDtdlFiles('badId')).to.be.rejectedWith(InternalError)
+    })
+  })
+
   describe('getDtdlModel', () => {
     it('should get parsed DTDL for a model', async () => {
       expect(await model.getDtdlModelAndTree('1')).to.deep.equal({
@@ -118,10 +141,10 @@ describe('modelDB', function () {
         fileTree: singleInterfaceFirstFilePaths,
       })
       expect(mockParserParseStub.firstCall.args[0]).to.deep.equal([
-        { path: 'path', contents: JSON.stringify({ someDtdlKey: 'someDtdlValue' }) },
+        { path: 'path', contents: JSON.stringify({ someDtdlKey: 'someDtdlValue' }), errors: [errorFixture] },
       ])
       expect(mockParserExtractPathsStub.firstCall.args).to.deep.equal([
-        [{ path: 'path', contents: JSON.stringify({ someDtdlKey: 'someDtdlValue' }) }],
+        [{ path: 'path', contents: JSON.stringify({ someDtdlKey: 'someDtdlValue' }), errors: [errorFixture] }],
         defaultModel,
       ])
     })

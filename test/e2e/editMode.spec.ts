@@ -108,6 +108,8 @@ test.describe('Test edit ontology', () => {
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page.locator('#edit-toggle').getByText('View')).toBeVisible()
 
+    await page.waitForTimeout(500)
+
     const navigationAfterContentNull = await getStyledComponent(
       page,
       '#navigation-panel h3:first-of-type',
