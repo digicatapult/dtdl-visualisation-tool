@@ -7,9 +7,6 @@ test.describe('Share Ontology Link', () => {
   const ghTestUser2 = process.env.GH_TEST_USER_2
   const ghTestPassword2 = process.env.GH_TEST_PASSWORD_2
   const gh2faSecret2 = process.env.GH_TEST_2FA_SECRET_2
-  if (!ghTestUser2 || !ghTestPassword2 || !gh2faSecret2) {
-    throw new Error('Test GitHub user 2 credentials required')
-  }
   test('ontology can be viewed correctly on another browser', async ({ browser }) => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     const context = await browser.newContext()
@@ -43,6 +40,9 @@ test.describe('Share Ontology Link', () => {
     await expect(page3.locator('#mermaid-output').getByText('IdentifiedObject')).not.toBeVisible()
   })
   test('private ontology can be viewed correctly on another browser/github user edits enabled', async ({ browser }) => {
+    if (!ghTestUser2 || !ghTestPassword2 || !gh2faSecret2) {
+      throw new Error('Test GitHub user 2 credentials required')
+    }
     // Open ontology and copy share link
     const repo = 'https://github.com/digicatapult-nidt-user-1/nidt_ontology_private_with_collaborator'
     const context1 = await browser.newContext()
@@ -74,6 +74,9 @@ test.describe('Share Ontology Link', () => {
     await expect(page2.locator('#edit-toggle').getByText('Edit')).toBeVisible()
   })
   test('private ontology cannot be viewed on another browser/github user', async ({ browser }) => {
+    if (!ghTestUser2 || !ghTestPassword2 || !gh2faSecret2) {
+      throw new Error('Test GitHub user 2 credentials required')
+    }
     const repo = 'https://github.com/digicatapult-nidt-user-1/nidt_ontology_private_without_collaborator'
     // Open ontology and copy share link
     const context1 = await browser.newContext()
