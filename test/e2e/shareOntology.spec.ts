@@ -1,4 +1,6 @@
 import { expect, test } from '@playwright/test'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { attemptGHLogin, openGithubOntology } from './helpers/githubHelpers.js'
 import { getShareableLink } from './helpers/shareLinkHelper.js'
 import { waitForSuccessResponse, waitForUpdateLayout } from './helpers/waitForHelpers'
@@ -68,6 +70,7 @@ test.describe('Share Ontology Link', () => {
 
     // Fill in the credentials and sign in
     await attemptGHLogin(page2, ghTestUser2, ghTestPassword2, gh2faSecret2)
+    await page2.context().storageState({ path: join(tmpdir(), 'second_user.json') })
     // Assert ontology view
     expect(await page2.locator('#edit-toggle .switch').isEnabled()).toBeTruthy()
     await waitForSuccessResponse(page2, () => page2.locator('#edit-toggle .switch').first().click(), '/edit-model')
@@ -92,16 +95,10 @@ test.describe('Share Ontology Link', () => {
     const clipboardText = await getShareableLink(page1, context1, projectName)
     await context1.close()
     // Open another browser without user any user logged in
-    const context2 = await browser.newContext({ storageState: undefined })
+    const context2 = await browser.newContext({ storageState: join(tmpdir(), 'second_user.json') })
     const page2 = await context2.newPage()
     await page2.setViewportSize({ width: 1920, height: 1080 })
     await page2.goto(clipboardText)
-
-    // Wait for GitHub login form
-    await page2.waitForSelector('#login')
-
-    // Fill in the credentials and sign in
-    await attemptGHLogin(page2, ghTestUser2, ghTestPassword2, gh2faSecret2)
     // Assert 401
     await expect(page2.locator('#mermaid-output-message').getByText('You are unauthorised')).toBeVisible()
   })
