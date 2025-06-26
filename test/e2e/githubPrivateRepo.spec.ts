@@ -42,6 +42,6 @@ test.describe('Private GitHub repos', () => {
       )
       await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/github/picker')
     }
-    await expect(page.locator('.github-list >> text=/\\/private/')).toBeVisible()
+    await expect(page.locator('.github-list').getByText('private_with_')).toBeVisible()
   })
 })
