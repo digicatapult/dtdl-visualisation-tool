@@ -96,7 +96,7 @@ test.describe('Share Ontology Link', () => {
     const page2 = await context2.newPage()
     await page2.setViewportSize({ width: 1920, height: 1080 })
     await page2.goto(clipboardText)
-    // Log into github for 2nd user from redirect to login flow for github
+
     // Wait for GitHub login form
     await page2.waitForSelector('#login')
 
