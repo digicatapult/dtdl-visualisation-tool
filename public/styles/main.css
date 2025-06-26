@@ -376,6 +376,13 @@ label[for='diagram-type-select'] {
   padding-block: 30px;
   padding-inline: 20px;
   font-size: 1rem;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 5px;
+
+  & > * {
+    overflow-y: auto;
+  }
 
   .accordion-content > div > .accordion-parent,
   .navigation-panel-tree-leaf {
@@ -463,6 +470,24 @@ label[for='diagram-type-select'] {
     background-image: url('../images/relationship.svg');
   }
 }
+
+#navigation-panel-tree-warning {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background-color: #fff8e1; /* optional: warning background */
+  border: 1px solid #ffcc00; /* optional: warning border */
+  border-radius: 4px;
+
+  img {
+    width: 2rem;
+    height: auto;
+  }
+}
+
+
 
 #svg-controls {
   display: grid;

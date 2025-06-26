@@ -5,7 +5,6 @@
 }
 
 .github-list {
-  overflow: auto;
   list-style-type: none;
   padding: 0;
   border: 1px solid var(--border-color);
@@ -67,6 +66,7 @@ a.authorise-link:hover {
 #github-list-wrapper {
   display: grid;
   height: 100%;
+  overflow: auto;
 }
 
 #select-folder {

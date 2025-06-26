@@ -1,4 +1,4 @@
-import { DtdlObjectModel, EntityType, getInterop, parseDtdl } from '@digicatapult/dtdl-parser'
+import { DtdlObjectModel, EntityType, getInterop, ModelingException, parseDtdl } from '@digicatapult/dtdl-parser'
 import { createHash } from 'crypto'
 import { Dirent } from 'node:fs'
 import { readdir, readFile } from 'node:fs/promises'
@@ -30,6 +30,7 @@ type DtdlPathFile = {
   type: 'file'
   name: string
   entries: DtdlPathFileEntry[]
+  errors?: ModelingException[]
 }
 type DtdlPathDirectory = {
   type: 'directory'
@@ -127,8 +128,29 @@ export default class Parser {
     }
   }
 
-  async parse(files: DtdlFile[]): Promise<DtdlObjectModel> {
-    const allContents = `[${files.map((file) => file.contents).join(',')}]`
+  /**
+   * Parses individual DTDL files and returns them with any parsing errors.
+   * Ignores resolution errors.
+   */
+  async validate(files: DtdlFile[]): Promise<DtdlFile[]> {
+    const parser = await getInterop()
+
+    const filesWithErrors = files.map((file) => {
+      const parsed = parseDtdl(file.contents, parser)
+      return {
+        ...file,
+        ...(parsed.ExceptionKind === 'Parsing' && { errors: [parsed] }),
+      }
+    })
+    if (filesWithErrors.every((f) => f.errors)) {
+      throw new ModellingError(`Unable to parse any file. Open details:`, JSON.stringify(filesWithErrors[0]?.errors))
+    }
+
+    return filesWithErrors
+  }
+
+  async parseAll(files: DtdlFile[]): Promise<DtdlObjectModel> {
+    const allContents = Parser.fileContentsToString(files)
 
     const dtdlHashKey = createHash('sha256').update(allContents).digest('base64')
     if (this.cache.has(dtdlHashKey)) {
@@ -137,14 +159,10 @@ export default class Parser {
     }
 
     const parser = await getInterop()
-
     const parsedDtdl = parseDtdl(allContents, parser)
 
     if (parsedDtdl.ExceptionKind) {
-      throw new ModellingError(
-        `${parsedDtdl.ExceptionKind} error, Open details for more information`,
-        JSON.stringify(parsedDtdl)
-      )
+      throw new ModellingError(`${parsedDtdl.ExceptionKind} error. Open details:`, JSON.stringify(parsedDtdl))
     }
     this.cache.set<DtdlObjectModel>(dtdlHashKey, parsedDtdl)
 
@@ -154,8 +172,16 @@ export default class Parser {
   extractDtdlPaths(files: DtdlFile[], model: DtdlObjectModel): DtdlPath[] {
     // for each file parse the contents and extract the entities along their file system path
     const dtdlFilePaths = files.map((file) => {
-      const json = dtdlFileContentParser.parse(JSON.parse(file.contents))
       const filePath = path.parse(file.path)
+      if (file.errors)
+        return this.wrapDtdlPathEntry(filePath, {
+          type: 'file',
+          name: filePath.base,
+          entries: [],
+          errors: file.errors,
+        })
+
+      const json = dtdlFileContentParser.parse(JSON.parse(file.contents))
       const pathFile = this.extractDtdlEntities(filePath.base, json, model)
       return this.wrapDtdlPathEntry(filePath, pathFile)
     })
@@ -284,5 +310,10 @@ export default class Parser {
     if (obj !== null && typeof obj === 'object') {
       return Object.values(obj).every((value) => this.isWithinDepthLimit(value, currentDepth + 1))
     }
+  }
+
+  static fileContentsToString(files: DtdlFile[]): string {
+    const validFiles = files.filter((f) => !f.errors)
+    return `[${validFiles.map((f) => f.contents).join(',')}]`
   }
 }

@@ -1,8 +1,9 @@
+import { ModelingException } from '@digicatapult/dtdl-parser'
 import { Knex } from 'knex'
 import { z } from 'zod'
 import { fileSource } from '../server/models/openTypes.js'
 
-export const tablesList = ['model', 'dtdl'] as const
+export const tablesList = ['model', 'dtdl', 'dtdl_error'] as const
 
 const insertModel = z.object({
   name: z.string(),
@@ -16,6 +17,63 @@ const insertDtdl = z.object({
   path: z.string(),
   model_id: z.string(),
   contents: z.unknown().refine((value) => value !== null && value !== undefined),
+})
+
+const ParsingError = z.object({
+  PrimaryID: z
+    .string()
+    .nullable()
+    .transform((val) => val ?? undefined),
+  SecondaryID: z
+    .string()
+    .nullable()
+    .transform((val) => val ?? undefined),
+  Property: z
+    .string()
+    .nullable()
+    .transform((val) => val ?? undefined),
+  AuxProperty: z
+    .string()
+    .nullable()
+    .transform((val) => val ?? undefined),
+  Type: z
+    .string()
+    .nullable()
+    .transform((val) => val ?? undefined),
+  Value: z
+    .string()
+    .nullable()
+    .transform((val) => val ?? undefined),
+  Restriction: z
+    .string()
+    .nullable()
+    .transform((val) => val ?? undefined),
+  Transformation: z
+    .string()
+    .nullable()
+    .transform((val) => val ?? undefined),
+  Violations: z
+    .array(z.string())
+    .nullable()
+    .transform((val) => val ?? undefined),
+  Cause: z.string(),
+  Action: z.string(),
+  ValidationID: z.string(),
+})
+
+const ParsingException = z.object({
+  ExceptionKind: z.literal('Parsing'),
+  Errors: z.array(ParsingError),
+})
+
+const ResolutionException = z.object({
+  ExceptionKind: z.literal('Resolution'),
+  UndefinedIdentifiers: z.array(z.string()),
+})
+
+const insertDtdlError = z.object({
+  dtdl_id: z.string(),
+  error: z.discriminatedUnion('ExceptionKind', [ParsingException, ResolutionException]),
 })
 
 const Zod = {
@@ -33,6 +91,13 @@ const Zod = {
       created_at: z.date(),
     }),
   },
+  dtdl_error: {
+    insert: insertDtdlError,
+    get: insertDtdlError.extend({
+      id: z.string(),
+      created_at: z.date(),
+    }),
+  },
 }
 
 export type InsertModel = z.infer<typeof Zod.model.insert>
@@ -43,6 +108,7 @@ export type DtdlRow = z.infer<typeof Zod.dtdl.get>
 export type DtdlFile = {
   path: string
   contents: string
+  errors?: ModelingException[]
 }
 
 export type TABLES_TUPLE = typeof tablesList

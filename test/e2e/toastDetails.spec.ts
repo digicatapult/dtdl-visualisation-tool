@@ -34,8 +34,8 @@ test.describe('Upload ontology from local drive', () => {
     await waitForUploadFile(page, () => page.locator('#main-view').getByText('Local Zip File').click(), filePath)
     await warningSVGResponsePromise
 
-    await expect(page.getByText('Open details for more information')).toBeVisible()
-    await page.locator('#toast-container').getByText('Parsing error, Open details for more information').click()
+    await expect(page.getByText('Unable to parse any file. Open details:')).toBeVisible()
+    await page.locator('#toast-container').getByText('Unable to parse any file. Open details:').click()
 
     await expect(page.getByText('Top-level JSON object has no @context specifier')).toBeVisible()
   })

@@ -4,7 +4,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import Parser from '../parser.js'
 
-import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
+import { DtdlObjectModel, ModelingException } from '@digicatapult/dtdl-parser'
 import { expect } from 'chai'
 import { createHash } from 'crypto'
 import { readFile } from 'node:fs/promises'
@@ -122,20 +122,20 @@ describe('parse', function () {
       { path: '', contents: JSON.stringify(nestedOne) },
       { path: '', contents: JSON.stringify(nestedTwo) },
     ]
-    const result = await parser.parse(files)
+    const result = await parser.parseAll(files)
     expect(result[nestedOne['@id']].Id).to.equal(nestedOne['@id'])
     expect(result[nestedTwo['@id']].Id).to.equal(nestedTwo['@id'])
   })
 
   test('throws error if bad DTDL', async () => {
     const files = [{ path: '', contents: JSON.stringify({}) }]
-    await expect(parser.parse(files)).to.be.rejectedWith(ModellingError)
+    await expect(parser.parseAll(files)).to.be.rejectedWith(ModellingError)
   })
 
   test('parsed dtdl loaded from cache', async () => {
     const files = [{ path: '', contents: JSON.stringify(nestedOne) }]
 
-    const allContents = `[${files.map((f) => f.contents).join(',')}]`
+    const allContents = Parser.fileContentsToString(files)
     const dtdlHashKey = createHash('sha256').update(allContents).digest('base64')
 
     const parsedDtdl = {
@@ -149,7 +149,7 @@ describe('parse', function () {
 
     const parser = new Parser(mockLogger, mockCache)
 
-    const result = await parser.parse(files)
+    const result = await parser.parseAll(files)
 
     expect(result[nestedOne['@id']].Id).to.equal(nestedOne['@id'])
     expect(hasStub.calledOnceWithExactly(dtdlHashKey)).to.equal(true)
@@ -159,7 +159,7 @@ describe('parse', function () {
 
   test('parses DTDL and sets cache if not found', async () => {
     const files = [{ path: '', contents: JSON.stringify(nestedOne) }]
-    const allContents = `[${files.map((f) => f.contents).join(',')}]`
+    const allContents = Parser.fileContentsToString(files)
     const dtdlHashKey = createHash('sha256').update(allContents).digest('base64')
     const parsedDtdl = {
       [nestedOne['@id']]: {
@@ -172,12 +172,39 @@ describe('parse', function () {
 
     const parser = new Parser(mockLogger, mockCache)
 
-    const result = await parser.parse(files)
+    const result = await parser.parseAll(files)
 
     expect(hasStub.calledOnceWithExactly(dtdlHashKey)).to.equal(true)
     expect(getStub.notCalled).to.equal(true)
     expect(setSpy.calledOnceWithExactly(dtdlHashKey, result)).to.equal(true)
     expect(result[nestedOne['@id']].Id).to.equal(nestedOne['@id'])
+  })
+})
+
+describe('validate', function () {
+  test('multiple valid files', async () => {
+    const files = [
+      { path: '', contents: JSON.stringify(nestedOne) },
+      { path: '', contents: JSON.stringify(nestedTwo) },
+    ]
+    const result = await parser.validate(files)
+    expect(result).to.deep.equal(files)
+  })
+
+  test('valid file and invalid file', async () => {
+    const files = [
+      { path: '', contents: JSON.stringify(nestedOne) },
+      { path: '', contents: JSON.stringify({}) },
+    ]
+    const result = await parser.validate(files)
+    expect(result[0]).to.deep.equal(files[0])
+    expect(result[1].errors).to.be.an('Array')
+    expect(result[1].errors).to.have.length.greaterThan(0)
+  })
+
+  test('should throw error if all invalid files', async () => {
+    const files = [{ path: '', contents: JSON.stringify({}) }]
+    await expect(parser.validate(files)).to.be.rejectedWith(ModellingError)
   })
 })
 
@@ -379,7 +406,7 @@ describe('extractDtdlPaths', function () {
 
   test('extracts properties and relationships', async () => {
     const files = [{ path: 'file.json', contents: JSON.stringify(withPropsAndRels) }]
-    const model = await parser.parse(files)
+    const model = await parser.parseAll(files)
 
     const result = parser.extractDtdlPaths(files, model)
     expect(result).to.deep.equal([
@@ -420,6 +447,54 @@ describe('extractDtdlPaths', function () {
             id: 'dtmi:com:second;1',
             name: 'Second',
             type: 'fileEntry',
+          },
+        ],
+      },
+    ])
+  })
+
+  test('extracts and merges paths from multiple files - including errors', () => {
+    const error: ModelingException = { ExceptionKind: 'Resolution', UndefinedIdentifiers: [''] }
+    const files = [
+      { path: 'some/path/file.json', contents: JSON.stringify(nestedOne), errors: [error] },
+      { path: 'some/other/file2.json', contents: JSON.stringify(nestedTwo) },
+    ]
+    const result = parser.extractDtdlPaths(files, model)
+    expect(result).to.deep.equal([
+      {
+        type: 'directory',
+        name: 'some',
+        entries: [
+          {
+            type: 'directory',
+            name: 'path',
+            entries: [
+              {
+                type: 'file',
+                name: 'file.json',
+                entries: [],
+                errors: [error],
+              },
+            ],
+          },
+          {
+            type: 'directory',
+            name: 'other',
+            entries: [
+              {
+                type: 'file',
+                name: 'file2.json',
+                entries: [
+                  {
+                    type: 'fileEntry',
+                    dtdlType: 'Interface',
+                    name: nestedTwo['@id'],
+                    id: nestedTwo['@id'],
+                    entries: [],
+                  },
+                ],
+              },
+            ],
           },
         ],
       },

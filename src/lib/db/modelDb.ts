@@ -39,7 +39,7 @@ export class ModelDb {
     files: DtdlFile[]
   ): Promise<UUID> {
     return this.db.withTransaction(async (db) => {
-      const [{ id }] = await db.insert('model', {
+      const [{ id: modelId }] = await db.insert('model', {
         name,
         preview,
         source,
@@ -48,18 +48,40 @@ export class ModelDb {
       })
 
       for (const file of files) {
-        await db.insert('dtdl', { ...file, model_id: id })
+        const [{ id: dtdlId }] = await db.insert('dtdl', {
+          path: file.path,
+          contents: file.contents,
+          model_id: modelId,
+        })
+        for (const error of file.errors ?? []) {
+          await db.insert('dtdl_error', { error, dtdl_id: dtdlId })
+        }
       }
-      return id
+      return modelId
     })
   }
 
+  async getDtdlFiles(model_id: UUID): Promise<DtdlFile[]> {
+    const files = await this.db.get('dtdl', { model_id })
+    if (files.length === 0) throw new InternalError(`Failed to find model: ${model_id}`)
+
+    return Promise.all(
+      files.map(async (file) => {
+        const errorRows = await this.db.get('dtdl_error', { dtdl_id: file.id })
+        const errors = errorRows.map(({ error }) => error)
+        return {
+          path: file.path,
+          contents: JSON.stringify(file.contents),
+          ...(errors.length > 0 && { errors }),
+        }
+      })
+    )
+  }
+
   async getDtdlModelAndTree(id: UUID): Promise<{ model: DtdlObjectModel; fileTree: DtdlPath[] }> {
-    const files = await this.db.get('dtdl', { model_id: id })
-    if (files.length === 0) throw new InternalError(`Failed to find model: ${id}`)
-    const filesStringified = files.map((file) => ({ path: file.path, contents: JSON.stringify(file.contents) }))
-    const parsedDtdl = await this.parser.parse(filesStringified)
-    const fileTree = this.parser.extractDtdlPaths(filesStringified, parsedDtdl)
+    const files = await this.getDtdlFiles(id)
+    const parsedDtdl = await this.parser.parseAll(files)
+    const fileTree = this.parser.extractDtdlPaths(files, parsedDtdl)
     return { model: parsedDtdl, fileTree }
   }
 
@@ -74,7 +96,7 @@ export class ModelDb {
       return { path: file.path, contents: JSON.stringify(file.contents) }
     })
 
-    const parsedDtdl = await this.parser.parse(filesStringified)
+    const parsedDtdl = await this.parser.parseAll(filesStringified)
     return parsedDtdl
   }
 
