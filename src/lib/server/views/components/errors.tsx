@@ -75,7 +75,7 @@ export function ErrorPage(message: string, statusCode?: number) {
         <div id="mermaid-output-message">
           <div class="warning-logo" />
           <h2>{statusCode}</h2>
-          <p>{message}</p>
+          <p>{escapeHtml(message)}</p>
         </div>
       </div>
     </Page>

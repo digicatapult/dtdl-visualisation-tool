@@ -122,7 +122,7 @@ export default class MermaidTemplates {
     return (
       <div id="mermaid-output-message">
         <div class={target == 'mermaid-warning-message' ? 'warning-logo' : 'info-logo'} />
-        <p>{message}</p>
+        <p>{escapeHtml(message)}</p>
       </div>
     )
   }
