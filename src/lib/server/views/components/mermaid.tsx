@@ -110,7 +110,7 @@ export default class MermaidTemplates {
           ...commonUpdateAttrs,
         }
     const output = generatedOutput ?? ''
-    const content = target === 'mermaid-output' ? output : this.mermaidMessage(output)
+    const content = target === 'mermaid-output' ? output : this.mermaidMessage(output, target)
     return (
       <div id="mermaid-output" class="mermaid" {...attributes}>
         {content}
@@ -118,10 +118,10 @@ export default class MermaidTemplates {
     )
   }
 
-  private mermaidMessage = (message: JSX.Element): JSX.Element => {
+  private mermaidMessage = (message: JSX.Element, target: string): JSX.Element => {
     return (
       <div id="mermaid-output-message">
-        <div id="info-logo" />
+        <div class={target == 'mermaid-warning-message' ? 'warning-logo' : 'info-logo'} />
         <p>{message}</p>
       </div>
     )

@@ -95,19 +95,26 @@ export class GithubRequest {
 
   getRepoPermissions = async (token: string, owner: string, repo: string): Promise<ViewAndEditPermission> => {
     const octokit = new Octokit({ auth: token })
-    const response = await this.requestWrapper(async () =>
-      octokit.request('GET /repos/{owner}/{repo}', {
-        owner,
-        repo,
-      })
-    )
-    const data = response.data
-    if (data.permissions?.push) {
-      return 'edit'
-    } else if (data.permissions?.pull) {
-      return 'view'
+    try {
+      const response = await this.requestWrapper(async () =>
+        octokit.request('GET /repos/{owner}/{repo}', {
+          owner,
+          repo,
+        })
+      )
+      const data = response.data
+      if (data.permissions?.push) {
+        return 'edit'
+      } else if (data.permissions?.pull) {
+        return 'view'
+      }
+      return 'unauthorised'
+    } catch (error) {
+      if (error instanceof GithubNotFound) {
+        return 'unauthorised'
+      }
+      throw error
     }
-    return 'unauthorised'
   }
 
   getZip = async (token: string | undefined, owner: string, repo: string, ref: string) => {
