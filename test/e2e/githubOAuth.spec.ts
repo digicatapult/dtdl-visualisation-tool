@@ -95,5 +95,6 @@ test.describe('Upload ontology from GitHub via OAuth', () => {
     // get dtdl from github
     await waitForSuccessResponse(page, () => page.click('#select-folder'), '/ontology')
     await expect(page.locator('#mermaid-output').getByText('IdentifiedObject')).toBeVisible()
+    context.close()
   })
 })

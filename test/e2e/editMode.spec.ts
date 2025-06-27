@@ -121,6 +121,7 @@ test.describe('Test edit ontology', () => {
       'content'
     )
     expect(navigationAfterContentNull).toBe('none')
+    await context.close()
   })
 })
 

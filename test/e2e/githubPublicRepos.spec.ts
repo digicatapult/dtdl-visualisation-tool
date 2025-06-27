@@ -63,5 +63,6 @@ test.describe('Public GitHub URL input validation', () => {
         }
       }
     }
+    await context.close()
   })
 })

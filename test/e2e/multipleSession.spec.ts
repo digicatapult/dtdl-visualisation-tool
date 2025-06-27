@@ -52,5 +52,6 @@ test.describe('multiple sessions', () => {
     // check both pages are still showing their correct model
     await expect(pageOne.locator('#mermaid-output').getByText('ConnectivityNode', { exact: true })).toBeVisible()
     await expect(pageTwo.locator('#mermaid-output').getByText('dtmi:com:example;1')).toBeVisible()
+    await context.close()
   })
 })
