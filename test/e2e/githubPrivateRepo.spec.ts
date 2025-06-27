@@ -19,7 +19,7 @@ setup('authorise all private repos via GitHub App install', async ({ browser }) 
     ? join(tmpdir() + '/playwright/.auth/user1.json')
     : join(tmpdir() + '/playwright/.auth/user2.json')
 
-  const context = await browser.newContext({ storageState: undefined })
+  const context = await browser.newContext()
   const page = await context.newPage()
   await page.setViewportSize({ width: 1920, height: 1080 })
   await page.goto('./open')
