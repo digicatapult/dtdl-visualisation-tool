@@ -1,6 +1,4 @@
 import { expect, Page, test } from '@playwright/test'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
 import { waitForSuccessResponse, waitForUpdateLayout } from './helpers/waitForHelpers'
 
 test.describe('Test edit ontology', () => {
@@ -22,7 +20,7 @@ test.describe('Test edit ontology', () => {
   })
   test('edit interface + relationship', async ({ browser, baseURL }) => {
     // login to github
-    const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
+    const context = await browser.newContext({ storageState: 'playwright/.auth/user1.json' })
     const page = await context.newPage()
     await page.setViewportSize({ width: 1920, height: 1080 })
     await page.goto('./open')

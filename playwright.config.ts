@@ -1,6 +1,4 @@
 import { defineConfig, devices } from '@playwright/test'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
 
 export default defineConfig({
   globalSetup: './test/globalSetup.ts',
@@ -31,14 +29,14 @@ export default defineConfig({
       name: 'setup',
       testMatch: 'githubPrivateRepo.spec.ts',
       use: {
-        storageState: join(tmpdir(), 'user1.json'),
+        storageState: 'playwright/.auth/user.json',
       },
     },
     {
       name: 'setupUser2',
       testMatch: 'githubPrivateRepo.spec.ts',
       use: {
-        storageState: join(tmpdir(), 'user2.json'),
+        storageState: 'playwright/.auth/user.json',
       },
       dependencies: ['setup'],
     },
