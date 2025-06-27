@@ -1,4 +1,5 @@
 import { expect, test as setup } from '@playwright/test'
+import path from 'node:path'
 import { attemptGHLogin } from './helpers/githubHelpers'
 import { waitForSuccessResponse } from './helpers/waitForHelpers'
 
@@ -13,7 +14,9 @@ setup('authorise all private repos via GitHub App install', async ({ browser }) 
     throw new Error('Test GitHub user credentials required')
   }
 
-  const storageState = user1 ? 'playwright/.auth/user1.json' : 'playwright/.auth/user2.json'
+  const storageState = user1
+    ? path.join(__dirname, '../playwright/.auth/user1.json')
+    : path.join(__dirname, '../playwright/.auth/user2.json')
 
   const context = await browser.newContext({ storageState: undefined })
   const page = await context.newPage()
