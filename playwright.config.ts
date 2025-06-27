@@ -28,16 +28,10 @@ export default defineConfig({
     {
       name: 'setup',
       testMatch: 'githubPrivateRepo.spec.ts',
-      use: {
-        storageState: 'playwright/.auth/user1.json',
-      },
     },
     {
       name: 'setupUser2',
       testMatch: 'githubPrivateRepo.spec.ts',
-      use: {
-        storageState: 'playwright/.auth/user2.json',
-      },
       dependencies: ['setup'],
     },
     {
