@@ -22,7 +22,6 @@ export default defineConfig({
     trace: 'on-first-retry',
     baseURL: 'http://localhost:3000',
     headless: !!process.env.CI,
-    storageState: join(tmpdir(), 'storage-state.json'),
   },
   expect: {
     timeout: 10 * 1000,
@@ -31,21 +30,32 @@ export default defineConfig({
     {
       name: 'setup',
       testMatch: 'githubPrivateRepo.spec.ts',
+      use: {
+        storageState: join(tmpdir(), 'user1.json'),
+      },
+    },
+    {
+      name: 'setupUser2',
+      testMatch: 'githubPrivateRepo.spec.ts',
+      use: {
+        storageState: join(tmpdir(), 'user2.json'),
+      },
+      dependencies: ['setup'],
     },
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      dependencies: ['setup'],
+      dependencies: ['setupUser2'],
     },
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
-      dependencies: ['setup'],
+      dependencies: ['setupUser2'],
     },
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
-      dependencies: ['setup'],
+      dependencies: ['setupUser2'],
     },
   ],
 })

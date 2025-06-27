@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { attemptGHLogin, openGithubOntology } from './helpers/githubHelpers.js'
+import { openGithubOntology } from './helpers/githubHelpers.js'
 import { getShareableLink } from './helpers/shareLinkHelper.js'
 import { waitForSuccessResponse, waitForUpdateLayout } from './helpers/waitForHelpers'
 
@@ -11,7 +11,7 @@ test.describe('Share Ontology Link', () => {
   const gh2faSecret2 = process.env.GH_TEST_2FA_SECRET_2
   test('ontology can be viewed correctly on another browser', async ({ browser }) => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
-    const context = await browser.newContext()
+    const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const projectName = test.info().project.name
     const page1 = await context.newPage()
     await page1.setViewportSize({ width: 1920, height: 1080 })
@@ -47,7 +47,7 @@ test.describe('Share Ontology Link', () => {
     }
     // Open ontology and copy share link
     const repo = 'https://github.com/digicatapult-nidt-user-1/nidt_ontology_private_with_collaborator'
-    const context1 = await browser.newContext()
+    const context1 = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const projectName = test.info().project.name
     if (projectName.includes('chromium')) {
       await context1.grantPermissions(['clipboard-read', 'clipboard-write'])
@@ -60,29 +60,19 @@ test.describe('Share Ontology Link', () => {
     const clipboardText = await getShareableLink(page1, context1, projectName)
     await context1.close()
     // Open another browser without user any user logged in
-    const context2 = await browser.newContext({ storageState: undefined })
+    const context2 = await browser.newContext({ storageState: join(tmpdir(), 'user2.json') })
     const page2 = await context2.newPage()
     await page2.setViewportSize({ width: 1920, height: 1080 })
     await page2.goto(clipboardText)
-    // Log into github for 2nd user from redirect to login flow for github
-    // Wait for GitHub login form
-    await page2.waitForSelector('#login')
-
-    // Fill in the credentials and sign in
-    await attemptGHLogin(page2, ghTestUser2, ghTestPassword2, gh2faSecret2)
-    await page2.context().storageState({ path: join(tmpdir(), 'second_user.json') })
     // Assert ontology view
     expect(await page2.locator('#edit-toggle .switch').isEnabled()).toBeTruthy()
     await waitForSuccessResponse(page2, () => page2.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page2.locator('#edit-toggle').getByText('Edit')).toBeVisible()
   })
   test('private ontology cannot be viewed on another browser/github user', async ({ browser }) => {
-    if (!ghTestUser2 || !ghTestPassword2 || !gh2faSecret2) {
-      throw new Error('Test GitHub user 2 credentials required')
-    }
     const repo = 'https://github.com/digicatapult-nidt-user-1/nidt_ontology_private_without_collaborator'
     // Open ontology and copy share link
-    const context1 = await browser.newContext()
+    const context1 = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const projectName = test.info().project.name
     if (projectName.includes('chromium')) {
       await context1.grantPermissions(['clipboard-read', 'clipboard-write'])
@@ -95,7 +85,7 @@ test.describe('Share Ontology Link', () => {
     const clipboardText = await getShareableLink(page1, context1, projectName)
     await context1.close()
     // Open another browser without user any user logged in
-    const context2 = await browser.newContext({ storageState: join(tmpdir(), 'second_user.json') })
+    const context2 = await browser.newContext({ storageState: join(tmpdir(), 'user2.json') })
     const page2 = await context2.newPage()
     await page2.setViewportSize({ width: 1920, height: 1080 })
     await page2.goto(clipboardText)

@@ -1,11 +1,15 @@
 import { expect, test } from '@playwright/test'
 
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { getValidationMessage } from './helpers/genericHelpers'
 import { waitFor404Response, waitForSuccessResponse } from './helpers/waitForHelpers'
 
 test.describe('Public GitHub URL input validation', () => {
-  test('Success + error responses for different URLs', async ({ page }) => {
+  test('Success + error responses for different URLs', async ({ browser }) => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
+    const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
+    const page = await context.newPage()
     await page.setViewportSize({ width: 1920, height: 1080 })
     await page.goto('./open')
     await waitForSuccessResponse(
