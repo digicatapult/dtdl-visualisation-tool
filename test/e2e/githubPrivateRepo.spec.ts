@@ -5,6 +5,9 @@ import { waitForSuccessResponse } from './helpers/waitForHelpers'
 
 const ghAppName = process.env.GH_APP_NAME
 
+const __filename = new URL(import.meta.url).pathname
+const __dirname = path.dirname(__filename)
+
 setup('authorise all private repos via GitHub App install', async ({ browser }) => {
   const user1: boolean = setup.info().project.name == 'setup'
   const ghUser = user1 ? process.env.GH_TEST_USER : process.env.GH_TEST_USER_2
