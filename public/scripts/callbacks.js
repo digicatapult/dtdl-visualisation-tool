@@ -188,7 +188,7 @@ globalThis.updateShareLink = function updateShareLink() {
 
   if (selectedValue === 'short') {
     const urlObj = new URL(fullUrl)
-    finalUrl = `${urlObj.protocol}${urlObj.host}${urlObj.pathname}`
+    finalUrl = `${urlObj.origin}${urlObj.pathname}`
   }
 
   linkInput.value = finalUrl
