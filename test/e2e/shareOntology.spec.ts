@@ -40,6 +40,7 @@ test.describe('Share Ontology Link', () => {
     // open a new page and test that the ontology is also filtered
     await expect(page3.locator('#mermaid-output').getByText('ConnectivityNode', { exact: true })).toBeVisible()
     await expect(page3.locator('#mermaid-output').getByText('IdentifiedObject')).not.toBeVisible()
+    await context.close()
   })
   test('private ontology can be viewed correctly on another browser/github user edits enabled', async ({ browser }) => {
     if (!ghTestUser2 || !ghTestPassword2 || !gh2faSecret2) {
@@ -80,7 +81,7 @@ test.describe('Share Ontology Link', () => {
     const page1 = await context1.newPage()
     await page1.setViewportSize({ width: 1920, height: 1080 })
 
-    await openGithubOntology(page1, repo, 'main', 'sample')
+    await openGithubOntology(page1, repo, /^main$/, 'sample')
 
     const clipboardText = await getShareableLink(page1, context1, projectName)
     await context1.close()
