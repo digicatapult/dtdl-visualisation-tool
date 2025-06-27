@@ -16,8 +16,8 @@ setup('authorise all private repos via GitHub App install', async ({ browser }) 
   }
 
   const storageState = user1
-    ? join(tmpdir() + 'playwright/.auth/user1.json')
-    : join(tmpdir() + 'playwright/.auth/user2.json')
+    ? join(tmpdir() + '/playwright/.auth/user1.json')
+    : join(tmpdir() + '/playwright/.auth/user2.json')
 
   const context = await browser.newContext({ storageState: undefined })
   const page = await context.newPage()
@@ -66,5 +66,4 @@ setup('authorise all private repos via GitHub App install', async ({ browser }) 
     await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/github/picker')
   }
   await expect(page.locator('.github-list').getByText('private_with_')).toBeVisible()
-  await context.close()
 })

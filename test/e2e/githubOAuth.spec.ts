@@ -9,7 +9,7 @@ test.describe('Upload ontology from GitHub via OAuth', () => {
     browser,
   }) => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
-    const context = await browser.newContext({ storageState: join(tmpdir() + 'playwright/.auth/user1.json') })
+    const context = await browser.newContext({ storageState: join(tmpdir() + '/playwright/.auth/user1.json') })
     const page = await context.newPage()
     await page.setViewportSize({ width: 1920, height: 1080 })
     await waitForUpdateLayout(page, () => page.goto('./'))
