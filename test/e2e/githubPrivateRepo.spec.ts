@@ -1,12 +1,10 @@
 import { expect, test as setup } from '@playwright/test'
-import path from 'node:path'
+import { tmpdir } from 'os'
+import { join } from 'path'
 import { attemptGHLogin } from './helpers/githubHelpers'
 import { waitForSuccessResponse } from './helpers/waitForHelpers'
 
 const ghAppName = process.env.GH_APP_NAME
-
-const __filename = new URL(import.meta.url).pathname
-const __dirname = path.dirname(__filename)
 
 setup('authorise all private repos via GitHub App install', async ({ browser }) => {
   const user1: boolean = setup.info().project.name == 'setup'
@@ -18,8 +16,8 @@ setup('authorise all private repos via GitHub App install', async ({ browser }) 
   }
 
   const storageState = user1
-    ? path.join(__dirname, '../playwright/.auth/user1.json')
-    : path.join(__dirname, '../playwright/.auth/user2.json')
+    ? join(tmpdir() + 'playwright/.auth/user1.json')
+    : join(tmpdir() + 'playwright/.auth/user2.json')
 
   const context = await browser.newContext({ storageState: undefined })
   const page = await context.newPage()
