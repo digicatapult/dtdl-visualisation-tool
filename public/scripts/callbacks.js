@@ -188,7 +188,7 @@ globalThis.updateShareLink = function updateShareLink() {
 
   if (selectedValue === 'short') {
 
-    finalUrl = fullUrl.split('view?')[0] + 'view'
+    finalUrl = fullUrl.split('?')[0]
   }
 
   linkInput.value = finalUrl;
