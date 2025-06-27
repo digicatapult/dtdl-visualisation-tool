@@ -1,38 +1,22 @@
 import { expect, test } from '@playwright/test'
-import { waitForUpdateLayout } from './helpers/waitForHelpers'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { openGithubOntology } from './helpers/githubHelpers.js'
+import { getShareableLink } from './helpers/shareLinkHelper.js'
+import { waitForSuccessResponse, waitForUpdateLayout } from './helpers/waitForHelpers'
 
 test.describe('Share Ontology Link', () => {
+  const ghTestUser2 = process.env.GH_TEST_USER_2
+  const ghTestPassword2 = process.env.GH_TEST_PASSWORD_2
+  const gh2faSecret2 = process.env.GH_TEST_2FA_SECRET_2
   test('ontology can be viewed correctly on another browser', async ({ browser }) => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
-    const context = await browser.newContext()
+    const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const projectName = test.info().project.name
-    if (projectName.includes('chromium')) {
-      await context.grantPermissions(['clipboard-read', 'clipboard-write'])
-    }
     const page1 = await context.newPage()
     await page1.setViewportSize({ width: 1920, height: 1080 })
     await waitForUpdateLayout(page1, () => page1.goto('./'))
-    await expect(page1.locator('#toolbar').getByText('Share Ontology')).toBeVisible()
-
-    page1.locator('#toolbar').getByText('Share Ontology').click()
-    await expect(page1.locator('#toolbar').getByText('Shareable Link')).toBeVisible()
-    // click on first radio
-    page1.locator('#share-link-modal').getByText('Entire ontology').click()
-    // assert the link is as expected
-    await expect
-      .poll(async () => {
-        return await page1.locator('#link-output').inputValue()
-      })
-      .toBe(page1.url().split('?')[0])
-    // click copy
-    page1.locator('#copy-link-button').click()
-    await expect(page1.locator('#share-link-modal').getByText('Copied!')).toBeVisible()
-    let clipboardText: string
-    if (projectName.includes('webkit')) {
-      clipboardText = await page1.locator('#link-output').inputValue()
-    } else {
-      clipboardText = await page1.evaluate(() => navigator.clipboard.readText())
-    }
+    const clipboardText = await getShareableLink(page1, context, projectName)
     // open a new page and test
     const page2 = await context.newPage()
     await page2.setViewportSize({ width: 1920, height: 1080 })
@@ -48,24 +32,7 @@ test.describe('Share Ontology Link', () => {
     await expect(page2.locator('#mermaid-output').getByText('ConnectivityNode', { exact: true })).toBeVisible()
     await expect(page2.locator('#mermaid-output').getByText('IdentifiedObject')).not.toBeVisible()
     // open the shared link
-    page2.locator('#toolbar').getByText('Share Ontology').click()
-    await expect(page2.locator('#toolbar').getByText('Shareable Link')).toBeVisible()
-    // click second radio button
-    page2.locator('#share-link-modal').getByText('Current search').click()
-    await expect
-      .poll(async () => {
-        return await page2.locator('#link-output').inputValue()
-      })
-      .toBe(page2.url())
-    // click copy
-    page2.locator('#copy-link-button').click()
-    await expect(page2.locator('#share-link-modal').getByText('Copied!')).toBeVisible()
-    let clipboardTextSearch: string
-    if (projectName.includes('webkit')) {
-      clipboardTextSearch = await page2.locator('#link-output').inputValue()
-    } else {
-      clipboardTextSearch = await page2.evaluate(() => navigator.clipboard.readText())
-    }
+    const clipboardTextSearch = await getShareableLink(page2, context, projectName, false)
     // assert that the link is correct
     const page3 = await context.newPage()
     await page3.setViewportSize({ width: 1920, height: 1080 })
@@ -73,5 +40,57 @@ test.describe('Share Ontology Link', () => {
     // open a new page and test that the ontology is also filtered
     await expect(page3.locator('#mermaid-output').getByText('ConnectivityNode', { exact: true })).toBeVisible()
     await expect(page3.locator('#mermaid-output').getByText('IdentifiedObject')).not.toBeVisible()
+    await context.close()
+  })
+  test('private ontology can be viewed correctly on another browser/github user edits enabled', async ({ browser }) => {
+    if (!ghTestUser2 || !ghTestPassword2 || !gh2faSecret2) {
+      throw new Error('Test GitHub user 2 credentials required')
+    }
+    // Open ontology and copy share link
+    const repo = 'https://github.com/digicatapult-nidt-user-1/nidt_ontology_private_with_collaborator'
+    const context1 = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
+    const projectName = test.info().project.name
+    if (projectName.includes('chromium')) {
+      await context1.grantPermissions(['clipboard-read', 'clipboard-write'])
+    }
+    const page1 = await context1.newPage()
+    await page1.setViewportSize({ width: 1920, height: 1080 })
+
+    await openGithubOntology(page1, repo, /^main$/, 'sample')
+
+    const clipboardText = await getShareableLink(page1, context1, projectName)
+    await context1.close()
+    // Open another browser without user any user logged in
+    const context2 = await browser.newContext({ storageState: join(tmpdir(), 'user2.json') })
+    const page2 = await context2.newPage()
+    await page2.setViewportSize({ width: 1920, height: 1080 })
+    await page2.goto(clipboardText)
+    // Assert ontology view
+    expect(await page2.locator('#edit-toggle .switch').isEnabled()).toBeTruthy()
+    await waitForSuccessResponse(page2, () => page2.locator('#edit-toggle .switch').first().click(), '/edit-model')
+    await expect(page2.locator('#edit-toggle').getByText('Edit')).toBeVisible()
+  })
+  test('private ontology cannot be viewed on another browser/github user', async ({ browser }) => {
+    const repo = 'https://github.com/digicatapult-nidt-user-1/nidt_ontology_private_without_collaborator'
+    // Open ontology and copy share link
+    const context1 = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
+    const projectName = test.info().project.name
+    if (projectName.includes('chromium')) {
+      await context1.grantPermissions(['clipboard-read', 'clipboard-write'])
+    }
+    const page1 = await context1.newPage()
+    await page1.setViewportSize({ width: 1920, height: 1080 })
+
+    await openGithubOntology(page1, repo, /^main$/, 'sample')
+
+    const clipboardText = await getShareableLink(page1, context1, projectName)
+    await context1.close()
+    // Open another browser without user any user logged in
+    const context2 = await browser.newContext({ storageState: join(tmpdir(), 'user2.json') })
+    const page2 = await context2.newPage()
+    await page2.setViewportSize({ width: 1920, height: 1080 })
+    await page2.goto(clipboardText)
+    // Assert 401
+    await expect(page2.locator('#mermaid-output-message').getByText('You are unauthorised')).toBeVisible()
   })
 })

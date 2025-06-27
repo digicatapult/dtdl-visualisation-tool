@@ -162,10 +162,17 @@ label[for='diagram-type-select'] {
   padding: 2rem;
   max-width: 50ch;
 }
-#mermaid-output-message > #info-logo {
+#mermaid-output-message > .info-logo {
   width: 75px;
   height: 75px;
   background: url('/public/images/info.svg') no-repeat center/contain;
+  margin-bottom: 2lh;
+  margin-inline: auto;
+}
+#mermaid-output-message > .warning-logo {
+  width: 75px;
+  height: 75px;
+  background: url('/public/images/warning.svg') no-repeat center/contain;
   margin-bottom: 2lh;
   margin-inline: auto;
 }

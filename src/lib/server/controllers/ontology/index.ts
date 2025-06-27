@@ -28,6 +28,7 @@ import { dtdlIdReinstateSemicolon } from '../../utils/mermaid/helpers.js'
 import { SvgMutator } from '../../utils/mermaid/svgMutator.js'
 import { RateLimiter } from '../../utils/rateLimit.js'
 import SessionStore, { Session } from '../../utils/sessions.js'
+import { ErrorPage } from '../../views/components/errors.js'
 import MermaidTemplates from '../../views/components/mermaid.js'
 import { HTML, HTMLController } from '../HTMLController.js'
 import { dtdlCacheKey } from '../helpers.js'
@@ -110,7 +111,10 @@ export class OntologyController extends HTMLController {
 
     if (permission === 'unauthorised') {
       this.setStatus(401)
-      return this.html('401 Unauthorised')
+      const output = new PlainTextRender(
+        'You are unauthorised to view this Ontology, Please contact the ontology owner!'
+      )
+      return this.html(ErrorPage(output.renderToString(), this.getStatus()))
     }
 
     return this.html(

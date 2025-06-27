@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto'
 
 import { escapeHtml } from '@kitajs/html'
 import { ErrorCategory, HttpError, InternalError } from '../../errors.js'
+import { Page } from '../common.js'
 
 const categoryToClass = (category: ErrorCategory): 'internal-error' | 'data-error' | 'temp-error' => {
   switch (category) {
@@ -58,4 +59,25 @@ export function errorToast(error: unknown) {
       </>
     ),
   }
+}
+
+export function ErrorPage(message: string, statusCode?: number) {
+  return (
+    <Page title={'UKDTC'}>
+      <section id="toolbar">
+        <form id="search-panel">
+          <h2>
+            <a href="/">UKDTC</a>
+          </h2>
+        </form>
+      </section>
+      <div id="mermaid-wrapper">
+        <div id="mermaid-output-message">
+          <div class="warning-logo" />
+          <h2>{statusCode}</h2>
+          <p>{escapeHtml(message)}</p>
+        </div>
+      </div>
+    </Page>
+  )
 }
