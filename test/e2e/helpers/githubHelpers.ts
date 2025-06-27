@@ -47,7 +47,12 @@ export const attemptGHLogin = async (page: Page, user: string, password: string,
   }
 }
 
-export async function openGithubOntology(page: Page, repoURL: string, branch: string, ontologyFolder: string) {
+export async function openGithubOntology(
+  page: Page,
+  repoURL: string,
+  branch: string | RegExp,
+  ontologyFolder: string | RegExp
+) {
   await page.goto('./open')
   await expect(page.locator('#main-view').getByTitle('Upload New Ontology')).toBeVisible()
 

@@ -55,7 +55,7 @@ test.describe('Share Ontology Link', () => {
     const page1 = await context1.newPage()
     await page1.setViewportSize({ width: 1920, height: 1080 })
 
-    await openGithubOntology(page1, repo, 'main', 'sample')
+    await openGithubOntology(page1, repo, /^main$/, 'sample')
 
     const clipboardText = await getShareableLink(page1, context1, projectName)
     await context1.close()
