@@ -178,26 +178,26 @@ globalThis.updateShareLink = function updateShareLink() {
   let selectedValue = 'full'
   radios.forEach((radio) => {
     if (radio.checked) {
-      selectedValue = radio.value;
+      selectedValue = radio.value
     }
-  });
+  })
 
   const fullUrl = window.location.href
   let finalUrl = fullUrl
 
 
   if (selectedValue === 'short') {
-
-    finalUrl = fullUrl.split('?')[0]
+    const urlObj = new URL(fullUrl)
+    finalUrl = `${urlObj.protocol}${urlObj.host}${urlObj.pathname}`
   }
 
-  linkInput.value = finalUrl;
+  linkInput.value = finalUrl
 }
 
 globalThis.copyShareLink = function copyShareLink() {
-  const output = document.getElementById('link-output');
-  const tooltip = document.getElementById('copy-tooltip');
-  const copyIcon = document.getElementById('copy-icon');
+  const output = document.getElementById('link-output')
+  const tooltip = document.getElementById('copy-tooltip')
+  const copyIcon = document.getElementById('copy-icon')
   if (output.value) {
     navigator.clipboard.writeText(output.value).then(() => {
       tooltip.textContent = 'Copied!'
