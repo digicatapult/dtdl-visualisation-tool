@@ -146,11 +146,15 @@ Create a `.env` at root and set:
 - `GH_CLIENT_ID=` to the GitHub App's Client ID.
 - `GH_CLIENT_SECRET=` a generated token on the GitHub App.
 
-Additionally end to end tests for GitHub integration require envs from a test user in GitHub (configured to use 2FA) with a single repository that contains valid DTDL at root. [Example user and repo](https://github.com/jonathanmgray/dtdl).
+Additionally end to end tests for GitHub integration require envs of two test users in GitHub: `digicatapult-nidt-user-1` and `digicatapult-nidt-user-2`.
 
-- `GH_TEST_USER=` the account email address.
-- `GH_TEST_PASSWORD=` the account password.
-- `GH_TEST_2FA_SECRET=` the secret shown by clicking `setup key` when [setting up 2FA](https://docs.github.com/en/authentication/securing-your-account-with-two-factor-authentication-2fa/configuring-two-factor-authentication) for the account.
+- `GH_TEST_USER=` the `digicatapult-nidt-user-1` account email address.
+- `GH_TEST_PASSWORD=` the `digicatapult-nidt-user-1` account password.
+- `GH_TEST_2FA_SECRET=` the secret shown by clicking `setup key` when [setting up 2FA](https://docs.github.com/en/authentication/securing-your-account-with-two-factor-authentication-2fa/configuring-two-factor-authentication) for the `digicatapult-nidt-user-1`.
+
+- `GH_TEST_USER_2=` the `digicatapult-nidt-user-2` account email address.
+- `GH_TEST_PASSWORD_2=` the `digicatapult-nidt-user-2` account password.
+- `GH_TEST_2FA_SECRET_2=` the secret shown by clicking `setup key` for `digicatapult-nidt-user-2`
 
 ## Testing
 

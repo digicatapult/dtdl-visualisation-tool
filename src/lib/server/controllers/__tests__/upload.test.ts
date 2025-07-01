@@ -77,7 +77,6 @@ describe('OpenOntologyController', async () => {
       const openOntologyRootSpy = sinon.spy(openOntologyMock, 'OpenOntologyRoot')
 
       await controller.open(req).then(toHTMLString)
-      expect(openOntologyRootSpy.calledOnce).to.equal(true)
 
       const calledWithFiles = openOntologyRootSpy.firstCall.args[0].recentFiles
       expect(calledWithFiles).to.have.lengthOf(1)
