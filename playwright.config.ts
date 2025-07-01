@@ -1,6 +1,4 @@
 import { defineConfig, devices } from '@playwright/test'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
 
 export default defineConfig({
   globalSetup: './test/globalSetup.ts',
@@ -30,32 +28,21 @@ export default defineConfig({
     {
       name: 'setup',
       testMatch: 'githubPrivateRepo.spec.ts',
-      use: {
-        storageState: join(tmpdir(), 'user1.json'),
-      },
-    },
-    {
-      name: 'setupUser2',
-      testMatch: 'githubPrivateRepo.spec.ts',
-      use: {
-        storageState: join(tmpdir(), 'user2.json'),
-      },
-      dependencies: ['setup'],
     },
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      dependencies: ['setupUser2'],
+      dependencies: ['setup'],
     },
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
-      dependencies: ['setupUser2'],
+      dependencies: ['setup'],
     },
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
-      dependencies: ['setupUser2'],
+      dependencies: ['setup'],
     },
   ],
 })

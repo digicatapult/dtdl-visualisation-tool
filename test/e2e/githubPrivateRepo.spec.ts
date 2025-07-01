@@ -1,22 +1,13 @@
 import { expect, test } from '@playwright/test'
-import { attemptGHLogin } from './helpers/githubHelpers'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { waitForSuccessResponse } from './helpers/waitForHelpers'
 
 const ghAppName = process.env.GH_APP_NAME
 
 test.describe('Private GitHub repos', () => {
   test('authorise all private repos via GitHub App install', async ({ browser }) => {
-    const user1: boolean = test.info().project.name == 'setup'
-    const ghUser = user1 ? process.env.GH_TEST_USER : process.env.GH_TEST_USER_2
-    const ghPassword = user1 ? process.env.GH_TEST_PASSWORD : process.env.GH_TEST_PASSWORD_2
-    const gh2FA = user1 ? process.env.GH_TEST_2FA_SECRET : process.env.GH_TEST_2FA_SECRET_2
-    if (!ghUser || !ghPassword || !gh2FA) {
-      throw new Error('Test GitHub user credentials required')
-    }
-
-    const { storageState } = test.info().project.use
-
-    const context = await browser.newContext({ storageState: undefined })
+    const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const page = await context.newPage()
     await page.setViewportSize({ width: 1920, height: 1080 })
     await page.goto('./open')
@@ -29,14 +20,7 @@ test.describe('Private GitHub repos', () => {
     )
     await expect(page.locator('#main-view').getByText('GitHub')).toBeVisible()
 
-    await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), 'github.com/login')
-
-    await page.waitForSelector('#login')
-
-    // Fill in the credentials and sign in
-    await attemptGHLogin(page, ghUser, ghPassword, gh2FA)
-
-    await page.context().storageState({ path: storageState as string })
+    await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/github/picker')
 
     const link = page.locator('.authorise-link')
     await expect(link).toBeVisible()
