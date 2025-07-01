@@ -20,9 +20,9 @@ export async function openGithubOntology(
   await page.fill('#public-github-input', repoURL)
   await page.focus('#public-github-input')
   await waitForSuccessResponse(page, () => page.press('#public-github-input', 'Enter'), '/navigate')
+  await page.waitForSelector('.github-list li')
   await expect(page.locator('.github-list li').first()).toBeVisible()
   const branchName = page.locator('.github-list li').filter({ hasText: branch })
-  await branchName.waitFor({ state: 'visible' })
   await waitForSuccessResponse(page, () => branchName.click(), '/contents')
   await expect(page.locator('.github-list li').filter({ hasText: ontologyFolder })).toBeVisible()
   await waitForSuccessResponse(
