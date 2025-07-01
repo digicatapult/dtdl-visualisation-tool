@@ -26,23 +26,23 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'setup',
+      name: 'authorisePrivateRepos',
       testMatch: 'githubPrivateRepo.spec.ts',
     },
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      dependencies: ['setup'],
+      dependencies: ['authorisePrivateRepos'],
     },
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
-      dependencies: ['setup'],
+      dependencies: ['authorisePrivateRepos'],
     },
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
-      dependencies: ['setup'],
+      dependencies: ['authorisePrivateRepos'],
     },
   ],
 })
