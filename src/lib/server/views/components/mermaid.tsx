@@ -369,6 +369,15 @@ export default class MermaidTemplates {
 
     const defaultExpandSet = fileTree.reduce(reducer, null) || new Set<DtdlPath>()
 
+    const containsErrors = (paths: DtdlPath[]): boolean =>
+      paths.some((path) =>
+        path.type === 'file'
+          ? path.errors !== undefined // found a file with errors
+          : path.type === 'directory'
+            ? containsErrors(path.entries)
+            : false
+      )
+
     return (
       <div id="navigation-panel-tree">
         <div>
@@ -378,7 +387,7 @@ export default class MermaidTemplates {
             fileTree={fileTree}
           />
         </div>
-        {fileTree.some((f) => f.type === 'file' && f.errors) && (
+        {containsErrors(fileTree) && (
           <div id="navigation-panel-tree-warning">
             <img src="/public/images/warning.svg" width="54px" height="50px" />
             <p>Only a part of this ontology could be loaded, due to errors.</p>
