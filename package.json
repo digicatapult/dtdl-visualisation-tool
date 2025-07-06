@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.5.16",
+  "version": "0.5.17",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -39,7 +39,7 @@
     }
   },
   "dependencies": {
-    "@digicatapult/dtdl-parser": "^1.0.17",
+    "@digicatapult/dtdl-parser": "^1.0.18",
     "@kitajs/html": "^4.2.9",
     "@kitajs/ts-html-plugin": "^4.1.1",
     "@mermaid-js/mermaid-cli": "^11.6.0",
@@ -66,7 +66,7 @@
     "jsdom": "^26.1.0",
     "knex": "^3.1.0",
     "lru-cache": "^11.1.0",
-    "mermaid": "^11.7.0",
+    "mermaid": "^11.8.0",
     "multer": "^2.0.1",
     "pg": "^8.16.3",
     "pino": "^9.7.0",
@@ -78,7 +78,7 @@
     "tsoa": "^6.6.0",
     "tsyringe": "^4.10.0",
     "unzipper": "^0.12.3",
-    "zod": "^3.25.67"
+    "zod": "^3.25.71"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
