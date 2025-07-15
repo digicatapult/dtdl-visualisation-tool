@@ -91,7 +91,7 @@ async function getGithubToken(config: FullConfig, credentials: UserCredentials) 
   await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), 'github.com/login')
 
   // Wait for GitHub login form
-  await page.waitForSelector('#login')
+  await page.waitForSelector('#login_field')
 
   // Fill in the credentials and sign in
   await page.fill('#login_field', ghTestUser)
