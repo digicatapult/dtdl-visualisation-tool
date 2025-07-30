@@ -122,6 +122,12 @@ test.describe('Test edit ontology', () => {
     )
     expect(navigationAfterContentNull).toBe('none')
   })
+  test('', async ({ browser }) => {
+    const context1 = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
+    const page1 = await context1.newPage()
+    await page1.setViewportSize({ width: 1920, height: 1080 })
+    await waitForUpdateLayout(page1, () => page1.goto('./'))
+  })
 })
 
 // edit and focus away from textarea to trigger update

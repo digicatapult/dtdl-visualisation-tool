@@ -31,8 +31,6 @@ test.describe('Private GitHub repos', () => {
 
     await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), 'github.com/login')
 
-    await page.waitForSelector('#login')
-
     // Fill in the credentials and sign in
     await attemptGHLogin(page, ghUser, ghPassword, gh2FA)
 

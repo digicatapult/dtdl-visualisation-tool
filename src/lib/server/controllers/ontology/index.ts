@@ -31,7 +31,7 @@ import SessionStore, { Session } from '../../utils/sessions.js'
 import { ErrorPage } from '../../views/components/errors.js'
 import MermaidTemplates from '../../views/components/mermaid.js'
 import { HTML, HTMLController } from '../HTMLController.js'
-import { dtdlCacheKey } from '../helpers.js'
+import { checkEditPermission, dtdlCacheKey } from '../helpers.js'
 
 const rateLimiter = container.resolve(RateLimiter)
 
@@ -236,8 +236,10 @@ export class OntologyController extends HTMLController {
   public async editModel(
     @Path() dtdlModelId: UUID,
     @Query() sessionId: UUID,
-    @Query() editMode: boolean
+    @Query() editMode: boolean,
+    @Query() req: express.Request
   ): Promise<HTML> {
+    checkEditPermission(req, dtdlModelId, this.modelDb, this.githubRequest)
     const session = this.sessionStore.get(sessionId)
 
     // get the base dtdl model that we will derive the graph from
