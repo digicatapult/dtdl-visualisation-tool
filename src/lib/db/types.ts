@@ -23,39 +23,48 @@ const ParsingError = z.object({
   PrimaryID: z
     .string()
     .nullable()
-    .transform((val) => val ?? undefined),
+    .transform((val) => val ?? undefined)
+    .optional(),
   SecondaryID: z
     .string()
     .nullable()
-    .transform((val) => val ?? undefined),
+    .transform((val) => val ?? undefined)
+    .optional(),
   Property: z
     .string()
     .nullable()
-    .transform((val) => val ?? undefined),
+    .transform((val) => val ?? undefined)
+    .optional(),
   AuxProperty: z
     .string()
     .nullable()
-    .transform((val) => val ?? undefined),
+    .transform((val) => val ?? undefined)
+    .optional(),
   Type: z
     .string()
     .nullable()
-    .transform((val) => val ?? undefined),
+    .transform((val) => val ?? undefined)
+    .optional(),
   Value: z
     .string()
     .nullable()
-    .transform((val) => val ?? undefined),
+    .transform((val) => val ?? undefined)
+    .optional(),
   Restriction: z
     .string()
     .nullable()
-    .transform((val) => val ?? undefined),
+    .transform((val) => val ?? undefined)
+    .optional(),
   Transformation: z
     .string()
     .nullable()
-    .transform((val) => val ?? undefined),
+    .transform((val) => val ?? undefined)
+    .optional(),
   Violations: z
     .array(z.string())
     .nullable()
-    .transform((val) => val ?? undefined),
+    .transform((val) => val ?? undefined)
+    .optional(),
   Cause: z.string(),
   Action: z.string(),
   ValidationID: z.string(),

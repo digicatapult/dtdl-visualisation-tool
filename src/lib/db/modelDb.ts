@@ -54,6 +54,7 @@ export class ModelDb {
           model_id: modelId,
         })
         for (const error of file.errors ?? []) {
+          // Ensure the error matches the expected schema (e.g., serialize or map fields as needed)
           await db.insert('dtdl_error', { error, dtdl_id: dtdlId })
         }
       }

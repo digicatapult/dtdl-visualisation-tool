@@ -1,6 +1,6 @@
 import { LRUCache as LRU } from 'lru-cache'
 
-import { z } from 'zod'
+import * as z from 'zod'
 import { ICache } from './cache'
 
 export class LRUCache implements ICache {
@@ -14,7 +14,7 @@ export class LRUCache implements ICache {
     })
   }
 
-  get = <T, D extends z.ZodTypeDef = z.ZodTypeDef>(key: string, parser: z.ZodType<T, D, unknown>): T | undefined => {
+  get = <T>(key: string, parser: z.ZodType<T>): T | undefined => {
     const fromCache = this.cache.get(key)
     if (fromCache === undefined) {
       return
