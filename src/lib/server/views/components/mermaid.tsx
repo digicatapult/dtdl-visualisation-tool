@@ -1,7 +1,7 @@
 /// <reference types="@kitajs/html/htmx.d.ts" />
 
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
-import { escapeHtml } from '@kitajs/html'
+import { escapeHtml, Html } from '@kitajs/html'
 import { randomUUID } from 'crypto'
 import { container, singleton } from 'tsyringe'
 import { Env } from '../../env/index.js'
@@ -267,7 +267,7 @@ export default class MermaidTemplates {
         <AccordionSection heading={'Entity Identifiers'} collapsed={false}>
           <p>
             <b>ID: </b>
-            {entity.Id}
+            {Html.escapeHtml(entity.Id)}
           </p>
           <p>
             <b>Entity Kind: </b>
