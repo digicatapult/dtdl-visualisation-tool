@@ -1,6 +1,6 @@
 import express from 'express'
 import { Readable } from 'node:stream'
-import { pino } from 'pino'
+import pino from 'pino'
 
 import { DtdlObjectModel, EntityType } from '@digicatapult/dtdl-parser'
 import sinon from 'sinon'

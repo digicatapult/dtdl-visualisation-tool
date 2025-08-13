@@ -1,4 +1,4 @@
-import { pino } from 'pino'
+import pino from 'pino'
 import { container } from 'tsyringe'
 
 import { Env } from './env/index.js'

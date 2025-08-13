@@ -82,7 +82,8 @@ export class SvgGenerator {
       this.releasePage(page, release)
       return new MermaidSvgRender(data)
     } catch (err) {
-      this.logger.warn('Something went wrong rendering mermaid layout', err)
+      this.logger.warn('Something went wrong rendering mermaid layout')
+      this.logger.warn(err)
       if (!isRetry) {
         this.logger.info('Attempting to relaunch puppeteer')
 
@@ -91,7 +92,8 @@ export class SvgGenerator {
         this.pagePool = this.initialisePagePool(this.poolSize)
         return this.run(dtdlObject, diagramType, layout, true)
       }
-      this.logger.error('Something went wrong rendering mermaid layout', err)
+      this.logger.error('Something went wrong rendering mermaid layout')
+      this.logger.error(err)
       throw err
     }
   }
@@ -116,7 +118,8 @@ export class SvgGenerator {
       // This logic would only close the browser if the pages browser was older than the new browser created from a different crash/create new browser event
       if (!page || page.browser() === browser) await browser.close()
     } catch (err) {
-      this.logger.warn('Failed to close browser %s', err instanceof Error ? err.message : err)
+      this.logger.warn('Failed to close browser')
+      this.logger.warn(err)
     }
   }
 
@@ -147,7 +150,8 @@ export class SvgGenerator {
         this.logger.info('Attempting to relaunch puppeteer')
         return await this.initialiseBrowser(true)
       }
-      this.logger.error('Something went wrong rendering mermaid layout', err)
+      this.logger.error('Something went wrong rendering mermaid layout')
+      this.logger.error(err)
       throw err
     }
   }

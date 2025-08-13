@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import { afterEach, describe, it } from 'mocha'
-import { pino } from 'pino'
+import pino from 'pino'
 import puppeteer, { Browser } from 'puppeteer'
 import sinon from 'sinon'
 
