@@ -27,16 +27,8 @@ export const recentFilesFromCookies = async (
         const model = await modelDb.getModelById(entry.id)
         return model || null
       } catch (error) {
-        let err: Error | null = null
-        if (error instanceof Error) {
-          err = error
-        } else if (typeof error === 'string') {
-          err = new Error(error)
-        } else {
-          err = new Error(String(error))
-        }
         logger.warn(`Failed to fetch model for ID ${entry.id}`)
-        logger.warn(err)
+        logger.warn(error)
         return null
       }
     })
