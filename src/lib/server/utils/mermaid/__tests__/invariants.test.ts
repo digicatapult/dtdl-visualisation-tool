@@ -6,7 +6,7 @@
 
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
-import { pino } from 'pino'
+import pino from 'pino'
 
 import { type MermaidSvgRender, PlainTextRender } from '../../../models/renderedDiagram/index.js'
 import { SvgGenerator } from '../generator.js'

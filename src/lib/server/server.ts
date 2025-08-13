@@ -59,16 +59,17 @@ export default async (): Promise<Express> => {
   ): void {
     if (err instanceof Error) {
       req.log.debug('API error: %s', err.message)
-      req.log.trace('API error: stack %j', err.stack)
+      req.log.trace('API error: stack %s', err.stack ?? '')
       if (!(err instanceof HttpError || err instanceof multer.MulterError)) {
         req.log.error(`Unknown internal error ${err.name} ${err.message}`)
       }
     } else {
-      req.log.error('API error (not instance of Error!): %s', err?.toString())
+      req.log.error('API error (not instance of Error!): %s', err?.toString() ?? '')
     }
 
     if (err instanceof ValidateError) {
-      req.log.warn(`Caught Validation Error for ${req.path}:`, err.fields)
+      req.log.warn(`Caught Validation Error for ${req.path}:`)
+      req.log.warn(err.fields)
     }
 
     if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
