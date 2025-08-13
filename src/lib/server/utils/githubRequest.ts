@@ -143,16 +143,8 @@ export class GithubRequest {
     try {
       return await request()
     } catch (err) {
-      let error: Error | null = null
-      if (err instanceof Error) {
-        error = err
-      } else if (typeof err === 'string') {
-        error = new Error(err)
-      } else {
-        error = new Error(String(err))
-      }
       this.logger.debug('GitHub API request failed')
-      this.logger.debug(error)
+      this.logger.debug(err)
 
       if (err instanceof RequestError && err.status === 404) {
         throw new GithubNotFound(`'${err.response?.url}' not found`)

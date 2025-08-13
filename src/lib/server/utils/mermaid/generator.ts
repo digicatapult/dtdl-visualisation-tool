@@ -82,16 +82,8 @@ export class SvgGenerator {
       this.releasePage(page, release)
       return new MermaidSvgRender(data)
     } catch (err) {
-      let error: Error | null = null
-      if (err instanceof Error) {
-        error = err
-      } else if (typeof err === 'string') {
-        error = new Error(err)
-      } else {
-        error = new Error(String(err))
-      }
       this.logger.warn('Something went wrong rendering mermaid layout')
-      this.logger.warn(error)
+      this.logger.warn(err)
       if (!isRetry) {
         this.logger.info('Attempting to relaunch puppeteer')
 
@@ -101,7 +93,7 @@ export class SvgGenerator {
         return this.run(dtdlObject, diagramType, layout, true)
       }
       this.logger.error('Something went wrong rendering mermaid layout')
-      this.logger.error(error)
+      this.logger.error(err)
       throw err
     }
   }
@@ -126,16 +118,8 @@ export class SvgGenerator {
       // This logic would only close the browser if the pages browser was older than the new browser created from a different crash/create new browser event
       if (!page || page.browser() === browser) await browser.close()
     } catch (err) {
-      let error: Error | null = null
-      if (err instanceof Error) {
-        error = err
-      } else if (typeof err === 'string') {
-        error = new Error(err)
-      } else {
-        error = new Error(String(err))
-      }
       this.logger.warn('Failed to close browser')
-      this.logger.warn(error)
+      this.logger.warn(err)
     }
   }
 
@@ -162,21 +146,13 @@ export class SvgGenerator {
         args: this.env.get('PUPPETEER_ARGS'),
       })
     } catch (err) {
-      let error: Error | null = null
-      if (err instanceof Error) {
-        error = err
-      } else if (typeof err === 'string') {
-        error = new Error(err)
-      } else {
-        error = new Error(String(err))
-      }
       if (!isRetry) {
         this.logger.info('Attempting to relaunch puppeteer')
         return await this.initialiseBrowser(true)
       }
       this.logger.error('Something went wrong rendering mermaid layout')
-      this.logger.error(error)
-      throw error
+      this.logger.error(err)
+      throw err
     }
   }
 
