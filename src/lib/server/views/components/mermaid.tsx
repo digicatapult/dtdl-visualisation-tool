@@ -267,7 +267,7 @@ export default class MermaidTemplates {
         <AccordionSection heading={'Entity Identifiers'} collapsed={false}>
           <p>
             <b>ID: </b>
-            {entity.Id}
+            {escapeHtml(entity.Id)}
           </p>
           <p>
             <b>Entity Kind: </b>
