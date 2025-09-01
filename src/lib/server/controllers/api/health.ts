@@ -10,7 +10,7 @@ export class HealthController {
   @SuccessResponse(200)
   @Get('/')
   public get(@Request() req: express.Request): { version: string } {
-    req.log.info('request from %s agent', req?.headers['user-agent'])
+    req.log.info('request from %s agent', req?.headers['user-agent'] ?? 'unknown')
 
     return { version }
   }

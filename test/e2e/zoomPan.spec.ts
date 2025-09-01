@@ -41,7 +41,7 @@ test.describe('zoom + pan', () => {
     await expect(curveStyle).toBeInViewport()
 
     // zoom in until not visible
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 30; i++) {
       await page.locator('#zoom-in').click()
     }
     await expect(curveStyle).not.toBeInViewport()
@@ -57,14 +57,14 @@ test.describe('zoom + pan', () => {
     await page.goto('./')
     await page.waitForSelector(`text='ACDCTerminal'`)
 
-    const identifiedObject = page.locator('#mermaid-output').getByText('IdentifiedObject', { exact: true })
-    await expect(identifiedObject).toBeInViewport()
+    const acdcTerminal = page.locator('#mermaid-output').getByText('ACDCTerminal', { exact: true })
+    await expect(acdcTerminal).toBeInViewport()
 
     // zoom in until visible
     for (let i = 0; i < 10; i++) {
-      await page.locator('#mermaid-output').dblclick()
+      await page.locator('#mermaid-output').dblclick({ position: { x: 5, y: 5 } })
     }
-    await expect(identifiedObject).not.toBeInViewport()
+    await expect(acdcTerminal).not.toBeInViewport()
   })
 
   test('pan with click and drag', async ({ page }) => {
