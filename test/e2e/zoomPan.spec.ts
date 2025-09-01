@@ -37,19 +37,19 @@ test.describe('zoom + pan', () => {
     await page.goto('./')
     await page.waitForSelector(`text='ACDCTerminal'`)
 
-    const bay = page.locator('#mermaid-output').getByText('Bay', { exact: true })
-    await expect(bay).toBeInViewport()
+    const curveStyle = page.locator('#mermaid-output').getByText('CurveStyle', { exact: true })
+    await expect(curveStyle).toBeInViewport()
 
     // zoom in until not visible
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 30; i++) {
       await page.locator('#zoom-in').click()
     }
-    await expect(bay).not.toBeInViewport()
+    await expect(curveStyle).not.toBeInViewport()
 
     //reset so visible
     await page.locator('#reset-pan-zoom').click()
 
-    await expect(bay).toBeInViewport()
+    await expect(curveStyle).toBeInViewport()
   })
 
   test('double click zoom in', async ({ page }) => {
