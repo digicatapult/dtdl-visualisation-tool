@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.5.36",
+  "version": "0.5.37",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -55,7 +55,7 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
-    "dotenv": "^17.2.1",
+    "dotenv": "^17.2.2",
     "envalid": "^8.1.0",
     "express": "^5.1.0",
     "express-rate-limit": "^8.0.1",
@@ -99,8 +99,8 @@
     "@types/sinon": "^17.0.4",
     "@types/supertest": "^6.0.3",
     "@types/unzipper": "^0.10.11",
-    "@typescript-eslint/eslint-plugin": "^8.41.0",
-    "@typescript-eslint/parser": "^8.41.0",
+    "@typescript-eslint/eslint-plugin": "^8.42.0",
+    "@typescript-eslint/parser": "^8.42.0",
     "chai-as-promised": "^8.0.2",
     "depcheck": "^1.4.7",
     "eslint": "^9.34.0",
