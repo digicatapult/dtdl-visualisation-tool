@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.5.41",
+  "version": "0.5.42",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -39,7 +39,7 @@
     }
   },
   "dependencies": {
-    "@digicatapult/dtdl-parser": "^1.0.38",
+    "@digicatapult/dtdl-parser": "^1.0.40",
     "@kitajs/html": "^4.2.9",
     "@kitajs/ts-html-plugin": "^4.1.2",
     "@mermaid-js/mermaid-cli": "^11.9.0",
@@ -49,7 +49,7 @@
     "async-mutex": "^0.5.0",
     "body-parser": "^2.2.0",
     "chai": "^6.0.1",
-    "chalk": "^5.6.0",
+    "chalk": "^5.6.2",
     "commander": "^14.0.0",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
@@ -62,16 +62,16 @@
     "fuse.js": "^7.1.0",
     "htmx-ext-json-enc": "^2.0.2",
     "htmx-ext-response-targets": "^2.0.3",
-    "htmx.org": "^2.0.6",
+    "htmx.org": "^2.0.7",
     "jsdom": "^26.1.0",
     "knex": "^3.1.0",
     "lru-cache": "^11.2.1",
     "mermaid": "^11.11.0",
     "multer": "^2.0.2",
     "pg": "^8.16.3",
-    "pino": "^9.9.4",
+    "pino": "^9.9.5",
     "pino-http": "^10.5.0",
-    "puppeteer": "^24.19.0",
+    "puppeteer": "^24.20.0",
     "react": "^19.1.1",
     "reflect-metadata": "^0.2.2",
     "svg-pan-zoom": "^3.6.2",
@@ -99,14 +99,14 @@
     "@types/sinon": "^17.0.4",
     "@types/supertest": "^6.0.3",
     "@types/unzipper": "^0.10.11",
-    "@typescript-eslint/eslint-plugin": "^8.42.0",
-    "@typescript-eslint/parser": "^8.42.0",
+    "@typescript-eslint/eslint-plugin": "^8.43.0",
+    "@typescript-eslint/parser": "^8.43.0",
     "chai-as-promised": "^8.0.2",
     "depcheck": "^1.4.7",
     "eslint": "^9.35.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
-    "globals": "^16.3.0",
+    "globals": "^16.4.0",
     "mocha": "^11.7.2",
     "otpauth": "^9.4.1",
     "pino-colada": "^2.2.2",
@@ -118,7 +118,7 @@
     "supertest": "^7.1.4",
     "testcontainers": "^11.5.1",
     "typescript": "^5.9.2",
-    "undici": "^7.15.0"
+    "undici": "^7.16.0"
   },
   "engines": {
     "node": ">= 20"
