@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.5.43",
+  "version": "0.5.44",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -50,7 +50,7 @@
     "body-parser": "^2.2.0",
     "chai": "^6.0.1",
     "chalk": "^5.6.2",
-    "commander": "^14.0.0",
+    "commander": "^14.0.1",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -94,7 +94,7 @@
     "@types/express": "^5.0.3",
     "@types/jsdom": "^21.1.7",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^22.18.1",
+    "@types/node": "^22.18.3",
     "@types/pino-http": "^6.1.0",
     "@types/sinon": "^17.0.4",
     "@types/supertest": "^6.0.3",
