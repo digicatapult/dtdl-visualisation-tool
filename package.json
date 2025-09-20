@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.5.46",
+  "version": "0.5.47",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -69,9 +69,9 @@
     "mermaid": "^11.11.0",
     "multer": "^2.0.2",
     "pg": "^8.16.3",
-    "pino": "^9.9.5",
+    "pino": "^9.10.0",
     "pino-http": "^10.5.0",
-    "puppeteer": "^24.21.0",
+    "puppeteer": "^24.22.0",
     "react": "^19.1.1",
     "reflect-metadata": "^0.2.2",
     "svg-pan-zoom": "^3.6.2",
@@ -116,7 +116,7 @@
     "rimraf": "^6.0.1",
     "sinon": "^21.0.0",
     "supertest": "^7.1.4",
-    "testcontainers": "^11.5.1",
+    "testcontainers": "^11.6.0",
     "typescript": "^5.9.2",
     "undici": "^7.16.0"
   },
