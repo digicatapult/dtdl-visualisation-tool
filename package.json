@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.5.60",
+  "version": "0.5.61",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -69,7 +69,7 @@
     "mermaid": "^11.12.0",
     "multer": "^2.0.2",
     "pg": "^8.16.3",
-    "pino": "^9.13.1",
+    "pino": "^10.0.0",
     "pino-http": "^10.5.0",
     "puppeteer": "^24.23.0",
     "react": "^19.2.0",
