@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.5.63",
+  "version": "0.5.64",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -110,7 +110,7 @@
     "mocha": "^11.7.4",
     "otpauth": "^9.4.1",
     "pino-colada": "^2.2.2",
-    "playwright-ctrf-json-reporter": "^0.0.23",
+    "playwright-ctrf-json-reporter": "^0.0.24",
     "prettier": "^3.6.2",
     "prettier-plugin-organize-imports": "^4.3.0",
     "rimraf": "^6.0.1",
