@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.5.64",
+  "version": "0.5.65",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -78,13 +78,13 @@
     "tsoa": "^6.6.0",
     "tsyringe": "^4.10.0",
     "unzipper": "^0.12.3",
-    "zod": "^4.1.11"
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.37.0",
     "@octokit/request-error": "^7.0.1",
-    "@playwright/test": "^1.55.1",
+    "@playwright/test": "^1.56.0",
     "@swc-node/register": "^1.11.1",
     "@swc/cli": "^0.7.8",
     "@swc/core": "^1.13.5",
@@ -99,8 +99,8 @@
     "@types/sinon": "^17.0.4",
     "@types/supertest": "^6.0.3",
     "@types/unzipper": "^0.10.11",
-    "@typescript-eslint/eslint-plugin": "^8.45.0",
-    "@typescript-eslint/parser": "^8.45.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.0",
+    "@typescript-eslint/parser": "^8.46.0",
     "chai-as-promised": "^8.0.2",
     "depcheck": "^1.4.7",
     "eslint": "^9.37.0",
