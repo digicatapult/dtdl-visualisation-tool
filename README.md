@@ -76,7 +76,7 @@ dtdl-visualiser validate -p sample/energygrid -r
 To bring up the `postgres` database service on port `5432`, run
 
 ```
-docker compose up
+docker compose up -d
 ```
 
 To bring up both the `postgres` database and the `dtdl-visualiser` service in docker you may run
@@ -120,16 +120,6 @@ The application can be run in Docker. `sample/energygrid` is automatically parse
 | GLOBAL_RATE_LIMIT    | n        | '10000'                   | Number of requests allowed per client on all routes within the `RATE_LIMIT_WINDOW_MS`                                                        |
 | IP_ALLOW_LIST        | n        | -                         | Comma separated IPs that can make unlimited requests                                                                                         |
 | RATE_LIMIT_WINDOW_MS | n        | '10 _ 60 _ 1000'          | How long client requests are counted before resetting                                                                                        |
-
-## Database migrations
-
-To migrate up the database started by `docker compose`, run locally
-
-```
-npm run db:migrate
-```
-
-If you have started both the database and the `dtdl-visualiser` service with `docker compose`, the database will will already be migrated
 
 ## GitHub integration
 
