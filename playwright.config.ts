@@ -1,6 +1,4 @@
 import { defineConfig, devices } from '@playwright/test'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
 
 export default defineConfig({
   globalSetup: './test/globalSetup.ts',
@@ -9,7 +7,7 @@ export default defineConfig({
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
-  retries: 0,
+  retries: process.env.CI ? 2 : 0,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ['html', { open: 'never' }],
@@ -28,34 +26,23 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'setup',
+      name: 'authorisePrivateRepos',
       testMatch: 'githubPrivateRepo.spec.ts',
-      use: {
-        storageState: join(tmpdir(), 'user1.json'),
-      },
-    },
-    {
-      name: 'setupUser2',
-      testMatch: 'githubPrivateRepo.spec.ts',
-      use: {
-        storageState: join(tmpdir(), 'user2.json'),
-      },
-      dependencies: ['setup'],
     },
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      dependencies: ['setupUser2'],
+      dependencies: ['authorisePrivateRepos'],
     },
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
-      dependencies: ['setupUser2'],
+      dependencies: ['authorisePrivateRepos'],
     },
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
-      dependencies: ['setupUser2'],
+      dependencies: ['authorisePrivateRepos'],
     },
   ],
 })

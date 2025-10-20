@@ -76,7 +76,7 @@ dtdl-visualiser validate -p sample/energygrid -r
 To bring up the `postgres` database service on port `5432`, run
 
 ```
-docker compose up
+docker compose up -d
 ```
 
 To bring up both the `postgres` database and the `dtdl-visualiser` service in docker you may run
@@ -121,16 +121,6 @@ The application can be run in Docker. `sample/energygrid` is automatically parse
 | IP_ALLOW_LIST        | n        | -                         | Comma separated IPs that can make unlimited requests                                                                                         |
 | RATE_LIMIT_WINDOW_MS | n        | '10 _ 60 _ 1000'          | How long client requests are counted before resetting                                                                                        |
 
-## Database migrations
-
-To migrate up the database started by `docker compose`, run locally
-
-```
-npm run db:migrate
-```
-
-If you have started both the database and the `dtdl-visualiser` service with `docker compose`, the database will will already be migrated
-
 ## GitHub integration
 
 With GitHub integration, users can choose to upload directories of DTDL files to the tool directly from their own private GitHub repositories. A public [GitHub App](https://github.com/settings/apps) must be created and configured. Example values for local development:
@@ -146,11 +136,15 @@ Create a `.env` at root and set:
 - `GH_CLIENT_ID=` to the GitHub App's Client ID.
 - `GH_CLIENT_SECRET=` a generated token on the GitHub App.
 
-Additionally end to end tests for GitHub integration require envs from a test user in GitHub (configured to use 2FA) with a single repository that contains valid DTDL at root. [Example user and repo](https://github.com/jonathanmgray/dtdl).
+Additionally end to end tests for GitHub integration require envs of two test users in GitHub: `digicatapult-nidt-user-1` and `digicatapult-nidt-user-2`.
 
-- `GH_TEST_USER=` the account email address.
-- `GH_TEST_PASSWORD=` the account password.
-- `GH_TEST_2FA_SECRET=` the secret shown by clicking `setup key` when [setting up 2FA](https://docs.github.com/en/authentication/securing-your-account-with-two-factor-authentication-2fa/configuring-two-factor-authentication) for the account.
+- `GH_TEST_USER=` the `digicatapult-nidt-user-1` account email address.
+- `GH_TEST_PASSWORD=` the `digicatapult-nidt-user-1` account password.
+- `GH_TEST_2FA_SECRET=` the secret shown by clicking `setup key` when [setting up 2FA](https://docs.github.com/en/authentication/securing-your-account-with-two-factor-authentication-2fa/configuring-two-factor-authentication) for the `digicatapult-nidt-user-1`.
+
+- `GH_TEST_USER_2=` the `digicatapult-nidt-user-2` account email address.
+- `GH_TEST_PASSWORD_2=` the `digicatapult-nidt-user-2` account password.
+- `GH_TEST_2FA_SECRET_2=` the secret shown by clicking `setup key` for `digicatapult-nidt-user-2`
 
 ## Testing
 

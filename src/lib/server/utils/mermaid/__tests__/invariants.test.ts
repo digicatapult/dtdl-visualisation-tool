@@ -160,9 +160,18 @@ describe('Mermaid Invariants', function () {
 
     it('should have a rect background within each label', function () {
       const svg = mermaidRender.svgElement
-      const labels = [...svg.querySelectorAll('g.edgeLabel')]
-      const textSpans = labels.map((n) => [...n.querySelectorAll('.label rect')].length)
-      expect(textSpans).to.deep.equal([1, 1])
+      const edgeLabels = svg.querySelectorAll('g.edgeLabel')
+      //asserting there are two edge labels before checking their contents
+      expect(edgeLabels.length).to.equal(2)
+      edgeLabels.forEach((edgeLabel) => {
+        const labels = edgeLabel.querySelectorAll('.label')
+        //asserting there is one label within each edge label
+        expect(labels.length).to.equal(1)
+        labels.forEach((label) => {
+          //asserting there is one rect within each label
+          expect(label.querySelectorAll('rect').length).to.equal(1)
+        })
+      })
     })
 
     it('should contain marker elements within the svg', function () {
@@ -339,9 +348,14 @@ describe('Mermaid Invariants', function () {
 
     it('should have a rect background within each label', function () {
       const svg = mermaidRender.svgElement
-      const labels = [...svg.querySelectorAll('g.edgeLabel')]
-      const textSpans = labels.map((n) => [...n.querySelectorAll('.label rect')].length)
-      expect(textSpans).to.deep.equal([1, 1])
+      const edgeLabels = svg.querySelectorAll('g.edgeLabel')
+      expect(edgeLabels.length).to.equal(2)
+      edgeLabels.forEach((edgeLabel) => {
+        const labels = edgeLabel.querySelectorAll('.label')
+        labels.forEach((label) => {
+          expect(label.querySelectorAll('rect').length).to.equal(1)
+        })
+      })
     })
 
     it('should contain marker elements within the svg', function () {

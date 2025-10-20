@@ -85,6 +85,7 @@ test.describe('Share Ontology Link', () => {
 
     const clipboardText = await getShareableLink(page1, context1, projectName)
     await context1.close()
+
     // Open another browser without user any user logged in
     const context2 = await browser.newContext({ storageState: join(tmpdir(), 'user2.json') })
     const page2 = await context2.newPage()

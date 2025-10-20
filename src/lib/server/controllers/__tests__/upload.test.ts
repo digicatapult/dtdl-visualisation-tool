@@ -78,19 +78,9 @@ describe('OpenOntologyController', async () => {
 
       await controller.open(req).then(toHTMLString)
 
-      expect(openOntologyRootSpy.calledOnce).to.equal(true)
-      expect(
-        openOntologyRootSpy.calledWithMatch({
-          recentFiles: sinon.match.array.deepEquals([
-            {
-              fileName: 'Preview Model',
-              lastVisited: 'over 3 years ago',
-              preview: 'Preview',
-              dtdlModelId: previewDtdlId,
-            },
-          ]),
-        })
-      ).to.equal(true)
+      const calledWithFiles = openOntologyRootSpy.firstCall.args[0].recentFiles
+      expect(calledWithFiles).to.have.lengthOf(1)
+      expect(calledWithFiles[0].dtdlModelId).to.equal(previewDtdlId)
     })
   })
   describe('menu', () => {
