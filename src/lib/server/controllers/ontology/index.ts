@@ -234,10 +234,10 @@ export class OntologyController extends HTMLController {
   @SuccessResponse(200)
   @Get('{dtdlModelId}/edit-model')
   public async editModel(
+    @Request() req: express.Request,
     @Path() dtdlModelId: UUID,
     @Query() sessionId: UUID,
-    @Query() editMode: boolean,
-    @Query() req: express.Request
+    @Query() editMode: boolean
   ): Promise<HTML> {
     checkEditPermission(req, dtdlModelId, this.modelDb, this.githubRequest)
     const session = this.sessionStore.get(sessionId)
