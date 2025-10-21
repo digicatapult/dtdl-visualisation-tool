@@ -102,6 +102,11 @@ test.describe('Test edit ontology', () => {
     await testNavPanelEdit(page, /^relationshipDescriptionEdit$/, 'updated', '/relationshipDescription')
     await testNavPanelEdit(page, /^relationshipCommentEdit$/, 'updated', '/relationshipComment')
 
+    // test telemetry editing
+    await expect(page.getByText('Telemetries')).toBeVisible()
+    await testNavPanelEdit(page, /^temperature$/, 'updatedTemperature', '/telemetryName')
+    await testNavPanelEdit(page, /^double$/, 'float', '/telemetrySchema')
+
     // search by new interface name
     await page.focus('#search')
     await waitForUpdateLayout(page, () => page.fill('#search', newInterfaceDisplayName))

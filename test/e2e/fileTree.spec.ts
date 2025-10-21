@@ -57,6 +57,21 @@ test.describe('file tree', () => {
       page.locator('#navigation-panel-details').getByText('Basic Information', { exact: true })
     ).toBeInViewport()
 
+    // test telemetry section visibility
+    await waitForUpdateLayout(page, () =>
+      page.locator('#mermaid-output').getByText('ConductingEquipment', { exact: true }).click()
+    )
+    await expect(page.getByText('Telemetries')).toBeVisible()
+    await expect(page.getByText('temperature')).toBeVisible()
+    await expect(page.getByText('double')).toBeVisible()
+
+    // test interface without telemetries shows empty telemetry section
+    await waitForUpdateLayout(page, () =>
+      page.locator('#mermaid-output').getByText('BaseVoltage', { exact: true }).click()
+    )
+    await expect(page.getByText('Telemetries')).toBeVisible()
+    await expect(page.getByText('None')).toBeVisible()
+
     // stays on details tab when different interface selected
     await waitForUpdateLayout(page, () =>
       page.locator('#mermaid-output').getByText('ACDCTerminal', { exact: true }).click()

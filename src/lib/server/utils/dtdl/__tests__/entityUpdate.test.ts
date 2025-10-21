@@ -9,6 +9,7 @@ import {
   propertyName,
   relationshipName,
   simpleDtdlFileEntityId,
+  telemetryName,
 } from '../../../controllers/__tests__/helpers'
 import { DataError } from '../../../errors'
 import {
@@ -20,6 +21,11 @@ import {
   updateRelationshipComment,
   updateRelationshipDescription,
   updateRelationshipDisplayName,
+  updateTelemetryComment,
+  updateTelemetryDescription,
+  updateTelemetryDisplayName,
+  updateTelemetryName,
+  updateTelemetrySchema,
 } from '../entityUpdate'
 
 const newValue = 'updated'
@@ -84,6 +90,36 @@ describe('entity updates', function () {
     test('updates property comment', async () => {
       expect(updatePropertyComment(newValue, propertyName)(baseFile({}))).to.deep.equal(
         baseFile({ propertyUpdate: { comment: newValue } })
+      )
+    })
+
+    test('updates telemetry name', async () => {
+      expect(updateTelemetryName(newValue, telemetryName)(baseFile({}))).to.deep.equal(
+        baseFile({ telemetryUpdate: { name: newValue } })
+      )
+    })
+
+    test('updates telemetry comment', async () => {
+      expect(updateTelemetryComment(newValue, telemetryName)(baseFile({}))).to.deep.equal(
+        baseFile({ telemetryUpdate: { comment: newValue } })
+      )
+    })
+
+    test('updates telemetry schema', async () => {
+      expect(updateTelemetrySchema('float', telemetryName)(baseFile({}))).to.deep.equal(
+        baseFile({ telemetryUpdate: { schema: 'float' } })
+      )
+    })
+
+    test('updates telemetry description', async () => {
+      expect(updateTelemetryDescription(newValue, telemetryName)(baseFile({}))).to.deep.equal(
+        baseFile({ telemetryUpdate: { description: newValue } })
+      )
+    })
+
+    test('updates telemetry displayName', async () => {
+      expect(updateTelemetryDisplayName(newValue, telemetryName)(baseFile({}))).to.deep.equal(
+        baseFile({ telemetryUpdate: { displayName: newValue } })
       )
     })
   })
@@ -157,9 +193,49 @@ describe('entity updates', function () {
     })
 
     test('throws error for property comment too long', async () => {
+      const newComment = 'a'.repeat(513)
+      expect(() => {
+        updatePropertyComment(newComment, propertyName)(baseFile({}))
+      }).to.throw(DataError)
+    })
+
+    test('throws error if new telemetry name matches other property name', async () => {
+      expect(() => {
+        updateTelemetryName(otherPropertyName, telemetryName)(baseFile({}))
+      }).to.throw(DataError, 'already exists')
+    })
+
+    test('throws error for telemetry name too long', async () => {
+      const newTelemetryName = 'a'.repeat(65)
+      expect(() => {
+        updateTelemetryName(newTelemetryName, telemetryName)(baseFile({}))
+      }).to.throw(DataError)
+    })
+
+    test('throws error for telemetry comment too long', async () => {
+      const newComment = 'a'.repeat(513)
+      expect(() => {
+        updateTelemetryComment(newComment, telemetryName)(baseFile({}))
+      }).to.throw(DataError)
+    })
+
+    test('throws error for invalid telemetry schema', async () => {
+      expect(() => {
+        updateTelemetrySchema('invalidSchema', telemetryName)(baseFile({}))
+      }).to.throw(DataError, 'Invalid schema type')
+    })
+
+    test('throws error for telemetry description too long', async () => {
       const newDescription = 'a'.repeat(513)
       expect(() => {
-        updatePropertyComment(newDescription, propertyName)(baseFile({}))
+        updateTelemetryDescription(newDescription, telemetryName)(baseFile({}))
+      }).to.throw(DataError)
+    })
+
+    test('throws error for telemetry displayName too long', async () => {
+      const newDisplayName = 'a'.repeat(513)
+      expect(() => {
+        updateTelemetryDisplayName(newDisplayName, telemetryName)(baseFile({}))
       }).to.throw(DataError)
     })
   })

@@ -21,6 +21,7 @@ import {
   simpleDtdlFileFixture,
   simpleDtdlId,
   simpleMockModelDb,
+  telemetryName,
   templateMock,
   toHTMLString,
   updateDtdlContentsStub,
@@ -388,6 +389,186 @@ describe('EntityController', async () => {
           await expect(fn()).to.be.rejectedWith(DataError, 'Invalid JSON')
         })
       })
+    })
+  })
+
+  describe('putTelemetryName', () => {
+    afterEach(() => updateDtdlContentsStub.resetHistory())
+
+    it('should update db and layout for new telemetry name on non-array DTDL file', async () => {
+      const req = mockReq({})
+      const putBody = {
+        ...defaultParams,
+        value: newValue,
+        telemetryName,
+      }
+      const result = await controller
+        .putTelemetryName(req, simpleDtdlId, simpleDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        simpleDtdlFileFixture({ telemetryUpdate: { name: newValue } })
+      )
+      expect(result).to.equal(updateLayoutOutput)
+    })
+
+    it('should update db and layout for new telemetry name on array DTDL file', async () => {
+      const req = mockReq({})
+      const putBody = {
+        ...defaultParams,
+        value: newValue,
+        telemetryName,
+      }
+      const result = await controller
+        .putTelemetryName(req, simpleDtdlId, arrayDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        arrayDtdlFileFixture({ telemetryUpdate: { name: newValue } })
+      )
+      expect(result).to.equal(updateLayoutOutput)
+    })
+  })
+
+  describe('putTelemetryComment', () => {
+    afterEach(() => updateDtdlContentsStub.resetHistory())
+
+    it('should update db and layout for new telemetry comment on non-array DTDL file', async () => {
+      const req = mockReq({})
+      const putBody = {
+        ...defaultParams,
+        value: newValue,
+        telemetryName,
+      }
+      const result = await controller
+        .putTelemetryComment(req, simpleDtdlId, simpleDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        simpleDtdlFileFixture({ telemetryUpdate: { comment: newValue } })
+      )
+      expect(result).to.equal(updateLayoutOutput)
+    })
+
+    it('should update db and layout for new telemetry comment on array DTDL file', async () => {
+      const req = mockReq({})
+      const putBody = {
+        ...defaultParams,
+        value: newValue,
+        telemetryName,
+      }
+      const result = await controller
+        .putTelemetryComment(req, simpleDtdlId, arrayDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        arrayDtdlFileFixture({ telemetryUpdate: { comment: newValue } })
+      )
+      expect(result).to.equal(updateLayoutOutput)
+    })
+  })
+
+  describe('putTelemetrySchema', () => {
+    afterEach(() => updateDtdlContentsStub.resetHistory())
+
+    it('should update db and layout for new telemetry schema on non-array DTDL file', async () => {
+      const req = mockReq({})
+      const putBody = {
+        ...defaultParams,
+        value: 'string',
+        telemetryName,
+      }
+      const result = await controller
+        .putTelemetrySchema(req, simpleDtdlId, simpleDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        simpleDtdlFileFixture({ telemetryUpdate: { schema: 'string' } })
+      )
+      expect(result).to.equal(updateLayoutOutput)
+    })
+
+    it('should update db and layout for new telemetry schema on array DTDL file', async () => {
+      const req = mockReq({})
+      const putBody = {
+        ...defaultParams,
+        value: 'string',
+        telemetryName,
+      }
+      const result = await controller
+        .putTelemetrySchema(req, simpleDtdlId, arrayDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        arrayDtdlFileFixture({ telemetryUpdate: { schema: 'string' } })
+      )
+      expect(result).to.equal(updateLayoutOutput)
+    })
+  })
+
+  describe('putTelemetryDescription', () => {
+    afterEach(() => updateDtdlContentsStub.resetHistory())
+
+    it('should update db and layout for new telemetry description on non-array DTDL file', async () => {
+      const req = mockReq({})
+      const putBody = {
+        ...defaultParams,
+        value: newValue,
+        telemetryName,
+      }
+      const result = await controller
+        .putTelemetryDescription(req, simpleDtdlId, simpleDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        simpleDtdlFileFixture({ telemetryUpdate: { description: newValue } })
+      )
+      expect(result).to.equal(updateLayoutOutput)
+    })
+
+    it('should update db and layout for new telemetry description on array DTDL file', async () => {
+      const req = mockReq({})
+      const putBody = {
+        ...defaultParams,
+        value: newValue,
+        telemetryName,
+      }
+      const result = await controller
+        .putTelemetryDescription(req, simpleDtdlId, arrayDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        arrayDtdlFileFixture({ telemetryUpdate: { description: newValue } })
+      )
+      expect(result).to.equal(updateLayoutOutput)
+    })
+  })
+
+  describe('putTelemetryDisplayName', () => {
+    afterEach(() => updateDtdlContentsStub.resetHistory())
+
+    it('should update db and layout for new telemetry displayName on non-array DTDL file', async () => {
+      const req = mockReq({})
+      const putBody = {
+        ...defaultParams,
+        value: newValue,
+        telemetryName,
+      }
+      const result = await controller
+        .putTelemetryDisplayName(req, simpleDtdlId, simpleDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        simpleDtdlFileFixture({ telemetryUpdate: { displayName: newValue } })
+      )
+      expect(result).to.equal(updateLayoutOutput)
+    })
+
+    it('should update db and layout for new telemetry displayName on array DTDL file', async () => {
+      const req = mockReq({})
+      const putBody = {
+        ...defaultParams,
+        value: newValue,
+        telemetryName,
+      }
+      const result = await controller
+        .putTelemetryDisplayName(req, simpleDtdlId, arrayDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        arrayDtdlFileFixture({ telemetryUpdate: { displayName: newValue } })
+      )
+      expect(result).to.equal(updateLayoutOutput)
     })
   })
 })

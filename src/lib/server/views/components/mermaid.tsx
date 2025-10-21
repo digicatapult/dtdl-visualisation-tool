@@ -7,7 +7,7 @@ import { container, singleton } from 'tsyringe'
 import { Env } from '../../env/index.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { DtdlId, UUID } from '../../models/strings.js'
-import { getDisplayNameOrId, isInterface, isProperty, isRelationship } from '../../utils/dtdl/extract.js'
+import { getDisplayNameOrId, isInterface, isProperty, isRelationship, isTelemetry } from '../../utils/dtdl/extract.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { AccordionSection, EditableText, Page } from '../common.js'
 
@@ -302,6 +302,73 @@ export default class MermaidTemplates {
                         putRoute: 'propertyComment',
                         text: property.comment,
                         additionalBody: { propertyName: name },
+                        multiline: true,
+                        maxLength: 512,
+                      })
+                    ) : (
+                      <p>'comment' key missing in original file</p>
+                    )}
+                    <br />
+                  </>
+                )
+              })
+            : 'None'}
+        </AccordionSection>
+        <AccordionSection heading={'Telemetries'} collapsed={false}>
+          {isInterface(entity) && Object.keys(entity.telemetries).length > 0
+            ? Object.entries(entity.telemetries).map(([name, id]) => {
+                const telemetry = model[id]
+                if (!isTelemetry(telemetry) || !telemetry.DefinedIn) return
+                return (
+                  <>
+                    <EditableText
+                      edit={edit}
+                      definedIn={telemetry.DefinedIn}
+                      putRoute="telemetryName"
+                      text={name}
+                      additionalBody={{ telemetryName: name }}
+                      maxLength={64}
+                    />
+                    {telemetry.displayName?.en ? (
+                      <EditableText
+                        edit={edit}
+                        definedIn={telemetry.DefinedIn}
+                        putRoute="telemetryDisplayName"
+                        text={telemetry.displayName.en}
+                        additionalBody={{ telemetryName: name }}
+                        maxLength={512}
+                      />
+                    ) : (
+                      <p>'displayName' key missing in original file</p>
+                    )}
+                    {telemetry.description?.en ? (
+                      <EditableText
+                        edit={edit}
+                        definedIn={telemetry.DefinedIn}
+                        putRoute="telemetryDescription"
+                        text={telemetry.description.en}
+                        additionalBody={{ telemetryName: name }}
+                        multiline={true}
+                        maxLength={512}
+                      />
+                    ) : (
+                      <p>'description' key missing in original file</p>
+                    )}
+                    <EditableText
+                      edit={edit}
+                      definedIn={telemetry.DefinedIn}
+                      putRoute="telemetrySchema"
+                      text={telemetry.schema}
+                      additionalBody={{ telemetryName: name }}
+                      maxLength={64}
+                    />
+                    {telemetry.comment ? (
+                      EditableText({
+                        edit,
+                        definedIn: telemetry.DefinedIn,
+                        putRoute: 'telemetryComment',
+                        text: telemetry.comment,
+                        additionalBody: { telemetryName: name },
                         multiline: true,
                         maxLength: 512,
                       })
