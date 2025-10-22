@@ -96,10 +96,10 @@ export async function startVisualisationContainer(env: VisualisationUIConfig): P
 }
 
 export async function stopAllContainers() {
-  // if (visualisationUIContainer) {
-  //   await visualisationUIContainer.stop()
-  // }
-  // if (postgresContainer) {
-  //   await postgresContainer.stop()
-  // }
+  if (visualisationUIContainer) {
+    await visualisationUIContainer.stop()
+  }
+  if (postgresContainer) {
+    await postgresContainer.stop()
+  }
 }

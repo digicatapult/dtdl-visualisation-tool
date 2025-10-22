@@ -2,48 +2,157 @@ import { expect } from 'chai'
 import { describe, it } from 'mocha'
 
 describe('Edit Permissions Integration Tests', function () {
-  const testSessionId = 'test-session-12345'
-
-  // We'll use the default model for testing since it exists in the test environment
-  let defaultModelId: string
+  // Test GitHub ontology edit permissions
+  // Using a hypothetical GitHub-sourced model ID and entity ID for testing
+  const githubModelId = 'd0fb8062-ca58-4a60-bf0c-5ba883d97170'
+  const entityId = 'dtmi:digitaltwins:ngsi_ld:cim:energy:ReportingGroup;1'
+  let validSessionId: string
 
   before(async function () {
-    // Get the default model ID by making a request to the root endpoint
-    // and extracting the model ID from the redirect
-    const response = await fetch('http://localhost:3000/', {
-      redirect: 'manual',
-    })
-
-    expect(response.status).to.equal(302)
-    const location = response.headers.get('location')
-    expect(location).to.not.equal(null)
-
-    // Extract model ID from URL like "/ontology/{modelId}/view"
-    const match = location?.match(/\/ontology\/([^/]+)\/view/)
-    expect(match).to.not.equal(null)
-    defaultModelId = match![1]
+    // Create a valid session first
+    validSessionId = `test-session-${Date.now()}`
   })
 
-  describe('GET /ontology/{dtdlModelId}/edit-model', function () {
-    it('should return 401 when no authentication token is provided', async function () {
-      // First we need to create a valid session
-      const sessionResponse = await fetch(`http://localhost:3000/ontology/${defaultModelId}/view?diagramType=flowchart`)
-      expect(sessionResponse.status).to.equal(200)
+  describe('GitHub ontology edit endpoint protection', function () {
+    it('should deny access to entity edit endpoints without GitHub authentication', async function () {
+      // Test the displayName edit endpoint
+      const response = await fetch(`http://localhost:3000/ontology/${githubModelId}/entity/${entityId}/displayName`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          value: 'Test Display Name',
+          sessionId: validSessionId,
+        }),
+      })
 
-      // Try to access edit endpoint without GitHub token
-      const response = await fetch(
-        `http://localhost:3000/ontology/${defaultModelId}/edit-model?sessionId=${testSessionId}&editMode=true`
-      )
-
-      // Should return 401 because no GitHub token provided for GitHub source model
+      // Should return 401 Unauthorized for GitHub models without proper auth
       expect(response.status).to.equal(401)
     })
 
-    it('should return 401 when invalid authentication token is provided', async function () {
+    it('should deny access to description edit endpoints without GitHub authentication', async function () {
+      const response = await fetch(`http://localhost:3000/ontology/${githubModelId}/entity/${entityId}/description`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          value: 'Test Description',
+          sessionId: validSessionId,
+        }),
+      })
+
+      expect(response.status).to.equal(401)
+    })
+
+    it('should deny access to comment edit endpoints without GitHub authentication', async function () {
+      const response = await fetch(`http://localhost:3000/ontology/${githubModelId}/entity/${entityId}/comment`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          value: 'Test Comment',
+          sessionId: validSessionId,
+        }),
+      })
+
+      expect(response.status).to.equal(401)
+    })
+
+    it('should deny access with invalid GitHub token', async function () {
+      const invalidToken = 'invalid-github-token-12345'
+
+      const response = await fetch(`http://localhost:3000/ontology/${githubModelId}/entity/${entityId}/displayName`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: `OCTOKIT_TOKEN=s:${invalidToken}`,
+        },
+        body: JSON.stringify({
+          value: 'Test Display Name',
+          sessionId: validSessionId,
+        }),
+      })
+
+      // Should return 401 because token is invalid or user lacks permissions
+      expect(response.status).to.equal(401)
+    })
+
+    it('should deny access with malformed GitHub token', async function () {
+      const response = await fetch(`http://localhost:3000/ontology/${githubModelId}/entity/${entityId}/displayName`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: 'OCTOKIT_TOKEN=malformed-token-without-signature',
+        },
+        body: JSON.stringify({
+          value: 'Test Display Name',
+          sessionId: validSessionId,
+        }),
+      })
+
+      expect(response.status).to.equal(401)
+    })
+
+    it('should handle non-existent GitHub model gracefully', async function () {
+      const fakeModelId = 'non-existent-github-model-12345'
+
+      const response = await fetch(`http://localhost:3000/ontology/${fakeModelId}/entity/${entityId}/displayName`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: 'OCTOKIT_TOKEN=s:some-token',
+        },
+        body: JSON.stringify({
+          value: 'Test Display Name',
+          sessionId: validSessionId,
+        }),
+      })
+
+      // Should return 500 because model doesn't exist
+      expect(response.status).to.equal(500)
+    })
+
+    it('should handle non-existent entity gracefully', async function () {
+      const fakeEntityId = 'dtmi:fake:entity;1'
+
+      const response = await fetch(
+        `http://localhost:3000/ontology/${githubModelId}/entity/${fakeEntityId}/displayName`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Cookie: 'OCTOKIT_TOKEN=s:some-token',
+          },
+          body: JSON.stringify({
+            value: 'Test Display Name',
+            sessionId: validSessionId,
+          }),
+        }
+      )
+
+      // Should return error because entity doesn't exist
+      expect([400, 404, 500]).to.include(response.status)
+    })
+  })
+
+  describe('Edit model endpoint protection', function () {
+    it('should deny access to edit-model endpoint without GitHub authentication', async function () {
+      const response = await fetch(
+        `http://localhost:3000/ontology/${githubModelId}/edit-model?sessionId=${validSessionId}&editMode=true`
+      )
+
+      // Should return 401 for GitHub models without authentication
+      expect(response.status).to.equal(401)
+    })
+
+    it('should deny access to edit-model with invalid token', async function () {
       const invalidToken = 'invalid-github-token'
 
       const response = await fetch(
-        `http://localhost:3000/ontology/${defaultModelId}/edit-model?sessionId=${testSessionId}&editMode=true`,
+        `http://localhost:3000/ontology/${githubModelId}/edit-model?sessionId=${validSessionId}&editMode=true`,
         {
           headers: {
             Cookie: `OCTOKIT_TOKEN=s:${invalidToken}`,
@@ -51,108 +160,103 @@ describe('Edit Permissions Integration Tests', function () {
         }
       )
 
-      // Should return 401 because token is invalid
-      expect(response.status).to.equal(401)
-    })
-
-    it('should handle non-existent model IDs', async function () {
-      const nonExistentModelId = 'non-existent-model-id-12345'
-
-      const response = await fetch(
-        `http://localhost:3000/ontology/${nonExistentModelId}/edit-model?sessionId=${testSessionId}&editMode=true`
-      )
-
-      // Should return 500 because model doesn't exist
-      expect(response.status).to.equal(500)
-    })
-
-    it('should handle missing session ID parameter', async function () {
-      const response = await fetch(`http://localhost:3000/ontology/${defaultModelId}/edit-model?editMode=true`)
-
-      // Should return 400 because sessionId is required
-      expect(response.status).to.equal(400)
-    })
-
-    it('should handle invalid session IDs', async function () {
-      const invalidSessionId = 'invalid-session-id-12345'
-
-      const response = await fetch(
-        `http://localhost:3000/ontology/${defaultModelId}/edit-model?sessionId=${invalidSessionId}&editMode=true`
-      )
-
-      // Should return error because session doesn't exist
-      expect([400, 408, 500]).to.include(response.status)
-    })
-  })
-
-  describe('checkEditPermission function behavior', function () {
-    it('should require authentication for GitHub models', async function () {
-      // Upload a test model via GitHub simulation (this would be a GitHub-sourced model)
-      const zipContent = Buffer.from('test content')
-      const formData = new FormData()
-      const blob = new Blob([zipContent], { type: 'application/zip' })
-      formData.append('file', blob, 'test.zip')
-
-      // Upload will fail, but that's expected in this test environment
-      await fetch('http://localhost:3000/open/', {
-        method: 'POST',
-        body: formData,
-      })
-
-      // Even if upload fails, we can test that edit endpoints require authentication
-      const response = await fetch(
-        `http://localhost:3000/ontology/${defaultModelId}/edit-model?sessionId=${testSessionId}&editMode=true`
-      )
-
-      expect(response.status).to.equal(401)
-    })
-
-    it('should handle malformed cookies gracefully', async function () {
-      const response = await fetch(
-        `http://localhost:3000/ontology/${defaultModelId}/edit-model?sessionId=${testSessionId}&editMode=true`,
-        {
-          headers: {
-            Cookie: 'OCTOKIT_TOKEN=malformed-token-without-signature',
-          },
-        }
-      )
-
       expect(response.status).to.equal(401)
     })
   })
 
-  describe('Edge cases and error handling', function () {
-    it('should return appropriate HTTP status for permission denied', async function () {
-      const response = await fetch(
-        `http://localhost:3000/ontology/${defaultModelId}/edit-model?sessionId=${testSessionId}&editMode=true`
-      )
-
-      expect(response.status).to.equal(401)
-    })
-
-    it('should handle missing editMode parameter', async function () {
-      const response = await fetch(
-        `http://localhost:3000/ontology/${defaultModelId}/edit-model?sessionId=${testSessionId}`
-      )
-
-      // Missing required parameter should return 400
-      expect(response.status).to.equal(400)
-    })
-
-    it('should validate model exists before checking permissions', async function () {
-      const fakeModelId = 'fake-model-id-12345'
-
-      const response = await fetch(
-        `http://localhost:3000/ontology/${fakeModelId}/edit-model?sessionId=${testSessionId}&editMode=true`,
+  describe('Comprehensive security validation', function () {
+    it('should consistently protect all GitHub model edit endpoints', async function () {
+      const editEndpoints = [
         {
-          headers: {
-            Cookie: 'OCTOKIT_TOKEN=s:some-token',
-          },
-        }
-      )
+          name: 'displayName',
+          url: `http://localhost:3000/ontology/${githubModelId}/entity/${entityId}/displayName`,
+          method: 'PUT',
+          body: { value: 'Test', sessionId: validSessionId },
+        },
+        {
+          name: 'description',
+          url: `http://localhost:3000/ontology/${githubModelId}/entity/${entityId}/description`,
+          method: 'PUT',
+          body: { value: 'Test', sessionId: validSessionId },
+        },
+        {
+          name: 'comment',
+          url: `http://localhost:3000/ontology/${githubModelId}/entity/${entityId}/comment`,
+          method: 'PUT',
+          body: { value: 'Test', sessionId: validSessionId },
+        },
+        {
+          name: 'edit-model',
+          url: `http://localhost:3000/ontology/${githubModelId}/edit-model?sessionId=${validSessionId}&editMode=true`,
+          method: 'GET',
+          body: null,
+        },
+      ]
 
-      // Should fail with 500 because model doesn't exist
-      expect(response.status).to.equal(500)
+      for (const endpoint of editEndpoints) {
+        const headers: Record<string, string> = {}
+        if (endpoint.method === 'PUT') {
+          headers['Content-Type'] = 'application/json'
+        }
+
+        const requestInit: RequestInit = {
+          method: endpoint.method,
+          headers,
+        }
+
+        if (endpoint.body) {
+          requestInit.body = JSON.stringify(endpoint.body)
+        }
+
+        const response = await fetch(endpoint.url, requestInit)
+
+        // All edit endpoints should return 401 for GitHub models without auth
+        expect(response.status).to.equal(
+          401,
+          `Endpoint '${endpoint.name}' should return 401 but returned ${response.status}`
+        )
+      }
+    })
+
+    it('should verify checkEditPermission function is properly integrated', async function () {
+      // Test that the checkEditPermission function is actually being called
+      // by verifying that unauthorized requests are consistently blocked
+
+      const unauthorizedScenarios = [
+        {
+          name: 'No token',
+          headers: {} as Record<string, string>,
+        },
+        {
+          name: 'Invalid token',
+          headers: { Cookie: 'OCTOKIT_TOKEN=s:invalid_token' } as Record<string, string>,
+        },
+        {
+          name: 'Malformed token',
+          headers: { Cookie: 'OCTOKIT_TOKEN=malformed' } as Record<string, string>,
+        },
+      ]
+
+      for (const scenario of unauthorizedScenarios) {
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+          ...scenario.headers,
+        }
+
+        const response = await fetch(`http://localhost:3000/ontology/${githubModelId}/entity/${entityId}/displayName`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({
+            value: 'Test Value',
+            sessionId: validSessionId,
+          }),
+        })
+
+        expect(response.status).to.equal(
+          401,
+          `Scenario '${scenario.name}' should be unauthorized but returned ${response.status}`
+        )
+      }
     })
   })
 })

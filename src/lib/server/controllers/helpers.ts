@@ -1,15 +1,15 @@
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns'
 import express from 'express'
 import { ModelDb } from '../../db/modelDb'
-import { InternalError, UnauthorisedError } from '../errors'
+import { InternalError, UnauthorisedError } from '../errors.js'
 import { ILogger } from '../logger'
 import { CookieHistoryParams, GenerateParams, relevantParams } from '../models/controllerTypes.js'
 import { modelHistoryCookie, octokitTokenCookie } from '../models/cookieNames.js'
 import { RecentFile } from '../models/openTypes.js'
 import { MermaidSvgRender, PlainTextRender } from '../models/renderedDiagram'
-import { UUID } from '../models/strings'
-import { ICache } from '../utils/cache'
-import { GithubRequest } from '../utils/githubRequest'
+import { UUID } from '../models/strings.js'
+import { ICache } from '../utils/cache.js'
+import { GithubRequest } from '../utils/githubRequest.js'
 
 const formatLastVisited = (timestamp: number): string => {
   const date = new Date(timestamp)
