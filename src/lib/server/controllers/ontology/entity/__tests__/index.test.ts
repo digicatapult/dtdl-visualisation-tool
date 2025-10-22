@@ -21,7 +21,6 @@ import {
   relationshipName,
   simpleDtdlFileEntityId,
   simpleDtdlFileFixture,
-  simpleDtdlId,
   simpleMockModelDb,
   templateMock,
   toHTMLString,
@@ -95,7 +94,7 @@ describe('EntityController', async () => {
         value: newValue,
       }
       const result = await controller
-        .putDisplayName(req, simpleDtdlId, arrayDtdlFileEntityId, putBody)
+        .putDisplayName(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
       expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
         arrayDtdlFileFixture({ interfaceUpdate: { displayName: newValue } })

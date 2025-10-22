@@ -42,6 +42,7 @@ export class EntityController extends HTMLController {
     @Path() entityId: DtdlId,
     @Body() body: { value: string } & UpdateParams
   ): Promise<HTML> {
+    await checkEditPermission(req, ontologyId, this.modelDb, this.githubRequest)
     const { value, ...updateParams } = body
 
     const invalidChars = /["\\]/
