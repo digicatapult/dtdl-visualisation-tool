@@ -7,8 +7,11 @@
     "contents": [
         {
             "@type": "Telemetry",
-            "name": "temperature",
-            "schema": "double"
+            "name": "Temperature",
+            "schema": "double",
+            "comment": "Operating temperature measurement in degrees Celsius.",
+            "description": "Real-time temperature reading from the conducting equipment's thermal sensors",
+            "displayName": "ConductingEquipmentTemperature"
         },
         {
             "@type": "Relationship",

@@ -1,5 +1,6 @@
 import { escapeHtml, type PropsWithChildren } from '@kitajs/html'
-import { DtdlId } from '../models/strings'
+import { DtdlId } from '../models/strings.js'
+import { DTDL_VALID_SCHEMAS } from '../utils/dtdl/constants.js'
 
 export const parseError = (): JSX.Element => <p>Ontology Undefined</p>
 
@@ -98,6 +99,42 @@ export const EditableText = ({
       >
         {escapeHtml(text)}
       </textarea>
+    </form>
+  )
+}
+
+export const EditableSchema = ({
+  edit,
+  definedIn,
+  putRoute,
+  text,
+  additionalBody,
+}: {
+  edit: boolean
+  definedIn: DtdlId
+  putRoute: string
+  text: string
+  additionalBody?: Record<string, string>
+}): JSX.Element => {
+  if (!edit) return <p>{escapeHtml(text)}</p>
+
+  return (
+    <form
+      hx-put={`entity/${definedIn}/${putRoute}`}
+      hx-trigger={`change[this.querySelector('select').value !== '${text}'] from:find select`}
+      hx-vals={JSON.stringify(additionalBody)}
+      hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagramType"
+      hx-swap="outerHTML transition:true"
+      hx-target="#mermaid-output"
+      hx-indicator="#spinner"
+    >
+      <select name="value" class="nav-panel-editable">
+        {DTDL_VALID_SCHEMAS.map((schema) => (
+          <option value={schema} {...(schema === text && { selected: true })}>
+            {escapeHtml(schema)}
+          </option>
+        ))}
+      </select>
     </form>
   )
 }

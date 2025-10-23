@@ -469,6 +469,9 @@ label[for='diagram-type-select'] {
   .relationship::after {
     background-image: url('../images/relationship.svg');
   }
+  .telemetry::after {
+    background-image: url('../images/telemetry.svg');
+  }
 }
 
 #navigation-panel-tree-warning {
