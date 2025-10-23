@@ -9,6 +9,7 @@ test.describe('Share Ontology Link', () => {
   const ghTestUser2 = process.env.GH_TEST_USER_2
   const ghTestPassword2 = process.env.GH_TEST_PASSWORD_2
   const gh2faSecret2 = process.env.GH_TEST_2FA_SECRET_2
+
   test('ontology can be viewed correctly on another browser', async ({ browser }) => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
@@ -69,6 +70,7 @@ test.describe('Share Ontology Link', () => {
     expect(await page2.locator('#edit-toggle .switch').isEnabled()).toBeTruthy()
     await waitForSuccessResponse(page2, () => page2.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page2.locator('#edit-toggle').getByText('Edit')).toBeVisible()
+    await context2.close()
   })
   test('private ontology cannot be viewed on another browser/github user', async ({ browser }) => {
     const repo = 'https://github.com/digicatapult-nidt-user-1/nidt_ontology_private_without_collaborator'
@@ -93,5 +95,6 @@ test.describe('Share Ontology Link', () => {
     await page2.goto(clipboardText)
     // Assert 401
     await expect(page2.locator('#mermaid-output-message').getByText('You are unauthorised')).toBeVisible()
+    await context2.close()
   })
 })

@@ -58,5 +58,9 @@ test.describe('Open Ontology from recently visited', () => {
 
     await waitForSuccessResponse(page, () => page.locator('.file-card').first().click(), '/view')
     await expect(page.locator('#mermaid-output').getByText('ConnectivityNode', { exact: true })).toBeVisible()
+
+    // if (context) {
+    //   await context.close()
+    // }
   })
 })
