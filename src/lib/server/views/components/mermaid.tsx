@@ -344,15 +344,6 @@ export default class MermaidTemplates {
                 const schema = model[telemetry.schema]
                 return (
                   <>
-                    <b>Name:</b>
-                    <EditableText
-                      edit={edit}
-                      definedIn={telemetry.DefinedIn}
-                      putRoute="telemetryName"
-                      text={name}
-                      additionalBody={{ telemetryName: name }}
-                      maxLength={512}
-                    />
                     <b>Display name:</b>
                     {telemetry.displayName?.en ? (
                       <EditableText
@@ -366,6 +357,14 @@ export default class MermaidTemplates {
                     ) : (
                       <p>'displayName' key missing in original file</p>
                     )}
+                    <b>Schema:</b>
+                    <EditableSchema
+                      edit={edit}
+                      definedIn={telemetry.DefinedIn}
+                      putRoute="telemetrySchema"
+                      text={schema.displayName.en}
+                      additionalBody={{ telemetryName: name }}
+                    />
                     <b>Description:</b>
                     {telemetry.description?.en ? (
                       <EditableText
@@ -380,14 +379,6 @@ export default class MermaidTemplates {
                     ) : (
                       <p>'description' key missing in original file</p>
                     )}
-                    <b>Schema:</b>
-                    <EditableSchema
-                      edit={edit}
-                      definedIn={telemetry.DefinedIn}
-                      putRoute="telemetrySchema"
-                      text={schema.displayName.en}
-                      additionalBody={{ telemetryName: name }}
-                    />
                     <b>Comment:</b>
                     {telemetry.comment ? (
                       EditableText({

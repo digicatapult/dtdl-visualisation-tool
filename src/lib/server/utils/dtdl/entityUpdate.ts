@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { DataError } from '../../errors.js'
-import { DTDL_VALID_SCHEMAS } from './constants.js'
+import { DTDL_VALID_SCHEMAS, DtdlSchema } from './constants.js'
 
 export const updateDisplayName = (value: string) => (file: unknown) => {
   return updateInterfaceValue(file, value, `displayName`, 64)
@@ -15,7 +15,7 @@ export const updateComment = (value: string) => (file: unknown) => {
 }
 
 export const updateRelationshipDisplayName = (value: string, relationshipName: string) => (file: unknown) => {
-  return updateContentsValue(file, value, 'Relationship', relationshipName, 'displayName', 64)
+  return updateContentsValue(file, value, 'Relationship', relationshipName, 'displayName', 512)
 }
 
 export const updateRelationshipDescription = (value: string, relationshipName: string) => (file: unknown) => {
@@ -62,37 +62,6 @@ export const updatePropertyComment = (value: string, propertyName: string) => (f
   return updateContentsValue(file, value, 'Property', propertyName, 'comment', 512)
 }
 
-export const updateTelemetryName = (newValue: string, originalValue: string) => (file: unknown) => {
-  if (newValue.length > 512) throw new DataError(`Telemetry name has max length of 512 characters`)
-
-  const schema = z.object({
-    '@type': z.literal('Interface'),
-    contents: z
-      .array(
-        z.looseObject({
-          '@type': z.string(),
-          name: z.string(),
-        })
-      )
-      .refine((contents) => contents.some((c) => c['@type'] === 'Telemetry' && c.name === originalValue)),
-  })
-
-  const validFile: z.infer<typeof schema> = schema.passthrough().parse(file)
-  console.log(validFile.contents)
-  const updatedContents = validFile.contents.map((item) => {
-    if (item.name === newValue) {
-      throw new DataError(`Property/Relationship/Telemetry with name "${newValue}" already exists`)
-    }
-
-    if (item['@type'] === 'Telemetry' && item.name === originalValue) {
-      return { ...item, name: newValue }
-    }
-    return item
-  })
-
-  return { ...validFile, contents: updatedContents }
-}
-
 export const updateTelemetryComment = (value: string, telemetryName: string) => (file: unknown) => {
   return updateContentsValue(file, value, 'Telemetry', telemetryName, 'comment', 512)
 }
@@ -106,11 +75,11 @@ export const updateTelemetryDisplayName = (value: string, telemetryName: string)
 }
 
 export const updateTelemetrySchema = (value: string, telemetryName: string) => (file: unknown) => {
-  if (!DTDL_VALID_SCHEMAS.includes(value as any)) {
+  if (!DTDL_VALID_SCHEMAS.includes(value as DtdlSchema)) {
     throw new DataError(`Invalid schema type. Must be one of: ${DTDL_VALID_SCHEMAS.join(', ')}`)
   }
 
-  return updateContentsValue(file, value, 'Telemetry', telemetryName, 'schema', 64)
+  return updateContentsValue(file, value, 'Telemetry', telemetryName, 'schema', 512)
 }
 
 const updateInterfaceValue = (
@@ -146,13 +115,11 @@ const updateContentsValue = (
     '@type': z.literal('Interface'),
     contents: z
       .array(
-        z
-          .object({
-            '@type': z.string(),
-            name: z.string(),
-            [keyToUpdate]: z.string().optional(),
-          })
-          .passthrough()
+        z.looseObject({
+          '@type': z.string(),
+          name: z.string(),
+          [keyToUpdate]: z.string().optional(),
+        })
       )
       .refine((contents) => contents.some((c) => c['@type'] === contentType && c.name === contentName)),
   })

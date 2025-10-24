@@ -24,7 +24,6 @@ import {
   updateTelemetryComment,
   updateTelemetryDescription,
   updateTelemetryDisplayName,
-  updateTelemetryName,
   updateTelemetrySchema,
 } from '../entityUpdate'
 
@@ -90,12 +89,6 @@ describe('entity updates', function () {
     test('updates property comment', async () => {
       expect(updatePropertyComment(newValue, propertyName)(baseFile({}))).to.deep.equal(
         baseFile({ propertyUpdate: { comment: newValue } })
-      )
-    })
-
-    test('updates telemetry name', async () => {
-      expect(updateTelemetryName(newValue, telemetryName)(baseFile({}))).to.deep.equal(
-        baseFile({ telemetryUpdate: { name: newValue } })
       )
     })
 
@@ -196,19 +189,6 @@ describe('entity updates', function () {
       const newComment = 'a'.repeat(513)
       expect(() => {
         updatePropertyComment(newComment, propertyName)(baseFile({}))
-      }).to.throw(DataError)
-    })
-
-    test('throws error if new telemetry name matches other property name', async () => {
-      expect(() => {
-        updateTelemetryName(otherPropertyName, telemetryName)(baseFile({}))
-      }).to.throw(DataError, 'already exists')
-    })
-
-    test('throws error for telemetry name too long', async () => {
-      const newTelemetryName = 'a'.repeat(65)
-      expect(() => {
-        updateTelemetryName(newTelemetryName, telemetryName)(baseFile({}))
       }).to.throw(DataError)
     })
 

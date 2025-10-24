@@ -18,7 +18,6 @@ import {
   updateTelemetryComment,
   updateTelemetryDescription,
   updateTelemetryDisplayName,
-  updateTelemetryName,
   updateTelemetrySchema,
 } from '../../../utils/dtdl/entityUpdate.js'
 import { HTML, HTMLController } from '../../HTMLController.js'
@@ -50,24 +49,6 @@ export class EntityController extends HTMLController {
     if (invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
 
     await this.putEntityValue(ontologyId, entityId, updateDisplayName(value))
-
-    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
-  }
-
-  @SuccessResponse(200)
-  @Put('{entityId}/telemetryName')
-  public async putTelemetryName(
-    @Request() req: express.Request,
-    @Path() ontologyId: UUID,
-    @Path() entityId: DtdlId,
-    @Body() body: { value: string; telemetryName: string } & UpdateParams
-  ): Promise<HTML> {
-    const { value, telemetryName, ...updateParams } = body
-
-    const invalidChars = /["\\]/
-    if (invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
-
-    await this.putEntityValue(ontologyId, entityId, updateTelemetryName(value, telemetryName))
 
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
   }
