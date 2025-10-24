@@ -8,7 +8,6 @@ import {
 } from '../testcontainers/testContainersSetup.js'
 
 export let visualisationUIContainer: StartedTestContainer
-export let visualisationUIContainer2: StartedTestContainer
 export let postgresContainer: StartedTestContainer
 export let visualisationImage: GenericContainer
 
@@ -29,5 +28,5 @@ before(async function () {
 
 after(async function () {
   this.timeout(420000)
-  await Promise.all([visualisationUIContainer.stop(), visualisationUIContainer2.stop(), postgresContainer.stop()])
+  await Promise.all([visualisationUIContainer.stop(), postgresContainer.stop()])
 })
