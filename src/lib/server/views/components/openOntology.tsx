@@ -204,6 +204,7 @@ export default class OpenOntologyTemplates {
         hx-post="/open/"
         hx-encoding="multipart/form-data"
         hx-trigger="change from:#zip"
+        hx-on-htmx-before-request="if (!document.getElementById('zip').files?.length) event.preventDefault()"
       >
         <label for="zip" class="upload-option">
           <img src="/public/images/zip-folder.svg" alt="zip-folder" />

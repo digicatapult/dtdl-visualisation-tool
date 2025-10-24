@@ -31,7 +31,7 @@ export const waitForSuccessResponse = async <T>(page: Page, action: () => Promis
   await htmxReady(page).catch(() => {})
 }
 
-export async function waitForUploadFile<T>(page: Page, action: () => Promise<T>, filePath: string) {
+export async function waitForUploadFile<T>(page: Page, action: () => Promise<T>, filePath: string | string[]) {
   const fileChooserPromise = page.waitForEvent('filechooser')
   await action()
   const fileChooser = await fileChooserPromise

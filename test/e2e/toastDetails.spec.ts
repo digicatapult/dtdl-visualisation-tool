@@ -38,5 +38,16 @@ test.describe('Upload ontology from local drive', () => {
     await page.locator('#toast-container').getByText('Unable to parse any file. Open details:').click()
 
     await expect(page.getByText('Top-level JSON object has no @context specifier')).toBeVisible()
+
+    // check no request sent if no file selected
+    let uploadRequestMade = false
+    page.on('request', (request) => {
+      if (request.url().includes('/open/') && request.method() === 'POST') {
+        uploadRequestMade = true
+      }
+    })
+
+    await waitForUploadFile(page, () => page.locator('#main-view').getByText('Local Zip File').click(), [])
+    expect(uploadRequestMade).toBe(false)
   })
 })
