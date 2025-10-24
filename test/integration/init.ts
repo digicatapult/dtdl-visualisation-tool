@@ -1,6 +1,6 @@
 import 'reflect-metadata'
 
-import { GenericContainer, StartedTestContainer } from 'testcontainers'
+import { GenericContainer, type StartedTestContainer } from 'testcontainers'
 import {
   bringUpDatabaseContainer,
   buildVisualisationImage,
