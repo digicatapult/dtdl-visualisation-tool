@@ -1,23 +1,10 @@
-import { expect, Page } from '@playwright/test'
+import { Page } from '@playwright/test'
 
 export const waitForUpdateLayout = async <T>(page: Page, action: () => Promise<T>) => {
   return waitForSuccessResponse(page, action, '/update-layout')
 }
 
-export async function htmxReady(page: Page, timeout = 15000) {
-  // Wait until there are no in-flight or settling HTMX operations
-  const state = page.locator('.htmx-request, .htmx-settling, .htmx-swapping, .htmx-added')
-  await expect(state).toHaveCount(0, { timeout })
-}
-
-export async function ensureHtmxInitialized(page: Page) {
-  const htmx = await page.evaluate('window.htmx')
-  if (!htmx) throw new Error('window.htmx not initialized')
-}
-
 export const waitForSuccessResponse = async <T>(page: Page, action: () => Promise<T>, includeRoute: string) => {
-  await ensureHtmxInitialized(page).catch(() => {})
-  await htmxReady(page).catch(() => {})
   const response = page.waitForResponse((resp) => {
     const acceptableStatuses = new Set([200, 204, 302, 304])
     if (!acceptableStatuses.has(resp.status())) {
@@ -28,7 +15,6 @@ export const waitForSuccessResponse = async <T>(page: Page, action: () => Promis
   })
   await action()
   await response
-  await htmxReady(page).catch(() => {})
 }
 
 export async function waitForUploadFile<T>(page: Page, action: () => Promise<T>, filePath: string | string[]) {
