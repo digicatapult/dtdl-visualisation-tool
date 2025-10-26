@@ -134,7 +134,7 @@ async function getGithubToken(config: FullConfig, credentials: UserCredentials) 
 
   // Store current state (cookies) for future tests
   await page.context().storageState({ path: storageStatePath })
-
+  await context.close()
   await browser.close()
 }
 export default globalSetup

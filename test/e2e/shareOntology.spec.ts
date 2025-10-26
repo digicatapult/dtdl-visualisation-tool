@@ -70,6 +70,7 @@ test.describe('Share Ontology Link', () => {
     expect(await page2.locator('#edit-toggle .switch').isEnabled()).toBeTruthy()
     await waitForSuccessResponse(page2, () => page2.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page2.locator('#edit-toggle').getByText('Edit')).toBeVisible()
+
     await context2.close()
   })
   test('private ontology cannot be viewed on another browser/github user', async ({ browser }) => {
