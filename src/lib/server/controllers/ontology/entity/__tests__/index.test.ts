@@ -3,6 +3,7 @@ import { describe, it } from 'mocha'
 import sinon from 'sinon'
 import { DataError } from '../../../../errors.js'
 import { UpdateParams } from '../../../../models/controllerTypes.js'
+import { DtdlSchema } from '../../../../models/strings.js'
 import { generatedSVGFixture } from '../../../../utils/mermaid/__tests__/fixtures.js'
 import { mockGithubRequest } from '../../../__tests__/github.test.js'
 import {
@@ -363,71 +364,6 @@ describe('EntityController', async () => {
     })
   })
 
-  describe('invalid chars', () => {
-    const req = mockReq({})
-
-    const invalidChars = [`"`, `\\`]
-    invalidChars.forEach((char) => {
-      const body = {
-        ...defaultParams,
-        value: char,
-        relationshipName: '',
-        propertyName: '',
-      }
-      const routes = [
-        () => controller.putDisplayName(req, simpleDtdlId, simpleDtdlFileEntityId, body),
-        () => controller.putDescription(req, simpleDtdlId, simpleDtdlFileEntityId, body),
-        () => controller.putComment(req, simpleDtdlId, simpleDtdlFileEntityId, body),
-        () => controller.putRelationshipDisplayName(req, simpleDtdlId, simpleDtdlFileEntityId, body),
-        () => controller.putRelationshipDescription(req, simpleDtdlId, simpleDtdlFileEntityId, body),
-        () => controller.putRelationshipComment(req, simpleDtdlId, simpleDtdlFileEntityId, body),
-        () => controller.putPropertyName(req, simpleDtdlId, simpleDtdlFileEntityId, body),
-        () => controller.putPropertyComment(req, simpleDtdlId, simpleDtdlFileEntityId, body),
-      ]
-      routes.forEach((fn) => {
-        it(`should error on ${char} char in value`, async () => {
-          await expect(fn()).to.be.rejectedWith(DataError, 'Invalid JSON')
-        })
-      })
-    })
-  })
-
-  describe('putTelemetryName', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
-
-    it('should update db and layout for new telemetry name on non-array DTDL file', async () => {
-      const req = mockReq({})
-      const putBody = {
-        ...defaultParams,
-        value: newValue,
-        telemetryName,
-      }
-      const result = await controller
-        .putTelemetryName(req, simpleDtdlId, simpleDtdlFileEntityId, putBody)
-        .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
-        simpleDtdlFileFixture({ telemetryUpdate: { name: newValue } })
-      )
-      expect(result).to.equal(updateLayoutOutput)
-    })
-
-    it('should update db and layout for new telemetry name on array DTDL file', async () => {
-      const req = mockReq({})
-      const putBody = {
-        ...defaultParams,
-        value: newValue,
-        telemetryName,
-      }
-      const result = await controller
-        .putTelemetryName(req, simpleDtdlId, arrayDtdlFileEntityId, putBody)
-        .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
-        arrayDtdlFileFixture({ telemetryUpdate: { name: newValue } })
-      )
-      expect(result).to.equal(updateLayoutOutput)
-    })
-  })
-
   describe('putTelemetryComment', () => {
     afterEach(() => updateDtdlContentsStub.resetHistory())
 
@@ -471,7 +407,7 @@ describe('EntityController', async () => {
       const req = mockReq({})
       const putBody = {
         ...defaultParams,
-        value: 'string',
+        value: 'boolean' as DtdlSchema,
         telemetryName,
       }
       const result = await controller
@@ -487,7 +423,7 @@ describe('EntityController', async () => {
       const req = mockReq({})
       const putBody = {
         ...defaultParams,
-        value: 'string',
+        value: 'boolean' as DtdlSchema,
         telemetryName,
       }
       const result = await controller
@@ -569,6 +505,40 @@ describe('EntityController', async () => {
         arrayDtdlFileFixture({ telemetryUpdate: { displayName: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
+    })
+  })
+
+  describe('invalid chars', () => {
+    const req = mockReq({})
+
+    const invalidChars = [`"`, `\\`]
+    invalidChars.forEach((char) => {
+      const body = {
+        ...defaultParams,
+        value: char,
+        relationshipName: '',
+        propertyName: '',
+        telemetryName: '',
+      }
+      const routes = [
+        () => controller.putDisplayName(req, simpleDtdlId, simpleDtdlFileEntityId, body),
+        () => controller.putDescription(req, simpleDtdlId, simpleDtdlFileEntityId, body),
+        () => controller.putComment(req, simpleDtdlId, simpleDtdlFileEntityId, body),
+        () => controller.putRelationshipDisplayName(req, simpleDtdlId, simpleDtdlFileEntityId, body),
+        () => controller.putRelationshipDescription(req, simpleDtdlId, simpleDtdlFileEntityId, body),
+        () => controller.putRelationshipComment(req, simpleDtdlId, simpleDtdlFileEntityId, body),
+        () => controller.putPropertyName(req, simpleDtdlId, simpleDtdlFileEntityId, body),
+        () => controller.putPropertyComment(req, simpleDtdlId, simpleDtdlFileEntityId, body),
+        () => controller.putTelemetryDisplayName(req, simpleDtdlId, simpleDtdlFileEntityId, body),
+        () => controller.putTelemetryDescription(req, simpleDtdlId, simpleDtdlFileEntityId, body),
+        () => controller.putTelemetryComment(req, simpleDtdlId, simpleDtdlFileEntityId, body),
+      ]
+      routes.forEach((fn) => {
+        console.log(fn.toString())
+        it(`should error on ${char} char in value`, async () => {
+          await expect(fn()).to.be.rejectedWith(DataError, 'Invalid JSON')
+        })
+      })
     })
   })
 })

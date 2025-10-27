@@ -1,6 +1,5 @@
 import { escapeHtml, type PropsWithChildren } from '@kitajs/html'
-import { DtdlId } from '../models/strings.js'
-import { DTDL_VALID_SCHEMAS } from '../utils/dtdl/constants.js'
+import { DTDL_VALID_SCHEMAS, DtdlId } from '../models/strings.js'
 
 export const parseError = (): JSX.Element => <p>Ontology Undefined</p>
 
@@ -85,7 +84,7 @@ export const EditableText = ({
       // trigger when textarea loses focus and value has changed
       hx-trigger={`blur[this.querySelector('textarea').value !== '${text}'] from:find textarea`}
       hx-vals={JSON.stringify(additionalBody)}
-      hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagramType"
+      hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
       hx-swap="outerHTML transition:true"
       hx-target="#mermaid-output"
       hx-indicator="#spinner"
@@ -123,7 +122,7 @@ export const EditableSchema = ({
       hx-put={`entity/${definedIn}/${putRoute}`}
       hx-trigger={`change[this.querySelector('select').value !== '${text}'] from:find select`}
       hx-vals={JSON.stringify(additionalBody)}
-      hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagramType"
+      hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
       hx-swap="outerHTML transition:true"
       hx-target="#mermaid-output"
       hx-indicator="#spinner"

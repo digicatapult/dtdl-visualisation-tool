@@ -13,6 +13,7 @@ import {
 } from '../../../controllers/__tests__/helpers'
 import { DataError } from '../../../errors'
 import {
+  MAX_DISPLAY_NAME_LENGTH,
   updateComment,
   updateDescription,
   updateDisplayName,
@@ -137,7 +138,7 @@ describe('entity updates', function () {
     })
 
     test('throws error for display name too long', async () => {
-      const newDisplayName = 'a'.repeat(65)
+      const newDisplayName = 'a'.repeat(MAX_DISPLAY_NAME_LENGTH + 1)
       expect(() => {
         updateDisplayName(newDisplayName)(baseFile({}))
       }).to.throw(DataError)
@@ -158,7 +159,7 @@ describe('entity updates', function () {
     })
 
     test('throws error for relationship display name too long', async () => {
-      const newDisplayName = 'a'.repeat(65)
+      const newDisplayName = 'a'.repeat(MAX_DISPLAY_NAME_LENGTH + 1)
       expect(() => {
         updateRelationshipDisplayName(newDisplayName, relationshipName)(baseFile({}))
       }).to.throw(DataError)
@@ -179,7 +180,7 @@ describe('entity updates', function () {
     })
 
     test('throws error for property name too long', async () => {
-      const newDisplayName = 'a'.repeat(65)
+      const newDisplayName = 'a'.repeat(MAX_DISPLAY_NAME_LENGTH + 1)
       expect(() => {
         updatePropertyName(newDisplayName, propertyName)(baseFile({}))
       }).to.throw(DataError)
@@ -197,12 +198,6 @@ describe('entity updates', function () {
       expect(() => {
         updateTelemetryComment(newComment, telemetryName)(baseFile({}))
       }).to.throw(DataError)
-    })
-
-    test('throws error for invalid telemetry schema', async () => {
-      expect(() => {
-        updateTelemetrySchema('invalidSchema', telemetryName)(baseFile({}))
-      }).to.throw(DataError, 'Invalid schema type')
     })
 
     test('throws error for telemetry description too long', async () => {

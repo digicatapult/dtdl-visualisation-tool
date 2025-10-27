@@ -7,6 +7,7 @@ import { container, singleton } from 'tsyringe'
 import { Env } from '../../env/index.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { DtdlId, UUID } from '../../models/strings.js'
+import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
 import { getDisplayNameOrId, isInterface, isProperty, isRelationship, isTelemetry } from '../../utils/dtdl/extract.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { AccordionSection, EditableSchema, EditableText, Page } from '../common.js'
@@ -240,7 +241,7 @@ export default class MermaidTemplates {
               },
               text: entity.description.en,
               multiline: true,
-              maxLength: 512,
+              maxLength: MAX_VALUE_LENGTH,
             })
           ) : (
             <p>'description' key missing in original file</p>
@@ -258,7 +259,7 @@ export default class MermaidTemplates {
               },
               text: entity.comment,
               multiline: true,
-              maxLength: 512,
+              maxLength: MAX_VALUE_LENGTH,
             })
           ) : (
             <p>'comment' key missing in original file</p>
@@ -303,7 +304,7 @@ export default class MermaidTemplates {
                         text: property.comment,
                         additionalBody: { propertyName: name },
                         multiline: true,
-                        maxLength: 512,
+                        maxLength: MAX_VALUE_LENGTH,
                       })
                     ) : (
                       <p>'comment' key missing in original file</p>
@@ -344,7 +345,7 @@ export default class MermaidTemplates {
                 const schema = model[telemetry.schema]
                 return (
                   <>
-                    <b>Display name:</b>
+                    <b>Display Name:</b>
                     {telemetry.displayName?.en ? (
                       <EditableText
                         edit={edit}
@@ -352,7 +353,7 @@ export default class MermaidTemplates {
                         putRoute="telemetryDisplayName"
                         text={telemetry.displayName.en}
                         additionalBody={{ telemetryName: name }}
-                        maxLength={512}
+                        maxLength={64}
                       />
                     ) : (
                       <p>'displayName' key missing in original file</p>
@@ -374,7 +375,7 @@ export default class MermaidTemplates {
                         text={telemetry.description.en}
                         additionalBody={{ telemetryName: name }}
                         multiline={true}
-                        maxLength={512}
+                        maxLength={MAX_VALUE_LENGTH}
                       />
                     ) : (
                       <p>'description' key missing in original file</p>
@@ -388,7 +389,7 @@ export default class MermaidTemplates {
                         text: telemetry.comment,
                         additionalBody: { telemetryName: name },
                         multiline: true,
-                        maxLength: 512,
+                        maxLength: MAX_VALUE_LENGTH,
                       })
                     ) : (
                       <p>'comment' key missing in original file</p>

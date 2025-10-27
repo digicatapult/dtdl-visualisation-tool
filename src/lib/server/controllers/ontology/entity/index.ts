@@ -2,10 +2,10 @@ import express from 'express'
 import { Body, Path, Produces, Put, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../../../db/modelDb.js'
-import { DataError } from '../../../errors.js'
 import { UpdateParams } from '../../../models/controllerTypes.js'
-import { type DtdlId, type UUID } from '../../../models/strings.js'
+import { DtdlSchema, type DtdlId, type UUID } from '../../../models/strings.js'
 import { Cache, type ICache } from '../../../utils/cache.js'
+
 import {
   updateComment,
   updateDescription,
@@ -45,82 +45,7 @@ export class EntityController extends HTMLController {
   ): Promise<HTML> {
     const { value, ...updateParams } = body
 
-    const invalidChars = /["\\]/
-    if (invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
-
     await this.putEntityValue(ontologyId, entityId, updateDisplayName(value))
-
-    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
-  }
-
-  @SuccessResponse(200)
-  @Put('{entityId}/telemetryComment')
-  public async putTelemetryComment(
-    @Request() req: express.Request,
-    @Path() ontologyId: UUID,
-    @Path() entityId: DtdlId,
-    @Body() body: { value: string; telemetryName: string } & UpdateParams
-  ): Promise<HTML> {
-    const { value, telemetryName, ...updateParams } = body
-
-    const invalidChars = /["\\]/
-    if (invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
-
-    await this.putEntityValue(ontologyId, entityId, updateTelemetryComment(value, telemetryName))
-
-    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
-  }
-
-  @SuccessResponse(200)
-  @Put('{entityId}/telemetrySchema')
-  public async putTelemetrySchema(
-    @Request() req: express.Request,
-    @Path() ontologyId: UUID,
-    @Path() entityId: DtdlId,
-    @Body() body: { value: string; telemetryName: string } & UpdateParams
-  ): Promise<HTML> {
-    const { value, telemetryName, ...updateParams } = body
-
-    const invalidChars = /["\\]/
-    if (invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
-
-    await this.putEntityValue(ontologyId, entityId, updateTelemetrySchema(value, telemetryName))
-
-    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
-  }
-
-  @SuccessResponse(200)
-  @Put('{entityId}/telemetryDescription')
-  public async putTelemetryDescription(
-    @Request() req: express.Request,
-    @Path() ontologyId: UUID,
-    @Path() entityId: DtdlId,
-    @Body() body: { value: string; telemetryName: string } & UpdateParams
-  ): Promise<HTML> {
-    const { value, telemetryName, ...updateParams } = body
-
-    const invalidChars = /["\\]/
-    if (invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
-
-    await this.putEntityValue(ontologyId, entityId, updateTelemetryDescription(value, telemetryName))
-
-    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
-  }
-
-  @SuccessResponse(200)
-  @Put('{entityId}/telemetryDisplayName')
-  public async putTelemetryDisplayName(
-    @Request() req: express.Request,
-    @Path() ontologyId: UUID,
-    @Path() entityId: DtdlId,
-    @Body() body: { value: string; telemetryName: string } & UpdateParams
-  ): Promise<HTML> {
-    const { value, telemetryName, ...updateParams } = body
-
-    const invalidChars = /["\\]/
-    if (invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
-
-    await this.putEntityValue(ontologyId, entityId, updateTelemetryDisplayName(value, telemetryName))
 
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
   }
@@ -134,9 +59,6 @@ export class EntityController extends HTMLController {
     @Body() body: { value: string; relationshipName: string } & UpdateParams
   ): Promise<HTML> {
     const { value, relationshipName, ...updateParams } = body
-
-    const invalidChars = /["\\]/
-    if (invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
 
     await this.putEntityValue(ontologyId, entityId, updateRelationshipDisplayName(value, relationshipName))
 
@@ -153,9 +75,6 @@ export class EntityController extends HTMLController {
   ): Promise<HTML> {
     const { value, ...updateParams } = body
 
-    const invalidChars = /["\\]/
-    if (invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
-
     await this.putEntityValue(ontologyId, entityId, updateDescription(value))
 
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
@@ -170,9 +89,6 @@ export class EntityController extends HTMLController {
     @Body() body: { value: string; relationshipName: string } & UpdateParams
   ): Promise<HTML> {
     const { value, relationshipName, ...updateParams } = body
-
-    const invalidChars = /["\\]/
-    if (invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
 
     await this.putEntityValue(ontologyId, entityId, updateRelationshipDescription(value, relationshipName))
 
@@ -189,9 +105,6 @@ export class EntityController extends HTMLController {
   ): Promise<HTML> {
     const { value, ...updateParams } = body
 
-    const invalidChars = /["\\]/
-    if (invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
-
     await this.putEntityValue(ontologyId, entityId, updateComment(value))
 
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
@@ -206,9 +119,6 @@ export class EntityController extends HTMLController {
     @Body() body: { value: string; relationshipName: string } & UpdateParams
   ): Promise<HTML> {
     const { value, relationshipName, ...updateParams } = body
-
-    const invalidChars = /["\\]/
-    if (invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
 
     await this.putEntityValue(ontologyId, entityId, updateRelationshipComment(value, relationshipName))
 
@@ -225,9 +135,6 @@ export class EntityController extends HTMLController {
   ): Promise<HTML> {
     const { value, propertyName, ...updateParams } = body
 
-    const invalidChars = /["\\]/
-    if (invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
-
     await this.putEntityValue(ontologyId, entityId, updatePropertyName(value, propertyName))
 
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
@@ -243,10 +150,67 @@ export class EntityController extends HTMLController {
   ): Promise<HTML> {
     const { value, propertyName, ...updateParams } = body
 
-    const invalidChars = /["\\]/
-    if (invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
-
     await this.putEntityValue(ontologyId, entityId, updatePropertyComment(value, propertyName))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+
+  @SuccessResponse(200)
+  @Put('{entityId}/telemetryDisplayName')
+  public async putTelemetryDisplayName(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Body() body: { value: string; telemetryName: string } & UpdateParams
+  ): Promise<HTML> {
+    const { value, telemetryName, ...updateParams } = body
+
+    await this.putEntityValue(ontologyId, entityId, updateTelemetryDisplayName(value, telemetryName))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+
+  @SuccessResponse(200)
+  @Put('{entityId}/telemetrySchema')
+  public async putTelemetrySchema(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Body() body: { value: DtdlSchema; telemetryName: string } & UpdateParams
+  ): Promise<HTML> {
+    const { value, telemetryName, ...updateParams } = body
+
+    await this.putEntityValue(ontologyId, entityId, updateTelemetrySchema(value, telemetryName))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+
+  @SuccessResponse(200)
+  @Put('{entityId}/telemetryDescription')
+  public async putTelemetryDescription(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Body() body: { value: string; telemetryName: string } & UpdateParams
+  ): Promise<HTML> {
+    const { value, telemetryName, ...updateParams } = body
+
+    await this.putEntityValue(ontologyId, entityId, updateTelemetryDescription(value, telemetryName))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+
+  @SuccessResponse(200)
+  @Put('{entityId}/telemetryComment')
+  public async putTelemetryComment(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Body() body: { value: string; telemetryName: string } & UpdateParams
+  ): Promise<HTML> {
+    const { value, telemetryName, ...updateParams } = body
+
+    await this.putEntityValue(ontologyId, entityId, updateTelemetryComment(value, telemetryName))
 
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
   }

@@ -1,32 +1,37 @@
 import { z } from 'zod'
 import { DataError } from '../../errors.js'
-import { DTDL_VALID_SCHEMAS, DtdlSchema } from './constants.js'
+import { DtdlSchema } from '../../models/strings.js'
+
+const invalidChars = /["\\]/
+export const MAX_VALUE_LENGTH = 512 // DTDL spec
+export const MAX_DISPLAY_NAME_LENGTH = 64 // lower than DTDL spec limit (512) to avoid visual issues of long display names
 
 export const updateDisplayName = (value: string) => (file: unknown) => {
-  return updateInterfaceValue(file, value, `displayName`, 64)
+  return updateInterfaceValue(file, value, `displayName`, MAX_DISPLAY_NAME_LENGTH)
 }
 
 export const updateDescription = (value: string) => (file: unknown) => {
-  return updateInterfaceValue(file, value, `description`, 512)
+  return updateInterfaceValue(file, value, `description`, MAX_VALUE_LENGTH)
 }
 
 export const updateComment = (value: string) => (file: unknown) => {
-  return updateInterfaceValue(file, value, `comment`, 512)
+  return updateInterfaceValue(file, value, `comment`, MAX_VALUE_LENGTH)
 }
 
 export const updateRelationshipDisplayName = (value: string, relationshipName: string) => (file: unknown) => {
-  return updateContentsValue(file, value, 'Relationship', relationshipName, 'displayName', 512)
+  return updateContentsValue(file, value, 'Relationship', relationshipName, 'displayName', MAX_DISPLAY_NAME_LENGTH)
 }
 
 export const updateRelationshipDescription = (value: string, relationshipName: string) => (file: unknown) => {
-  return updateContentsValue(file, value, 'Relationship', relationshipName, 'description', 512)
+  return updateContentsValue(file, value, 'Relationship', relationshipName, 'description', MAX_VALUE_LENGTH)
 }
 
 export const updateRelationshipComment = (value: string, relationshipName: string) => (file: unknown) => {
-  return updateContentsValue(file, value, 'Relationship', relationshipName, 'comment', 512)
+  return updateContentsValue(file, value, 'Relationship', relationshipName, 'comment', MAX_VALUE_LENGTH)
 }
 
 export const updatePropertyName = (newValue: string, originalValue: string) => (file: unknown) => {
+  if (invalidChars.test(newValue)) throw new DataError(`Invalid JSON: '${newValue}'`)
   if (newValue.length > 64) throw new DataError(`Property name has max length of 64 characters`)
 
   const schema = z.object({
@@ -59,27 +64,23 @@ export const updatePropertyName = (newValue: string, originalValue: string) => (
 }
 
 export const updatePropertyComment = (value: string, propertyName: string) => (file: unknown) => {
-  return updateContentsValue(file, value, 'Property', propertyName, 'comment', 512)
+  return updateContentsValue(file, value, 'Property', propertyName, 'comment', MAX_VALUE_LENGTH)
 }
 
 export const updateTelemetryComment = (value: string, telemetryName: string) => (file: unknown) => {
-  return updateContentsValue(file, value, 'Telemetry', telemetryName, 'comment', 512)
+  return updateContentsValue(file, value, 'Telemetry', telemetryName, 'comment', MAX_VALUE_LENGTH)
 }
 
 export const updateTelemetryDescription = (value: string, telemetryName: string) => (file: unknown) => {
-  return updateContentsValue(file, value, 'Telemetry', telemetryName, 'description', 512)
+  return updateContentsValue(file, value, 'Telemetry', telemetryName, 'description', MAX_VALUE_LENGTH)
 }
 
 export const updateTelemetryDisplayName = (value: string, telemetryName: string) => (file: unknown) => {
-  return updateContentsValue(file, value, 'Telemetry', telemetryName, 'displayName', 512)
+  return updateContentsValue(file, value, 'Telemetry', telemetryName, 'displayName', MAX_DISPLAY_NAME_LENGTH)
 }
 
-export const updateTelemetrySchema = (value: string, telemetryName: string) => (file: unknown) => {
-  if (!DTDL_VALID_SCHEMAS.includes(value as DtdlSchema)) {
-    throw new DataError(`Invalid schema type. Must be one of: ${DTDL_VALID_SCHEMAS.join(', ')}`)
-  }
-
-  return updateContentsValue(file, value, 'Telemetry', telemetryName, 'schema', 512)
+export const updateTelemetrySchema = (value: DtdlSchema, telemetryName: string) => (file: unknown) => {
+  return updateContentsValue(file, value, 'Telemetry', telemetryName, 'schema', MAX_VALUE_LENGTH)
 }
 
 const updateInterfaceValue = (
@@ -88,6 +89,8 @@ const updateInterfaceValue = (
   keyToUpdate: 'displayName' | 'description' | 'comment',
   maxLength: number
 ) => {
+  if (invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
+
   if (value.length > maxLength) throw new DataError(`${keyToUpdate} has max length of ${maxLength} characters`)
 
   const schema = z.object({
@@ -108,6 +111,8 @@ const updateContentsValue = (
   keyToUpdate: 'displayName' | 'description' | 'comment' | 'schema',
   maxLength: number
 ) => {
+  if (invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
+
   if (value.length > maxLength)
     throw new DataError(`${contentType} '${keyToUpdate}' has max length of ${maxLength} characters`)
 
