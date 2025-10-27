@@ -11,7 +11,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_DB=dtdl-visualisation-tool
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,6 +25,8 @@ services:
     build:
       dockerfile: ./Dockerfile
     scale: 0
+    cap_add:
+      - SYS_ADMIN
     environment:
       - DB_HOST=postgres-dtdl-visualisation-tool
       - DB_NAME=dtdl-visualisation-tool

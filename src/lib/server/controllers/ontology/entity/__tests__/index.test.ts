@@ -414,7 +414,7 @@ describe('EntityController', async () => {
         .putTelemetrySchema(req, simpleDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
       expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
-        simpleDtdlFileFixture({ telemetryUpdate: { schema: 'string' } })
+        simpleDtdlFileFixture({ telemetryUpdate: { schema: 'boolean' } })
       )
       expect(result).to.equal(updateLayoutOutput)
     })
@@ -430,7 +430,7 @@ describe('EntityController', async () => {
         .putTelemetrySchema(req, simpleDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
       expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
-        arrayDtdlFileFixture({ telemetryUpdate: { schema: 'string' } })
+        arrayDtdlFileFixture({ telemetryUpdate: { schema: 'boolean' } })
       )
       expect(result).to.equal(updateLayoutOutput)
     })
@@ -534,7 +534,6 @@ describe('EntityController', async () => {
         () => controller.putTelemetryComment(req, simpleDtdlId, simpleDtdlFileEntityId, body),
       ]
       routes.forEach((fn) => {
-        console.log(fn.toString())
         it(`should error on ${char} char in value`, async () => {
           await expect(fn()).to.be.rejectedWith(DataError, 'Invalid JSON')
         })

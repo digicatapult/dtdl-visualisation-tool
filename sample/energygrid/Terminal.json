@@ -23,7 +23,7 @@
             "name": "conductingEquipment",
             "target": "dtmi:digitaltwins:ngsi_ld:cim:energy:ConductingEquipment;1",
             "comment": "The conducting equipment of the terminal.  Conducting equipment have  terminals that may be connected to other conducting equipment terminals via connectivity nodes or topological nodes.",
-            "displayName": "ConductingEquipment"
+            "displayName": "ConductingEquipmentRelationship"
         },
         {
             "@type": "Relationship",
