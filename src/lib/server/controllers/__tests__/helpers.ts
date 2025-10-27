@@ -46,8 +46,8 @@ export const propertyName = 'someProperty'
 export const otherPropertyName = 'someOtherProperty'
 export const relationshipName = 'someRelationship'
 export const otherRelationshipName = 'someOtherRelationship'
-export const telemetryName = 'temperature'
-export const otherTelemetryName = 'someTelemetry'
+export const telemetryName = 'someTelemetry'
+export const otherTelemetryName = 'someOtherTelemetry'
 
 export const dtdlFileFixture =
   (id: string) =>
