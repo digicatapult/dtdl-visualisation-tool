@@ -108,7 +108,6 @@ export class OntologyController extends HTMLController {
       }
       permission = await this.checkPermissions(octokitToken, owner, repo)
     }
-    permission = 'edit'
 
     if (permission === 'unauthorised') {
       this.setStatus(401)
