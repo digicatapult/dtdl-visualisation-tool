@@ -318,7 +318,7 @@ describe('checkEditPermission', () => {
 
       // Check that redirect headers were set
       sinon.assert.calledOnceWithExactly(statusStub, 302)
-      sinon.assert.calledWith(setHeaderStub, 'HX-Redirect')
+      sinon.assert.calledWith(setHeaderStub, 'Location')
       sinon.assert.calledOnce(endStub)
 
       // getRepoPermissions should NOT be called since we return early
