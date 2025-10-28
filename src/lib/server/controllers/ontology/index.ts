@@ -233,13 +233,12 @@ export class OntologyController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('{dtdlModelId}/edit-model')
+  @Middlewares(checkEditPermission)
   public async editModel(
-    @Request() req: express.Request,
     @Path() dtdlModelId: UUID,
     @Query() sessionId: UUID,
     @Query() editMode: boolean
   ): Promise<HTML> {
-    checkEditPermission(req, dtdlModelId, this.modelDb, this.githubRequest)
     const session = this.sessionStore.get(sessionId)
 
     // get the base dtdl model that we will derive the graph from

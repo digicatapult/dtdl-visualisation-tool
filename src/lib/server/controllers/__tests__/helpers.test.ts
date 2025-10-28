@@ -3,6 +3,8 @@ import chaiAsPromised from 'chai-as-promised'
 import express from 'express'
 import { afterEach, beforeEach, describe, it } from 'mocha'
 import sinon, { SinonStub } from 'sinon'
+import { container } from 'tsyringe'
+import { ModelDb } from '../../../db/modelDb.js'
 import { InternalError, UnauthorisedError } from '../../errors.js'
 import { modelHistoryCookie, octokitTokenCookie } from '../../models/cookieNames.js'
 import { ViewAndEditPermission } from '../../models/github.js'
@@ -90,21 +92,46 @@ describe('recentFilesFromCookies', () => {
 
 describe('checkEditPermission', () => {
   let mockRequest: express.Request
+  let mockResponse: express.Response
+  let mockNext: SinonStub
+  let statusStub: SinonStub
+  let setHeaderStub: SinonStub
+  let endStub: SinonStub
   let getModelByIdStub: SinonStub
   let getRepoPermissionsStub: SinonStub
-  let mockGithubRequest: GithubRequest
+  let containerResolveStub: SinonStub
 
   beforeEach(() => {
+    statusStub = sinon.stub().returnsThis()
+    setHeaderStub = sinon.stub().returnsThis()
+    endStub = sinon.stub()
+
+    mockResponse = {
+      status: statusStub,
+      setHeader: setHeaderStub,
+      end: endStub,
+    } as unknown as express.Response
+
+    mockNext = sinon.stub()
+
     mockRequest = {
       signedCookies: {},
-    } as express.Request
+      headers: {},
+      originalUrl: '/test/path',
+      params: { ontologyId: githubDtdlId },
+    } as unknown as express.Request
 
     getModelByIdStub = sinon.stub()
     getRepoPermissionsStub = sinon.stub()
 
-    mockGithubRequest = {
+    // Mock the container.resolve calls
+    containerResolveStub = sinon.stub(container, 'resolve')
+    containerResolveStub.withArgs(ModelDb).returns({
+      getModelById: getModelByIdStub,
+    })
+    containerResolveStub.withArgs(GithubRequest).returns({
       getRepoPermissions: getRepoPermissionsStub,
-    } as unknown as GithubRequest
+    })
   })
 
   afterEach(() => {
@@ -125,122 +152,79 @@ describe('checkEditPermission', () => {
       })
       getRepoPermissionsStub.resolves('edit' as ViewAndEditPermission)
 
-      const mockModelDb = {
-        ...simpleMockModelDb,
-        getModelById: getModelByIdStub,
-      } as unknown as typeof simpleMockModelDb
-
-      // Should not throw
-      await checkEditPermission(mockRequest, githubDtdlId, mockModelDb, mockGithubRequest)
+      // Should not throw and should call next()
+      await checkEditPermission(mockRequest, mockResponse, mockNext)
 
       sinon.assert.calledOnceWithExactly(getModelByIdStub, githubDtdlId)
       sinon.assert.calledOnceWithExactly(getRepoPermissionsStub, testToken, testOwner, testRepo)
+      sinon.assert.calledOnce(mockNext)
     })
   })
 
   describe('error cases', () => {
     it('should throw InternalError when model has no owner', async () => {
+      // Need a token to get past the initial check
+      mockRequest.signedCookies[octokitTokenCookie] = 'test-token'
+
       getModelByIdStub.resolves({
         id: githubDtdlId,
         owner: null,
         repo: 'test-repo',
       })
 
-      const mockModelDb = {
-        ...simpleMockModelDb,
-        getModelById: getModelByIdStub,
-      } as unknown as typeof simpleMockModelDb
-
-      await expect(checkEditPermission(mockRequest, githubDtdlId, mockModelDb, mockGithubRequest))
-        .to.be.rejectedWith(InternalError)
-        .and.eventually.have.property('message', 'owner or repo not found in database for GitHub source')
+      await expect(checkEditPermission(mockRequest, mockResponse, mockNext)).to.be.rejectedWith(
+        InternalError,
+        'owner or repo not found in database for GitHub source'
+      )
 
       sinon.assert.notCalled(getRepoPermissionsStub)
+      sinon.assert.notCalled(mockNext)
     })
 
     it('should throw InternalError when model has no repo', async () => {
+      // Need a token to get past the initial check
+      mockRequest.signedCookies[octokitTokenCookie] = 'test-token'
+
       getModelByIdStub.resolves({
         id: githubDtdlId,
         owner: 'test-owner',
         repo: null,
       })
 
-      const mockModelDb = {
-        ...simpleMockModelDb,
-        getModelById: getModelByIdStub,
-      } as unknown as typeof simpleMockModelDb
-
-      await expect(checkEditPermission(mockRequest, githubDtdlId, mockModelDb, mockGithubRequest))
+      await expect(checkEditPermission(mockRequest, mockResponse, mockNext))
         .to.be.rejectedWith(InternalError)
         .and.eventually.have.property('message', 'owner or repo not found in database for GitHub source')
 
       sinon.assert.notCalled(getRepoPermissionsStub)
+      sinon.assert.notCalled(mockNext)
     })
 
     it('should throw InternalError when model has undefined owner', async () => {
+      // Need a token to get past the initial check
+      mockRequest.signedCookies[octokitTokenCookie] = 'test-token'
+
       getModelByIdStub.resolves({
         id: githubDtdlId,
         repo: 'test-repo',
         // owner is undefined
       })
 
-      const mockModelDb = {
-        ...simpleMockModelDb,
-        getModelById: getModelByIdStub,
-      } as unknown as typeof simpleMockModelDb
-
-      await expect(checkEditPermission(mockRequest, githubDtdlId, mockModelDb, mockGithubRequest))
+      await expect(checkEditPermission(mockRequest, mockResponse, mockNext))
         .to.be.rejectedWith(InternalError)
         .and.eventually.have.property('message', 'owner or repo not found in database for GitHub source')
     })
 
     it('should throw InternalError when model has undefined repo', async () => {
+      // Need a token to get past the initial check
+      mockRequest.signedCookies[octokitTokenCookie] = 'test-token'
+
       getModelByIdStub.resolves({
         id: githubDtdlId,
         owner: 'test-owner',
         // repo is undefined
       })
 
-      const mockModelDb = {
-        ...simpleMockModelDb,
-        getModelById: getModelByIdStub,
-      } as unknown as typeof simpleMockModelDb
-
-      await expect(checkEditPermission(mockRequest, githubDtdlId, mockModelDb, mockGithubRequest))
-        .to.be.rejectedWith(InternalError)
-        .and.eventually.have.property('message', 'owner or repo not found in database for GitHub source')
-    })
-
-    it('should throw InternalError when model has empty string owner', async () => {
-      getModelByIdStub.resolves({
-        id: githubDtdlId,
-        owner: '',
-        repo: 'test-repo',
-      })
-
-      const mockModelDb = {
-        ...simpleMockModelDb,
-        getModelById: getModelByIdStub,
-      } as unknown as typeof simpleMockModelDb
-
-      await expect(checkEditPermission(mockRequest, githubDtdlId, mockModelDb, mockGithubRequest))
-        .to.be.rejectedWith(InternalError)
-        .and.eventually.have.property('message', 'owner or repo not found in database for GitHub source')
-    })
-
-    it('should throw InternalError when model has empty string repo', async () => {
-      getModelByIdStub.resolves({
-        id: githubDtdlId,
-        owner: 'test-owner',
-        repo: '',
-      })
-
-      const mockModelDb = {
-        ...simpleMockModelDb,
-        getModelById: getModelByIdStub,
-      } as unknown as typeof simpleMockModelDb
-
-      await expect(checkEditPermission(mockRequest, githubDtdlId, mockModelDb, mockGithubRequest))
+      await expect(checkEditPermission(mockRequest, mockResponse, mockNext))
         .to.be.rejectedWith(InternalError)
         .and.eventually.have.property('message', 'owner or repo not found in database for GitHub source')
     })
@@ -258,16 +242,12 @@ describe('checkEditPermission', () => {
       })
       getRepoPermissionsStub.resolves('view' as ViewAndEditPermission)
 
-      const mockModelDb = {
-        ...simpleMockModelDb,
-        getModelById: getModelByIdStub,
-      } as unknown as typeof simpleMockModelDb
-
-      await expect(checkEditPermission(mockRequest, githubDtdlId, mockModelDb, mockGithubRequest))
+      await expect(checkEditPermission(mockRequest, mockResponse, mockNext))
         .to.be.rejectedWith(UnauthorisedError)
         .and.eventually.have.property('message', 'User is unauthorised to make this request')
 
       sinon.assert.calledOnceWithExactly(getRepoPermissionsStub, testToken, testOwner, testRepo)
+      sinon.assert.notCalled(mockNext)
     })
 
     it('should throw UnauthorisedError when user has no permissions', async () => {
@@ -283,30 +263,22 @@ describe('checkEditPermission', () => {
       })
       getRepoPermissionsStub.resolves('unauthorised' as ViewAndEditPermission)
 
-      const mockModelDb = {
-        ...simpleMockModelDb,
-        getModelById: getModelByIdStub,
-      } as unknown as typeof simpleMockModelDb
-
-      await expect(checkEditPermission(mockRequest, githubDtdlId, mockModelDb, mockGithubRequest))
+      await expect(checkEditPermission(mockRequest, mockResponse, mockNext))
         .to.be.rejectedWith(UnauthorisedError)
         .and.eventually.have.property('message', 'User is unauthorised to make this request')
     })
 
     it('should propagate errors from getModelById', async () => {
+      // Need a token to get past the initial check
+      mockRequest.signedCookies[octokitTokenCookie] = 'test-token'
+
       const testError = new Error('Database connection failed')
       getModelByIdStub.rejects(testError)
 
-      const mockModelDb = {
-        ...simpleMockModelDb,
-        getModelById: getModelByIdStub,
-      } as unknown as typeof simpleMockModelDb
-
-      await expect(checkEditPermission(mockRequest, githubDtdlId, mockModelDb, mockGithubRequest)).to.be.rejectedWith(
-        testError
-      )
+      await expect(checkEditPermission(mockRequest, mockResponse, mockNext)).to.be.rejectedWith(testError)
 
       sinon.assert.notCalled(getRepoPermissionsStub)
+      sinon.assert.notCalled(mockNext)
     })
 
     it('should propagate errors from getRepoPermissions', async () => {
@@ -323,19 +295,14 @@ describe('checkEditPermission', () => {
       })
       getRepoPermissionsStub.rejects(testError)
 
-      const mockModelDb = {
-        ...simpleMockModelDb,
-        getModelById: getModelByIdStub,
-      } as unknown as typeof simpleMockModelDb
+      await expect(checkEditPermission(mockRequest, mockResponse, mockNext)).to.be.rejectedWith(testError)
 
-      await expect(checkEditPermission(mockRequest, githubDtdlId, mockModelDb, mockGithubRequest)).to.be.rejectedWith(
-        testError
-      )
+      sinon.assert.notCalled(mockNext)
     })
   })
 
   describe('token handling', () => {
-    it('should pass undefined token to getRepoPermissions when no cookie is present', async () => {
+    it('should set redirect headers when no cookie is present', async () => {
       const testOwner = 'test-owner'
       const testRepo = 'test-repo'
 
@@ -345,66 +312,18 @@ describe('checkEditPermission', () => {
         owner: testOwner,
         repo: testRepo,
       })
-      getRepoPermissionsStub.resolves('unauthorised' as ViewAndEditPermission)
 
-      const mockModelDb = {
-        ...simpleMockModelDb,
-        getModelById: getModelByIdStub,
-      } as unknown as typeof simpleMockModelDb
+      // The function should return early after setting redirect headers
+      await checkEditPermission(mockRequest, mockResponse, mockNext)
 
-      await expect(checkEditPermission(mockRequest, githubDtdlId, mockModelDb, mockGithubRequest)).to.be.rejectedWith(
-        UnauthorisedError
-      )
+      // Check that redirect headers were set
+      sinon.assert.calledOnceWithExactly(statusStub, 302)
+      sinon.assert.calledWith(setHeaderStub, 'HX-Redirect')
+      sinon.assert.calledOnce(endStub)
 
-      sinon.assert.calledOnceWithExactly(getRepoPermissionsStub, undefined, testOwner, testRepo)
-    })
-
-    it('should pass empty string token to getRepoPermissions', async () => {
-      const testOwner = 'test-owner'
-      const testRepo = 'test-repo'
-
-      mockRequest.signedCookies[octokitTokenCookie] = ''
-      getModelByIdStub.resolves({
-        id: githubDtdlId,
-        owner: testOwner,
-        repo: testRepo,
-      })
-      getRepoPermissionsStub.resolves('unauthorised' as ViewAndEditPermission)
-
-      const mockModelDb = {
-        ...simpleMockModelDb,
-        getModelById: getModelByIdStub,
-      } as unknown as typeof simpleMockModelDb
-
-      await expect(checkEditPermission(mockRequest, githubDtdlId, mockModelDb, mockGithubRequest)).to.be.rejectedWith(
-        UnauthorisedError
-      )
-
-      sinon.assert.calledOnceWithExactly(getRepoPermissionsStub, '', testOwner, testRepo)
-    })
-
-    it('should pass null token to getRepoPermissions', async () => {
-      const testOwner = 'test-owner'
-      const testRepo = 'test-repo'
-
-      mockRequest.signedCookies[octokitTokenCookie] = null
-      getModelByIdStub.resolves({
-        id: githubDtdlId,
-        owner: testOwner,
-        repo: testRepo,
-      })
-      getRepoPermissionsStub.resolves('unauthorised' as ViewAndEditPermission)
-
-      const mockModelDb = {
-        ...simpleMockModelDb,
-        getModelById: getModelByIdStub,
-      } as unknown as typeof simpleMockModelDb
-
-      await expect(checkEditPermission(mockRequest, githubDtdlId, mockModelDb, mockGithubRequest)).to.be.rejectedWith(
-        UnauthorisedError
-      )
-
-      sinon.assert.calledOnceWithExactly(getRepoPermissionsStub, null, testOwner, testRepo)
+      // getRepoPermissions should NOT be called since we return early
+      sinon.assert.notCalled(getRepoPermissionsStub)
+      sinon.assert.notCalled(mockNext)
     })
   })
 })

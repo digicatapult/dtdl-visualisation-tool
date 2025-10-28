@@ -70,7 +70,7 @@ export class ModellingError extends HttpError {
 
 export class UnauthorisedError extends HttpError {
   constructor(userMessage: string) {
-    super('User', 401, 'User Request Unauthorised', userMessage, userMessage)
+    super('User', 403, 'User Request Unauthorised', userMessage, userMessage)
   }
 }
 

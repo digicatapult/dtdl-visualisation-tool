@@ -1,5 +1,6 @@
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns'
 import express from 'express'
+import { container } from 'tsyringe'
 import { ModelDb } from '../../db/modelDb'
 import { InternalError, UnauthorisedError } from '../errors.js'
 import { ILogger } from '../logger'
@@ -9,7 +10,7 @@ import { RecentFile } from '../models/openTypes.js'
 import { MermaidSvgRender, PlainTextRender } from '../models/renderedDiagram'
 import { UUID } from '../models/strings.js'
 import { ICache } from '../utils/cache.js'
-import { GithubRequest } from '../utils/githubRequest.js'
+import { authRedirectURL, GithubRequest } from '../utils/githubRequest.js'
 
 const formatLastVisited = (timestamp: number): string => {
   const date = new Date(timestamp)
@@ -80,15 +81,33 @@ export const setCacheWithDefaultParams = (cache: ICache, id: UUID, output: Merma
 
 export const checkEditPermission = async (
   req: express.Request,
-  dtdlModelId: UUID,
-  modelDb: ModelDb,
-  githubRequest: GithubRequest
+  res: express.Response,
+  next: express.NextFunction
 ): Promise<void> => {
-  const { owner, repo } = await modelDb.getModelById(dtdlModelId)
+  const octokitToken = req.signedCookies[octokitTokenCookie]
+  if (!octokitToken) {
+    res.status(302)
+    const returnUrl = req.originalUrl || req.url
+    const redirectUrl = authRedirectURL(returnUrl)
+    if (req.headers['hx-request']) {
+      res.setHeader('HX-Redirect', redirectUrl)
+    } else {
+      res.setHeader('HX-Redirect', redirectUrl)
+    }
+    res.end()
+    return
+  }
+
+  const modelDb: ModelDb = container.resolve(ModelDb)
+  const githubRequest: GithubRequest = container.resolve(GithubRequest)
+
+  const ontologyId: UUID = req.params['ontologyId']
+
+  const { owner, repo } = await modelDb.getModelById(ontologyId)
   if (!owner || !repo) {
     throw new InternalError('owner or repo not found in database for GitHub source')
   }
-  const octokitToken = req.signedCookies[octokitTokenCookie]
   const permission = await githubRequest.getRepoPermissions(octokitToken, owner, repo)
   if (permission !== 'edit') throw new UnauthorisedError('User is unauthorised to make this request')
+  next()
 }

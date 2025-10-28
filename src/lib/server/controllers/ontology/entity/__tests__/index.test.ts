@@ -69,7 +69,7 @@ describe('EntityController', async () => {
     mockGithubRequest
   )
 
-  const controller = new EntityController(simpleMockModelDb, ontologyController, mockGithubRequest, mockCache)
+  const controller = new EntityController(simpleMockModelDb, ontologyController, mockCache)
 
   describe('putDisplayName', () => {
     afterEach(() => updateDtdlContentsStub.resetHistory())

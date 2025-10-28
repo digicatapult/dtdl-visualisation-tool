@@ -1,5 +1,5 @@
 import express from 'express'
-import { Body, Path, Produces, Put, Request, Route, SuccessResponse } from 'tsoa'
+import { Body, Middlewares, Path, Produces, Put, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../../../db/modelDb.js'
 import { DataError } from '../../../errors.js'
@@ -16,7 +16,6 @@ import {
   updateRelationshipDescription,
   updateRelationshipDisplayName,
 } from '../../../utils/dtdl/entityUpdate.js'
-import { GithubRequest } from '../../../utils/githubRequest.js'
 import { checkEditPermission } from '../../helpers.js'
 import { HTML, HTMLController } from '../../HTMLController.js'
 import { OntologyController } from '../index.js'
@@ -24,11 +23,11 @@ import { OntologyController } from '../index.js'
 @injectable()
 @Route('/ontology/{ontologyId}/entity')
 @Produces('text/html')
+@Middlewares(checkEditPermission)
 export class EntityController extends HTMLController {
   constructor(
     private modelDb: ModelDb,
     private ontologyController: OntologyController,
-    private githubRequest: GithubRequest,
     @inject(Cache) private cache: ICache
   ) {
     super()
@@ -42,7 +41,6 @@ export class EntityController extends HTMLController {
     @Path() entityId: DtdlId,
     @Body() body: { value: string } & UpdateParams
   ): Promise<HTML> {
-    await checkEditPermission(req, ontologyId, this.modelDb, this.githubRequest)
     const { value, ...updateParams } = body
 
     const invalidChars = /["\\]/
@@ -61,8 +59,6 @@ export class EntityController extends HTMLController {
     @Path() entityId: DtdlId,
     @Body() body: { value: string; relationshipName: string } & UpdateParams
   ): Promise<HTML> {
-    await checkEditPermission(req, ontologyId, this.modelDb, this.githubRequest)
-
     const { value, relationshipName, ...updateParams } = body
 
     const invalidChars = /["\\]/
@@ -81,7 +77,6 @@ export class EntityController extends HTMLController {
     @Path() entityId: DtdlId,
     @Body() body: { value: string } & UpdateParams
   ): Promise<HTML> {
-    await checkEditPermission(req, ontologyId, this.modelDb, this.githubRequest)
     const { value, ...updateParams } = body
 
     const invalidChars = /["\\]/
@@ -100,7 +95,6 @@ export class EntityController extends HTMLController {
     @Path() entityId: DtdlId,
     @Body() body: { value: string; relationshipName: string } & UpdateParams
   ): Promise<HTML> {
-    await checkEditPermission(req, ontologyId, this.modelDb, this.githubRequest)
     const { value, relationshipName, ...updateParams } = body
 
     const invalidChars = /["\\]/
@@ -119,7 +113,6 @@ export class EntityController extends HTMLController {
     @Path() entityId: DtdlId,
     @Body() body: { value: string } & UpdateParams
   ): Promise<HTML> {
-    await checkEditPermission(req, ontologyId, this.modelDb, this.githubRequest)
     const { value, ...updateParams } = body
 
     const invalidChars = /["\\]/
@@ -138,7 +131,6 @@ export class EntityController extends HTMLController {
     @Path() entityId: DtdlId,
     @Body() body: { value: string; relationshipName: string } & UpdateParams
   ): Promise<HTML> {
-    await checkEditPermission(req, ontologyId, this.modelDb, this.githubRequest)
     const { value, relationshipName, ...updateParams } = body
 
     const invalidChars = /["\\]/
@@ -157,7 +149,6 @@ export class EntityController extends HTMLController {
     @Path() entityId: DtdlId,
     @Body() body: { value: string; propertyName: string } & UpdateParams
   ): Promise<HTML> {
-    await checkEditPermission(req, ontologyId, this.modelDb, this.githubRequest)
     const { value, propertyName, ...updateParams } = body
 
     const invalidChars = /["\\]/
@@ -176,7 +167,6 @@ export class EntityController extends HTMLController {
     @Path() entityId: DtdlId,
     @Body() body: { value: string; propertyName: string } & UpdateParams
   ): Promise<HTML> {
-    await checkEditPermission(req, ontologyId, this.modelDb, this.githubRequest)
     const { value, propertyName, ...updateParams } = body
 
     const invalidChars = /["\\]/
