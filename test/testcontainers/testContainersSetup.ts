@@ -1,4 +1,4 @@
-import { GenericContainer, Network, StartedTestContainer, Wait } from 'testcontainers'
+import { GenericContainer, getContainerRuntimeClient, StartedNetwork, StartedTestContainer, Wait } from 'testcontainers'
 import { logger } from '../../src/lib/server/logger.js'
 
 interface VisualisationUIConfig {
@@ -17,11 +17,21 @@ interface databaseConfig {
   dbPassword: string
 }
 
-const network = await new Network().start()
+const containerRuntimeClient = await getContainerRuntimeClient()
+const networkName = 'dtdl-visualisation-tool-network'
+export const network = await startNetwork()
 
-let visualisationUIContainer: StartedTestContainer
-let postgresContainer: StartedTestContainer
-let visualisationImage: GenericContainer
+async function startNetwork() {
+  const network = containerRuntimeClient.network.getById(networkName)
+  // check if network is running
+  try {
+    await network.inspect()
+  } catch {
+    await containerRuntimeClient.network.create({ Name: networkName })
+  }
+
+  return new StartedNetwork(containerRuntimeClient, networkName, network)
+}
 
 export async function bringUpDatabaseContainer(): Promise<StartedTestContainer> {
   const postgresConfig: databaseConfig = {
@@ -32,7 +42,7 @@ export async function bringUpDatabaseContainer(): Promise<StartedTestContainer> 
     dbUsername: 'postgres',
     dbPassword: 'postgres',
   }
-  postgresContainer = await startDatabaseContainer(postgresConfig)
+  const postgresContainer = await startDatabaseContainer(postgresConfig)
   return postgresContainer
 }
 
@@ -58,17 +68,20 @@ export async function startDatabaseContainer(env: databaseConfig): Promise<Start
 //build
 export async function buildVisualisationImage(): Promise<GenericContainer> {
   logger.info(`Building container...`)
-  visualisationImage = await GenericContainer.fromDockerfile('./').withCache(true).build()
+  const visualisationImage = await GenericContainer.fromDockerfile('./').withCache(true).build()
   logger.info(`Built container.`)
   return visualisationImage
 }
 
 //start with environment variables
-export async function startVisualisationContainer(env: VisualisationUIConfig): Promise<StartedTestContainer> {
+export async function startVisualisationContainer(
+  env: VisualisationUIConfig,
+  visualisationImage: GenericContainer
+): Promise<StartedTestContainer> {
   const { containerName, containerPort, hostPort, cookieSessionKeys, maxOntologySize } = env
 
   logger.info(`Starting container ${containerName} on port ${containerPort}...`)
-  visualisationUIContainer = await visualisationImage
+  const visualisationUIContainer = await visualisationImage
     .withNetwork(network)
     .withExposedPorts({
       container: containerPort,
@@ -93,13 +106,4 @@ export async function startVisualisationContainer(env: VisualisationUIConfig): P
   logger.info(`Started container ${containerName}`)
   logger.info(`Started container on port ${visualisationUIContainer.getMappedPort(containerPort)}`)
   return visualisationUIContainer
-}
-
-export async function stopAllContainers() {
-  if (visualisationUIContainer) {
-    await visualisationUIContainer.stop()
-  }
-  if (postgresContainer) {
-    await postgresContainer.stop()
-  }
 }
