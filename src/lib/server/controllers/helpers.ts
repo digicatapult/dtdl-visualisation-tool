@@ -101,11 +101,11 @@ export const checkEditPermission = async (
   const modelDb: ModelDb = container.resolve(ModelDb)
   const githubRequest: GithubRequest = container.resolve(GithubRequest)
 
-  const ontologyId: UUID = req.params['ontologyId']
+  const ontologyId: UUID = req.params['ontologyId'] || req.params['dtdlModelId']
 
   const { owner, repo } = await modelDb.getModelById(ontologyId)
   if (!owner || !repo) {
-    throw new InternalError('owner or repo not found in database for GitHub source')
+    throw new InternalError(`owner or repo not found in database for GitHub source.`)
   }
   const permission = await githubRequest.getRepoPermissions(octokitToken, owner, repo)
   if (permission !== 'edit') throw new UnauthorisedError('User is unauthorised to make this request')
