@@ -92,7 +92,7 @@ export const checkEditPermission = async (
     if (req.headers['hx-request']) {
       res.setHeader('HX-Redirect', redirectUrl)
     } else {
-      res.setHeader('HX-Redirect', redirectUrl)
+      res.setHeader('Location', redirectUrl)
     }
     res.end()
     return
