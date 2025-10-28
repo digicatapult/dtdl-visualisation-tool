@@ -1,7 +1,7 @@
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns'
 import express from 'express'
 import { container } from 'tsyringe'
-import { ModelDb } from '../../db/modelDb'
+import { ModelDb } from '../../db/modelDb.js'
 import { InternalError, UnauthorisedError } from '../errors.js'
 import { ILogger } from '../logger'
 import { CookieHistoryParams, GenerateParams, relevantParams } from '../models/controllerTypes.js'
