@@ -106,6 +106,10 @@ export default class Parser {
     cumulativeSize: { total: number },
     subdir?: string
   ): Promise<DtdlFile[] | undefined> {
+    if (file.path.includes('..')) {
+      throw new UploadError('Invalid - path traversal detected')
+    }
+
     if (subdir && !file.path.startsWith(join(topDir, subdir))) return
 
     if (file.type === 'File' && file.path.endsWith('.json')) {
@@ -124,7 +128,9 @@ export default class Parser {
         return
       }
       this.isWithinDepthLimit(json)
-      return [{ path: relative(topDir, file.path), contents }]
+      const path = relative(topDir, file.path)
+      if (path.length > 255) throw new UploadError(`File path too long: '${path}'`)
+      return [{ path, contents }]
     }
   }
 
