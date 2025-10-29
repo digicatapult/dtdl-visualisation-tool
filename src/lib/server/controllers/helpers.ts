@@ -1,12 +1,16 @@
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns'
-import { ModelDb } from '../../db/modelDb'
+import express from 'express'
+import { container } from 'tsyringe'
+import { ModelDb } from '../../db/modelDb.js'
+import { InternalError, UnauthorisedError } from '../errors.js'
 import { ILogger } from '../logger'
 import { CookieHistoryParams, GenerateParams, relevantParams } from '../models/controllerTypes.js'
-import { modelHistoryCookie } from '../models/cookieNames.js'
+import { modelHistoryCookie, octokitTokenCookie } from '../models/cookieNames.js'
 import { RecentFile } from '../models/openTypes.js'
 import { MermaidSvgRender, PlainTextRender } from '../models/renderedDiagram'
-import { UUID } from '../models/strings'
-import { ICache } from '../utils/cache'
+import { UUID } from '../models/strings.js'
+import { ICache } from '../utils/cache.js'
+import { authRedirectURL, GithubRequest } from '../utils/githubRequest.js'
 
 const formatLastVisited = (timestamp: number): string => {
   const date = new Date(timestamp)
@@ -73,4 +77,37 @@ export const dtdlCacheKey = (dtdlModelId: UUID, queryParams?: GenerateParams): s
 export const setCacheWithDefaultParams = (cache: ICache, id: UUID, output: MermaidSvgRender | PlainTextRender) => {
   const defaultParams: GenerateParams = { layout: 'elk', diagramType: 'flowchart', expandedIds: [], search: '' }
   cache.set(dtdlCacheKey(id, defaultParams), output)
+}
+
+export const checkEditPermission = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+): Promise<void> => {
+  const octokitToken = req.signedCookies[octokitTokenCookie]
+  if (!octokitToken) {
+    res.status(302)
+    const returnUrl = req.originalUrl || req.url
+    const redirectUrl = authRedirectURL(returnUrl)
+    if (req.headers['hx-request']) {
+      res.setHeader('HX-Redirect', redirectUrl)
+    } else {
+      res.setHeader('Location', redirectUrl)
+    }
+    res.end()
+    return
+  }
+
+  const modelDb: ModelDb = container.resolve(ModelDb)
+  const githubRequest: GithubRequest = container.resolve(GithubRequest)
+
+  const ontologyId: UUID = req.params['ontologyId'] || req.params['dtdlModelId']
+
+  const { owner, repo } = await modelDb.getModelById(ontologyId)
+  if (!owner || !repo) {
+    throw new InternalError(`owner or repo not found in database for GitHub source`)
+  }
+  const permission = await githubRequest.getRepoPermissions(octokitToken, owner, repo)
+  if (permission !== 'edit') throw new UnauthorisedError('User is unauthorised to make this request')
+  next()
 }

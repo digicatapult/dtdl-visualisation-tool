@@ -27,6 +27,7 @@ export const previewDtdlId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed8'
 export const defaultDtdlId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed9'
 export const simpleDtdlRowId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed6'
 export const arrayDtdlRowId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed5'
+export const githubDtdlId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed4'
 
 const mockModelTable = {
   [simpleDtdlId]: { id: simpleDtdlId, name: 'Simple Model', parsed: simpleMockDtdlObjectModel },
@@ -38,6 +39,13 @@ const mockModelTable = {
     parsed: simpleMockDtdlObjectModel,
     preview: 'Preview',
     source: 'default',
+  },
+  [githubDtdlId]: {
+    id: githubDtdlId,
+    name: 'GitHub Model',
+    parsed: simpleMockDtdlObjectModel,
+    owner: 'user1',
+    repo: 'repo1',
   },
 }
 
@@ -269,5 +277,6 @@ export const mockReqWithCookie = (cookie: Record<string, unknown>) => {
       sendStatus: sinon.spy(),
     },
     signedCookies: cookie,
+    header: () => '',
   } as unknown as express.Request
 }

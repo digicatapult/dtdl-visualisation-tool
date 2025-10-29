@@ -31,7 +31,7 @@ import SessionStore, { Session } from '../../utils/sessions.js'
 import { ErrorPage } from '../../views/components/errors.js'
 import MermaidTemplates from '../../views/components/mermaid.js'
 import { HTML, HTMLController } from '../HTMLController.js'
-import { dtdlCacheKey } from '../helpers.js'
+import { checkEditPermission, dtdlCacheKey } from '../helpers.js'
 
 const rateLimiter = container.resolve(RateLimiter)
 
@@ -233,6 +233,7 @@ export class OntologyController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('{dtdlModelId}/edit-model')
+  @Middlewares(checkEditPermission)
   public async editModel(
     @Path() dtdlModelId: UUID,
     @Query() sessionId: UUID,
