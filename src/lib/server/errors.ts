@@ -68,6 +68,12 @@ export class ModellingError extends HttpError {
   }
 }
 
+export class UnauthorisedError extends HttpError {
+  constructor(userMessage: string) {
+    super('User', 403, 'User Request Unauthorised', userMessage, userMessage)
+  }
+}
+
 export class SessionError extends HttpError {
   constructor(userMessage: string) {
     super('User', 408, 'Session Error', userMessage, userMessage)

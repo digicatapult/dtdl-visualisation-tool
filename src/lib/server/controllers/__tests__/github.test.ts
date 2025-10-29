@@ -101,6 +101,7 @@ export const mockGithubRequest = {
   getContents: getContentsStub,
   getAccessToken: () => Promise.resolve(token),
   getZip: () => Promise.resolve(readFileSync(path.resolve(__dirname, './simple.zip'))),
+  getRepoPermissions: () => Promise.resolve('edit'),
 } as unknown as GithubRequest
 
 const unzipJsonFilesStub = sinon.stub()
