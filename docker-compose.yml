@@ -25,8 +25,6 @@ services:
     build:
       dockerfile: ./Dockerfile
     scale: 0
-    cap_add:
-      - SYS_ADMIN
     environment:
       - DB_HOST=postgres-dtdl-visualisation-tool
       - DB_NAME=dtdl-visualisation-tool
@@ -38,6 +36,7 @@ services:
       - GH_CLIENT_SECRET=${GH_CLIENT_SECRET}
       - COOKIE_SESSION_KEYS=${COOKIE_SESSION_KEYS}
       - EDIT_ONTOLOGY=true
+      - PUPPETEER_ARGS=--no-sandbox,--disable-setuid-sandbox
     command: >
       sh -c "
         npx knex migrate:latest --env production
