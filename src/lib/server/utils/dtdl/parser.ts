@@ -106,9 +106,7 @@ export default class Parser {
     cumulativeSize: { total: number },
     subdir?: string
   ): Promise<DtdlFile[] | undefined> {
-    if (file.path.includes('..')) {
-      throw new UploadError('Invalid - path traversal detected')
-    }
+    if (file.path.includes('..')) throw new UploadError(`Invalid - path traversal detected: '${file.path}'`)
 
     if (subdir && !file.path.startsWith(join(topDir, subdir))) return
 
