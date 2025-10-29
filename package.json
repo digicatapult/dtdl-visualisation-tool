@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.5.68",
+  "version": "0.6.0",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -121,6 +121,7 @@
     "undici": "^7.16.0"
   },
   "engines": {
-    "node": ">= 20"
+    "node": "^22.x.x",
+    "npm": "^10.x.x"
   }
 }

@@ -11,7 +11,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_DB=dtdl-visualisation-tool
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -36,6 +36,7 @@ services:
       - GH_CLIENT_SECRET=${GH_CLIENT_SECRET}
       - COOKIE_SESSION_KEYS=${COOKIE_SESSION_KEYS}
       - EDIT_ONTOLOGY=true
+      - PUPPETEER_ARGS=--no-sandbox,--disable-setuid-sandbox
     command: >
       sh -c "
         npx knex migrate:latest --env production

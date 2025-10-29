@@ -85,6 +85,10 @@ test.describe('Test edit ontology', () => {
     await testNavPanelEdit(page, /^commentEdit$/, 'updated', '/comment')
     await testNavPanelEdit(page, /^propertyCommentEdit$/, 'updated', '/propertyComment')
     await testNavPanelEdit(page, /^propertyNameEdit$/, 'updated', '/propertyName')
+    await testNavPanelEdit(page, /^telemetryDisplayNameEdit$/, 'updated', '/telemetryDisplayName')
+    await testNavPanelDropdownEdit(page, 'double', 'float', '/telemetrySchema')
+    await testNavPanelEdit(page, /^telemetryDescriptionEdit$/, 'updated', '/telemetryDescription')
+    await testNavPanelEdit(page, /^telemetryCommentEdit$/, 'updated', '/telemetryComment')
 
     // test relationship edits
     await waitForSuccessResponse(
@@ -129,6 +133,12 @@ const testNavPanelEdit = async (page: Page, textToEdit: RegExp, newValue: string
   const textArea = page.locator('.nav-panel-editable').getByText(textToEdit)
   await textArea.fill(newValue)
   await waitForSuccessResponse(page, () => page.mouse.click(0, 0), successRoute)
+  await page.waitForTimeout(500)
+}
+
+const testNavPanelDropdownEdit = async (page: Page, currentValue: string, newOption: string, successRoute: string) => {
+  const dropdown = page.locator(`select.nav-panel-editable:has(option[value="${currentValue}"][selected])`)
+  await waitForSuccessResponse(page, () => dropdown.selectOption(newOption), successRoute)
   await page.waitForTimeout(500)
 }
 

@@ -66,18 +66,18 @@ htmx.on('htmx:load', (e) => {
 })
 
 // maintain nav panel scroll position after swap
-let navPanelContentScrollTop = 0
+let navPanelDetailsScrollTop = 0
 document.addEventListener('htmx:beforeSwap', (event) => {
-  const navPanelContent = document.getElementById('navigation-panel-content')
-  if (navPanelContent) {
-    navPanelContentScrollTop = navPanelContent.scrollTop
+  const navPanelDetails = document.getElementById('navigation-panel-details')
+  if (navPanelDetails) {
+    navPanelDetailsScrollTop = navPanelDetails.scrollTop
   }
 })
 document.addEventListener('htmx:afterSwap', (event) => {
   if (event.target.id === 'navigation-panel') {
-    const navPanelContent = document.getElementById('navigation-panel-content')
-    if (navPanelContent) {
-      navPanelContent.scrollTop = navPanelContentScrollTop
+    const navPanelDetails = document.getElementById('navigation-panel-details')
+    if (navPanelDetails) {
+      navPanelDetails.scrollTop = navPanelDetailsScrollTop
     }
   }
 })
@@ -184,7 +184,6 @@ globalThis.updateShareLink = function updateShareLink() {
 
   const fullUrl = window.location.href
   let finalUrl = fullUrl
-
 
   if (selectedValue === 'short') {
     const urlObj = new URL(fullUrl)

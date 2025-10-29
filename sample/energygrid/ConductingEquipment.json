@@ -6,6 +6,14 @@
     "comment": "Adapted from CIM and https://github.com/smart-data-models/dataModel.EnergyCIM/ data models",
     "contents": [
         {
+            "@type": "Telemetry",
+            "name": "Temperature",
+            "schema": "double",
+            "comment": "Operating temperature measurement in degrees Celsius.",
+            "description": "Real-time temperature reading from the conducting equipment's thermal sensors",
+            "displayName": "ConductingEquipmentTemperature"
+        },
+        {
             "@type": "Relationship",
             "name": "BaseVoltage",
             "target": "dtmi:digitaltwins:ngsi_ld:cim:energy:BaseVoltage;1",

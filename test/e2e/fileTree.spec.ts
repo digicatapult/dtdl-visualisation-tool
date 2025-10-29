@@ -41,6 +41,10 @@ test.describe('file tree', () => {
     await page.goto('./')
     await page.waitForSelector(`text='Terminal'`)
 
+    for (let i = 0; i < 10; i++) {
+      await page.locator('#zoom-out').click()
+    }
+
     await waitForUpdateLayout(page, () => page.locator('#mermaid-output').getByText('Bay', { exact: true }).click())
     const navigationPanelTree = page.locator('#navigation-panel-tree')
 
@@ -64,6 +68,25 @@ test.describe('file tree', () => {
     await expect(
       page.locator('#navigation-panel-details').getByText('Basic Information', { exact: true })
     ).toBeInViewport()
+
+    // show telemetries
+    await waitForUpdateLayout(page, () =>
+      page.locator('#mermaid-output').getByText('ConductingEquipment', { exact: true }).click()
+    )
+
+    // Scroll to the telemetry element to make it visible
+    await page
+      .locator('#navigation-panel-details')
+      .getByText('ConductingEquipmentTemperature', { exact: true })
+      .scrollIntoViewIfNeeded()
+
+    await expect(
+      page.locator('#navigation-panel-details').getByText('ConductingEquipmentTemperature', { exact: true })
+    ).toBeInViewport()
+
+    // telemetry visible in tree
+    await page.locator('#navigation-panel').getByText('Tree', { exact: true }).click()
+    await expect(navigationPanelTree.getByText('ConductingEquipmentTemperature', { exact: true })).toBeInViewport()
   })
 
   test('relationship selected', async ({ page }) => {

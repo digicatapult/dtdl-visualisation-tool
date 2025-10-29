@@ -99,7 +99,7 @@ export class OntologyController extends HTMLController {
 
     const { source, owner, repo } = await this.modelDb.getModelById(dtdlModelId)
     let permission: ViewAndEditPermission = 'view'
-    if (source == 'github') {
+    if (source === 'github') {
       const octokitToken = req.signedCookies[octokitTokenCookie]
       if (!octokitToken) {
         this.setStatus(302)

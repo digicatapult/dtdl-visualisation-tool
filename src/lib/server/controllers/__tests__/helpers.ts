@@ -54,6 +54,8 @@ export const propertyName = 'someProperty'
 export const otherPropertyName = 'someOtherProperty'
 export const relationshipName = 'someRelationship'
 export const otherRelationshipName = 'someOtherRelationship'
+export const telemetryName = 'someTelemetry'
+export const otherTelemetryName = 'someOtherTelemetry'
 
 export const dtdlFileFixture =
   (id: string) =>
@@ -61,10 +63,12 @@ export const dtdlFileFixture =
     interfaceUpdate,
     relationshipUpdate,
     propertyUpdate,
+    telemetryUpdate,
   }: {
     interfaceUpdate?: Record<string, string>
     relationshipUpdate?: Record<string, string>
     propertyUpdate?: Record<string, string>
+    telemetryUpdate?: Record<string, string>
   }) => ({
     '@context': ['dtmi:dtdl:context;4'],
     '@id': id,
@@ -95,6 +99,20 @@ export const dtdlFileFixture =
         '@type': 'Relationship',
         name: otherRelationshipName,
       },
+      {
+        '@type': 'Telemetry',
+        name: telemetryName,
+        schema: 'double',
+        comment: 'comment',
+        description: 'description',
+        displayName: 'displayName',
+        ...telemetryUpdate,
+      },
+      {
+        '@type': 'Telemetry',
+        name: otherTelemetryName,
+        schema: 'string',
+      },
     ],
     ...interfaceUpdate,
   })
@@ -106,6 +124,7 @@ export const arrayDtdlFileFixture = (updates: {
   interfaceUpdate?: Record<string, string>
   relationshipUpdate?: Record<string, string>
   propertyUpdate?: Record<string, string>
+  telemetryUpdate?: Record<string, string>
 }) => [simpleDtdlFileFixture({}), dtdlFileFixture(arrayDtdlFileEntityId)(updates)]
 
 const mockDtdlTable = {

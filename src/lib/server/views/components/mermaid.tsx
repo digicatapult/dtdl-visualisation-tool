@@ -7,9 +7,10 @@ import { container, singleton } from 'tsyringe'
 import { Env } from '../../env/index.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { DtdlId, UUID } from '../../models/strings.js'
-import { getDisplayNameOrId, isInterface, isProperty, isRelationship } from '../../utils/dtdl/extract.js'
+import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
+import { getDisplayNameOrId, isInterface, isProperty, isRelationship, isTelemetry } from '../../utils/dtdl/extract.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
-import { AccordionSection, EditableText, Page } from '../common.js'
+import { AccordionSection, EditableSchema, EditableText, Page } from '../common.js'
 
 const env = container.resolve(Env)
 
@@ -240,7 +241,7 @@ export default class MermaidTemplates {
               },
               text: entity.description.en,
               multiline: true,
-              maxLength: 512,
+              maxLength: MAX_VALUE_LENGTH,
             })
           ) : (
             <p>'description' key missing in original file</p>
@@ -258,7 +259,7 @@ export default class MermaidTemplates {
               },
               text: entity.comment,
               multiline: true,
-              maxLength: 512,
+              maxLength: MAX_VALUE_LENGTH,
             })
           ) : (
             <p>'comment' key missing in original file</p>
@@ -303,7 +304,7 @@ export default class MermaidTemplates {
                         text: property.comment,
                         additionalBody: { propertyName: name },
                         multiline: true,
-                        maxLength: 512,
+                        maxLength: MAX_VALUE_LENGTH,
                       })
                     ) : (
                       <p>'comment' key missing in original file</p>
@@ -330,6 +331,69 @@ export default class MermaidTemplates {
                         ? getDisplayNameOrId(model[relationship.target])
                         : '-'}
                     </p>
+                    <br />
+                  </>
+                )
+              })
+            : 'None'}
+        </AccordionSection>
+        <AccordionSection heading={'Telemetries'} collapsed={false}>
+          {isInterface(entity) && Object.keys(entity.telemetries).length > 0
+            ? Object.entries(entity.telemetries).map(([name, id]) => {
+                const telemetry = model[id]
+                if (!isTelemetry(telemetry) || !telemetry.DefinedIn) return
+                const schema = model[telemetry.schema]
+                return (
+                  <>
+                    <b>Display Name:</b>
+                    {telemetry.displayName?.en ? (
+                      <EditableText
+                        edit={edit}
+                        definedIn={telemetry.DefinedIn}
+                        putRoute="telemetryDisplayName"
+                        text={telemetry.displayName.en}
+                        additionalBody={{ telemetryName: name }}
+                        maxLength={64}
+                      />
+                    ) : (
+                      <p>'displayName' key missing in original file</p>
+                    )}
+                    <b>Schema:</b>
+                    <EditableSchema
+                      edit={edit}
+                      definedIn={telemetry.DefinedIn}
+                      putRoute="telemetrySchema"
+                      text={schema.displayName.en}
+                      additionalBody={{ telemetryName: name }}
+                    />
+                    <b>Description:</b>
+                    {telemetry.description?.en ? (
+                      <EditableText
+                        edit={edit}
+                        definedIn={telemetry.DefinedIn}
+                        putRoute="telemetryDescription"
+                        text={telemetry.description.en}
+                        additionalBody={{ telemetryName: name }}
+                        multiline={true}
+                        maxLength={MAX_VALUE_LENGTH}
+                      />
+                    ) : (
+                      <p>'description' key missing in original file</p>
+                    )}
+                    <b>Comment:</b>
+                    {telemetry.comment ? (
+                      EditableText({
+                        edit,
+                        definedIn: telemetry.DefinedIn,
+                        putRoute: 'telemetryComment',
+                        text: telemetry.comment,
+                        additionalBody: { telemetryName: name },
+                        multiline: true,
+                        maxLength: MAX_VALUE_LENGTH,
+                      })
+                    ) : (
+                      <p>'comment' key missing in original file</p>
+                    )}
                     <br />
                   </>
                 )
@@ -448,7 +512,9 @@ export default class MermaidTemplates {
     )
   }
 
-  navigationPanelNodeClass = (path: DtdlPath): 'directory' | 'file' | 'interface' | 'relationship' | 'property' => {
+  navigationPanelNodeClass = (
+    path: DtdlPath
+  ): 'directory' | 'file' | 'interface' | 'relationship' | 'property' | 'telemetry' => {
     if (path.type === 'directory' || path.type === 'file') {
       return path.type
     }
@@ -459,6 +525,8 @@ export default class MermaidTemplates {
         return 'relationship'
       case 'Property':
         return 'property'
+      case 'Telemetry':
+        return 'telemetry'
       default:
         return 'property'
     }

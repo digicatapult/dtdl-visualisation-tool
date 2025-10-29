@@ -9,9 +9,12 @@ import {
   propertyName,
   relationshipName,
   simpleDtdlFileEntityId,
+  telemetryName,
 } from '../../../controllers/__tests__/helpers'
 import { DataError } from '../../../errors'
 import {
+  MAX_DISPLAY_NAME_LENGTH,
+  MAX_VALUE_LENGTH,
   updateComment,
   updateDescription,
   updateDisplayName,
@@ -20,6 +23,10 @@ import {
   updateRelationshipComment,
   updateRelationshipDescription,
   updateRelationshipDisplayName,
+  updateTelemetryComment,
+  updateTelemetryDescription,
+  updateTelemetryDisplayName,
+  updateTelemetrySchema,
 } from '../entityUpdate'
 
 const newValue = 'updated'
@@ -86,6 +93,30 @@ describe('entity updates', function () {
         baseFile({ propertyUpdate: { comment: newValue } })
       )
     })
+
+    test('updates telemetry comment', async () => {
+      expect(updateTelemetryComment(newValue, telemetryName)(baseFile({}))).to.deep.equal(
+        baseFile({ telemetryUpdate: { comment: newValue } })
+      )
+    })
+
+    test('updates telemetry schema', async () => {
+      expect(updateTelemetrySchema('float', telemetryName)(baseFile({}))).to.deep.equal(
+        baseFile({ telemetryUpdate: { schema: 'float' } })
+      )
+    })
+
+    test('updates telemetry description', async () => {
+      expect(updateTelemetryDescription(newValue, telemetryName)(baseFile({}))).to.deep.equal(
+        baseFile({ telemetryUpdate: { description: newValue } })
+      )
+    })
+
+    test('updates telemetry displayName', async () => {
+      expect(updateTelemetryDisplayName(newValue, telemetryName)(baseFile({}))).to.deep.equal(
+        baseFile({ telemetryUpdate: { displayName: newValue } })
+      )
+    })
   })
 
   describe('sad path', function () {
@@ -108,58 +139,79 @@ describe('entity updates', function () {
     })
 
     test('throws error for display name too long', async () => {
-      const newDisplayName = 'a'.repeat(65)
+      const newDisplayName = 'a'.repeat(MAX_DISPLAY_NAME_LENGTH + 1)
       expect(() => {
         updateDisplayName(newDisplayName)(baseFile({}))
       }).to.throw(DataError)
     })
 
     test('throws error for description too long', async () => {
-      const newDescription = 'a'.repeat(513)
+      const newDescription = 'a'.repeat(MAX_VALUE_LENGTH + 1)
       expect(() => {
         updateDescription(newDescription)(baseFile({}))
       }).to.throw(DataError)
     })
 
     test('throws error for interface comment too long', async () => {
-      const newComment = 'a'.repeat(513)
+      const newComment = 'a'.repeat(MAX_VALUE_LENGTH + 1)
       expect(() => {
         updateComment(newComment)(baseFile({}))
       }).to.throw(DataError)
     })
 
     test('throws error for relationship display name too long', async () => {
-      const newDisplayName = 'a'.repeat(65)
+      const newDisplayName = 'a'.repeat(MAX_DISPLAY_NAME_LENGTH + 1)
       expect(() => {
         updateRelationshipDisplayName(newDisplayName, relationshipName)(baseFile({}))
       }).to.throw(DataError)
     })
 
     test('throws error for relationship description too long', async () => {
-      const newDescription = 'a'.repeat(513)
+      const newDescription = 'a'.repeat(MAX_VALUE_LENGTH + 1)
       expect(() => {
         updateRelationshipDescription(newDescription, relationshipName)(baseFile({}))
       }).to.throw(DataError)
     })
 
     test('throws error for relationship comment too long', async () => {
-      const newComment = 'a'.repeat(513)
+      const newComment = 'a'.repeat(MAX_VALUE_LENGTH + 1)
       expect(() => {
         updateRelationshipComment(newComment, relationshipName)(baseFile({}))
       }).to.throw(DataError)
     })
 
     test('throws error for property name too long', async () => {
-      const newDisplayName = 'a'.repeat(65)
+      const newDisplayName = 'a'.repeat(MAX_DISPLAY_NAME_LENGTH + 1)
       expect(() => {
         updatePropertyName(newDisplayName, propertyName)(baseFile({}))
       }).to.throw(DataError)
     })
 
     test('throws error for property comment too long', async () => {
-      const newDescription = 'a'.repeat(513)
+      const newComment = 'a'.repeat(MAX_VALUE_LENGTH + 1)
       expect(() => {
-        updatePropertyComment(newDescription, propertyName)(baseFile({}))
+        updatePropertyComment(newComment, propertyName)(baseFile({}))
+      }).to.throw(DataError)
+    })
+
+    test('throws error for telemetry comment too long', async () => {
+      const newComment = 'a'.repeat(MAX_VALUE_LENGTH + 1)
+      expect(() => {
+        updateTelemetryComment(newComment, telemetryName)(baseFile({}))
+      }).to.throw(DataError)
+    })
+
+    test('throws error for telemetry description too long', async () => {
+      const newDescription = 'a'.repeat(MAX_VALUE_LENGTH + 1)
+      expect(() => {
+        updateTelemetryDescription(newDescription, telemetryName)(baseFile({}))
+      }).to.throw(DataError)
+    })
+
+    test('throws error for telemetry displayName too long', async () => {
+      const newDisplayName = 'a'.repeat(MAX_VALUE_LENGTH + 1)
+      expect(() => {
+        updateTelemetryDisplayName(newDisplayName, telemetryName)(baseFile({}))
       }).to.throw(DataError)
     })
   })

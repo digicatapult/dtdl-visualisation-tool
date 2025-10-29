@@ -4,6 +4,7 @@ import sinon from 'sinon'
 import { DataError } from '../../../../errors.js'
 import { UpdateParams } from '../../../../models/controllerTypes.js'
 import { octokitTokenCookie } from '../../../../models/cookieNames.js'
+import { DtdlSchema } from '../../../../models/strings.js'
 import { generatedSVGFixture } from '../../../../utils/mermaid/__tests__/fixtures.js'
 import { mockGithubRequest } from '../../../__tests__/github.test.js'
 import {
@@ -22,6 +23,7 @@ import {
   simpleDtdlFileEntityId,
   simpleDtdlFileFixture,
   simpleMockModelDb,
+  telemetryName,
   templateMock,
   toHTMLString,
   updateDtdlContentsStub,
@@ -349,6 +351,142 @@ describe('EntityController', async () => {
     })
   })
 
+  describe('putTelemetryComment', () => {
+    afterEach(() => updateDtdlContentsStub.resetHistory())
+
+    it('should update db and layout for new telemetry comment on non-array DTDL file', async () => {
+      const putBody = {
+        ...defaultParams,
+        value: newValue,
+        telemetryName,
+      }
+      const result = await controller
+        .putTelemetryComment(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        simpleDtdlFileFixture({ telemetryUpdate: { comment: newValue } })
+      )
+      expect(result).to.equal(updateLayoutOutput)
+    })
+
+    it('should update db and layout for new telemetry comment on array DTDL file', async () => {
+      const putBody = {
+        ...defaultParams,
+        value: newValue,
+        telemetryName,
+      }
+      const result = await controller
+        .putTelemetryComment(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        arrayDtdlFileFixture({ telemetryUpdate: { comment: newValue } })
+      )
+      expect(result).to.equal(updateLayoutOutput)
+    })
+  })
+
+  describe('putTelemetrySchema', () => {
+    afterEach(() => updateDtdlContentsStub.resetHistory())
+
+    it('should update db and layout for new telemetry schema on non-array DTDL file', async () => {
+      const putBody = {
+        ...defaultParams,
+        value: 'boolean' as DtdlSchema,
+        telemetryName,
+      }
+      const result = await controller
+        .putTelemetrySchema(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        simpleDtdlFileFixture({ telemetryUpdate: { schema: 'boolean' } })
+      )
+      expect(result).to.equal(updateLayoutOutput)
+    })
+
+    it('should update db and layout for new telemetry schema on array DTDL file', async () => {
+      const putBody = {
+        ...defaultParams,
+        value: 'boolean' as DtdlSchema,
+        telemetryName,
+      }
+      const result = await controller
+        .putTelemetrySchema(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        arrayDtdlFileFixture({ telemetryUpdate: { schema: 'boolean' } })
+      )
+      expect(result).to.equal(updateLayoutOutput)
+    })
+  })
+
+  describe('putTelemetryDescription', () => {
+    afterEach(() => updateDtdlContentsStub.resetHistory())
+
+    it('should update db and layout for new telemetry description on non-array DTDL file', async () => {
+      const putBody = {
+        ...defaultParams,
+        value: newValue,
+        telemetryName,
+      }
+      const result = await controller
+        .putTelemetryDescription(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        simpleDtdlFileFixture({ telemetryUpdate: { description: newValue } })
+      )
+      expect(result).to.equal(updateLayoutOutput)
+    })
+
+    it('should update db and layout for new telemetry description on array DTDL file', async () => {
+      const putBody = {
+        ...defaultParams,
+        value: newValue,
+        telemetryName,
+      }
+      const result = await controller
+        .putTelemetryDescription(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        arrayDtdlFileFixture({ telemetryUpdate: { description: newValue } })
+      )
+      expect(result).to.equal(updateLayoutOutput)
+    })
+  })
+
+  describe('putTelemetryDisplayName', () => {
+    afterEach(() => updateDtdlContentsStub.resetHistory())
+
+    it('should update db and layout for new telemetry displayName on non-array DTDL file', async () => {
+      const putBody = {
+        ...defaultParams,
+        value: newValue,
+        telemetryName,
+      }
+      const result = await controller
+        .putTelemetryDisplayName(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        simpleDtdlFileFixture({ telemetryUpdate: { displayName: newValue } })
+      )
+      expect(result).to.equal(updateLayoutOutput)
+    })
+
+    it('should update db and layout for new telemetry displayName on array DTDL file', async () => {
+      const putBody = {
+        ...defaultParams,
+        value: newValue,
+        telemetryName,
+      }
+      const result = await controller
+        .putTelemetryDisplayName(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        arrayDtdlFileFixture({ telemetryUpdate: { displayName: newValue } })
+      )
+      expect(result).to.equal(updateLayoutOutput)
+    })
+  })
+
   describe('invalid chars', () => {
     const invalidChars = [`"`, `\\`]
     invalidChars.forEach((char) => {
@@ -357,6 +495,7 @@ describe('EntityController', async () => {
         value: char,
         relationshipName: '',
         propertyName: '',
+        telemetryName: '',
       }
       const routes = [
         () => controller.putDisplayName(req, githubDtdlId, simpleDtdlFileEntityId, body),
@@ -367,6 +506,9 @@ describe('EntityController', async () => {
         () => controller.putRelationshipComment(req, githubDtdlId, simpleDtdlFileEntityId, body),
         () => controller.putPropertyName(req, githubDtdlId, simpleDtdlFileEntityId, body),
         () => controller.putPropertyComment(req, githubDtdlId, simpleDtdlFileEntityId, body),
+        () => controller.putTelemetryDisplayName(req, githubDtdlId, simpleDtdlFileEntityId, body),
+        () => controller.putTelemetryDescription(req, githubDtdlId, simpleDtdlFileEntityId, body),
+        () => controller.putTelemetryComment(req, githubDtdlId, simpleDtdlFileEntityId, body),
       ]
       routes.forEach((fn) => {
         it(`should error on ${char} char in value`, async () => {
