@@ -107,8 +107,8 @@ export default class Parser {
     subdir?: string
   ): Promise<DtdlFile[] | undefined> {
     // Robust path traversal check: ensure file.path stays within topDir
-    const resolvedPath = path.resolve(topDir, file.path)
-    if (!resolvedPath.startsWith(path.resolve(topDir) + path.sep)) {
+    const relativePath = path.relative(topDir, file.path)
+    if (relativePath.startsWith('..') || relativePath.includes(path.sep + '..')) {
       throw new UploadError(`Invalid - path traversal detected: '${file.path}'`)
     }
 
