@@ -30,7 +30,6 @@ export const envConfig = {
   PUPPETEER_ARGS: strArrayValidator({ default: [''] }),
   EDIT_ONTOLOGY: envalid.bool({ default: false, devDefault: true }),
   JSON_DEPTH_LIMIT: envalid.num({ default: 10 }),
-  MAX_FILE_PATH_LENGTH: envalid.num({ default: 255 }),
   STRICT_RATE_LIMIT: envalid.num({ default: 1000 }),
   GLOBAL_RATE_LIMIT: envalid.num({ default: 10000 }),
   IP_ALLOW_LIST: strArrayValidator({ default: [''] }),

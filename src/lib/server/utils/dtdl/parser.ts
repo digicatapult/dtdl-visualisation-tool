@@ -131,7 +131,7 @@ export default class Parser {
       }
       this.isWithinDepthLimit(json)
       const path = relative(topDir, file.path)
-      if (path.length > env.get('MAX_FILE_PATH_LENGTH')) throw new UploadError(`File path too long: '${path}'`)
+      if (path.length > 255) throw new UploadError(`File path too long: '${path}'`)
       return [{ path, contents }]
     }
   }
