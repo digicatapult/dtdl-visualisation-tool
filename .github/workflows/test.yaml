@@ -2,7 +2,7 @@ name: Lint and Test
 
 on:
   push:
-    branches-ignore: ['main']
+    branches-ignore: ["main"]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -17,8 +17,8 @@ jobs:
   tests-npm:
     uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
     with:
-      docker_compose_file: ''
-      npm_build_command: 'npm run build'
+      docker_compose_file: ""
+      npm_build_command: "npm run build"
       tests: '["test:unit", "test:integration", "test:ratelimit"]'
       env_vars: |
         {
@@ -26,14 +26,44 @@ jobs:
           "PUPPETEER_ARGS": "--no-sandbox,--disable-setuid-sandbox"
         }
 
+  coverage:
+    runs-on: ubuntu-latest
+    needs: tests-npm
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm ci
+      - run: npm run build
+      - name: Run tests with coverage
+        run: |
+          npm run test:unit
+          npm run test:ratelimit
+
+      - name: Install LCOV
+        run: sudo apt-get install -y lcov
+
+      - name: Report code coverage
+        uses: zgosalvez/github-actions-report-lcov@v5
+        with:
+          coverage-files: coverage/lcov.info
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          update-comment: true
+
   e2e-tests-npm:
     uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
     concurrency:
       group: e2e-tests-npm
     with:
-      docker_compose_file: ''
-      pre_test_command: 'npm ci && npx playwright install-deps && npx playwright install'
-      test_command: 'npm run test:playwright || exit 1'
+      docker_compose_file: ""
+      pre_test_command: "npm ci && npx playwright install-deps && npx playwright install"
+      test_command: "npm run test:playwright || exit 1"
       env_vars: |
         {
           "PUPPETEER_ARGS": "--no-sandbox,--disable-setuid-sandbox"
@@ -47,4 +77,3 @@ jobs:
     permissions:
       packages: write
       contents: write
-
