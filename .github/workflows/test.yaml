@@ -3,9 +3,6 @@ name: Lint and Test
 on:
   push:
     branches-ignore: ["main"]
-  pull_request:
-    types:
-      - synchronize
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -28,34 +25,6 @@ jobs:
           "TMPDIR": "${{ github.workspace }}",
           "PUPPETEER_ARGS": "--no-sandbox,--disable-setuid-sandbox"
         }
-
-  coverage:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - run: npm ci
-      - run: npm run build
-      - name: Run tests with coverage
-        run: |
-          npm run test:unit
-          npm run test:ratelimit
-        env:
-          PUPPETEER_ARGS: "--no-sandbox,--disable-setuid-sandbox"
-
-      - name: Report code coverage
-        uses: zgosalvez/github-actions-report-lcov@b9c423417947b8f4156df37174e5a8be99a02747
-        with:
-          coverage-files: coverage/lcov.info
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          update-comment: true
 
   e2e-tests-npm:
     uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main

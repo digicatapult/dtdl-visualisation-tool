@@ -1,0 +1,45 @@
+name: Coverage Report
+
+on:
+    pull_request:
+        types: [synchronize]
+
+permissions:
+    contents: read
+    pull-requests: write
+
+jobs:
+    coverage:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            pull-requests: write
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+
+            - run: npm ci
+
+            - run: npm run build
+
+            - name: Run tests with coverage
+              run: |
+                  npm run test:unit
+                  npm run test:ratelimit
+              env:
+                  PUPPETEER_ARGS: "--no-sandbox,--disable-setuid-sandbox"
+
+            - name: Install LCOV
+              run: sudo apt-get install -y lcov
+
+            - name: Report code coverage
+              uses: zgosalvez/github-actions-report-lcov@b9c423417947b8f4156df37174e5a8be99a02747
+              with:
+                  coverage-files: coverage/lcov.info
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  update-comment: true
