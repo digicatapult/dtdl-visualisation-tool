@@ -37,6 +37,9 @@ jobs:
             - name: Install LCOV
               run: sudo apt-get install -y lcov
 
+            - name: Set lcovrc for branch coverage
+              run: echo 'branch_coverage=1' > ~/.lcovrc
+
             - name: Report code coverage
               uses: zgosalvez/github-actions-report-lcov@b9c423417947b8f4156df37174e5a8be99a02747
               with:
