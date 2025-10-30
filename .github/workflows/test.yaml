@@ -28,7 +28,6 @@ jobs:
 
   coverage:
     runs-on: ubuntu-latest
-    needs: tests-npm
     permissions:
       contents: read
       pull-requests: write
@@ -45,12 +44,14 @@ jobs:
         run: |
           npm run test:unit
           npm run test:ratelimit
+        env:
+          PUPPETEER_ARGS: "--no-sandbox,--disable-setuid-sandbox"
 
       - name: Install LCOV
         run: sudo apt-get install -y lcov
 
       - name: Report code coverage
-        uses: zgosalvez/github-actions-report-lcov@v5
+        uses: zgosalvez/github-actions-report-lcov@b9c423417947b8f4156df37174e5a8be99a02747
         with:
           coverage-files: coverage/lcov.info
           github-token: ${{ secrets.GITHUB_TOKEN }}
