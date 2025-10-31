@@ -12,3 +12,5 @@ obj
 /playwright/.cache/
 .env
 playwright/.auth
+
+coverage/
