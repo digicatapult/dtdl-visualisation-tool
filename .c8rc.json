@@ -1,5 +1,4 @@
 {
   "include": ["src/**/*.ts"],
-  "exclude": ["**/__tests__/**", "src/lib/server/routes.ts"],
-  "reporter": ["json"]
+  "exclude": ["**/__tests__/**", "src/lib/server/routes.ts"]
 }

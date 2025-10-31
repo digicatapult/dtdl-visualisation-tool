@@ -58,6 +58,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: coverage/tmp
+          merge-multiple: true
 
-      - name: Generate merged coverage
+      - name: Generate report
         run: npx c8 report --reporter=text >> $GITHUB_STEP_SUMMARY
