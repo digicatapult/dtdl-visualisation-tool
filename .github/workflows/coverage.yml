@@ -1,48 +1,63 @@
-name: Coverage Report
+name: Coverage Test
 
 on:
-    pull_request:
-        types: [synchronize]
+  push:
+    branches-ignore: ["main"]
 
 permissions:
-    contents: read
-    pull-requests: write
+  contents: read
 
 jobs:
-    coverage:
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-            pull-requests: write
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test-type: [unit, ratelimit]
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-            - uses: actions/setup-node@v4
-              with:
-                  node-version: 22
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
 
-            - run: npm ci
+      - run: npm ci
 
-            - run: npm run build
+      - run: npm run build
 
-            - name: Run tests with coverage
-              run: |
-                  npm run test:unit
-                  npm run test:ratelimit
-              env:
-                  PUPPETEER_ARGS: "--no-sandbox,--disable-setuid-sandbox"
+      - name: Run ${{ matrix.test-type }} tests with coverage
+        run: |
+          npm run test:${{ matrix.test-type }}
+        env:
+          PUPPETEER_ARGS: "--no-sandbox,--disable-setuid-sandbox"
 
-            - name: Install LCOV
-              run: sudo apt-get install -y lcov
+      - name: Upload coverage JSON summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.test-type }}
+          path: coverage/coverage-final.json
 
-            - name: Set lcovrc for branch coverage
-              run: echo 'branch_coverage=1' > ~/.lcovrc
+  coverage-report:
+    runs-on: ubuntu-latest
+    needs: test
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-            - name: Report code coverage
-              uses: zgosalvez/github-actions-report-lcov@b9c423417947b8f4156df37174e5a8be99a02747
-              with:
-                  coverage-files: coverage/lcov.info
-                  github-token: ${{ secrets.GITHUB_TOKEN }}
-                  update-comment: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Download all coverage summaries
+        uses: actions/download-artifact@v4
+        with:
+          path: coverage
+
+      - name: Generate merged coverage
+        run: npx c8 report --reporter=text >> $GITHUB_STEP_SUMMARY
