@@ -60,5 +60,17 @@ jobs:
           path: coverage/tmp
           merge-multiple: true
 
-      - name: Generate report
+      - name: Generate text report
         run: npx c8 report --reporter=text >> $GITHUB_STEP_SUMMARY
+
+      - name: Generate html report
+        run: npx c8 report --reporter=html
+
+      - name: Upload html report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage
+
+      - name: Fail if under thresholds
+        run: npx c8 check-coverage
