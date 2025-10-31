@@ -6,7 +6,7 @@ import path, { join, relative } from 'node:path'
 import { container, inject, singleton } from 'tsyringe'
 import unzipper from 'unzipper'
 import z from 'zod'
-import { DtdlFile } from '../../../db/types.js'
+import { DEFAULT_DB_STRING_LENGTH, DtdlFile } from '../../../db/types.js'
 import { Env } from '../../env/index.js'
 import { ModellingError, UploadError } from '../../errors.js'
 import { Logger, type ILogger } from '../../logger.js'
@@ -91,6 +91,7 @@ export default class Parser {
     const directory = await unzipper.Open.buffer(buffer)
 
     const topDir = directory.files[0]
+
     if (!topDir || topDir.type !== 'Directory') throw new UploadError('Zip missing top-level directory')
 
     const uncompressedSize = { total: 0 }
@@ -106,6 +107,11 @@ export default class Parser {
     cumulativeSize: { total: number },
     subdir?: string
   ): Promise<DtdlFile[] | undefined> {
+    const resolvedPath = path.resolve(topDir, file.path)
+    if (!resolvedPath.startsWith(path.resolve(topDir) + path.sep)) {
+      throw new UploadError(`Invalid - path traversal detected: '${file.path}'`)
+    }
+
     if (subdir && !file.path.startsWith(join(topDir, subdir))) return
 
     if (file.type === 'File' && file.path.endsWith('.json')) {
@@ -124,7 +130,9 @@ export default class Parser {
         return
       }
       this.isWithinDepthLimit(json)
-      return [{ path: relative(topDir, file.path), contents }]
+      const path = relative(topDir, file.path)
+      if (path.length > DEFAULT_DB_STRING_LENGTH) throw new UploadError(`File path too long: '${path}'`)
+      return [{ path, contents }]
     }
   }
 
