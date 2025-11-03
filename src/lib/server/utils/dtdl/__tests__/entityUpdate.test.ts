@@ -4,8 +4,6 @@ import { expect } from 'chai'
 import { ZodError } from 'zod'
 import {
   dtdlFileFixture,
-  otherPropertyName,
-  otherRelationshipName,
   propertyName,
   relationshipName,
   simpleDtdlFileEntityId,
@@ -19,7 +17,6 @@ import {
   updateDescription,
   updateDisplayName,
   updatePropertyComment,
-  updatePropertyName,
   updateRelationshipComment,
   updateRelationshipDescription,
   updateRelationshipDisplayName,
@@ -82,12 +79,6 @@ describe('entity updates', function () {
       )
     })
 
-    test('updates property name', async () => {
-      expect(updatePropertyName(newValue, propertyName)(baseFile({}))).to.deep.equal(
-        baseFile({ propertyUpdate: { name: newValue } })
-      )
-    })
-
     test('updates property comment', async () => {
       expect(updatePropertyComment(newValue, propertyName)(baseFile({}))).to.deep.equal(
         baseFile({ propertyUpdate: { comment: newValue } })
@@ -124,18 +115,6 @@ describe('entity updates', function () {
       expect(() => {
         updateDisplayName('display name')({})
       }).to.throw(ZodError)
-    })
-
-    test('throws error if new property name matches other property name', async () => {
-      expect(() => {
-        updatePropertyName(otherPropertyName, propertyName)(baseFile({}))
-      }).to.throw(DataError, 'already exists')
-    })
-
-    test('throws error if new property name matches other relationship name', async () => {
-      expect(() => {
-        updatePropertyName(otherRelationshipName, propertyName)(baseFile({}))
-      }).to.throw(DataError, 'already exists')
     })
 
     test('throws error for display name too long', async () => {
@@ -177,13 +156,6 @@ describe('entity updates', function () {
       const newComment = 'a'.repeat(MAX_VALUE_LENGTH + 1)
       expect(() => {
         updateRelationshipComment(newComment, relationshipName)(baseFile({}))
-      }).to.throw(DataError)
-    })
-
-    test('throws error for property name too long', async () => {
-      const newDisplayName = 'a'.repeat(MAX_DISPLAY_NAME_LENGTH + 1)
-      expect(() => {
-        updatePropertyName(newDisplayName, propertyName)(baseFile({}))
       }).to.throw(DataError)
     })
 

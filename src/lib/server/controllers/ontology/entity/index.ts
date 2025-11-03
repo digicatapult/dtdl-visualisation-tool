@@ -11,7 +11,6 @@ import {
   updateDescription,
   updateDisplayName,
   updatePropertyComment,
-  updatePropertyName,
   updateRelationshipComment,
   updateRelationshipDescription,
   updateRelationshipDisplayName,
@@ -123,21 +122,6 @@ export class EntityController extends HTMLController {
     const { value, relationshipName, ...updateParams } = body
 
     await this.putEntityValue(ontologyId, entityId, updateRelationshipComment(value, relationshipName))
-
-    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
-  }
-
-  @SuccessResponse(200)
-  @Put('{entityId}/propertyName')
-  public async putPropertyName(
-    @Request() req: express.Request,
-    @Path() ontologyId: UUID,
-    @Path() entityId: DtdlId,
-    @Body() body: { value: string; propertyName: string } & UpdateParams
-  ): Promise<HTML> {
-    const { value, propertyName, ...updateParams } = body
-
-    await this.putEntityValue(ontologyId, entityId, updatePropertyName(value, propertyName))
 
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
   }

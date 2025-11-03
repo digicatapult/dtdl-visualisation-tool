@@ -30,39 +30,6 @@ export const updateRelationshipComment = (value: string, relationshipName: strin
   return updateContentsValue(file, value, 'Relationship', relationshipName, 'comment', MAX_VALUE_LENGTH)
 }
 
-export const updatePropertyName = (newValue: string, originalValue: string) => (file: unknown) => {
-  if (invalidChars.test(newValue)) throw new DataError(`Invalid JSON: '${newValue}'`)
-  if (newValue.length > 64) throw new DataError(`Property name has max length of 64 characters`)
-
-  const schema = z.object({
-    '@type': z.literal('Interface'),
-    contents: z
-      .array(
-        z.looseObject({
-          '@type': z.string(),
-          name: z.string(),
-        })
-      )
-      .refine((contents) => contents.some((c) => c['@type'] === 'Property' && c.name === originalValue)),
-  })
-
-  const validFile: z.infer<typeof schema> = schema.passthrough().parse(file)
-
-  const updatedContents = validFile.contents.map((item) => {
-    if (item.name === newValue) {
-      throw new DataError(`Property/Relationship/Telemetry with name "${newValue}" already exists`)
-    }
-
-    if (item['@type'] === 'Property' && item.name === originalValue) {
-      return { ...item, name: newValue }
-    }
-
-    return item
-  })
-
-  return { ...validFile, contents: updatedContents }
-}
-
 export const updatePropertyComment = (value: string, propertyName: string) => (file: unknown) => {
   return updateContentsValue(file, value, 'Property', propertyName, 'comment', MAX_VALUE_LENGTH)
 }

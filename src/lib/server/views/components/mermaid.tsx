@@ -6,11 +6,11 @@ import { randomUUID } from 'crypto'
 import { container, singleton } from 'tsyringe'
 import { Env } from '../../env/index.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
-import { DtdlId, UUID } from '../../models/strings.js'
+import { DTDL_VALID_SCHEMAS, DTDL_VALID_WRITABLE, DtdlId, UUID } from '../../models/strings.js'
 import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
 import { getDisplayNameOrId, isInterface, isProperty, isRelationship, isTelemetry } from '../../utils/dtdl/extract.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
-import { AccordionSection, EditableSchema, EditableText, Page } from '../common.js'
+import { AccordionSection, EditableSelect, EditableText, Page } from '../common.js'
 
 const env = container.resolve(Env)
 
@@ -213,57 +213,47 @@ export default class MermaidTemplates {
           <p>
             <b>Display Name:</b>
           </p>
-          {entity?.displayName?.en ? (
-            EditableText({
-              edit,
-              definedIn,
-              putRoute: isRship ? 'relationshipDisplayName' : 'displayName',
-              additionalBody: {
-                ...(isRship ? { relationshipName: entity.name } : {}),
-              },
-              text: entity?.displayName?.en,
-              maxLength: 64,
-            })
-          ) : (
-            <p>'displayName' key missing in original file</p>
-          )}
+          {EditableText({
+            edit,
+            definedIn,
+            putRoute: isRship ? 'relationshipDisplayName' : 'displayName',
+            additionalBody: {
+              ...(isRship ? { relationshipName: entity.name } : {}),
+            },
+            text: entity?.displayName?.en,
+            keyName: 'displayName',
+            maxLength: 64,
+          })}
           <p>
             <b>Description:</b>
           </p>
-
-          {entity.description?.en ? (
-            EditableText({
-              edit,
-              definedIn,
-              putRoute: isRship ? 'relationshipDescription' : 'description',
-              additionalBody: {
-                ...(isRship ? { relationshipName: entity.name } : {}),
-              },
-              text: entity.description.en,
-              multiline: true,
-              maxLength: MAX_VALUE_LENGTH,
-            })
-          ) : (
-            <p>'description' key missing in original file</p>
-          )}
+          {EditableText({
+            edit,
+            definedIn,
+            putRoute: isRship ? 'relationshipDescription' : 'description',
+            additionalBody: {
+              ...(isRship ? { relationshipName: entity.name } : {}),
+            },
+            text: entity.description?.en,
+            keyName: 'description',
+            multiline: true,
+            maxLength: MAX_VALUE_LENGTH,
+          })}
           <p>
             <b>Comment:</b>
           </p>
-          {entity.comment ? (
-            EditableText({
-              edit,
-              definedIn,
-              putRoute: isRship ? 'relationshipComment' : 'comment',
-              additionalBody: {
-                ...(isRship ? { relationshipName: entity.name } : {}),
-              },
-              text: entity.comment,
-              multiline: true,
-              maxLength: MAX_VALUE_LENGTH,
-            })
-          ) : (
-            <p>'comment' key missing in original file</p>
-          )}
+          {EditableText({
+            edit,
+            definedIn,
+            putRoute: isRship ? 'relationshipComment' : 'comment',
+            additionalBody: {
+              ...(isRship ? { relationshipName: entity.name } : {}),
+            },
+            text: entity.comment,
+            keyName: 'comment',
+            multiline: true,
+            maxLength: MAX_VALUE_LENGTH,
+          })}
         </section>
         <AccordionSection heading={'Entity Identifiers'} collapsed={false}>
           <p>
@@ -288,27 +278,59 @@ export default class MermaidTemplates {
                 if (!isProperty(property) || !property.DefinedIn) return
                 return (
                   <>
+                    <b>Name: </b>
+                    {property.name}
+                    <br />
+                    <b>Display Name:</b>
                     <EditableText
                       edit={edit}
                       definedIn={property.DefinedIn}
-                      putRoute="propertyName"
-                      text={name}
-                      additionalBody={{ propertyName: name }}
+                      putRoute="propertyDisplayName"
+                      text={property.displayName?.en}
+                      keyName="displayName"
+                      additionalBody={{ telemetryName: name }}
                       maxLength={64}
                     />
-                    {property.comment ? (
-                      EditableText({
-                        edit,
-                        definedIn: property.DefinedIn,
-                        putRoute: 'propertyComment',
-                        text: property.comment,
-                        additionalBody: { propertyName: name },
-                        multiline: true,
-                        maxLength: MAX_VALUE_LENGTH,
-                      })
-                    ) : (
-                      <p>'comment' key missing in original file</p>
-                    )}
+                    <b>Schema:</b>
+                    <EditableSelect
+                      edit={edit}
+                      definedIn={property.DefinedIn}
+                      putRoute="propertySchema"
+                      text={model[property.schema].displayName?.en}
+                      additionalBody={{ telemetryName: name }}
+                      options={DTDL_VALID_SCHEMAS}
+                    />
+                    <b>Description:</b>
+                    {EditableText({
+                      edit,
+                      definedIn: property.DefinedIn,
+                      putRoute: 'propertyDescription',
+                      text: property.description?.en,
+                      keyName: 'description',
+                      additionalBody: { propertyName: name },
+                      multiline: true,
+                      maxLength: MAX_VALUE_LENGTH,
+                    })}
+                    <b>Comment:</b>
+                    {EditableText({
+                      edit,
+                      definedIn: property.DefinedIn,
+                      putRoute: 'propertyComment',
+                      text: property.comment,
+                      keyName: 'comment',
+                      additionalBody: { propertyName: name },
+                      multiline: true,
+                      maxLength: MAX_VALUE_LENGTH,
+                    })}
+                    <b>Writable:</b>
+                    <EditableSelect
+                      edit={edit}
+                      definedIn={property.DefinedIn}
+                      putRoute="propertyWritable"
+                      text={String(property.writable)}
+                      additionalBody={{ telemetryName: name }}
+                      options={DTDL_VALID_WRITABLE.map(String)}
+                    />
                     <br />
                   </>
                 )
@@ -342,58 +364,52 @@ export default class MermaidTemplates {
             ? Object.entries(entity.telemetries).map(([name, id]) => {
                 const telemetry = model[id]
                 if (!isTelemetry(telemetry) || !telemetry.DefinedIn) return
-                const schema = model[telemetry.schema]
                 return (
                   <>
+                    <b>Name: </b>
+                    {telemetry.name}
+                    <br />
                     <b>Display Name:</b>
-                    {telemetry.displayName?.en ? (
-                      <EditableText
-                        edit={edit}
-                        definedIn={telemetry.DefinedIn}
-                        putRoute="telemetryDisplayName"
-                        text={telemetry.displayName.en}
-                        additionalBody={{ telemetryName: name }}
-                        maxLength={64}
-                      />
-                    ) : (
-                      <p>'displayName' key missing in original file</p>
-                    )}
+                    <EditableText
+                      edit={edit}
+                      definedIn={telemetry.DefinedIn}
+                      putRoute="telemetryDisplayName"
+                      text={telemetry.displayName?.en}
+                      keyName="displayName"
+                      additionalBody={{ telemetryName: name }}
+                      maxLength={64}
+                    />
                     <b>Schema:</b>
-                    <EditableSchema
+                    <EditableSelect
                       edit={edit}
                       definedIn={telemetry.DefinedIn}
                       putRoute="telemetrySchema"
-                      text={schema.displayName.en}
+                      text={model[telemetry.schema].displayName?.en}
                       additionalBody={{ telemetryName: name }}
+                      options={DTDL_VALID_SCHEMAS}
                     />
                     <b>Description:</b>
-                    {telemetry.description?.en ? (
-                      <EditableText
-                        edit={edit}
-                        definedIn={telemetry.DefinedIn}
-                        putRoute="telemetryDescription"
-                        text={telemetry.description.en}
-                        additionalBody={{ telemetryName: name }}
-                        multiline={true}
-                        maxLength={MAX_VALUE_LENGTH}
-                      />
-                    ) : (
-                      <p>'description' key missing in original file</p>
-                    )}
+                    <EditableText
+                      edit={edit}
+                      definedIn={telemetry.DefinedIn}
+                      putRoute="telemetryDescription"
+                      text={telemetry.description.en}
+                      keyName="description"
+                      additionalBody={{ telemetryName: name }}
+                      multiline={true}
+                      maxLength={MAX_VALUE_LENGTH}
+                    />
                     <b>Comment:</b>
-                    {telemetry.comment ? (
-                      EditableText({
-                        edit,
-                        definedIn: telemetry.DefinedIn,
-                        putRoute: 'telemetryComment',
-                        text: telemetry.comment,
-                        additionalBody: { telemetryName: name },
-                        multiline: true,
-                        maxLength: MAX_VALUE_LENGTH,
-                      })
-                    ) : (
-                      <p>'comment' key missing in original file</p>
-                    )}
+                    {EditableText({
+                      edit,
+                      definedIn: telemetry.DefinedIn,
+                      putRoute: 'telemetryComment',
+                      text: telemetry.comment,
+                      keyName: 'comment',
+                      additionalBody: { telemetryName: name },
+                      multiline: true,
+                      maxLength: MAX_VALUE_LENGTH,
+                    })}
                     <br />
                   </>
                 )
