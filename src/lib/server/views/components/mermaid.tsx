@@ -527,29 +527,36 @@ export default class MermaidTemplates {
                   </button>
                   <div class="accordion-content" {...{ [isExpanded ? 'aria-expanded' : 'aria-hidden']: '' }}>
                     <div class="error-details">
-                      {errors.map((error) => (
-                        <div class="error-item">
-                          <div class="error-kind">
-                            <strong>{error.ExceptionKind} Error</strong>
+                      {errors.map((error) => {
+                        const isResolutionError = error.ExceptionKind === 'Resolution'
+                        const isParsingError = error.ExceptionKind === 'Parsing'
+                        const hasUndefinedIdentifiers = !!(isResolutionError && error.UndefinedIdentifiers)
+                        const hasParsingErrors = !!(isParsingError && error.Errors)
+
+                        return (
+                          <div class="error-item">
+                            <div class="error-kind">
+                              <strong>{error.ExceptionKind} Error</strong>
+                            </div>
+                            {hasUndefinedIdentifiers === true && (
+                              <div class="error-message">
+                                Undefined identifiers: {escapeHtml(error.UndefinedIdentifiers!.join(', '))}
+                              </div>
+                            )}
+                            {hasParsingErrors === true && (
+                              <div class="error-message">
+                                {error.Errors!.map((parseError) => (
+                                  <div>
+                                    <strong>Cause:</strong> {escapeHtml(parseError.Cause)}
+                                    <br />
+                                    <strong>Action:</strong> {escapeHtml(parseError.Action)}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
-                          {error.ExceptionKind === 'Resolution' && error.UndefinedIdentifiers && (
-                            <div class="error-message">
-                              Undefined identifiers: {error.UndefinedIdentifiers.join(', ')}
-                            </div>
-                          )}
-                          {error.ExceptionKind === 'Parsing' && error.Errors && (
-                            <div class="error-message">
-                              {error.Errors.map((parseError) => (
-                                <div>
-                                  <strong>Cause:</strong> {parseError.Cause}
-                                  <br />
-                                  <strong>Action:</strong> {parseError.Action}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   </div>
                 </div>
