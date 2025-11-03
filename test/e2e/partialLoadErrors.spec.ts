@@ -35,12 +35,8 @@ test.describe('Partial load ontology with errors', () => {
     await expect(page.locator('.nav-tree-error')).toBeInViewport()
     await page.click('.nav-tree-error')
     await expect(page.locator('.error-details')).toBeInViewport()
-    await expect(page.locator('.error-details')).toHaveText('Passing Error')
-    await expect(page.locator('.error-details')).toHaveText('Cause')
-    await expect(page.locator('.error-details')).toHaveText('Action')
-
-    // Test that nested warning appears
-
-    await page.waitForTimeout(10000)
+    await expect(page.locator('.error-details')).toContainText('Parsing Error')
+    await expect(page.locator('.error-details')).toContainText('Cause')
+    await expect(page.locator('.error-details')).toContainText('Action')
   })
 })
