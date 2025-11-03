@@ -2,7 +2,7 @@ name: Lint and Test
 
 on:
   push:
-    branches-ignore: ["main"]
+    branches-ignore: ['main']
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -17,8 +17,8 @@ jobs:
   tests-npm:
     uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@feat/coverage
     with:
-      docker_compose_file: ""
-      npm_build_command: "npm run build"
+      docker_compose_file: ''
+      npm_build_command: 'npm run build'
       tests: '["test:unit", "test:integration", "test:ratelimit"]'
       coverage: true
       env_vars: |
@@ -32,9 +32,9 @@ jobs:
     concurrency:
       group: e2e-tests-npm
     with:
-      docker_compose_file: ""
-      pre_test_command: "npm ci && npx playwright install-deps && npx playwright install"
-      test_command: "npm run test:playwright || exit 1"
+      docker_compose_file: ''
+      pre_test_command: 'npm ci && npx playwright install-deps && npx playwright install'
+      test_command: 'npm run test:playwright || exit 1'
       env_vars: |
         {
           "PUPPETEER_ARGS": "--no-sandbox,--disable-setuid-sandbox"

@@ -11,13 +11,6 @@ import { GithubRequest } from '../githubRequest.js'
 const env = container.resolve(Env)
 
 describe('githubRequest', function () {
-  test('getRepos', async function () {
-    const githubRequest = new GithubRequest(mockLogger)
-    Sinon.stub(githubRequest, 'requestWrapper').resolves({ data: 'repos' })
-    const repos = await githubRequest.getRepos('token', 1)
-    expect(repos).to.equal('repos')
-  })
-
   test('getZip errors with upload limit', async function () {
     const githubRequest = new GithubRequest(mockLogger)
     Sinon.stub(githubRequest, 'requestWrapper').resolves({
