@@ -114,6 +114,18 @@ describe('unzipJsonfiles', function () {
     const buffer = await readFile(zip)
     await expect(parser.unzipJsonFiles(buffer)).to.be.rejectedWith(UploadError, `Uncompressed zip exceeds`)
   })
+
+  test('throws error if file paths are longer than maximum allowed', async () => {
+    const zip = path.resolve(__dirname, './fixtures/tooLong.zip')
+    const buffer = await readFile(zip)
+    await expect(parser.unzipJsonFiles(buffer)).to.be.rejectedWith(UploadError, 'File path too long')
+  })
+
+  test('throws error if file paths contain path traversal attempts', async () => {
+    const zip = path.resolve(__dirname, './fixtures/pathTraversal.zip')
+    const buffer = await readFile(zip)
+    await expect(parser.unzipJsonFiles(buffer)).to.be.rejectedWith(UploadError, 'path traversal detected')
+  })
 })
 
 describe('parse', function () {
