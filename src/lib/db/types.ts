@@ -3,6 +3,7 @@ import { Knex } from 'knex'
 import { z } from 'zod'
 import { fileSource } from '../server/models/openTypes.js'
 
+export const DEFAULT_DB_STRING_LENGTH = 255
 export const tablesList = ['model', 'dtdl', 'dtdl_error'] as const
 
 const insertModel = z.object({
