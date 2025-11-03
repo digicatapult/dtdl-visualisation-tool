@@ -288,7 +288,7 @@ export default class MermaidTemplates {
                       putRoute="propertyDisplayName"
                       text={property.displayName?.en}
                       keyName="displayName"
-                      additionalBody={{ telemetryName: name }}
+                      additionalBody={{ propertyName: name }}
                       maxLength={64}
                     />
                     <b>Schema:</b>
@@ -297,7 +297,7 @@ export default class MermaidTemplates {
                       definedIn={property.DefinedIn}
                       putRoute="propertySchema"
                       text={model[property.schema].displayName?.en}
-                      additionalBody={{ telemetryName: name }}
+                      additionalBody={{ propertyName: name }}
                       options={DTDL_VALID_SCHEMAS}
                     />
                     <b>Description:</b>
@@ -328,7 +328,7 @@ export default class MermaidTemplates {
                       definedIn={property.DefinedIn}
                       putRoute="propertyWritable"
                       text={String(property.writable)}
-                      additionalBody={{ telemetryName: name }}
+                      additionalBody={{ propertyName: name }}
                       options={DTDL_VALID_WRITABLE.map(String)}
                     />
                     <br />

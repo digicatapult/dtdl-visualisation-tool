@@ -30,8 +30,24 @@ export const updateRelationshipComment = (value: string, relationshipName: strin
   return updateContentsValue(file, value, 'Relationship', relationshipName, 'comment', MAX_VALUE_LENGTH)
 }
 
+export const updatePropertyDisplayName = (value: string, propertyName: string) => (file: unknown) => {
+  return updateContentsValue(file, value, 'Property', propertyName, 'displayName', MAX_DISPLAY_NAME_LENGTH)
+}
+
+export const updatePropertyDescription = (value: string, propertyName: string) => (file: unknown) => {
+  return updateContentsValue(file, value, 'Property', propertyName, 'description', MAX_VALUE_LENGTH)
+}
+
 export const updatePropertyComment = (value: string, propertyName: string) => (file: unknown) => {
   return updateContentsValue(file, value, 'Property', propertyName, 'comment', MAX_VALUE_LENGTH)
+}
+
+export const updatePropertySchema = (value: DtdlSchema, propertyName: string) => (file: unknown) => {
+  return updateContentsValue(file, value, 'Property', propertyName, 'schema', MAX_VALUE_LENGTH)
+}
+
+export const updatePropertyWritable = (value: boolean, propertyName: string) => (file: unknown) => {
+  return updateContentsBooleanValue(file, value, 'Property', propertyName, 'writable')
 }
 
 export const updateTelemetryComment = (value: string, telemetryName: string) => (file: unknown) => {
@@ -91,6 +107,37 @@ const updateContentsValue = (
           '@type': z.string(),
           name: z.string(),
           [keyToUpdate]: z.string().optional(),
+        })
+      )
+      .refine((contents) => contents.some((c) => c['@type'] === contentType && c.name === contentName)),
+  })
+
+  const validFile: z.infer<typeof schema> = schema.passthrough().parse(file)
+
+  const index = validFile.contents.findIndex((item) => item['@type'] === contentType && item.name === contentName)
+  const updatedContents = validFile.contents.toSpliced(index, 1, {
+    ...validFile.contents[index],
+    [keyToUpdate]: value,
+  })
+
+  return { ...validFile, contents: updatedContents }
+}
+
+const updateContentsBooleanValue = (
+  file: unknown,
+  value: boolean,
+  contentType: 'Property',
+  contentName: string,
+  keyToUpdate: 'writable'
+) => {
+  const schema = z.object({
+    '@type': z.literal('Interface'),
+    contents: z
+      .array(
+        z.looseObject({
+          '@type': z.string(),
+          name: z.string(),
+          [keyToUpdate]: z.boolean().optional(),
         })
       )
       .refine((contents) => contents.some((c) => c['@type'] === contentType && c.name === contentName)),

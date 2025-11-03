@@ -17,6 +17,10 @@ import {
   updateDescription,
   updateDisplayName,
   updatePropertyComment,
+  updatePropertyDescription,
+  updatePropertyDisplayName,
+  updatePropertySchema,
+  updatePropertyWritable,
   updateRelationshipComment,
   updateRelationshipDescription,
   updateRelationshipDisplayName,
@@ -79,9 +83,33 @@ describe('entity updates', function () {
       )
     })
 
+    test('updates property display name', async () => {
+      expect(updatePropertyDisplayName(newValue, propertyName)(baseFile({}))).to.deep.equal(
+        baseFile({ propertyUpdate: { displayName: newValue } })
+      )
+    })
+
+    test('updates property description', async () => {
+      expect(updatePropertyDescription(newValue, propertyName)(baseFile({}))).to.deep.equal(
+        baseFile({ propertyUpdate: { description: newValue } })
+      )
+    })
+
     test('updates property comment', async () => {
       expect(updatePropertyComment(newValue, propertyName)(baseFile({}))).to.deep.equal(
         baseFile({ propertyUpdate: { comment: newValue } })
+      )
+    })
+
+    test('updates property schema', async () => {
+      expect(updatePropertySchema('float', propertyName)(baseFile({}))).to.deep.equal(
+        baseFile({ propertyUpdate: { schema: 'float' } })
+      )
+    })
+
+    test('updates property writable', async () => {
+      expect(updatePropertyWritable(false, propertyName)(baseFile({}))).to.deep.equal(
+        baseFile({ propertyUpdate: { writable: false } })
       )
     })
 
@@ -156,6 +184,20 @@ describe('entity updates', function () {
       const newComment = 'a'.repeat(MAX_VALUE_LENGTH + 1)
       expect(() => {
         updateRelationshipComment(newComment, relationshipName)(baseFile({}))
+      }).to.throw(DataError)
+    })
+
+    test('throws error for property display name too long', async () => {
+      const newDisplayName = 'a'.repeat(MAX_DISPLAY_NAME_LENGTH + 1)
+      expect(() => {
+        updatePropertyDisplayName(newDisplayName, propertyName)(baseFile({}))
+      }).to.throw(DataError)
+    })
+
+    test('throws error for property description too long', async () => {
+      const newDescription = 'a'.repeat(MAX_VALUE_LENGTH + 1)
+      expect(() => {
+        updatePropertyDescription(newDescription, propertyName)(baseFile({}))
       }).to.throw(DataError)
     })
 

@@ -67,7 +67,7 @@ export const dtdlFileFixture =
   }: {
     interfaceUpdate?: Record<string, string>
     relationshipUpdate?: Record<string, string>
-    propertyUpdate?: Record<string, string>
+    propertyUpdate?: Record<string, string | boolean>
     telemetryUpdate?: Record<string, string>
   }) => ({
     '@context': ['dtmi:dtdl:context;4'],
@@ -80,7 +80,10 @@ export const dtdlFileFixture =
       {
         '@type': 'Property',
         name: propertyName,
+        description: 'description',
         comment: 'comment',
+        schema: 'double',
+        writable: true,
         ...propertyUpdate,
       },
       {
@@ -123,7 +126,7 @@ export const arrayDtdlFileEntityId = 'dtmi:com:array;1'
 export const arrayDtdlFileFixture = (updates: {
   interfaceUpdate?: Record<string, string>
   relationshipUpdate?: Record<string, string>
-  propertyUpdate?: Record<string, string>
+  propertyUpdate?: Record<string, string | boolean>
   telemetryUpdate?: Record<string, string>
 }) => [simpleDtdlFileFixture({}), dtdlFileFixture(arrayDtdlFileEntityId)(updates)]
 
