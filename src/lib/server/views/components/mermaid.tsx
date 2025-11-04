@@ -443,10 +443,7 @@ export default class MermaidTemplates {
       if (hasErrors(path)) {
         return true
       }
-      if (path.type === 'directory') {
-        return path.entries.some(hasChildErrors)
-      }
-      if (path.type === 'file' || path.type === 'fileEntry') {
+      if (path.type === 'directory' || path.type === 'file' || path.type === 'fileEntry') {
         return path.entries.some(hasChildErrors)
       }
       return false
@@ -520,10 +517,7 @@ export default class MermaidTemplates {
                     onclick="globalThis.toggleAccordion(event)"
                   >
                     {escapeHtml(path.name)}
-                    <img
-                      src="/public/images/warning.svg"
-                      style={{ marginLeft: '0.25em', width: '16px', height: '16px', verticalAlign: 'middle' }}
-                    />
+                    <img src="/public/images/warning.svg" class="warning-icon" />
                   </button>
                   <div class="accordion-content" {...{ [isExpanded ? 'aria-expanded' : 'aria-hidden']: '' }}>
                     <div class="error-details">
@@ -538,12 +532,12 @@ export default class MermaidTemplates {
                             <div class="error-kind">
                               <strong>{error.ExceptionKind} Error</strong>
                             </div>
-                            {hasUndefinedIdentifiers === true && (
+                            {hasUndefinedIdentifiers && (
                               <div class="error-message">
                                 Undefined identifiers: {escapeHtml(error.UndefinedIdentifiers!.join(', '))}
                               </div>
                             )}
-                            {hasParsingErrors === true && (
+                            {hasParsingErrors && (
                               <div class="error-message">
                                 {error.Errors!.map((parseError) => (
                                   <div>
@@ -568,12 +562,7 @@ export default class MermaidTemplates {
                 class={`navigation-panel-tree-leaf tree-icon ${this.navigationPanelNodeClass(path)} ${highlightClass} ${errorClass}`.trim()}
               >
                 {escapeHtml(path.name)}
-                {pathHasErrors && (
-                  <img
-                    src="/public/images/warning.svg"
-                    style={{ marginLeft: '0.25em', width: '16px', height: '16px', verticalAlign: 'middle' }}
-                  />
-                )}
+                {pathHasErrors && <img src="/public/images/warning.svg" class="warning-icon" />}
               </div>
             )
           }
@@ -587,12 +576,7 @@ export default class MermaidTemplates {
                 onclick="globalThis.toggleAccordion(event)"
               >
                 {escapeHtml(path.name)}
-                {(pathHasErrors || pathHasChildErrors) && (
-                  <img
-                    src="/public/images/warning.svg"
-                    style={{ marginLeft: '0.25em', width: '16px', height: '16px', verticalAlign: 'middle' }}
-                  />
-                )}
+                {(pathHasErrors || pathHasChildErrors) && <img src="/public/images/warning.svg" class="warning-icon" />}
               </button>
               <div class="accordion-content" {...{ [isExpanded ? 'aria-expanded' : 'aria-hidden']: '' }}>
                 <div>

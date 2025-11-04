@@ -418,7 +418,7 @@ label[for='diagram-type-select'] {
 
   /* Hide border when accordion is collapsed */
   [aria-hidden] .error-details {
-    border: 0px;
+    border: 0;
   }
 
   .error-item {
@@ -544,6 +544,14 @@ label[for='diagram-type-select'] {
     width: 2rem;
     height: auto;
   }
+}
+
+/* Warning icon styling for inline warning indicators */
+.warning-icon {
+  margin-left: 0.25em;
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
 }
 
 
