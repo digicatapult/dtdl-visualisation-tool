@@ -28,7 +28,6 @@ describe('rate limit', () => {
     for (let i = 0; i < env.get('GLOBAL_RATE_LIMIT'); i++) {
       const response = await request(app).get('/api/health')
       expect(response.status).to.equal(200)
-      expect(true).to.equal(false)
     }
 
     const response = await request(app).get('/api/health')
