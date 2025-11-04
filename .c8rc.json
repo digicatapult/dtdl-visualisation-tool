@@ -1,5 +1,0 @@
-{
-  "include": ["src/**/*.ts"],
-  "exclude": ["**/__tests__/**", "src/lib/server/routes.ts"],
-  "reporter": ["text", "html"]
-}
