@@ -34,7 +34,7 @@ test.describe('multiple sessions', () => {
     // change to class diagram type on both pages
     await Promise.all(
       pages.map(async (page) => {
-        await waitForUpdateLayout(page, () => page.getByLabel('Diagram Type').selectOption('classDiagram'))
+        await waitForUpdateLayout(page, () => page.locator('#diagram-type-select').selectOption('classDiagram'))
       })
     )
 

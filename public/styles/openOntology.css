@@ -77,11 +77,11 @@
 
   &::before {
     width: 100%;
-    height: 10%;
+    height: 11%;
   }
   &::after {
     height: 100%;
-    width: 10%;
+    width: 11%;
   }
 }
 #upload-method.show-content > #upload-ontology-button {

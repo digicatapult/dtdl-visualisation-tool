@@ -52,6 +52,7 @@ export default class MermaidTemplates {
         <this.searchPanel search={search} diagramType={diagramType} svgWidth={svgWidth} svgHeight={svgHeight} />
         <this.uploadForm />
         <this.shareOntology />
+        <this.publishForm canPublish={false} />
       </section>
 
       <div id="mermaid-wrapper">
@@ -666,7 +667,6 @@ export default class MermaidTemplates {
         <input id="currentPanX" name="currentPanX" type="hidden" value={maybeNumberToAttr(currentPanX, 0)} />
         <input id="currentPanY" name="currentPanY" type="hidden" value={maybeNumberToAttr(currentPanY, 0)} />
 
-        <label for="diagram-type-select">Diagram Type</label>
         <select id="diagram-type-select" name="diagramType" hx-trigger="input changed" {...commonUpdateAttrs}>
           {diagramTypes.map((entry) => (
             <option value={entry} selected={entry === diagramType}>
@@ -738,7 +738,7 @@ export default class MermaidTemplates {
   private uploadForm = () => {
     return (
       <a id="open-button" href={`/open`} class="button">
-        Open Ontology
+        Open
       </a>
     )
   }
@@ -748,7 +748,7 @@ export default class MermaidTemplates {
     return (
       <>
         <a id="share-ontology" onclick="globalThis.showShareModal()" class="button">
-          Share Ontology
+          Share
         </a>
         <dialog id="share-link-modal" class="modal">
           <form method="dialog">
@@ -784,6 +784,24 @@ export default class MermaidTemplates {
     )
   }
 
+  private publishForm = ({ canPublish }: { canPublish: boolean }) => {
+    if (!env.get('EDIT_ONTOLOGY')) return <></>
+    return (
+      <a
+        id="publish-ontology"
+        href={`${!canPublish ? 'javascript:void(0)' : '/publish'}`}
+        class={`button ${!canPublish ? 'disabled' : ''}`}
+        title={
+          canPublish
+            ? 'Click to publish ontology'
+            : 'Only Ontologies from github that you have write permissions on, can be published'
+        }
+      >
+        Publish
+      </a>
+    )
+  }
+
   public editToggle = ({ canEdit }: { canEdit: boolean }) => {
     if (!env.get('EDIT_ONTOLOGY')) return <></>
     return (
@@ -797,7 +815,7 @@ export default class MermaidTemplates {
           }
           class={canEdit ? '' : 'disabled'}
         >
-          <span id="edit-toggle-text">View</span>
+          <span class="view-text">View</span>
           <label class="switch">
             <form
               hx-get="edit-model"
@@ -807,10 +825,16 @@ export default class MermaidTemplates {
               hx-swap="outerHTML"
               hx-vals="js:{ editMode: event.detail.checked }"
             >
-              <input type="checkbox" disabled={!canEdit} onclick="globalThis.toggleEditSwitch(event)" />
+              <input
+                id="edit-toggle-checkbox"
+                type="checkbox"
+                disabled={!canEdit}
+                onclick="globalThis.toggleEditSwitch(event)"
+              />
               <span class="slider"></span>
             </form>
           </label>
+          <span class="edit-text">Edit</span>
         </div>
         <div id="edit-buttons">
           <button id="add-node-button"></button>
