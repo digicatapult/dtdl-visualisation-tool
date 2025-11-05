@@ -17,7 +17,8 @@ jobs:
   trufflehog:
     uses: digicatapult/shared-workflows/.github/workflows/scan-secrets.yml@feature/add_trufflehog_scans
     with:
-      extra_args: "--results=verified,unknown --log-level=1"
+      base: ""
+      extra_args: "--results=verified,unknown --log-level=2"
 
   tests-npm:
     uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
