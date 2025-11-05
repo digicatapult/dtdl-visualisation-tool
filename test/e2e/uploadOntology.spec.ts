@@ -58,6 +58,15 @@ test.describe('Upload ontology from local drive', () => {
     await expect(page.locator('#mermaid-output').getByText('IdentifiedObject')).toBeVisible()
     await expect(page.locator('#navigation-panel-tree-warning')).toBeInViewport()
 
+    await expect(page.locator('.nav-tree-has-child-errors')).toBeInViewport()
+    await page.click('.nav-tree-has-child-errors')
+    await expect(page.locator('.nav-tree-error')).toBeInViewport()
+    await page.click('.nav-tree-error')
+    await expect(page.locator('.error-details')).toBeInViewport()
+    await expect(page.locator('.error-details')).toContainText('Parsing Error')
+    await expect(page.locator('.error-details')).toContainText('Cause')
+    await expect(page.locator('.error-details')).toContainText('Action')
+
     // Test default dtdl still loads
     await waitForUpdateLayout(page, () => page.goto('./'))
     await expect(page.locator('#mermaid-output').getByText('ConnectivityNode', { exact: true })).toBeVisible()

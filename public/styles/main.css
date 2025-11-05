@@ -388,6 +388,53 @@ label[for='diagram-type-select'] {
   .navigation-panel-tree-leaf {
     padding-left: 0.5rem;
     border-left: 1px solid var(--border-color);
+    margin-left: 0.25em;
+  }
+
+  /* Error file accordions: remove border from the button since parent has it */
+  .accordion-parent > button.navigation-panel-tree-leaf {
+    border-left: none;
+    padding-left: 1.25em; /* Adjust padding since no border */
+  }
+
+  /* Fix error file accordion button positioning to not overlap with icon */
+  .accordion-parent > button.navigation-panel-tree-leaf.tree-icon {
+    padding-left: 2.25em; /* Same as regular buttons */
+    margin-left: 0em; /* Same as regular buttons */
+
+    &::after {
+      left: 1em; /* Same position as regular button icons */
+    }
+  }
+
+  /* Style error details content to match tree structure */
+  .error-details {
+    margin-left: 2rem; /* Align with other tree content */
+    font-size: 0.9rem;
+    background-color: #fff8e1;
+    border: 1px solid #ffcc00;
+    border-radius: 4px;
+  }
+
+  /* Hide border when accordion is collapsed */
+  [aria-hidden] .error-details {
+    border: 0;
+  }
+
+  .error-item {
+    margin-bottom: 0.5rem;
+    color: #d32f2f; /* Red color for error content */
+  }
+
+  .error-kind {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .error-message {
+    margin-left: 0.5rem;
+    font-size: 0.85rem;
+    line-height: 1.3;
   }
 
   .navigation-panel-tree-leaf.tree-icon {
@@ -403,6 +450,16 @@ label[for='diagram-type-select'] {
     background-color: var(--highlighted-color);
   }
 
+  /* Error styling for tree nodes */
+  .nav-tree-error {
+    color: #d32f2f; /* Red color for error text */
+    font-weight: 500;
+  }
+
+  .nav-tree-has-child-errors {
+    color: inherit; /* Keep default black color for directories containing errors */
+  }
+
   button {
     grid-template-columns: repeat(3, auto);
     background: transparent;
@@ -413,7 +470,6 @@ label[for='diagram-type-select'] {
     cursor: pointer;
     position: relative;
     padding-left: 2.25em;
-    margin-left: -0.25em;
 
     &:hover {
       background-color: var(--border-color);
@@ -488,6 +544,14 @@ label[for='diagram-type-select'] {
     width: 2rem;
     height: auto;
   }
+}
+
+/* Warning icon styling for inline warning indicators */
+.warning-icon {
+  margin-left: 0.25em;
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
 }
 
 
