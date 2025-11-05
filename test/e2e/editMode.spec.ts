@@ -20,7 +20,7 @@ test.describe('Test edit ontology', () => {
       'Only Ontologies from github that you have write permissions on, can be edited'
     )
   })
-  test('edit interface + relationship', async ({ browser, baseURL }) => {
+  test('edit interface', async ({ browser, baseURL }) => {
     // login to github
     const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const page = await context.newPage()
@@ -78,22 +78,32 @@ test.describe('Test edit ontology', () => {
     )
     expect(navigationAfterContent).toBe(`url("${baseURL}/public/images/pencil.svg")`)
 
-    // test interface edits
+    // interface edits
     const newInterfaceDisplayName = 'new display name'
     await testNavPanelEdit(page, /^displayNameEdit$/, newInterfaceDisplayName, '/displayName')
     await testNavPanelEdit(page, /^descriptionEdit$/, 'updated', '/description')
     await testNavPanelEdit(page, /^commentEdit$/, 'updated', '/comment')
+
+    // property edits
     await testNavPanelEdit(page, /^propertyDisplayNameEdit$/, 'updated', '/propertyDisplayName')
-    await testNavPanelDropdownEdit(page, 'double', 'float', '/propertySchema')
+    await testNavPanelDropdownEdit(page, 'float', 'integer', '/propertySchema')
     await testNavPanelEdit(page, /^propertyDescriptionEdit$/, 'updated', '/propertyDescription')
     await testNavPanelEdit(page, /^propertyCommentEdit$/, 'updated', '/propertyComment')
-    await testNavPanelDropdownEdit(page, 'true', 'false', '/propertyWritable')
+    await testNavPanelDropdownEdit(page, 'false', 'true', '/propertyWritable')
+
+    // extended property
+    const extendedProperty = page.locator('#navigation-panel-details').getByText('Name: baseProperty')
+    const backgroundColor = await extendedProperty.evaluate((el) => window.getComputedStyle(el).backgroundColor)
+    expect(backgroundColor).toBe('rgb(245, 246, 250)')
+    await expect(extendedProperty).toHaveAttribute('title', 'Extended from dtmi:com:base;1')
+
+    // telemetry edits
     await testNavPanelEdit(page, /^telemetryDisplayNameEdit$/, 'updated', '/telemetryDisplayName')
-    await testNavPanelDropdownEdit(page, 'double', 'float', '/telemetrySchema')
+    await testNavPanelDropdownEdit(page, 'float', 'integer', '/telemetrySchema')
     await testNavPanelEdit(page, /^telemetryDescriptionEdit$/, 'updated', '/telemetryDescription')
     await testNavPanelEdit(page, /^telemetryCommentEdit$/, 'updated', '/telemetryComment')
 
-    // test relationship edits
+    // relationship edits
     await waitForSuccessResponse(
       page,
       () => page.locator('#mermaid-output').getByText('relationshipDisplay').first().click(),
@@ -140,7 +150,7 @@ const testNavPanelEdit = async (page: Page, textToEdit: RegExp, newValue: string
 }
 
 const testNavPanelDropdownEdit = async (page: Page, currentValue: string, newOption: string, successRoute: string) => {
-  const dropdown = page.locator(`select.nav-panel-editable:has(option[value="${currentValue}"][selected])`)
+  const dropdown = page.locator(`select.nav-panel-editable:has(option[value="${currentValue}"][selected])`).first()
   await waitForSuccessResponse(page, () => dropdown.selectOption(newOption), successRoute)
   await page.waitForTimeout(500)
 }

@@ -1,6 +1,7 @@
 /// <reference types="@kitajs/html/htmx.d.ts" />
 
 import { DtdlObjectModel, PropertyInfo } from '@digicatapult/dtdl-parser'
+import { escapeHtml } from '@kitajs/html'
 import { DTDL_VALID_SCHEMAS, DTDL_VALID_WRITABLE, DtdlId } from '../../models/strings.js'
 import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
 import { getDisplayNameOrId } from '../../utils/dtdl/extract.js'
@@ -30,7 +31,7 @@ export const PropertyDetails = ({
       title={isExtended ? `Extended from ${getDisplayNameOrId(model[property.DefinedIn])}` : undefined}
     >
       <b>Name: </b>
-      {property.name}
+      {escapeHtml(property.name)}
       <br />
       <b>Display Name:</b>
       <EditableText

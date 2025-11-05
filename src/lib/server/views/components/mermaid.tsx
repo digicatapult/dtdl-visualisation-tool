@@ -319,7 +319,7 @@ export default class MermaidTemplates {
                 return (
                   <>
                     <b>Name: </b>
-                    {telemetry.name}
+                    {escapeHtml(telemetry.name)}
                     <br />
                     <b>Display Name:</b>
                     <EditableText

@@ -78,7 +78,7 @@ export const EditableText = ({
   multiline?: boolean
   maxLength?: number
 }): JSX.Element => {
-  if (!text) return <p>'{keyName}' key missing in original file</p>
+  if (!text) return <p>'{escapeHtml(keyName)}' key missing in original file</p>
   if (!edit) return <p>{escapeHtml(text)}</p>
 
   return (

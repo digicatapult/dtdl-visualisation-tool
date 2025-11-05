@@ -61,10 +61,9 @@ async function globalSetup(config: FullConfig) {
     },
     visualisationImage
   )
-
-  await getGithubToken(config, user1)
-  await getGithubToken(config, user2)
 }
+await getGithubToken(config, user1)
+await getGithubToken(config, user2)
 
 const attempt2fa = async (totp: TOTP, page: Page) => {
   await page.fill('#app_totp', totp.generate())

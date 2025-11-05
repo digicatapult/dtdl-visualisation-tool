@@ -95,8 +95,8 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
       ...entity.extends
         .filter((parent) => !!dtdlObjectModel[parent])
         .map((parent) => this.createEdgeString(entity.Id, parent, arrowTypes.Inheritance)),
-      ...Object.entries(entity.properties).flatMap(
-        ([_, propertyId]) => `${this.safeClassName(entity.Id)} : ${getDisplayNameOrName(dtdlObjectModel[propertyId])}`
+      ...Object.values(entity.properties).map(
+        (propertyId) => `${this.safeClassName(entity.Id)} : ${getDisplayNameOrName(dtdlObjectModel[propertyId])}`
       ),
       `class ${this.safeClassName(entity.Id)}:::${getVisualisationState(entity)}`,
     ]
