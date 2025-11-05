@@ -33,7 +33,6 @@ export class GithubRequest {
         page,
       })
     )
-
     return response.data
   }
 
