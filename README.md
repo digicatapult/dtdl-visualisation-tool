@@ -203,3 +203,7 @@ When running test and you want to see logs from `testcontainer`, change the run 
 ```
 "test:playwright": "DEBUG=testcontainers* playwright test --trace on --max-failures=1",
 ```
+
+<!-- Test secrets
+FAKE_AWS_SECRET_KEY=nHuIWTOnsrSSPQQjnYS2MBxFMcOQGsJ75ol3tMC8
+ -->
