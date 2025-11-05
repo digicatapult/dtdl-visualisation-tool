@@ -1,8 +1,8 @@
 name: Lint and Test
 
 on:
-  push:
-    branches-ignore: ['main']
+  pull_request:
+    types: [synchronize]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
