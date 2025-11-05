@@ -232,6 +232,7 @@ node build/index.js parse -p sample/energygrid &
 Use these MCP browser tools for AI-assisted Playwright test development:
 
 ```typescript
+// MCP server tool calls (not Playwright API methods)
 // 1. Navigate and take snapshot to get current page state
 await browser_navigate({ url: 'http://localhost:3000' })
 await browser_snapshot()  // Always do this first!
