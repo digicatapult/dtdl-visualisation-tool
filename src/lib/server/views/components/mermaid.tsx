@@ -401,6 +401,22 @@ export default class MermaidTemplates {
 
     const defaultExpandSet = fileTree.reduce(reducer, null) || new Set<DtdlPath>()
 
+    // Helper function to check if a single path has errors
+    const hasErrors = (path: DtdlPath): boolean => {
+      return path.type === 'file' && path.errors !== undefined
+    }
+
+    // Helper function to check if a path or its children contain errors
+    const hasChildErrors = (path: DtdlPath): boolean => {
+      if (hasErrors(path)) {
+        return true
+      }
+      if (path.type === 'directory' || path.type === 'file' || path.type === 'fileEntry') {
+        return path.entries.some(hasChildErrors)
+      }
+      return false
+    }
+
     const containsErrors = (paths: DtdlPath[]): boolean =>
       paths.some((path) =>
         path.type === 'file'
@@ -417,6 +433,8 @@ export default class MermaidTemplates {
             highlightedEntityId={entityId}
             highlightedEntitySet={defaultExpandSet}
             fileTree={fileTree}
+            hasErrors={hasErrors}
+            hasChildErrors={hasChildErrors}
           />
         </div>
         {containsErrors(fileTree) && (
@@ -433,10 +451,14 @@ export default class MermaidTemplates {
     highlightedEntityId,
     highlightedEntitySet,
     fileTree,
+    hasErrors,
+    hasChildErrors,
   }: {
     highlightedEntityId?: DtdlId
     highlightedEntitySet: Set<DtdlPath>
     fileTree: DtdlPath[]
+    hasErrors: (path: DtdlPath) => boolean
+    hasChildErrors: (path: DtdlPath) => boolean
   }): JSX.Element => {
     return (
       <>
@@ -444,12 +466,71 @@ export default class MermaidTemplates {
           const isHighlighted = 'id' in path ? path.id === highlightedEntityId : false
           const highlightClass = isHighlighted ? 'nav-tree-leaf-highlighted' : ''
 
+          // Determine error classes - files get red, directories with child errors get black with warning
+          const pathHasErrors = hasErrors(path)
+          const pathHasChildErrors = !pathHasErrors && hasChildErrors(path)
+          const errorClass = pathHasErrors ? 'nav-tree-error' : pathHasChildErrors ? 'nav-tree-has-child-errors' : ''
+
           if (path.type === 'fileEntryContent' || path.entries.length === 0) {
+            // Check if this is a file with errors that needs an accordion
+            if (pathHasErrors && path.type === 'file') {
+              const errors = path.errors || []
+              // Error accordions should use the same expansion logic as regular directories
+              const isExpanded = highlightedEntitySet.has(path)
+              return (
+                <div class="accordion-parent">
+                  <button
+                    class={`navigation-panel-tree-leaf tree-icon ${this.navigationPanelNodeClass(path)} ${highlightClass} ${errorClass}`.trim()}
+                    {...{ [isExpanded ? 'aria-expanded' : 'aria-hidden']: '' }}
+                    onclick="globalThis.toggleAccordion(event)"
+                  >
+                    {escapeHtml(path.name)}
+                    <img src="/public/images/warning.svg" class="warning-icon" />
+                  </button>
+                  <div class="accordion-content" {...{ [isExpanded ? 'aria-expanded' : 'aria-hidden']: '' }}>
+                    <div class="error-details">
+                      {errors.map((error) => {
+                        const isResolutionError = error.ExceptionKind === 'Resolution'
+                        const isParsingError = error.ExceptionKind === 'Parsing'
+                        const hasUndefinedIdentifiers = !!(isResolutionError && error.UndefinedIdentifiers)
+                        const hasParsingErrors = !!(isParsingError && error.Errors)
+
+                        return (
+                          <div class="error-item">
+                            <div class="error-kind">
+                              <strong>{error.ExceptionKind} Error</strong>
+                            </div>
+                            {hasUndefinedIdentifiers && (
+                              <div class="error-message">
+                                Undefined identifiers: {escapeHtml(error.UndefinedIdentifiers!.join(', '))}
+                              </div>
+                            )}
+                            {hasParsingErrors && (
+                              <div class="error-message">
+                                {error.Errors!.map((parseError) => (
+                                  <div>
+                                    <strong>Cause:</strong> {escapeHtml(parseError.Cause)}
+                                    <br />
+                                    <strong>Action:</strong> {escapeHtml(parseError.Action)}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )
+            }
+
             return (
               <div
-                class={`navigation-panel-tree-leaf tree-icon ${this.navigationPanelNodeClass(path)} ${highlightClass}`}
+                class={`navigation-panel-tree-leaf tree-icon ${this.navigationPanelNodeClass(path)} ${highlightClass} ${errorClass}`.trim()}
               >
                 {escapeHtml(path.name)}
+                {pathHasErrors && <img src="/public/images/warning.svg" class="warning-icon" />}
               </div>
             )
           }
@@ -458,11 +539,12 @@ export default class MermaidTemplates {
           return (
             <div class="accordion-parent">
               <button
-                class={`navigation-panel-tree-node tree-icon ${this.navigationPanelNodeClass(path)} ${highlightClass}`}
+                class={`navigation-panel-tree-node tree-icon ${this.navigationPanelNodeClass(path)} ${highlightClass} ${errorClass}`.trim()}
                 {...{ [isExpanded ? 'aria-expanded' : 'aria-hidden']: '' }}
                 onclick="globalThis.toggleAccordion(event)"
               >
                 {escapeHtml(path.name)}
+                {(pathHasErrors || pathHasChildErrors) && <img src="/public/images/warning.svg" class="warning-icon" />}
               </button>
               <div class="accordion-content" {...{ [isExpanded ? 'aria-expanded' : 'aria-hidden']: '' }}>
                 <div>
@@ -470,6 +552,8 @@ export default class MermaidTemplates {
                     highlightedEntityId={highlightedEntityId}
                     highlightedEntitySet={highlightedEntitySet}
                     fileTree={path.entries}
+                    hasErrors={hasErrors}
+                    hasChildErrors={hasChildErrors}
                   />
                 </div>
               </div>
