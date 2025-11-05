@@ -217,7 +217,7 @@ export class OntologyController extends HTMLController {
         swapOutOfBand: true,
         entityId: dtdlIdReinstateSemicolon(newSession.highlightNodeId ?? ''),
         model: baseModel,
-        expanded: true,
+        expanded: params.navigationPanelExpanded ?? true,
         edit: session.editMode!,
         tab: params.navigationPanelTab ?? (newSession.highlightNodeId ? 'details' : 'tree'),
         fileTree,
@@ -237,7 +237,8 @@ export class OntologyController extends HTMLController {
   public async editModel(
     @Path() dtdlModelId: UUID,
     @Query() sessionId: UUID,
-    @Query() editMode: boolean
+    @Query() editMode: boolean,
+    @Query() navigationPanelExpanded?: boolean
   ): Promise<HTML> {
     const session = this.sessionStore.get(sessionId)
 
@@ -251,7 +252,7 @@ export class OntologyController extends HTMLController {
         swapOutOfBand: false,
         entityId: dtdlIdReinstateSemicolon(session.highlightNodeId ?? ''),
         model: baseModel,
-        expanded: session.highlightNodeId !== undefined,
+        expanded: navigationPanelExpanded ?? true,
         edit: editMode,
         tab: 'details',
         fileTree,

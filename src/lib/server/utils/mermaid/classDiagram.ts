@@ -1,7 +1,7 @@
 import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 import { InternalError } from '../../errors.js'
 import { DtdlId } from '../../models/strings.js'
-import { getDisplayNameOrId } from '../dtdl/extract.js'
+import { getDisplayNameOrId, getDisplayNameOrName } from '../dtdl/extract.js'
 import { getVisualisationState } from '../dtdl/filter.js'
 import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
 import {
@@ -95,7 +95,9 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
       ...entity.extends
         .filter((parent) => !!dtdlObjectModel[parent])
         .map((parent) => this.createEdgeString(entity.Id, parent, arrowTypes.Inheritance)),
-      ...Object.entries(entity.properties).flatMap(([name]) => `${this.safeClassName(entity.Id)} : ${name}`),
+      ...Object.entries(entity.properties).flatMap(
+        ([_, propertyId]) => `${this.safeClassName(entity.Id)} : ${getDisplayNameOrName(dtdlObjectModel[propertyId])}`
+      ),
       `class ${this.safeClassName(entity.Id)}:::${getVisualisationState(entity)}`,
     ]
 

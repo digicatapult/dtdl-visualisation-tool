@@ -6,11 +6,12 @@ import { randomUUID } from 'crypto'
 import { container, singleton } from 'tsyringe'
 import { Env } from '../../env/index.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
-import { DTDL_VALID_SCHEMAS, DTDL_VALID_WRITABLE, DtdlId, UUID } from '../../models/strings.js'
+import { DTDL_VALID_SCHEMAS, DtdlId, UUID } from '../../models/strings.js'
 import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
 import { getDisplayNameOrId, isInterface, isProperty, isRelationship, isTelemetry } from '../../utils/dtdl/extract.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { AccordionSection, EditableSelect, EditableText, Page } from '../common.js'
+import { PropertyDetails } from './property.js'
 
 const env = container.resolve(Env)
 
@@ -18,7 +19,7 @@ const commonUpdateAttrs = {
   'hx-target': '#mermaid-output',
   'hx-get': 'update-layout',
   'hx-swap': 'outerHTML  transition:true',
-  'hx-include': '#sessionId, #search-panel, input[name="navigationPanelTab"]',
+  'hx-include': '#sessionId, #search-panel, input[name="navigationPanelTab"], #navigationPanelExpanded',
   'hx-indicator': '#spinner',
   'hx-disabled-elt': 'select',
 }
@@ -167,6 +168,12 @@ export default class MermaidTemplates {
         {...{ [expanded ? 'aria-expanded' : 'aria-hidden']: '' }}
         class={edit ? 'edit' : 'view'}
       >
+        <input
+          id="navigationPanelExpanded"
+          name="navigationPanelExpanded"
+          type="hidden"
+          value={expanded ? 'true' : 'false'}
+        />
         <button id="navigation-panel-button" onclick="globalThis.toggleNavPanel(event)"></button>
         <div id="navigation-panel-controls">
           <label>
@@ -275,64 +282,9 @@ export default class MermaidTemplates {
           {isInterface(entity) && Object.keys(entity.properties).length > 0
             ? Object.entries(entity.properties).map(([name, id]) => {
                 const property = model[id]
-                if (!isProperty(property) || !property.DefinedIn) return
+                if (!isProperty(property)) return
                 return (
-                  <>
-                    <b>Name: </b>
-                    {property.name}
-                    <br />
-                    <b>Display Name:</b>
-                    <EditableText
-                      edit={edit}
-                      definedIn={property.DefinedIn}
-                      putRoute="propertyDisplayName"
-                      text={property.displayName?.en}
-                      keyName="displayName"
-                      additionalBody={{ propertyName: name }}
-                      maxLength={64}
-                    />
-                    <b>Schema:</b>
-                    <EditableSelect
-                      edit={edit}
-                      definedIn={property.DefinedIn}
-                      putRoute="propertySchema"
-                      text={model[property.schema].displayName?.en}
-                      additionalBody={{ propertyName: name }}
-                      options={DTDL_VALID_SCHEMAS}
-                    />
-                    <b>Description:</b>
-                    {EditableText({
-                      edit,
-                      definedIn: property.DefinedIn,
-                      putRoute: 'propertyDescription',
-                      text: property.description?.en,
-                      keyName: 'description',
-                      additionalBody: { propertyName: name },
-                      multiline: true,
-                      maxLength: MAX_VALUE_LENGTH,
-                    })}
-                    <b>Comment:</b>
-                    {EditableText({
-                      edit,
-                      definedIn: property.DefinedIn,
-                      putRoute: 'propertyComment',
-                      text: property.comment,
-                      keyName: 'comment',
-                      additionalBody: { propertyName: name },
-                      multiline: true,
-                      maxLength: MAX_VALUE_LENGTH,
-                    })}
-                    <b>Writable:</b>
-                    <EditableSelect
-                      edit={edit}
-                      definedIn={property.DefinedIn}
-                      putRoute="propertyWritable"
-                      text={String(property.writable)}
-                      additionalBody={{ propertyName: name }}
-                      options={DTDL_VALID_WRITABLE.map(String)}
-                    />
-                    <br />
-                  </>
+                  <PropertyDetails property={property} name={name} model={model} edit={edit} entityId={entity.Id} />
                 )
               })
             : 'None'}
@@ -732,10 +684,10 @@ export default class MermaidTemplates {
           <span id="edit-toggle-text">View</span>
           <label class="switch">
             <form
+              {...commonUpdateAttrs}
               hx-get="edit-model"
               hx-target="#navigation-panel"
               hx-trigger="checked"
-              hx-include="#sessionId"
               hx-swap="outerHTML"
               hx-vals="js:{ editMode: event.detail.checked }"
             >
