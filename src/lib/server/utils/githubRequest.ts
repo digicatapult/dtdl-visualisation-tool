@@ -36,6 +36,19 @@ export class GithubRequest {
     return response.data
   }
 
+  getBla2 = async (token: string | undefined, page: number) => {
+    if (!token) throw new GithubReqError('Missing GitHub token')
+
+    const octokit = new Octokit({ auth: token })
+    const response = await this.requestWrapper(async () =>
+      octokit.request('GET /user/repos', {
+        per_page: perPage,
+        page,
+      })
+    )
+    return response.data
+  }
+
   getRepos = async (token: string | undefined, page: number) => {
     if (!token) throw new GithubReqError('Missing GitHub token')
 
