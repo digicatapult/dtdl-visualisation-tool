@@ -1,6 +1,0 @@
-export default {
-  include: ['src/**/*.ts', 'src/**/*.tsx'],
-  exclude: ['**/__tests__/**', 'src/lib/server/routes.ts'],
-  reporter: ['text', 'html'],
-  lines: 50,
-}
