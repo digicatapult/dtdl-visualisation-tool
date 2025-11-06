@@ -48,7 +48,7 @@ export const PropertyDetails = ({
         edit={canEdit}
         definedIn={property.DefinedIn}
         putRoute="propertySchema"
-        text={model[property.schema].displayName?.en}
+        text={model[property.schema].displayName?.en ?? 'Complex schema'}
         additionalBody={{ propertyName: name }}
         options={DTDL_VALID_SCHEMAS}
       />

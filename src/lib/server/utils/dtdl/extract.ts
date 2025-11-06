@@ -17,7 +17,7 @@ export const isInterface = (entity: EntityType): entity is InterfaceInfo => enti
 export const isRelationship = (entity: EntityType): entity is RelationshipInfo => entity.EntityKind === 'Relationship'
 export const isProperty = (entity: EntityType): entity is PropertyInfo => entity.EntityKind === 'Property'
 export const isTelemetry = (entity: EntityType): entity is TelemetryInfo => entity.EntityKind === 'Telemetry'
-export const isNamedEntity = (entity: EntityType): entity is NamedEntityInfo => 'name' in entity
+export const isNamedEntity = (entity: EntityType): entity is NamedEntityInfo => entity && 'name' in entity
 
 export const allInterfaceFilter = () => {
   return ([, entity]: [unknown, EntityType]) => entity.EntityKind === 'Interface'

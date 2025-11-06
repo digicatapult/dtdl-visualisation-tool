@@ -120,6 +120,7 @@ export const EditableSelect = ({
   additionalBody?: Record<string, string>
   options: readonly string[]
 }): JSX.Element => {
+  if (!text) return <p>Missing value</p>
   if (!edit) return <p>{escapeHtml(text)}</p>
 
   return (
@@ -133,9 +134,9 @@ export const EditableSelect = ({
       hx-indicator="#spinner"
     >
       <select name="value" class="nav-panel-editable">
-        {options.map((schema) => (
-          <option value={schema} {...(schema === text && { selected: true })}>
-            {escapeHtml(schema)}
+        {options.map((option) => (
+          <option value={option} {...(option === text && { selected: true })}>
+            {escapeHtml(option)}
           </option>
         ))}
       </select>

@@ -336,7 +336,7 @@ export default class MermaidTemplates {
                       edit={edit}
                       definedIn={telemetry.DefinedIn}
                       putRoute="telemetrySchema"
-                      text={model[telemetry.schema].displayName?.en}
+                      text={model[telemetry.schema].displayName?.en ?? 'Complex schema'}
                       additionalBody={{ telemetryName: name }}
                       options={DTDL_VALID_SCHEMAS}
                     />
