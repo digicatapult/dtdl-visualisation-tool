@@ -14,7 +14,7 @@ test.describe('Open Ontology from recently visited', () => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     await page.setViewportSize({ width: 1920, height: 1080 })
     await waitForUpdateLayout(page, () => page.goto('./'))
-    await expect(page.locator('#toolbar').getByText('Open Ontology')).toBeVisible()
+    await expect(page.locator('#toolbar').getByText('Open')).toBeVisible()
 
     await waitForSuccessResponse(page, () => page.locator('#open-button').click(), '/open')
     await expect(page.locator('#main-view').getByText('Viewed Today at ')).toBeVisible()
@@ -51,7 +51,7 @@ test.describe('Open Ontology from recently visited', () => {
     await context.clearCookies({ name: modelHistoryCookie })
     await page.setViewportSize({ width: 1920, height: 1080 })
     await waitForUpdateLayout(page, () => page.goto('./'))
-    await expect(page.locator('#toolbar').getByText('Open Ontology')).toBeVisible()
+    await expect(page.locator('#toolbar').getByText('Open')).toBeVisible()
 
     await waitForSuccessResponse(page, () => page.locator('#open-button').click(), '/open')
     await expect(page.locator('#main-view').getByText('Viewed Today at ')).toBeVisible()

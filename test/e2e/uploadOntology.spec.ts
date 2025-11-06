@@ -13,7 +13,7 @@ test.describe('Upload ontology from local drive', () => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     await page.setViewportSize({ width: 1920, height: 1080 })
     await waitForUpdateLayout(page, () => page.goto('./'))
-    await expect(page.locator('#toolbar').getByText('Open Ontology')).toBeVisible()
+    await expect(page.locator('#toolbar').getByText('Open')).toBeVisible()
 
     await waitForSuccessResponse(page, () => page.locator('#open-button').click(), '/open')
     await expect(page.locator('#main-view').getByTitle('Upload New Ontology')).toBeVisible()
@@ -43,7 +43,7 @@ test.describe('Upload ontology from local drive', () => {
     await waitForUploadFile(page, () => page.locator('#main-view').getByText('Local Zip File').click(), filePath)
 
     await expect(page.locator('#mermaid-output').getByText('dtmi:com:example;1')).toBeVisible()
-    await waitForUpdateLayout(page, () => page.getByLabel('Diagram Type').selectOption('classDiagram'))
+    await waitForUpdateLayout(page, () => page.locator('#diagram-type-select').selectOption('classDiagram'))
     await expect(page.locator('#mermaid-output #mermaid-svg')).toHaveClass('classDiagram')
 
     // Some valid/invalid zip
@@ -72,7 +72,7 @@ test.describe('Upload ontology from local drive', () => {
     await expect(page.locator('#mermaid-output').getByText('ConnectivityNode', { exact: true })).toBeVisible()
 
     // Check classDiagram functionality
-    await waitForUpdateLayout(page, () => page.getByLabel('Diagram Type').selectOption('classDiagram'))
+    await waitForUpdateLayout(page, () => page.locator('#diagram-type-select').selectOption('classDiagram'))
     await expect(page.locator('#mermaid-output #mermaid-svg')).toHaveClass('classDiagram')
   })
 })
