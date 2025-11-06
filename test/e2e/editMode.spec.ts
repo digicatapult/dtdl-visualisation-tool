@@ -7,7 +7,7 @@ test.describe('Test edit ontology', () => {
   test('open ontology that cant be edited and check that toggle is disabled', async ({ page, baseURL }) => {
     await page.setViewportSize({ width: 1920, height: 1080 })
     await waitForUpdateLayout(page, () => page.goto(baseURL!))
-    await expect(page.locator('#toolbar').getByText('Open Ontology')).toBeVisible()
+    await expect(page.locator('#toolbar').getByText('Open')).toBeVisible()
 
     await waitForSuccessResponse(page, () => page.locator('#open-button').click(), '/open')
     await expect(page.locator('#main-view').getByText('Viewed Today at ')).toBeVisible()
