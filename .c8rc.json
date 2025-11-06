@@ -2,5 +2,6 @@
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["**/__tests__/**", "src/lib/server/routes.ts"],
   "reporter": ["text", "html"],
-  "lines": 50
+  "lines": 50,
+  "temp-directory": "./bla"
 }
