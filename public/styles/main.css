@@ -723,17 +723,18 @@ label[for='diagram-type-select'] {
   border-width: 1px;
   padding: 5px;
   cursor: pointer;
-  background-color: var(--background-color);
+  background-color: var(--active-button-color);
   justify-content: center;
   width: 10ch;
   padding: 10px;
   margin-inline: 1ch;
   height: fit-content;
   align-self: center;
+  color: white;
 }
 
 #open-button:hover {
-  background-color: #e9e9ed;
+  --highlight-color: hsl(from var(--active-button-color) h s 40%);
 }
 
 #share-ontology {
@@ -744,17 +745,18 @@ label[for='diagram-type-select'] {
   border-width: 1px;
   padding: 5px;
   cursor: pointer;
-  background-color: var(--background-color);
+  background-color: var(--active-button-color);
   justify-content: center;
   width: 10ch;
   padding: 10px;
   margin-inline: 1ch;
   height: fit-content;
   align-self: center;
+  color: white;
 }
 
 #share-ontology:hover {
-  background-color: #e9e9ed;
+  --highlight-color: hsl(from var(--active-button-color) h s 40%);
 }
 
 #share-link-modal {
@@ -892,16 +894,17 @@ label[for='diagram-type-select'] {
   border-width: 1px;
   padding: 5px;
   cursor: pointer;
-  background-color: var(--background-color);
+  background-color: var(--active-button-color);
   justify-content: center;
   width: 10ch;
   padding: 10px;
   margin-inline: 1ch;
   height: fit-content;
   align-self: center;
+  color: white;
 }
 #publish-ontology:hover {
-  background-color: #e9e9ed;
+  --highlight-color: hsl(from var(--active-button-color) h s 40%);
 }
 #publish-ontology.disabled {
   cursor: not-allowed;
