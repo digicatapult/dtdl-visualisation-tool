@@ -1,8 +1,8 @@
 name: Lint and Test
 
 on:
-  push:
-    branches-ignore: ['main']
+  pull_request:
+    types: [opened, reopened, synchronize]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -15,12 +15,12 @@ jobs:
       matrix_commands: '["lint", "depcheck", "check", "xss-scan"]'
 
   tests-npm:
-    uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@feat/coverage
+    uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
     with:
       docker_compose_file: ''
       npm_build_command: 'npm run build'
       tests: '["test:unit", "test:integration", "test:ratelimit"]'
-      coverage: true
+      coverage_config: '.c8rc.json'
       env_vars: |
         {
           "TMPDIR": "${{ github.workspace }}",
