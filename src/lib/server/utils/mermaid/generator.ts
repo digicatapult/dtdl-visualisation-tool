@@ -98,11 +98,7 @@ export class SvgGenerator {
 
   private countRenderableEntities(dtdlObject: DtdlObjectModel): number {
     return Object.entries(dtdlObject).reduce((count, [, entityType]) => {
-      if (
-        entityType.EntityKind === 'Interface' ||
-        entityType.EntityKind === 'Property' ||
-        entityType.EntityKind === 'Relationship'
-      ) {
+      if (entityType.EntityKind === 'Interface' || entityType.EntityKind === 'Relationship') {
         return count + 1
       }
       return count
