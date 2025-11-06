@@ -15,7 +15,7 @@ jobs:
       matrix_commands: '["lint", "depcheck", "check", "xss-scan"]'
 
   tests-npm:
-    uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@bug/coverage-path
+    uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@bug/coverage-release
     with:
       docker_compose_file: ''
       npm_build_command: 'npm run build'
