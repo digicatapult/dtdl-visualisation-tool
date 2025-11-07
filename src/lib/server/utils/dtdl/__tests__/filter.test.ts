@@ -88,7 +88,7 @@ describe('filterModelByDisplayName', function () {
     })
   })
 
-  test.only('should include contents of matches', function () {
+  test('should include contents of matches', function () {
     setCollection(interfaceWithContents)
     const result = filterModelByDisplayName(interfaceWithContents, mockSearch, 'first', [])
     expect(result).to.deep.equal({
