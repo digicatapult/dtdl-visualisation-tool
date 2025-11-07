@@ -2,7 +2,7 @@
 
 ## Overview
 
-Node.js 22 + TypeScript 5.9 application using Express 5, TSOA controllers, TSyringe DI, and server-side JSX (KitaJS) to visualize DTDL ontologies. PostgreSQL database with Knex + Zod validation. HTMX for dynamic updates.
+Node.js 24 + TypeScript 5.9 application using Express 5, TSOA controllers, TSyringe DI, and server-side JSX (KitaJS) to visualize DTDL ontologies. PostgreSQL database with Knex + Zod validation. HTMX for dynamic updates.
 
 ## Code Style
 
