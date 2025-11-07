@@ -47,7 +47,7 @@ export const updatePropertySchema = (value: DtdlSchema, propertyName: string) =>
 }
 
 export const updatePropertyWritable = (value: boolean, propertyName: string) => (file: unknown) => {
-  return updateContentsBooleanValue(file, value, 'Property', propertyName, 'writable')
+  return updateContentsValue(file, value, 'Property', propertyName, 'writable')
 }
 
 export const updateTelemetryComment = (value: string, telemetryName: string) => (file: unknown) => {
@@ -88,15 +88,15 @@ const updateInterfaceValue = (
 
 const updateContentsValue = (
   file: unknown,
-  value: string,
+  value: string | boolean,
   contentType: 'Relationship' | 'Property' | 'Telemetry',
   contentName: string, // effectively contentId - has to be unique in DTDL
-  keyToUpdate: 'displayName' | 'description' | 'comment' | 'schema',
-  maxLength: number
+  keyToUpdate: 'displayName' | 'description' | 'comment' | 'schema' | 'writable',
+  maxLength = MAX_VALUE_LENGTH
 ) => {
-  if (invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
+  if (typeof value === 'string' && invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
 
-  if (value.length > maxLength)
+  if (typeof value === 'string' && value.length > maxLength)
     throw new DataError(`${contentType} '${keyToUpdate}' has max length of ${maxLength} characters`)
 
   const schema = z.object({
@@ -106,38 +106,6 @@ const updateContentsValue = (
         z.looseObject({
           '@type': z.string(),
           name: z.string(),
-          [keyToUpdate]: z.string().optional(),
-        })
-      )
-      .refine((contents) => contents.some((c) => c['@type'] === contentType && c.name === contentName)),
-  })
-
-  const validFile: z.infer<typeof schema> = schema.passthrough().parse(file)
-
-  const index = validFile.contents.findIndex((item) => item['@type'] === contentType && item.name === contentName)
-  const updatedContents = validFile.contents.toSpliced(index, 1, {
-    ...validFile.contents[index],
-    [keyToUpdate]: value,
-  })
-
-  return { ...validFile, contents: updatedContents }
-}
-
-const updateContentsBooleanValue = (
-  file: unknown,
-  value: boolean,
-  contentType: 'Property',
-  contentName: string,
-  keyToUpdate: 'writable'
-) => {
-  const schema = z.object({
-    '@type': z.literal('Interface'),
-    contents: z
-      .array(
-        z.looseObject({
-          '@type': z.string(),
-          name: z.string(),
-          [keyToUpdate]: z.boolean().optional(),
         })
       )
       .refine((contents) => contents.some((c) => c['@type'] === contentType && c.name === contentName)),
