@@ -3,8 +3,6 @@ FROM node:24-bookworm-slim AS builder
 
 WORKDIR /dtdl-visualisation-tool
 
-RUN node -v
-
 # Install base dependencies
 RUN npm install -g npm@11.x.x
 
@@ -17,8 +15,6 @@ RUN npm run build
 
 # Service
 FROM node:24-bookworm-slim AS service
-
-RUN node -v
 
 ENV PPTRUSER_UID=10042
 ENV NODE_OPTIONS="--no-warnings"
