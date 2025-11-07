@@ -9,6 +9,7 @@ jobs:
     uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@main
     with:
       matrix_commands: '["lint", "depcheck", "check", "xss-scan"]'
+      node_version: '24'
 
   tests-npm:
     uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
@@ -16,6 +17,7 @@ jobs:
       docker_compose_file: ''
       npm_build_command: 'npm run build'
       tests: '["test:unit", "test:integration", "test:ratelimit"]'
+      node_version: '24'
       env_vars: |
         {
           "TMPDIR": "${{ github.workspace }}",
@@ -31,6 +33,7 @@ jobs:
       docker_compose_file: ''
       pre_test_command: 'npm ci && npx playwright install-deps && npx playwright install'
       test_command: 'npm run test:playwright || exit 1'
+      node_version: '24'
       env_vars: |
         {
           "PUPPETEER_ARGS": "--no-sandbox,--disable-setuid-sandbox"
