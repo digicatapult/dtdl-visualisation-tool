@@ -13,6 +13,7 @@ jobs:
     uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@main
     with:
       matrix_commands: '["lint", "depcheck", "check", "xss-scan"]'
+      node_version: '24'
 
   tests-npm:
     uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
@@ -21,6 +22,7 @@ jobs:
       npm_build_command: 'npm run build'
       tests: '["test:unit", "test:integration", "test:ratelimit"]'
       coverage_config_json: '.c8rc.json'
+      node_version: '24'
       env_vars: |
         {
           "TMPDIR": "${{ github.workspace }}",
@@ -33,6 +35,7 @@ jobs:
       group: e2e-tests-npm
     with:
       docker_compose_file: ''
+      node_version: '24'
       pre_test_command: 'npm ci && npx playwright install-deps && npx playwright install'
       test_command: 'npm run test:playwright || exit 1'
       env_vars: |
