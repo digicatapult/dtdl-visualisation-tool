@@ -43,7 +43,7 @@ test.describe('Test edit ontology', () => {
     await waitForSuccessResponse(page, () => page.press('#public-github-input', 'Enter'), '/branches')
 
     // click test/dtdl branch
-    const branchName = page.locator('.github-list li').filter({ hasText: /^bug\/property$/ })
+    const branchName = page.locator('.github-list li').filter({ hasText: /^main$/ })
     await expect(branchName).toBeVisible()
     await waitForSuccessResponse(page, () => branchName.click(), '/contents')
 
