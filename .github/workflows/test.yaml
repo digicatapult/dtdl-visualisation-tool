@@ -1,8 +1,8 @@
 name: Lint and Test
 
 on:
-  push:
-    branches-ignore: ['main']
+  pull_request:
+    types: [opened, reopened, synchronize]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -21,6 +21,7 @@ jobs:
       docker_compose_file: ''
       npm_build_command: 'npm run build'
       tests: '["test:unit", "test:integration", "test:ratelimit"]'
+      coverage_config_json: '.c8rc.json'
       node_version: '24'
       env_vars: |
         {
@@ -50,4 +51,3 @@ jobs:
     permissions:
       packages: write
       contents: write
-
