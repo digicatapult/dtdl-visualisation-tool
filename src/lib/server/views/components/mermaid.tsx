@@ -346,7 +346,7 @@ export default class MermaidTemplates {
                       edit={edit}
                       definedIn={telemetry.DefinedIn}
                       putRoute="telemetryDescription"
-                      text={telemetry.description.en}
+                      text={telemetry.description?.en}
                       keyName="description"
                       additionalBody={{ telemetryName: name }}
                       multiline={true}
