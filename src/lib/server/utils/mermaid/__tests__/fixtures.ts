@@ -132,6 +132,12 @@ export const mockDtdlObjectModel = {
     ...emptyEntityProperties,
     ...emptyRelationshipProperties,
   },
+  'dtmi:com:example_property;1': {
+    ...emptyEntityProperties,
+    Id: 'dtmi:com:example_property;1',
+    displayName: { en: 'property 1' },
+    EntityKind: 'Property',
+  },
 } as DtdlObjectModel
 
 export const mockDtdlModelWithProperty = {

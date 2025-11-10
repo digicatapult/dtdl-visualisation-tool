@@ -42,3 +42,5 @@ export const DTDL_VALID_SCHEMAS = [
 ] as const
 
 export type DtdlSchema = (typeof DTDL_VALID_SCHEMAS)[number]
+
+export const DTDL_VALID_WRITABLE = [true, false] as const

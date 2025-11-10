@@ -302,6 +302,11 @@ label[for='diagram-type-select'] {
   transform: scaleX(-1);
 }
 
+.extended-detail {
+  background-color: var(--background-color);
+  padding: 0.5rem;
+}
+
 #navigation-panel > *:not(#navigation-panel-button) {
   opacity: 1;
   transition: opacity var(--transition-duration);

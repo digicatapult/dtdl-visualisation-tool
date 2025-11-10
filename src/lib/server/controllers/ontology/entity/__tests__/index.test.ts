@@ -17,7 +17,6 @@ import {
   mockMutator,
   mockReqWithCookie,
   mockSession,
-  otherPropertyName,
   propertyName,
   relationshipName,
   simpleDtdlFileEntityId,
@@ -270,49 +269,73 @@ describe('EntityController', async () => {
     })
   })
 
-  describe('putPropertyName', () => {
+  describe('putPropertyDisplayName', () => {
     afterEach(() => updateDtdlContentsStub.resetHistory())
 
-    it('should update db and layout for new property name on non-array DTDL file', async () => {
+    it('should update db and layout for new property display name on non-array DTDL file', async () => {
       const putBody = {
         ...defaultParams,
         value: newValue,
         propertyName,
       }
       const result = await controller
-        .putPropertyName(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
+        .putPropertyDisplayName(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
       expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
-        simpleDtdlFileFixture({ propertyUpdate: { name: newValue } })
+        simpleDtdlFileFixture({ propertyUpdate: { displayName: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
     })
 
-    it('should update db and layout for new property name on array DTDL file', async () => {
+    it('should update db and layout for new property display name on array DTDL file', async () => {
       const putBody = {
         ...defaultParams,
         value: newValue,
         propertyName,
       }
       const result = await controller
-        .putPropertyName(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
+        .putPropertyDisplayName(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
       expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
-        arrayDtdlFileFixture({ propertyUpdate: { name: newValue } })
+        arrayDtdlFileFixture({ propertyUpdate: { displayName: newValue } })
       )
 
       expect(result).to.equal(updateLayoutOutput)
     })
+  })
 
-    it('should error for new property name matching other property name', async () => {
+  describe('putPropertyDescription', () => {
+    afterEach(() => updateDtdlContentsStub.resetHistory())
+
+    it('should update db and layout for new property description on non-array DTDL file', async () => {
       const putBody = {
         ...defaultParams,
-        value: otherPropertyName,
+        value: newValue,
         propertyName,
       }
-      await expect(
-        controller.putPropertyName(req, githubDtdlId, arrayDtdlFileEntityId, putBody).then(toHTMLString)
-      ).to.be.rejectedWith(DataError, 'already exists')
+      const result = await controller
+        .putPropertyDescription(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        simpleDtdlFileFixture({ propertyUpdate: { description: newValue } })
+      )
+      expect(result).to.equal(updateLayoutOutput)
+    })
+
+    it('should update db and layout for new property description on array DTDL file', async () => {
+      const putBody = {
+        ...defaultParams,
+        value: newValue,
+        propertyName,
+      }
+      const result = await controller
+        .putPropertyDescription(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        arrayDtdlFileFixture({ propertyUpdate: { description: newValue } })
+      )
+
+      expect(result).to.equal(updateLayoutOutput)
     })
   })
 
@@ -345,6 +368,76 @@ describe('EntityController', async () => {
         .then(toHTMLString)
       expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
         arrayDtdlFileFixture({ propertyUpdate: { comment: newValue } })
+      )
+
+      expect(result).to.equal(updateLayoutOutput)
+    })
+  })
+
+  describe('putPropertySchema', () => {
+    afterEach(() => updateDtdlContentsStub.resetHistory())
+
+    it('should update db and layout for new property schema on non-array DTDL file', async () => {
+      const putBody = {
+        ...defaultParams,
+        value: 'float' as const,
+        propertyName,
+      }
+      const result = await controller
+        .putPropertySchema(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        simpleDtdlFileFixture({ propertyUpdate: { schema: 'float' } })
+      )
+      expect(result).to.equal(updateLayoutOutput)
+    })
+
+    it('should update db and layout for new property schema on array DTDL file', async () => {
+      const putBody = {
+        ...defaultParams,
+        value: 'float' as const,
+        propertyName,
+      }
+      const result = await controller
+        .putPropertySchema(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        arrayDtdlFileFixture({ propertyUpdate: { schema: 'float' } })
+      )
+
+      expect(result).to.equal(updateLayoutOutput)
+    })
+  })
+
+  describe('putPropertyWritable', () => {
+    afterEach(() => updateDtdlContentsStub.resetHistory())
+
+    it('should update db and layout for new property writable on non-array DTDL file', async () => {
+      const putBody = {
+        ...defaultParams,
+        value: 'false',
+        propertyName,
+      }
+      const result = await controller
+        .putPropertyWritable(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        simpleDtdlFileFixture({ propertyUpdate: { writable: false } })
+      )
+      expect(result).to.equal(updateLayoutOutput)
+    })
+
+    it('should update db and layout for new property writable on array DTDL file', async () => {
+      const putBody = {
+        ...defaultParams,
+        value: 'false',
+        propertyName,
+      }
+      const result = await controller
+        .putPropertyWritable(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        arrayDtdlFileFixture({ propertyUpdate: { writable: false } })
       )
 
       expect(result).to.equal(updateLayoutOutput)
@@ -504,7 +597,8 @@ describe('EntityController', async () => {
         () => controller.putRelationshipDisplayName(req, githubDtdlId, simpleDtdlFileEntityId, body),
         () => controller.putRelationshipDescription(req, githubDtdlId, simpleDtdlFileEntityId, body),
         () => controller.putRelationshipComment(req, githubDtdlId, simpleDtdlFileEntityId, body),
-        () => controller.putPropertyName(req, githubDtdlId, simpleDtdlFileEntityId, body),
+        () => controller.putPropertyDisplayName(req, githubDtdlId, simpleDtdlFileEntityId, body),
+        () => controller.putPropertyDescription(req, githubDtdlId, simpleDtdlFileEntityId, body),
         () => controller.putPropertyComment(req, githubDtdlId, simpleDtdlFileEntityId, body),
         () => controller.putTelemetryDisplayName(req, githubDtdlId, simpleDtdlFileEntityId, body),
         () => controller.putTelemetryDescription(req, githubDtdlId, simpleDtdlFileEntityId, body),
