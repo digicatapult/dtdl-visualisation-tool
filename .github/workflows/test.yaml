@@ -13,7 +13,6 @@ jobs:
     uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@main
     with:
       matrix_commands: '["lint", "depcheck", "check", "xss-scan"]'
-      base: ""
       enable_trufflehog_action: true
       trufflehog_extra_args: "--results=verified,unknown --log-level=2"
 
