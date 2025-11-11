@@ -46,7 +46,7 @@ describe('ClassDiagram', function () {
       )
       const test = [
         'class `dtmi:com:example:1`["example 1"] \nclick `dtmi:com:example:1` call getEntity()',
-        '`dtmi:com:example:1` : example_property',
+        '`dtmi:com:example:1` : property 1',
         'class `dtmi:com:example:1`:::search',
       ]
       expect(propertyAsMarkdown).to.deep.equal(test)

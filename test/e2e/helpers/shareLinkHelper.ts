@@ -9,8 +9,8 @@ export const getShareableLink = async (
   if (projectName.includes('chromium')) {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   }
-  await expect(page.locator('#toolbar').getByText('Share Ontology')).toBeVisible()
-  page.locator('#toolbar').getByText('Share Ontology').click()
+  await expect(page.locator('#toolbar').getByText('Share', { exact: true })).toBeVisible()
+  page.locator('#toolbar').getByText('Share', { exact: true }).click()
   await expect(page.locator('#toolbar').getByText('Shareable Link')).toBeVisible()
   // click on first radio
   page

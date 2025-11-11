@@ -30,41 +30,24 @@ export const updateRelationshipComment = (value: string, relationshipName: strin
   return updateContentsValue(file, value, 'Relationship', relationshipName, 'comment', MAX_VALUE_LENGTH)
 }
 
-export const updatePropertyName = (newValue: string, originalValue: string) => (file: unknown) => {
-  if (invalidChars.test(newValue)) throw new DataError(`Invalid JSON: '${newValue}'`)
-  if (newValue.length > 64) throw new DataError(`Property name has max length of 64 characters`)
+export const updatePropertyDisplayName = (value: string, propertyName: string) => (file: unknown) => {
+  return updateContentsValue(file, value, 'Property', propertyName, 'displayName', MAX_DISPLAY_NAME_LENGTH)
+}
 
-  const schema = z.object({
-    '@type': z.literal('Interface'),
-    contents: z
-      .array(
-        z.looseObject({
-          '@type': z.string(),
-          name: z.string(),
-        })
-      )
-      .refine((contents) => contents.some((c) => c['@type'] === 'Property' && c.name === originalValue)),
-  })
-
-  const validFile: z.infer<typeof schema> = schema.passthrough().parse(file)
-
-  const updatedContents = validFile.contents.map((item) => {
-    if (item.name === newValue) {
-      throw new DataError(`Property/Relationship/Telemetry with name "${newValue}" already exists`)
-    }
-
-    if (item['@type'] === 'Property' && item.name === originalValue) {
-      return { ...item, name: newValue }
-    }
-
-    return item
-  })
-
-  return { ...validFile, contents: updatedContents }
+export const updatePropertyDescription = (value: string, propertyName: string) => (file: unknown) => {
+  return updateContentsValue(file, value, 'Property', propertyName, 'description', MAX_VALUE_LENGTH)
 }
 
 export const updatePropertyComment = (value: string, propertyName: string) => (file: unknown) => {
   return updateContentsValue(file, value, 'Property', propertyName, 'comment', MAX_VALUE_LENGTH)
+}
+
+export const updatePropertySchema = (value: DtdlSchema, propertyName: string) => (file: unknown) => {
+  return updateContentsValue(file, value, 'Property', propertyName, 'schema', MAX_VALUE_LENGTH)
+}
+
+export const updatePropertyWritable = (value: boolean, propertyName: string) => (file: unknown) => {
+  return updateContentsValue(file, value, 'Property', propertyName, 'writable')
 }
 
 export const updateTelemetryComment = (value: string, telemetryName: string) => (file: unknown) => {
@@ -105,15 +88,15 @@ const updateInterfaceValue = (
 
 const updateContentsValue = (
   file: unknown,
-  value: string,
+  value: string | boolean,
   contentType: 'Relationship' | 'Property' | 'Telemetry',
   contentName: string, // effectively contentId - has to be unique in DTDL
-  keyToUpdate: 'displayName' | 'description' | 'comment' | 'schema',
-  maxLength: number
+  keyToUpdate: 'displayName' | 'description' | 'comment' | 'schema' | 'writable',
+  maxLength = MAX_VALUE_LENGTH
 ) => {
-  if (invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
+  if (typeof value === 'string' && invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
 
-  if (value.length > maxLength)
+  if (typeof value === 'string' && value.length > maxLength)
     throw new DataError(`${contentType} '${keyToUpdate}' has max length of ${maxLength} characters`)
 
   const schema = z.object({
@@ -123,7 +106,6 @@ const updateContentsValue = (
         z.looseObject({
           '@type': z.string(),
           name: z.string(),
-          [keyToUpdate]: z.string().optional(),
         })
       )
       .refine((contents) => contents.some((c) => c['@type'] === contentType && c.name === contentName)),

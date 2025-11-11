@@ -11,16 +11,20 @@ globalThis.toggleAccordion = (event) => {
 
 globalThis.toggleNavPanel = (event) => {
   const panel = event.target.parentElement
+  const input = panel?.querySelector('#navigationPanelExpanded')
 
-  panel?.toggleAttribute('aria-expanded')
+  const isExpanded = panel?.toggleAttribute('aria-expanded')
   panel?.toggleAttribute('aria-hidden')
+
+  if (input) {
+    input.value = isExpanded ? 'true' : 'false'
+  }
 }
 
 globalThis.toggleEditSwitch = (event) => {
   const isChecked = event.target.toggleAttribute('checked')
   htmx.trigger(event.target, 'checked', { checked: isChecked })
   document.getElementById('edit-toggle').classList.toggle('edit', isChecked)
-  document.getElementById('edit-toggle-text').textContent = isChecked ? 'Edit' : 'View'
   document.getElementById('mermaid-wrapper').classList.toggle('edit', isChecked)
   document.getElementById('edit-buttons').classList.toggle('edit', isChecked)
 }

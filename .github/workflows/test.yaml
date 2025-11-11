@@ -1,8 +1,8 @@
 name: Lint and Test
 
 on:
-  push:
-    branches-ignore: ['main']
+  pull_request:
+    types: [opened, reopened, synchronize]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -15,6 +15,7 @@ jobs:
       matrix_commands: '["lint", "depcheck", "check", "xss-scan"]'
       enable_trufflehog_action: true
       trufflehog_extra_args: "--results=verified,unknown --log-level=2"
+      node_version: '24'
 
   tests-npm:
     uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
@@ -22,6 +23,8 @@ jobs:
       docker_compose_file: ''
       npm_build_command: 'npm run build'
       tests: '["test:unit", "test:integration", "test:ratelimit"]'
+      coverage_config_json: '.c8rc.json'
+      node_version: '24'
       env_vars: |
         {
           "TMPDIR": "${{ github.workspace }}",
@@ -34,6 +37,7 @@ jobs:
       group: e2e-tests-npm
     with:
       docker_compose_file: ''
+      node_version: '24'
       pre_test_command: 'npm ci && npx playwright install-deps && npx playwright install'
       test_command: 'npm run test:playwright || exit 1'
       env_vars: |
@@ -49,4 +53,3 @@ jobs:
     permissions:
       packages: write
       contents: write
-

@@ -6,7 +6,7 @@ test.describe('diagram type', () => {
     await page.goto('./?diagramType=flowchart')
     await expect(page.locator('#mermaid-output #mermaid-svg')).toHaveClass('flowchart')
 
-    await waitForUpdateLayout(page, () => page.getByLabel('Diagram Type').selectOption('classDiagram'))
+    await waitForUpdateLayout(page, () => page.locator('#diagram-type-select').selectOption('classDiagram'))
     await expect(page.locator('#mermaid-output #mermaid-svg')).toHaveClass('classDiagram')
   })
 })

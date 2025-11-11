@@ -6,11 +6,12 @@ import { randomUUID } from 'crypto'
 import { container, singleton } from 'tsyringe'
 import { Env } from '../../env/index.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
-import { DtdlId, UUID } from '../../models/strings.js'
+import { DTDL_VALID_SCHEMAS, DtdlId, UUID } from '../../models/strings.js'
 import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
 import { getDisplayNameOrId, isInterface, isProperty, isRelationship, isTelemetry } from '../../utils/dtdl/extract.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
-import { AccordionSection, EditableSchema, EditableText, Page } from '../common.js'
+import { AccordionSection, EditableSelect, EditableText, Page } from '../common.js'
+import { PropertyDetails } from './property.js'
 
 const env = container.resolve(Env)
 
@@ -18,7 +19,7 @@ const commonUpdateAttrs = {
   'hx-target': '#mermaid-output',
   'hx-get': 'update-layout',
   'hx-swap': 'outerHTML  transition:true',
-  'hx-include': '#sessionId, #search-panel, input[name="navigationPanelTab"]',
+  'hx-include': '#sessionId, #search-panel, input[name="navigationPanelTab"], #navigationPanelExpanded',
   'hx-indicator': '#spinner',
   'hx-disabled-elt': 'select',
 }
@@ -52,6 +53,7 @@ export default class MermaidTemplates {
         <this.searchPanel search={search} diagramType={diagramType} svgWidth={svgWidth} svgHeight={svgHeight} />
         <this.uploadForm />
         <this.shareOntology />
+        <this.publishForm canPublish={false} />
       </section>
 
       <div id="mermaid-wrapper">
@@ -167,6 +169,12 @@ export default class MermaidTemplates {
         {...{ [expanded ? 'aria-expanded' : 'aria-hidden']: '' }}
         class={edit ? 'edit' : 'view'}
       >
+        <input
+          id="navigationPanelExpanded"
+          name="navigationPanelExpanded"
+          type="hidden"
+          value={expanded ? 'true' : 'false'}
+        />
         <button id="navigation-panel-button" onclick="globalThis.toggleNavPanel(event)"></button>
         <div id="navigation-panel-controls">
           <label>
@@ -213,57 +221,47 @@ export default class MermaidTemplates {
           <p>
             <b>Display Name:</b>
           </p>
-          {entity?.displayName?.en ? (
-            EditableText({
-              edit,
-              definedIn,
-              putRoute: isRship ? 'relationshipDisplayName' : 'displayName',
-              additionalBody: {
-                ...(isRship ? { relationshipName: entity.name } : {}),
-              },
-              text: entity?.displayName?.en,
-              maxLength: 64,
-            })
-          ) : (
-            <p>'displayName' key missing in original file</p>
-          )}
+          {EditableText({
+            edit,
+            definedIn,
+            putRoute: isRship ? 'relationshipDisplayName' : 'displayName',
+            additionalBody: {
+              ...(isRship ? { relationshipName: entity.name } : {}),
+            },
+            text: entity?.displayName?.en,
+            keyName: 'displayName',
+            maxLength: 64,
+          })}
           <p>
             <b>Description:</b>
           </p>
-
-          {entity.description?.en ? (
-            EditableText({
-              edit,
-              definedIn,
-              putRoute: isRship ? 'relationshipDescription' : 'description',
-              additionalBody: {
-                ...(isRship ? { relationshipName: entity.name } : {}),
-              },
-              text: entity.description.en,
-              multiline: true,
-              maxLength: MAX_VALUE_LENGTH,
-            })
-          ) : (
-            <p>'description' key missing in original file</p>
-          )}
+          {EditableText({
+            edit,
+            definedIn,
+            putRoute: isRship ? 'relationshipDescription' : 'description',
+            additionalBody: {
+              ...(isRship ? { relationshipName: entity.name } : {}),
+            },
+            text: entity.description?.en,
+            keyName: 'description',
+            multiline: true,
+            maxLength: MAX_VALUE_LENGTH,
+          })}
           <p>
             <b>Comment:</b>
           </p>
-          {entity.comment ? (
-            EditableText({
-              edit,
-              definedIn,
-              putRoute: isRship ? 'relationshipComment' : 'comment',
-              additionalBody: {
-                ...(isRship ? { relationshipName: entity.name } : {}),
-              },
-              text: entity.comment,
-              multiline: true,
-              maxLength: MAX_VALUE_LENGTH,
-            })
-          ) : (
-            <p>'comment' key missing in original file</p>
-          )}
+          {EditableText({
+            edit,
+            definedIn,
+            putRoute: isRship ? 'relationshipComment' : 'comment',
+            additionalBody: {
+              ...(isRship ? { relationshipName: entity.name } : {}),
+            },
+            text: entity.comment,
+            keyName: 'comment',
+            multiline: true,
+            maxLength: MAX_VALUE_LENGTH,
+          })}
         </section>
         <AccordionSection heading={'Entity Identifiers'} collapsed={false}>
           <p>
@@ -285,32 +283,9 @@ export default class MermaidTemplates {
           {isInterface(entity) && Object.keys(entity.properties).length > 0
             ? Object.entries(entity.properties).map(([name, id]) => {
                 const property = model[id]
-                if (!isProperty(property) || !property.DefinedIn) return
+                if (!isProperty(property)) return
                 return (
-                  <>
-                    <EditableText
-                      edit={edit}
-                      definedIn={property.DefinedIn}
-                      putRoute="propertyName"
-                      text={name}
-                      additionalBody={{ propertyName: name }}
-                      maxLength={64}
-                    />
-                    {property.comment ? (
-                      EditableText({
-                        edit,
-                        definedIn: property.DefinedIn,
-                        putRoute: 'propertyComment',
-                        text: property.comment,
-                        additionalBody: { propertyName: name },
-                        multiline: true,
-                        maxLength: MAX_VALUE_LENGTH,
-                      })
-                    ) : (
-                      <p>'comment' key missing in original file</p>
-                    )}
-                    <br />
-                  </>
+                  <PropertyDetails property={property} name={name} model={model} edit={edit} entityId={entity.Id} />
                 )
               })
             : 'None'}
@@ -342,58 +317,52 @@ export default class MermaidTemplates {
             ? Object.entries(entity.telemetries).map(([name, id]) => {
                 const telemetry = model[id]
                 if (!isTelemetry(telemetry) || !telemetry.DefinedIn) return
-                const schema = model[telemetry.schema]
                 return (
                   <>
+                    <b>Name: </b>
+                    {escapeHtml(telemetry.name)}
+                    <br />
                     <b>Display Name:</b>
-                    {telemetry.displayName?.en ? (
-                      <EditableText
-                        edit={edit}
-                        definedIn={telemetry.DefinedIn}
-                        putRoute="telemetryDisplayName"
-                        text={telemetry.displayName.en}
-                        additionalBody={{ telemetryName: name }}
-                        maxLength={64}
-                      />
-                    ) : (
-                      <p>'displayName' key missing in original file</p>
-                    )}
+                    <EditableText
+                      edit={edit}
+                      definedIn={telemetry.DefinedIn}
+                      putRoute="telemetryDisplayName"
+                      text={telemetry.displayName?.en}
+                      keyName="displayName"
+                      additionalBody={{ telemetryName: name }}
+                      maxLength={64}
+                    />
                     <b>Schema:</b>
-                    <EditableSchema
+                    <EditableSelect
                       edit={edit}
                       definedIn={telemetry.DefinedIn}
                       putRoute="telemetrySchema"
-                      text={schema.displayName.en}
+                      text={model[telemetry.schema].displayName?.en ?? 'Complex schema'}
                       additionalBody={{ telemetryName: name }}
+                      options={DTDL_VALID_SCHEMAS}
                     />
                     <b>Description:</b>
-                    {telemetry.description?.en ? (
-                      <EditableText
-                        edit={edit}
-                        definedIn={telemetry.DefinedIn}
-                        putRoute="telemetryDescription"
-                        text={telemetry.description.en}
-                        additionalBody={{ telemetryName: name }}
-                        multiline={true}
-                        maxLength={MAX_VALUE_LENGTH}
-                      />
-                    ) : (
-                      <p>'description' key missing in original file</p>
-                    )}
+                    <EditableText
+                      edit={edit}
+                      definedIn={telemetry.DefinedIn}
+                      putRoute="telemetryDescription"
+                      text={telemetry.description?.en}
+                      keyName="description"
+                      additionalBody={{ telemetryName: name }}
+                      multiline={true}
+                      maxLength={MAX_VALUE_LENGTH}
+                    />
                     <b>Comment:</b>
-                    {telemetry.comment ? (
-                      EditableText({
-                        edit,
-                        definedIn: telemetry.DefinedIn,
-                        putRoute: 'telemetryComment',
-                        text: telemetry.comment,
-                        additionalBody: { telemetryName: name },
-                        multiline: true,
-                        maxLength: MAX_VALUE_LENGTH,
-                      })
-                    ) : (
-                      <p>'comment' key missing in original file</p>
-                    )}
+                    {EditableText({
+                      edit,
+                      definedIn: telemetry.DefinedIn,
+                      putRoute: 'telemetryComment',
+                      text: telemetry.comment,
+                      keyName: 'comment',
+                      additionalBody: { telemetryName: name },
+                      multiline: true,
+                      maxLength: MAX_VALUE_LENGTH,
+                    })}
                     <br />
                   </>
                 )
@@ -666,7 +635,6 @@ export default class MermaidTemplates {
         <input id="currentPanX" name="currentPanX" type="hidden" value={maybeNumberToAttr(currentPanX, 0)} />
         <input id="currentPanY" name="currentPanY" type="hidden" value={maybeNumberToAttr(currentPanY, 0)} />
 
-        <label for="diagram-type-select">Diagram Type</label>
         <select id="diagram-type-select" name="diagramType" hx-trigger="input changed" {...commonUpdateAttrs}>
           {diagramTypes.map((entry) => (
             <option value={entry} selected={entry === diagramType}>
@@ -738,7 +706,7 @@ export default class MermaidTemplates {
   private uploadForm = () => {
     return (
       <a id="open-button" href={`/open`} class="button">
-        Open Ontology
+        Open
       </a>
     )
   }
@@ -748,7 +716,7 @@ export default class MermaidTemplates {
     return (
       <>
         <a id="share-ontology" onclick="globalThis.showShareModal()" class="button">
-          Share Ontology
+          Share
         </a>
         <dialog id="share-link-modal" class="modal">
           <form method="dialog">
@@ -784,6 +752,24 @@ export default class MermaidTemplates {
     )
   }
 
+  private publishForm = ({ canPublish }: { canPublish: boolean }) => {
+    if (!env.get('EDIT_ONTOLOGY')) return <></>
+    return (
+      <a
+        id="publish-ontology"
+        href={`${!canPublish ? 'javascript:void(0)' : '/publish'}`}
+        class={`button ${!canPublish ? 'disabled' : ''}`}
+        title={
+          canPublish
+            ? 'Click to publish ontology'
+            : 'Only Ontologies from github that you have write permissions on, can be published'
+        }
+      >
+        Publish
+      </a>
+    )
+  }
+
   public editToggle = ({ canEdit }: { canEdit: boolean }) => {
     if (!env.get('EDIT_ONTOLOGY')) return <></>
     return (
@@ -797,20 +783,26 @@ export default class MermaidTemplates {
           }
           class={canEdit ? '' : 'disabled'}
         >
-          <span id="edit-toggle-text">View</span>
+          <span class="view-text">View</span>
           <label class="switch">
             <form
+              {...commonUpdateAttrs}
               hx-get="edit-model"
               hx-target="#navigation-panel"
               hx-trigger="checked"
-              hx-include="#sessionId"
               hx-swap="outerHTML"
               hx-vals="js:{ editMode: event.detail.checked }"
             >
-              <input type="checkbox" disabled={!canEdit} onclick="globalThis.toggleEditSwitch(event)" />
+              <input
+                id="edit-toggle-checkbox"
+                type="checkbox"
+                disabled={!canEdit}
+                onclick="globalThis.toggleEditSwitch(event)"
+              />
               <span class="slider"></span>
             </form>
           </label>
+          <span class="edit-text">Edit</span>
         </div>
         <div id="edit-buttons">
           <button id="add-node-button"></button>
