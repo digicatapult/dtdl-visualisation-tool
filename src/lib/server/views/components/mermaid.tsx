@@ -214,7 +214,9 @@ export default class MermaidTemplates {
     }
     const definedIn = entity.DefinedIn ?? entityId // entities only have definedIn if defined in a different file
     const isRship = isRelationship(entity)
-    const relationshipName = isRship && 'name' in entity ? entity.name : undefined
+    // relationshipName comes from validated DTDL model structure and is never rendered directly
+    const relationshipName = (isRship && 'name' in entity ? entity.name : undefined) as string | undefined
+    const showRelationshipTarget = isRship && isRelationship(entity) && !!relationshipName
     return (
       <div id="navigation-panel-details">
         <section>
@@ -263,7 +265,7 @@ export default class MermaidTemplates {
             multiline: true,
             maxLength: MAX_VALUE_LENGTH,
           })}
-          {isRship && isRelationship(entity) && relationshipName && (
+          {showRelationshipTarget && (
             <>
               <p>
                 <b>Target:</b>
