@@ -137,3 +137,55 @@ export const EditableSchema = ({
     </form>
   )
 }
+
+export const EditableSelect = ({
+  edit,
+  definedIn,
+  putRoute,
+  selectedValue,
+  options,
+  additionalBody,
+  disabled,
+  tooltip,
+}: {
+  edit: boolean
+  definedIn: DtdlId
+  putRoute: string
+  selectedValue: string
+  options: Array<{ value: string; label: string }>
+  additionalBody?: Record<string, string>
+  disabled?: boolean
+  tooltip?: string
+}): JSX.Element => {
+  if (!edit || disabled) {
+    const content = <p>{escapeHtml(options.find((o) => o.value === selectedValue)?.label ?? selectedValue)}</p>
+    if (tooltip) {
+      return (
+        <div class="tooltip-wrapper" data-tooltip={escapeHtml(tooltip)}>
+          {content}
+        </div>
+      )
+    }
+    return content
+  }
+
+  return (
+    <form
+      hx-put={`entity/${definedIn}/${putRoute}`}
+      hx-trigger={`change[this.querySelector('select').value !== '${selectedValue}'] from:find select`}
+      hx-vals={JSON.stringify(additionalBody)}
+      hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
+      hx-swap="outerHTML transition:true"
+      hx-target="#mermaid-output"
+      hx-indicator="#spinner"
+    >
+      <select name="value" class="nav-panel-editable">
+        {options.map((option) => (
+          <option value={option.value} {...(option.value === selectedValue && { selected: true })}>
+            {escapeHtml(option.label)}
+          </option>
+        ))}
+      </select>
+    </form>
+  )
+}

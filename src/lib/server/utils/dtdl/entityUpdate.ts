@@ -30,6 +30,36 @@ export const updateRelationshipComment = (value: string, relationshipName: strin
   return updateContentsValue(file, value, 'Relationship', relationshipName, 'comment', MAX_VALUE_LENGTH)
 }
 
+export const updateRelationshipTarget = (newTarget: string, relationshipName: string) => (file: unknown) => {
+  if (invalidChars.test(newTarget)) throw new DataError(`Invalid JSON: '${newTarget}'`)
+  if (!newTarget.trim()) throw new DataError('Target cannot be empty')
+
+  const schema = z.object({
+    '@type': z.literal('Interface'),
+    contents: z
+      .array(
+        z.looseObject({
+          '@type': z.string(),
+          name: z.string(),
+          target: z.string().optional(),
+        })
+      )
+      .refine((contents) => contents.some((c) => c['@type'] === 'Relationship' && c.name === relationshipName)),
+  })
+
+  const validFile: z.infer<typeof schema> = schema.passthrough().parse(file)
+
+  const index = validFile.contents.findIndex(
+    (item) => item['@type'] === 'Relationship' && item.name === relationshipName
+  )
+  const updatedContents = validFile.contents.toSpliced(index, 1, {
+    ...validFile.contents[index],
+    target: newTarget,
+  })
+
+  return { ...validFile, contents: updatedContents }
+}
+
 export const updatePropertyName = (newValue: string, originalValue: string) => (file: unknown) => {
   if (invalidChars.test(newValue)) throw new DataError(`Invalid JSON: '${newValue}'`)
   if (newValue.length > 64) throw new DataError(`Property name has max length of 64 characters`)

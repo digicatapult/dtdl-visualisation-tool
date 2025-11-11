@@ -106,6 +106,21 @@ test.describe('Test edit ontology', () => {
     await testNavPanelEdit(page, /^relationshipDescriptionEdit$/, 'updated', '/relationshipDescription')
     await testNavPanelEdit(page, /^relationshipCommentEdit$/, 'updated', '/relationshipComment')
 
+    // test relationship target editing via dropdown
+    const targetDropdown = page.locator('select.nav-panel-editable').filter({
+      has: page.locator('option[selected]:has-text("relationshipTargetEdit")'),
+    })
+    await expect(targetDropdown).toBeVisible()
+    // Get the option that contains the new interface display name and extract its value (the DTDL ID)
+    const targetOption = targetDropdown.locator(`option:has-text("${newInterfaceDisplayName}")`).first()
+    const targetValue = await targetOption.getAttribute('value')
+    await expect(targetValue).toBeTruthy()
+    // Change the target to the new interface
+    await waitForSuccessResponse(page, () => targetDropdown.selectOption(targetValue!), '/relationshipTarget')
+    await page.waitForTimeout(500)
+    // Verify the edge label updated in the diagram
+    await expect(page.locator('#mermaid-output').getByText(newRelationshipDisplayName)).toBeVisible()
+
     // search by new interface name
     await page.focus('#search')
     await waitForUpdateLayout(page, () => page.fill('#search', newInterfaceDisplayName))

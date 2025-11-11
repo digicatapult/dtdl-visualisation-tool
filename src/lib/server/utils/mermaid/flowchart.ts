@@ -78,7 +78,8 @@ export default class Flowchart implements IDiagram<'flowchart'> {
       return []
     }
 
-    return [this.createEdgeString(entity.ChildOf, entity.target, entity.displayName?.en ?? entity.name)]
+    const label = entity.displayName?.en ?? entity.name ?? entity.Id
+    return [this.createEdgeString(entity.ChildOf, entity.target, label)]
   }
 
   interfaceToMarkdown(dtdlObjectModel: DtdlObjectModel, entity: InterfaceType) {

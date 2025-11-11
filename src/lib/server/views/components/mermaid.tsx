@@ -10,7 +10,7 @@ import { DtdlId, UUID } from '../../models/strings.js'
 import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
 import { getDisplayNameOrId, isInterface, isProperty, isRelationship, isTelemetry } from '../../utils/dtdl/extract.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
-import { AccordionSection, EditableSchema, EditableText, Page } from '../common.js'
+import { AccordionSection, EditableSchema, EditableSelect, EditableText, Page } from '../common.js'
 
 const env = container.resolve(Env)
 
@@ -265,6 +265,38 @@ export default class MermaidTemplates {
           ) : (
             <p>'comment' key missing in original file</p>
           )}
+          {isRship && isRelationship(entity) && (
+            <>
+              <p>
+                <b>Target:</b>
+              </p>
+              {entity.target ? (
+                (() => {
+                  // Build options list for all interfaces in the model
+                  const interfaceOptions = Object.values(model)
+                    .filter(isInterface)
+                    .map((iface) => ({
+                      value: iface.Id,
+                      label: `${getDisplayNameOrId(iface)} (${iface.Id})`,
+                    }))
+                    .sort((a, b) => a.label.localeCompare(b.label))
+
+                  return (
+                    <EditableSelect
+                      edit={edit}
+                      definedIn={definedIn}
+                      putRoute="relationshipTarget"
+                      selectedValue={entity.target}
+                      options={interfaceOptions}
+                      additionalBody={{ relationshipName: entity.name }}
+                    />
+                  )
+                })()
+              ) : (
+                <p>'target' key missing in original file</p>
+              )}
+            </>
+          )}
         </section>
         <AccordionSection heading={'Entity Identifiers'} collapsed={false}>
           <p>
@@ -320,18 +352,97 @@ export default class MermaidTemplates {
           {isInterface(entity) && Object.keys(entity.relationships).length > 0
             ? Object.entries(entity.relationships).map(([name, id]) => {
                 const relationship = model[id]
+                if (!isRelationship(relationship)) return null
+
+                // Determine if this relationship is inherited or defined on the current interface
+                const isInherited = relationship.DefinedIn !== definedIn
+                const relationshipDefinedIn = relationship.DefinedIn ?? definedIn
+
+                // Build options list for all interfaces in the model
+                const interfaceOptions = Object.values(model)
+                  .filter(isInterface)
+                  .map((iface) => ({
+                    value: iface.Id,
+                    label: `${getDisplayNameOrId(iface)} (${iface.Id})`,
+                  }))
+                  .sort((a, b) => a.label.localeCompare(b.label))
+
                 return (
                   <>
                     <p>
-                      <b>{escapeHtml(name)}: </b>
-                      {escapeHtml(relationship?.comment ?? '-')}
+                      <b>Display Name:</b>
                     </p>
+                    {relationship.displayName?.en ? (
+                      <EditableText
+                        edit={edit && !isInherited}
+                        definedIn={relationshipDefinedIn}
+                        putRoute="relationshipDisplayName"
+                        text={relationship.displayName.en}
+                        additionalBody={{ relationshipName: name }}
+                        maxLength={64}
+                      />
+                    ) : (
+                      <p>'displayName' key missing in original file</p>
+                    )}
                     <p>
-                      <b>Target: </b>
-                      {isRelationship(relationship) && relationship.target
-                        ? getDisplayNameOrId(model[relationship.target])
-                        : '-'}
+                      <b>Description:</b>
                     </p>
+                    {relationship.description?.en ? (
+                      <EditableText
+                        edit={edit && !isInherited}
+                        definedIn={relationshipDefinedIn}
+                        putRoute="relationshipDescription"
+                        text={relationship.description.en}
+                        additionalBody={{ relationshipName: name }}
+                        multiline={true}
+                        maxLength={MAX_VALUE_LENGTH}
+                      />
+                    ) : (
+                      <p>'description' key missing in original file</p>
+                    )}
+                    <p>
+                      <b>Comment:</b>
+                    </p>
+                    {relationship.comment ? (
+                      <EditableText
+                        edit={edit && !isInherited}
+                        definedIn={relationshipDefinedIn}
+                        putRoute="relationshipComment"
+                        text={relationship.comment}
+                        additionalBody={{ relationshipName: name }}
+                        multiline={true}
+                        maxLength={MAX_VALUE_LENGTH}
+                      />
+                    ) : (
+                      <p>'comment' key missing in original file</p>
+                    )}
+                    <p>
+                      <b>Target:</b>
+                    </p>
+                    {relationship.target ? (
+                      isInherited ? (
+                        <EditableSelect
+                          edit={false}
+                          definedIn={relationshipDefinedIn}
+                          putRoute="relationshipTarget"
+                          selectedValue={relationship.target}
+                          options={interfaceOptions}
+                          disabled={true}
+                          tooltip={`Inherited from ${relationshipDefinedIn}. Entity identifiers: ${relationship.target}`}
+                        />
+                      ) : (
+                        <EditableSelect
+                          edit={edit}
+                          definedIn={relationshipDefinedIn}
+                          putRoute="relationshipTarget"
+                          selectedValue={relationship.target}
+                          options={interfaceOptions}
+                          additionalBody={{ relationshipName: name }}
+                        />
+                      )
+                    ) : (
+                      <p>'target' key missing in original file</p>
+                    )}
                     <br />
                   </>
                 )

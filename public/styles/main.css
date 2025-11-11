@@ -1301,7 +1301,53 @@ label[for='diagram-type-select'] {
   height: 1.8em;
 }
 
+select.nav-panel-editable {
+  cursor: pointer;
+  padding: 0.2em 0.5em;
+}
+
+select.nav-panel-editable:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background-color: #e8e8e8;
+}
+
 textarea.multiline {
   height: 10rem;
   resize: vertical;
+}
+
+.tooltip-wrapper {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+}
+
+.tooltip-wrapper[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  margin-bottom: 5px;
+  background: #333;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  white-space: normal;
+  max-width: 250px;
+  word-wrap: break-word;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.tooltip-wrapper[data-tooltip]:hover::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  bottom: 100%;
+  margin-bottom: -1px;
+  border: 5px solid transparent;
+  border-top-color: #333;
+  z-index: 1001;
 }
