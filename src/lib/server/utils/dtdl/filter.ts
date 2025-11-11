@@ -133,7 +133,18 @@ export const filterModelByDisplayName = (
     ...expandedExtends,
   ])
 
-  return [...idsAndRelationships].reduce((acc, id) => {
+  // get contents of all
+  const contentsIds = [...idsAndRelationships].flatMap((id) => {
+    const entity = dtdlObjectModel[id]
+    return [
+      ...('properties' in entity ? Object.values(entity.properties) : []),
+      ...('telemetries' in entity ? Object.values(entity.telemetries) : []),
+    ]
+  })
+
+  const idsAndRelationshipsAndContents = new Set([...idsAndRelationships, ...contentsIds])
+
+  return [...idsAndRelationshipsAndContents].reduce((acc, id) => {
     const entity = dtdlObjectModel[id]
     if (entity.EntityKind === 'Interface')
       setVisualisationState(entity, determineVisualisationState(id, searchedIds, expandedIds))

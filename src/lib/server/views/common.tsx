@@ -1,5 +1,5 @@
 import { escapeHtml, type PropsWithChildren } from '@kitajs/html'
-import { DTDL_VALID_SCHEMAS, DtdlId } from '../models/strings.js'
+import { DtdlId } from '../models/strings.js'
 
 export const parseError = (): JSX.Element => <p>Ontology Undefined</p>
 
@@ -64,6 +64,7 @@ export const EditableText = ({
   definedIn,
   putRoute,
   text,
+  keyName,
   additionalBody,
   multiline,
   maxLength,
@@ -71,11 +72,13 @@ export const EditableText = ({
   edit: boolean
   definedIn: DtdlId
   putRoute: string
-  text: string
+  text?: string
+  keyName?: string
   additionalBody?: Record<string, string>
   multiline?: boolean
   maxLength?: number
 }): JSX.Element => {
+  if (!text) return <p>'{escapeHtml(keyName)}' key missing in original file</p>
   if (!edit) return <p>{escapeHtml(text)}</p>
 
   return (
@@ -102,19 +105,22 @@ export const EditableText = ({
   )
 }
 
-export const EditableSchema = ({
+export const EditableSelect = ({
   edit,
   definedIn,
   putRoute,
   text,
   additionalBody,
+  options,
 }: {
   edit: boolean
   definedIn: DtdlId
   putRoute: string
   text: string
   additionalBody?: Record<string, string>
+  options: readonly string[]
 }): JSX.Element => {
+  if (!text) return <p>Missing value</p>
   if (!edit) return <p>{escapeHtml(text)}</p>
 
   return (
@@ -128,9 +134,9 @@ export const EditableSchema = ({
       hx-indicator="#spinner"
     >
       <select name="value" class="nav-panel-editable">
-        {DTDL_VALID_SCHEMAS.map((schema) => (
-          <option value={schema} {...(schema === text && { selected: true })}>
-            {escapeHtml(schema)}
+        {options.map((option) => (
+          <option value={option} {...(option === text && { selected: true })}>
+            {escapeHtml(option)}
           </option>
         ))}
       </select>

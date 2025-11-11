@@ -11,7 +11,10 @@ import {
   updateDescription,
   updateDisplayName,
   updatePropertyComment,
-  updatePropertyName,
+  updatePropertyDescription,
+  updatePropertyDisplayName,
+  updatePropertySchema,
+  updatePropertyWritable,
   updateRelationshipComment,
   updateRelationshipDescription,
   updateRelationshipDisplayName,
@@ -144,8 +147,8 @@ export class EntityController extends HTMLController {
   }
 
   @SuccessResponse(200)
-  @Put('{entityId}/propertyName')
-  public async putPropertyName(
+  @Put('{entityId}/propertyDisplayName')
+  public async putPropertyDisplayName(
     @Request() req: express.Request,
     @Path() ontologyId: UUID,
     @Path() entityId: DtdlId,
@@ -153,7 +156,22 @@ export class EntityController extends HTMLController {
   ): Promise<HTML> {
     const { value, propertyName, ...updateParams } = body
 
-    await this.putEntityValue(ontologyId, entityId, updatePropertyName(value, propertyName))
+    await this.putEntityValue(ontologyId, entityId, updatePropertyDisplayName(value, propertyName))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+
+  @SuccessResponse(200)
+  @Put('{entityId}/propertyDescription')
+  public async putPropertyDescription(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Body() body: { value: string; propertyName: string } & UpdateParams
+  ): Promise<HTML> {
+    const { value, propertyName, ...updateParams } = body
+
+    await this.putEntityValue(ontologyId, entityId, updatePropertyDescription(value, propertyName))
 
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
   }
@@ -169,6 +187,36 @@ export class EntityController extends HTMLController {
     const { value, propertyName, ...updateParams } = body
 
     await this.putEntityValue(ontologyId, entityId, updatePropertyComment(value, propertyName))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+
+  @SuccessResponse(200)
+  @Put('{entityId}/propertySchema')
+  public async putPropertySchema(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Body() body: { value: DtdlSchema; propertyName: string } & UpdateParams
+  ): Promise<HTML> {
+    const { value, propertyName, ...updateParams } = body
+
+    await this.putEntityValue(ontologyId, entityId, updatePropertySchema(value, propertyName))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+
+  @SuccessResponse(200)
+  @Put('{entityId}/propertyWritable')
+  public async putPropertyWritable(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Body() body: { value: string; propertyName: string } & UpdateParams
+  ): Promise<HTML> {
+    const { value, propertyName, ...updateParams } = body
+
+    await this.putEntityValue(ontologyId, entityId, updatePropertyWritable(value === 'true', propertyName))
 
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
   }

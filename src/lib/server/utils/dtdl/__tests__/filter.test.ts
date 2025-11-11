@@ -8,6 +8,7 @@ import { filterModelByDisplayName, getRelatedIdsById, getVisualisationState, sea
 import {
   expandedWithRelationships,
   extendedInterface,
+  interfaceWithContents,
   multipleInterfaces,
   multipleInterfacesAndRelationship,
   singleInterfaceFirst,
@@ -84,6 +85,16 @@ describe('filterModelByDisplayName', function () {
       first: multipleInterfacesAndRelationship.first,
       second: multipleInterfacesAndRelationship.second,
       relFirstSecond: multipleInterfacesAndRelationship.relFirstSecond,
+    })
+  })
+
+  test('should include contents of matches', function () {
+    setCollection(interfaceWithContents)
+    const result = filterModelByDisplayName(interfaceWithContents, mockSearch, 'first', [])
+    expect(result).to.deep.equal({
+      first: interfaceWithContents.first,
+      someProperty: interfaceWithContents.someProperty,
+      someTelemetry: interfaceWithContents.someTelemetry,
     })
   })
 

@@ -11,9 +11,14 @@ globalThis.toggleAccordion = (event) => {
 
 globalThis.toggleNavPanel = (event) => {
   const panel = event.target.parentElement
+  const input = panel?.querySelector('#navigationPanelExpanded')
 
-  panel?.toggleAttribute('aria-expanded')
+  const isExpanded = panel?.toggleAttribute('aria-expanded')
   panel?.toggleAttribute('aria-hidden')
+
+  if (input) {
+    input.value = isExpanded ? 'true' : 'false'
+  }
 }
 
 globalThis.toggleEditSwitch = (event) => {

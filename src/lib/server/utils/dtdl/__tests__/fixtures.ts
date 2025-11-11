@@ -92,3 +92,20 @@ export const extendedInterface: DtdlObjectModel = {
     extends: ['parent'],
   },
 } as unknown as DtdlObjectModel
+
+export const interfaceWithContents: DtdlObjectModel = {
+  first: {
+    EntityKind: 'Interface',
+    Id: 'first',
+    properties: ['someProperty'],
+    telemetries: ['someTelemetry'],
+  },
+  someProperty: {
+    EntityKind: 'Property',
+    Id: 'someProperty',
+  },
+  someTelemetry: {
+    EntityKind: 'Telemetry',
+    Id: 'someTelemetry',
+  },
+} as unknown as DtdlObjectModel
