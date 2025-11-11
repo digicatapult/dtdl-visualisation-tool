@@ -42,6 +42,10 @@ a:not(.button):focus-visible {
   filter: brightness(115%);
 }
 
+button:hover {
+  filter: brightness(115%);
+}
+
 #counter {
   position: relative;
 }
@@ -382,10 +386,26 @@ label[for='diagram-type-select'] {
 }
 
 #delete-dialog {
-  height: 50%;
   width: 60ch;
   border-radius: 1rem;
   border: 1px solid var(--border-color);
+}
+
+#delete-dialog p {
+  margin: 0;
+}
+
+#delete-confirmation {
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+}
+
+#delete-button {
+  background-color: var(--delete-color);
+  width: 20ch;
+  color: white;
+  justify-self: center;
+  margin-top: 4rem;
 }
 
 
@@ -1307,7 +1327,7 @@ label[for='diagram-type-select'] {
 
 .nav-panel-editable {
   width: 100%;
-  background-color: #f5f6fa;
+  background-color: var(--background-color);
   border: none;
   font-family: inherit;
   font-size: inherit;

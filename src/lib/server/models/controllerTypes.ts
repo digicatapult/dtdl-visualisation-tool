@@ -48,6 +48,6 @@ export type EntityEntityUpdateBody = UpdateParams & {
   value: string
 }
 
-export interface DeleteRelationshipParams extends UpdateParams {
-  name: string
+export interface DeleteContentParams extends UpdateParams {
+  contentName: string
 }

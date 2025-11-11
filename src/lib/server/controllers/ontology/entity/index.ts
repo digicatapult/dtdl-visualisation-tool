@@ -2,13 +2,13 @@ import express from 'express'
 import { Body, Delete, Get, Middlewares, Path, Produces, Put, Queries, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../../../db/modelDb.js'
-import { type DeleteRelationshipParams, type UpdateParams } from '../../../models/controllerTypes.js'
+import { type DeleteContentParams, type UpdateParams } from '../../../models/controllerTypes.js'
 import { DtdlSchema, type DtdlId, type UUID } from '../../../models/strings.js'
 import { Cache, type ICache } from '../../../utils/cache.js'
 
 import { EntityInfo } from '@digicatapult/dtdl-parser'
 import {
-  deleteRelationship,
+  deleteContent,
   updateComment,
   updateDescription,
   updateDisplayName,
@@ -25,6 +25,7 @@ import {
   updateTelemetryDisplayName,
   updateTelemetrySchema,
 } from '../../../utils/dtdl/entityUpdate.js'
+import { getDisplayName } from '../../../utils/dtdl/extract.js'
 import SessionStore from '../../../utils/sessions.js'
 import MermaidTemplates from '../../../views/components/mermaid.js'
 import { checkEditPermission } from '../../helpers.js'
@@ -275,25 +276,36 @@ export class EntityController extends HTMLController {
   @Produces('text/html')
   @Get('{entityId}/deleteDialog')
   public async deleteDialog(
+    @Path() ontologyId: UUID,
     @Path() entityId: DtdlId,
     @Queries()
-    { entityKind, definedIn, name }: { entityKind: EntityInfo['EntityKind']; definedIn?: string; name?: string }
+    {
+      entityKind,
+      definedIn,
+      contentName,
+    }: { entityKind: EntityInfo['EntityKind']; definedIn?: string; contentName?: string }
   ): Promise<HTML> {
-    return this.html(this.templates.deleteDialog({ entityId, entityKind, definedIn, name }))
+    const { model } = await this.modelDb.getDtdlModelAndTree(ontologyId)
+    const displayName = getDisplayName(model[entityId])
+    const definedInDisplayName = definedIn ? getDisplayName(model[definedIn]) : undefined
+
+    return this.html(
+      this.templates.deleteDialog({ displayName, entityKind, definedIn, definedInDisplayName, contentName })
+    )
   }
 
   @SuccessResponse(200)
   @Produces('text/html')
-  @Delete('{entityId}/relationship')
-  public async deleteRelationship(
+  @Delete('{entityId}/content')
+  public async deleteContent(
     @Request() req: express.Request,
     @Path() ontologyId: UUID,
     @Path() entityId: DtdlId,
-    @Queries() queries: DeleteRelationshipParams
+    @Queries() queries: DeleteContentParams
   ): Promise<HTML> {
-    const { name, ...updateParams } = queries
+    const { contentName, ...updateParams } = queries
 
-    await this.putEntityValue(ontologyId, entityId, deleteRelationship(name))
+    await this.putEntityValue(ontologyId, entityId, deleteContent(contentName))
     this.sessionStore.update(updateParams.sessionId, { highlightNodeId: '' })
 
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)

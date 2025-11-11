@@ -9,7 +9,7 @@ import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { DTDL_VALID_SCHEMAS, DtdlId, UUID } from '../../models/strings.js'
 import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
 import {
-  getDisplayNameOrId,
+  getDisplayName,
   isInterface,
   isNamedEntity,
   isProperty,
@@ -222,7 +222,6 @@ export default class MermaidTemplates {
     }
     const definedIn = entity.DefinedIn ?? entityId // entities only have definedIn if defined in a different file
     const isRship = isRelationship(entity)
-    const relationshipName = isRship ? entity.name : undefined
     return (
       <div id="navigation-panel-details">
         <section>
@@ -284,7 +283,7 @@ export default class MermaidTemplates {
           <p>
             <b>Extends: </b>
             {isInterface(entity) && entity.extends.length > 0
-              ? entity.extends.map((entityId) => getDisplayNameOrId(model[entityId]))
+              ? entity.extends.map((entityId) => getDisplayName(model[entityId]))
               : 'None'}
           </p>
         </AccordionSection>
@@ -312,7 +311,7 @@ export default class MermaidTemplates {
                     <p>
                       <b>Target: </b>
                       {isRelationship(relationship) && relationship.target
-                        ? getDisplayNameOrId(model[relationship.target])
+                        ? getDisplayName(model[relationship.target])
                         : '-'}
                     </p>
                     <br />
@@ -391,7 +390,7 @@ export default class MermaidTemplates {
               hx-vals={JSON.stringify({
                 entityKind: entity.EntityKind,
                 definedIn: entity.DefinedIn,
-                name: isNamedEntity(entity) ? entity.name : '',
+                contentName: isNamedEntity(entity) ? entity.name : '',
               })}
               hx-swap="outerHTML"
               hx-target="#delete-dialog"
@@ -675,20 +674,25 @@ export default class MermaidTemplates {
   }
 
   public deleteDialog = ({
-    entityId,
+    displayName,
     entityKind,
     definedIn,
-    name,
+    definedInDisplayName,
+    contentName,
   }: {
-    entityId?: DtdlId
+    displayName?: string
     entityKind?: EntityInfo['EntityKind']
     definedIn?: string
-    name?: string
+    definedInDisplayName?: string
+    contentName?: string
   }) => {
     return (
       <dialog id="delete-dialog">
         <div id="modal-wrapper">
           <h3>Delete {entityKind}</h3>
+          <p>Name: {displayName}</p>
+          {definedInDisplayName && <p>Defined in: {definedInDisplayName}</p>}
+          <br />
           <p>
             Type
             <b>
@@ -705,11 +709,11 @@ export default class MermaidTemplates {
 
           <button
             id="delete-button"
-            hx-delete={`entity/${definedIn}/${entityKind?.toLowerCase()}`}
+            hx-delete={`entity/${definedIn}/content`}
             hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
             hx-swap="outerHTML transition:true"
             hx-target="#mermaid-output"
-            hx-vals={JSON.stringify({ name })}
+            hx-vals={JSON.stringify({ contentName })}
             hx-indicator="#spinner"
             class="rounded-button"
             disabled
