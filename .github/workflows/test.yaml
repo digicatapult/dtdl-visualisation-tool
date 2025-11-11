@@ -10,15 +10,12 @@ concurrency:
 
 jobs:
   static-checks-npm:
-    uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@feature/add_trufflehog_scans
+    uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml
     with:
       matrix_commands: '["lint", "depcheck", "check", "xss-scan"]'
-
-  trufflehog:
-    uses: digicatapult/shared-workflows/.github/workflows/scan-secrets.yml@feature/add_trufflehog_scans
-    with:
       base: ""
-      extra_args: "--results=verified,unknown --log-level=2"
+      enable_trufflehog_action: true
+      trufflehog_extra_args: "--results=verified,unknown --log-level=2"
 
   tests-npm:
     uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
