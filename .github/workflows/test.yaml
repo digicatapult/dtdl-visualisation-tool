@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   static-checks-npm:
-    uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml
+    uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@main
     with:
       matrix_commands: '["lint", "depcheck", "check", "xss-scan"]'
       base: ""
