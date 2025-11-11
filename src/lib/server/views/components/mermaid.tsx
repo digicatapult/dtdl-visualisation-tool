@@ -10,7 +10,7 @@ import { DTDL_VALID_SCHEMAS, DtdlId, UUID } from '../../models/strings.js'
 import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
 import { getDisplayNameOrId, isInterface, isProperty, isRelationship, isTelemetry } from '../../utils/dtdl/extract.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
-import { AccordionSection, EditableSelect, EditableText, Page } from '../common.js'
+import { AccordionSection, EditableSelect, EditableSelectWithLabel, EditableText, Page } from '../common.js'
 import { PropertyDetails } from './property.js'
 
 const env = container.resolve(Env)
@@ -214,6 +214,7 @@ export default class MermaidTemplates {
     }
     const definedIn = entity.DefinedIn ?? entityId // entities only have definedIn if defined in a different file
     const isRship = isRelationship(entity)
+    const relationshipName = isRship && 'name' in entity ? entity.name : undefined
     return (
       <div id="navigation-panel-details">
         <section>
@@ -226,7 +227,7 @@ export default class MermaidTemplates {
             definedIn,
             putRoute: isRship ? 'relationshipDisplayName' : 'displayName',
             additionalBody: {
-              ...(isRship ? { relationshipName: entity.name } : {}),
+              ...(relationshipName ? { relationshipName } : {}),
             },
             text: entity?.displayName?.en,
             keyName: 'displayName',
@@ -240,7 +241,7 @@ export default class MermaidTemplates {
             definedIn,
             putRoute: isRship ? 'relationshipDescription' : 'description',
             additionalBody: {
-              ...(isRship ? { relationshipName: entity.name } : {}),
+              ...(relationshipName ? { relationshipName } : {}),
             },
             text: entity.description?.en,
             keyName: 'description',
@@ -255,14 +256,14 @@ export default class MermaidTemplates {
             definedIn,
             putRoute: isRship ? 'relationshipComment' : 'comment',
             additionalBody: {
-              ...(isRship ? { relationshipName: entity.name } : {}),
+              ...(relationshipName ? { relationshipName } : {}),
             },
             text: entity.comment,
             keyName: 'comment',
             multiline: true,
             maxLength: MAX_VALUE_LENGTH,
           })}
-          {isRship && isRelationship(entity) && (
+          {isRship && isRelationship(entity) && relationshipName && (
             <>
               <p>
                 <b>Target:</b>
@@ -279,13 +280,13 @@ export default class MermaidTemplates {
                     .sort((a, b) => a.label.localeCompare(b.label))
 
                   return (
-                    <EditableSelect
+                    <EditableSelectWithLabel
                       edit={edit}
                       definedIn={definedIn}
                       putRoute="relationshipTarget"
                       selectedValue={entity.target}
                       options={interfaceOptions}
-                      additionalBody={{ relationshipName: entity.name }}
+                      additionalBody={{ relationshipName }}
                     />
                   )
                 })()
@@ -341,8 +342,26 @@ export default class MermaidTemplates {
                   }))
                   .sort((a, b) => a.label.localeCompare(b.label))
 
+                // Get display name for the inherited interface
+                const inheritedFromEntity = model[relationshipDefinedIn]
+                const inheritedFromName = inheritedFromEntity
+                  ? getDisplayNameOrId(inheritedFromEntity)
+                  : relationshipDefinedIn
+
+                // Get target display name - extract friendly name from DTDL ID if target doesn't exist in model
+                const targetEntity = relationship.target ? model[relationship.target] : undefined
+                const targetName = targetEntity
+                  ? getDisplayNameOrId(targetEntity)
+                  : relationship.target
+                    ? (relationship.target.split(':').pop()?.split(';')[0] ?? relationship.target)
+                    : 'Unknown'
+
+                const tooltipText = isInherited
+                  ? `Inherited from ${inheritedFromName}. Target: ${targetName}`
+                  : undefined
+
                 return (
-                  <>
+                  <div class={isInherited ? 'inherited-relationship' : ''} data-tooltip={tooltipText}>
                     <p>
                       <b>Display Name:</b>
                     </p>
@@ -394,31 +413,20 @@ export default class MermaidTemplates {
                       <b>Target:</b>
                     </p>
                     {relationship.target ? (
-                      isInherited ? (
-                        <EditableSelect
-                          edit={false}
-                          definedIn={relationshipDefinedIn}
-                          putRoute="relationshipTarget"
-                          selectedValue={relationship.target}
-                          options={interfaceOptions}
-                          disabled={true}
-                          tooltip={`Inherited from ${relationshipDefinedIn}. Entity identifiers: ${relationship.target}`}
-                        />
-                      ) : (
-                        <EditableSelect
-                          edit={edit}
-                          definedIn={relationshipDefinedIn}
-                          putRoute="relationshipTarget"
-                          selectedValue={relationship.target}
-                          options={interfaceOptions}
-                          additionalBody={{ relationshipName: name }}
-                        />
-                      )
+                      <EditableSelectWithLabel
+                        edit={edit && !isInherited}
+                        definedIn={relationshipDefinedIn}
+                        putRoute="relationshipTarget"
+                        selectedValue={relationship.target}
+                        options={interfaceOptions}
+                        disabled={isInherited}
+                        additionalBody={!isInherited ? { relationshipName: name } : undefined}
+                      />
                     ) : (
                       <p>'target' key missing in original file</p>
                     )}
                     <br />
-                  </>
+                  </div>
                 )
               })
             : 'None'}

@@ -134,6 +134,31 @@ test.describe('Test edit ontology', () => {
     // Verify the edge label updated in the diagram
     await expect(page.locator('#mermaid-output').getByText(newRelationshipDisplayName)).toBeVisible()
 
+    // test inherited relationship is read-only and has styling
+    const inheritedRelationship = page.locator('.inherited-relationship').first()
+    await expect(inheritedRelationship).toBeVisible()
+
+    // Check that inherited relationship has gray background
+    const inheritedBgColor = await inheritedRelationship.evaluate((el) => window.getComputedStyle(el).backgroundColor)
+    expect(inheritedBgColor).toBe('rgb(245, 245, 245)') // #f5f5f5
+
+    // Check that inherited relationship has tooltip
+    const tooltipText = await inheritedRelationship.getAttribute('data-tooltip')
+    expect(tooltipText).toMatch(/Inherited from.*Target:/)
+    expect(tooltipText).not.toMatch(/dtmi:/) // Should show display names, not DTDL IDs
+
+    // Check that inherited relationship fields are read-only (no textarea/select, just <p> tags)
+    const inheritedDisplayName = inheritedRelationship.locator('p').filter({ hasText: /baseRelationship/ })
+    await expect(inheritedDisplayName).toBeVisible()
+
+    // Verify that inherited relationship target is not editable (should be <p>, not <select>)
+    const inheritedTargetSection = inheritedRelationship.locator('b:has-text("Target:")').locator('..').locator('p')
+    await expect(inheritedTargetSection).toBeVisible()
+
+    // Verify that no textarea exists in inherited relationship (not editable)
+    const inheritedTextarea = inheritedRelationship.locator('textarea.nav-panel-editable')
+    await expect(inheritedTextarea).toHaveCount(0)
+
     // search by new interface name
     await page.focus('#search')
     await waitForUpdateLayout(page, () => page.fill('#search', newInterfaceDisplayName))

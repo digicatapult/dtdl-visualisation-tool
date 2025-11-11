@@ -144,7 +144,7 @@ export const EditableSelect = ({
   )
 }
 
-export const EditableSelect = ({
+export const EditableSelectWithLabel = ({
   edit,
   definedIn,
   putRoute,
