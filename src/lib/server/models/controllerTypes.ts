@@ -47,3 +47,7 @@ export type EntityEntityUpdateBody = UpdateParams & {
   definedIn: DtdlId
   value: string
 }
+
+export interface DeleteRelationshipParams extends UpdateParams {
+  name: string
+}

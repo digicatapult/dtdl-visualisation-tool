@@ -66,6 +66,10 @@ export const updateTelemetrySchema = (value: DtdlSchema, telemetryName: string) 
   return updateContentsValue(file, value, 'Telemetry', telemetryName, 'schema', MAX_VALUE_LENGTH)
 }
 
+export const deleteRelationship = (relationshipName: string) => (file: unknown) => {
+  return deleteContent(file, 'Relationship', relationshipName)
+}
+
 const updateInterfaceValue = (
   file: unknown,
   value: string,
@@ -118,6 +122,27 @@ const updateContentsValue = (
     ...validFile.contents[index],
     [keyToUpdate]: value,
   })
+
+  return { ...validFile, contents: updatedContents }
+}
+
+export const deleteContent = (file: unknown, contentType: 'Relationship', contentName: string) => {
+  const schema = z.object({
+    '@type': z.literal('Interface'),
+    contents: z
+      .array(
+        z.looseObject({
+          '@type': z.string(),
+          name: z.string(),
+        })
+      )
+      .refine((contents) => contents.some((c) => c['@type'] === contentType && c.name === contentName)),
+  })
+
+  const validFile: z.infer<typeof schema> = schema.passthrough().parse(file)
+
+  const index = validFile.contents.findIndex((item) => item['@type'] === contentType && item.name === contentName)
+  const updatedContents = validFile.contents.toSpliced(index, 1)
 
   return { ...validFile, contents: updatedContents }
 }

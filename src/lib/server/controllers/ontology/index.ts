@@ -116,6 +116,7 @@ export class OntologyController extends HTMLController {
       )
       return this.html(ErrorPage(output.renderToString(), this.getStatus()))
     }
+    permission = 'edit'
 
     return this.html(
       this.templates.MermaidRoot({
