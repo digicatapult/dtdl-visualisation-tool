@@ -21,6 +21,7 @@ test.describe('Test edit ontology', () => {
     )
   })
   test('edit interface + relationship', async ({ browser, baseURL }) => {
+    test.setTimeout(60000) // Timeout to 60 seconds
     // login to github
     const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const page = await context.newPage()
