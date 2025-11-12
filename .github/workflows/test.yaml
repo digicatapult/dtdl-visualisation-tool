@@ -10,6 +10,8 @@ concurrency:
 
 jobs:
   static-checks-npm:
+    permissions:
+      contents: read
     uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@chore/add_semgrep_scans
     with:
       matrix_commands: '["lint", "depcheck", "check", "xss-scan"]'
