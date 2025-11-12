@@ -185,10 +185,10 @@ describe('EntityController', async () => {
         relationshipName,
       }
       const result = await controller
-        .putRelationshipDisplayName(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
+        .putRelationshipDescription(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
       expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
-        simpleDtdlFileFixture({ relationshipUpdate: { displayName: newValue } })
+        simpleDtdlFileFixture({ relationshipUpdate: { description: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
     })
@@ -200,10 +200,10 @@ describe('EntityController', async () => {
         relationshipName,
       }
       const result = await controller
-        .putRelationshipDisplayName(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
+        .putRelationshipDescription(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
       expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
-        arrayDtdlFileFixture({ relationshipUpdate: { displayName: newValue } })
+        arrayDtdlFileFixture({ relationshipUpdate: { description: newValue } })
       )
 
       expect(result).to.equal(updateLayoutOutput)
