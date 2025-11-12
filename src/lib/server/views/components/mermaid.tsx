@@ -9,14 +9,7 @@ import { DeletableEntities } from '../../models/controllerTypes.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { DTDL_VALID_SCHEMAS, DtdlId, UUID } from '../../models/strings.js'
 import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
-import {
-  getDisplayName,
-  isInterface,
-  isNamedEntity,
-  isProperty,
-  isRelationship,
-  isTelemetry,
-} from '../../utils/dtdl/extract.js'
+import { getDisplayName, isInterface, isProperty, isRelationship, isTelemetry } from '../../utils/dtdl/extract.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { AccordionSection, EditableSelect, EditableText, Page } from '../common.js'
 import { PropertyDetails } from './property.js'
@@ -388,13 +381,6 @@ export default class MermaidTemplates {
             <a
               id="delete-dialog-button"
               hx-get={`entity/${entityId}/deleteDialog`}
-              hx-vals={JSON.stringify({
-                entityKind: entity.EntityKind,
-                definedIn: definedIn,
-                contentName: isNamedEntity(entity) ? entity.name : '',
-                displayName: getDisplayName(entity),
-                definedInDisplayName: definedIn !== entityId ? getDisplayName(model[definedIn]) : undefined,
-              })}
               hx-swap="outerHTML"
               hx-target="#delete-dialog"
               class="rounded-button"

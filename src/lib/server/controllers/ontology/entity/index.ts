@@ -25,6 +25,7 @@ import {
   updateTelemetryDisplayName,
   updateTelemetrySchema,
 } from '../../../utils/dtdl/entityUpdate.js'
+import { getDisplayName, isNamedEntity } from '../../../utils/dtdl/extract.js'
 import SessionStore from '../../../utils/sessions.js'
 import MermaidTemplates from '../../../views/components/mermaid.js'
 import { checkEditPermission } from '../../helpers.js'
@@ -274,16 +275,18 @@ export class EntityController extends HTMLController {
   @SuccessResponse(200)
   @Produces('text/html')
   @Get('{entityId}/deleteDialog')
-  public async deleteDialog(
-    @Queries()
-    query: {
-      displayName?: string
-      entityKind?: DeletableEntities
-      definedIn?: string
-      definedInDisplayName?: string
-      contentName?: string
+  public async deleteDialog(@Path() ontologyId: UUID, @Path() entityId: DtdlId): Promise<HTML> {
+    const { model } = await this.modelDb.getDtdlModelAndTree(ontologyId)
+    const entity = model[entityId]
+    const definedIn = entity.DefinedIn ?? entityId
+
+    const query = {
+      entityKind: entity.EntityKind as DeletableEntities,
+      definedIn: entity.DefinedIn ?? entityId,
+      contentName: isNamedEntity(entity) ? entity.name : '',
+      displayName: getDisplayName(entity),
+      definedInDisplayName: definedIn !== entityId ? getDisplayName(model[definedIn]) : undefined,
     }
-  ): Promise<HTML> {
     return this.html(this.templates.deleteDialog(query))
   }
 

@@ -618,7 +618,7 @@ describe('EntityController', async () => {
 
   describe('deleteDialog', () => {
     it('should return templated delete dialog', async () => {
-      const result = await controller.deleteDialog({}).then(toHTMLString)
+      const result = await controller.deleteDialog(githubDtdlId, 'dtmi:com:example;1').then(toHTMLString)
 
       expect(result).to.equal('deleteDialog_deleteDialog')
     })
