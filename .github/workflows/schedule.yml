@@ -1,0 +1,13 @@
+name: Scheduled analysis
+on:
+  schedule:
+    - cron: '0 07 * * *' # Sets Semgrep to scan every day at 07:00 UTC
+permissions:
+  security-events: write
+jobs:
+  semgrep:
+    uses: digicatapult/shared-workflows/.github/workflows/scan-vulns.yml@chore/add_semgrep_scans
+    with:
+      enable_semgrep_action: true
+      extra_args: '--config="p/default"'
+      sarif_path: semgrep.sarif
