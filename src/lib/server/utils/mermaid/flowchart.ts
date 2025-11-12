@@ -2,7 +2,14 @@ import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@d
 import { InternalError } from '../../errors.js'
 import { getDisplayNameOrId } from '../dtdl/extract.js'
 import { getVisualisationState } from '../dtdl/filter.js'
-import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
+import {
+  ArrowType,
+  Direction,
+  EntityTypeToMarkdownFn,
+  IDiagram,
+  NarrowMappingFn,
+  arrowTypes,
+} from './diagramInterface.js'
 import { BoundingBox, defaultMarkdownFn, dtdlIdReplaceSemicolon, extractTransformTranslateCoords } from './helpers.js'
 
 const entityKindToShape = {
@@ -68,8 +75,8 @@ export default class Flowchart implements IDiagram<'flowchart'> {
     return entityMarkdown
   }
 
-  createEdgeString(nodeFrom: string, nodeTo: string, label?: string): string {
-    return `${dtdlIdReplaceSemicolon(nodeFrom)} --- ${label ? '|' + label + '|' : ``} ${dtdlIdReplaceSemicolon(nodeTo)}`
+  createEdgeString(nodeFrom: string, nodeTo: string, edgeType: ArrowType, label?: string): string {
+    return `${dtdlIdReplaceSemicolon(nodeFrom)} ${edgeType} ${label ? '|' + label + '|' : ``} ${dtdlIdReplaceSemicolon(nodeTo)}`
   }
 
   relationshipToMarkdown(dtdlObjectModel: DtdlObjectModel, entity: RelationshipType) {
@@ -78,7 +85,14 @@ export default class Flowchart implements IDiagram<'flowchart'> {
       return []
     }
 
-    return [this.createEdgeString(entity.ChildOf, entity.target, entity.displayName?.en ?? entity.name)]
+    return [
+      this.createEdgeString(
+        entity.ChildOf,
+        entity.target,
+        arrowTypes.Association,
+        entity.displayName?.en ?? entity.name
+      ),
+    ]
   }
 
   interfaceToMarkdown(dtdlObjectModel: DtdlObjectModel, entity: InterfaceType) {
@@ -86,7 +100,7 @@ export default class Flowchart implements IDiagram<'flowchart'> {
       this.createNodeString(entity),
       ...entity.extends
         .filter((parent) => !!dtdlObjectModel[parent])
-        .map((parent) => this.createEdgeString(parent, entity.Id, 'extends')),
+        .map((parent) => this.createEdgeString(parent, entity.Id, arrowTypes.Inheritance, 'extends')),
       `class ${dtdlIdReplaceSemicolon(entity.Id)} ${getVisualisationState(entity)}`,
     ]
   }
