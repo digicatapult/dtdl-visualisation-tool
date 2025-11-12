@@ -690,12 +690,13 @@ export default class MermaidTemplates {
     contentName?: string
   }) => {
     const deletePath = entityKind === 'Interface' ? `entity/${definedIn}` : `entity/${definedIn}/content`
+    const displayDefinedIn = definedInDisplayName !== undefined
     return (
       <dialog id="delete-dialog">
         <div id="modal-wrapper">
           <h3>Delete {entityKind}</h3>
-          <p>{escapeHtml(displayName)}</p>
-          {escapeHtml(definedInDisplayName) && <p>Defined in: {escapeHtml(definedInDisplayName)}</p>}
+          <p>{escapeHtml(displayName ?? 'No display name')}</p>
+          {displayDefinedIn && <p>Defined in: {escapeHtml(definedInDisplayName ?? 'No defined in display name')}</p>}
           <br />
           <p>
             Type
