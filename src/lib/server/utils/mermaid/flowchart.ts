@@ -2,20 +2,21 @@ import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@d
 import { InternalError } from '../../errors.js'
 import { getDisplayNameOrId } from '../dtdl/extract.js'
 import { getVisualisationState } from '../dtdl/filter.js'
-import {
-  ArrowType,
-  Direction,
-  EntityTypeToMarkdownFn,
-  IDiagram,
-  NarrowMappingFn,
-  arrowTypes,
-} from './diagramInterface.js'
+import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
 import { BoundingBox, defaultMarkdownFn, dtdlIdReplaceSemicolon, extractTransformTranslateCoords } from './helpers.js'
 
 const entityKindToShape = {
   Interface: 'rect',
   Default: 'rect',
 }
+
+export const arrowTypes = {
+  Extends: '--o',
+  Relationship: '-->',
+  Links: '---',
+} as const
+
+export type ArrowType = (typeof arrowTypes)[keyof typeof arrowTypes]
 
 function getFloatAttrOrThrow(element: Element, name: string) {
   const attr = element.getAttribute(name)
@@ -89,7 +90,7 @@ export default class Flowchart implements IDiagram<'flowchart'> {
       this.createEdgeString(
         entity.ChildOf,
         entity.target,
-        arrowTypes.Association,
+        arrowTypes.Relationship,
         entity.displayName?.en ?? entity.name
       ),
     ]
@@ -100,7 +101,7 @@ export default class Flowchart implements IDiagram<'flowchart'> {
       this.createNodeString(entity),
       ...entity.extends
         .filter((parent) => !!dtdlObjectModel[parent])
-        .map((parent) => this.createEdgeString(parent, entity.Id, arrowTypes.Inheritance, 'extends')),
+        .map((parent) => this.createEdgeString(parent, entity.Id, arrowTypes.Extends, 'extends')),
       `class ${dtdlIdReplaceSemicolon(entity.Id)} ${getVisualisationState(entity)}`,
     ]
   }

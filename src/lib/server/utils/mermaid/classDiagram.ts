@@ -3,14 +3,7 @@ import { InternalError } from '../../errors.js'
 import { DtdlId } from '../../models/strings.js'
 import { getDisplayNameOrId, getDisplayNameOrName } from '../dtdl/extract.js'
 import { getVisualisationState } from '../dtdl/filter.js'
-import {
-  ArrowType,
-  Direction,
-  EntityTypeToMarkdownFn,
-  IDiagram,
-  NarrowMappingFn,
-  arrowTypes,
-} from './diagramInterface.js'
+import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
 import {
   BoundingBox,
   defaultMarkdownFn,
@@ -18,6 +11,19 @@ import {
   extractPathExtents,
   extractTransformTranslateCoords,
 } from './helpers.js'
+
+export const arrowTypes = {
+  Inheritance: '<|--',
+  Composition: '*--',
+  Aggregation: 'o--',
+  Association: '-->',
+  LinkSolid: '--',
+  Dependency: '..>',
+  Realization: '..|>',
+  LinkDashed: '..',
+} as const
+
+export type ArrowType = (typeof arrowTypes)[keyof typeof arrowTypes]
 
 export const extractClassNodeCoordinate = (element: Element) => {
   const parentTransform = extractTransformTranslateCoords(element)

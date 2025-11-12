@@ -3,19 +3,6 @@ import { DiagramType } from '../../models/mermaidDiagrams'
 
 export type Direction = ` TD` | ` BT` | ` RL` | ` LR`
 
-export const arrowTypes = {
-  Inheritance: '<|--',
-  Composition: '*--',
-  Aggregation: 'o--',
-  Association: '-->',
-  LinkSolid: '--',
-  Dependency: '..>',
-  Realization: '..|>',
-  LinkDashed: '..',
-} as const
-
-export type ArrowType = (typeof arrowTypes)[keyof typeof arrowTypes]
-
 export type NarrowEntityType<T, N> = T extends { EntityKind: N } ? T : never
 
 export type NarrowMappingFn<k extends EntityType['EntityKind']> = (
