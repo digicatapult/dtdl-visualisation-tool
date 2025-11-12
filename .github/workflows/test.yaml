@@ -15,6 +15,7 @@ jobs:
       matrix_commands: '["lint", "depcheck", "check", "xss-scan"]'
       enable_semgrep_action: true
       enable_trufflehog_action: true
+      semgrep_extra_args: '--config="p/default"'
       trufflehog_extra_args: "--results=verified,unknown --log-level=2"
       node_version: '24'
 
@@ -23,7 +24,7 @@ jobs:
     with:
       enable_semgrep_action: true
       extra_args: '--config="p/default"'
-      sarif_path: "/tmp/results_sarif.sarif"
+      sarif_path: semgrep.sarif
 
   tests-npm:
     uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
