@@ -8,7 +8,14 @@ import { Env } from '../../env/index.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { DTDL_VALID_SCHEMAS, DtdlId, UUID } from '../../models/strings.js'
 import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
-import { getDisplayNameOrId, isInterface, isProperty, isRelationship, isTelemetry } from '../../utils/dtdl/extract.js'
+import {
+  getDisplayNameOrId,
+  isCommand,
+  isInterface,
+  isProperty,
+  isRelationship,
+  isTelemetry,
+} from '../../utils/dtdl/extract.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { AccordionSection, EditableSelect, EditableText, Page } from '../common.js'
 import { PropertyDetails } from './property.js'
@@ -61,9 +68,9 @@ export default class MermaidTemplates {
         <div id="spinner" class="spinner" />
       </div>
       <this.Legend showContent={false} />
-      <this.navPanelPlaceholder expanded={false} edit={canEdit} />
+      <this.navPanelPlaceholder expanded={false} edit={true} />
       <this.svgControls svgRawHeight={svgHeight} svgRawWidth={svgWidth} />
-      <this.editToggle canEdit={canEdit} />
+      <this.editToggle canEdit={true} />
     </Page>
   )
 
@@ -369,6 +376,192 @@ export default class MermaidTemplates {
               })
             : 'None'}
         </AccordionSection>
+        <AccordionSection heading={'Commands'} collapsed={false}>
+          {isInterface(entity) && Object.keys(entity.commands).length > 0
+            ? Object.entries(entity.commands).map(([name, id]) => {
+                const command = model[id]
+                console.log('command', command)
+                if (!isCommand(command) || !command.DefinedIn) return
+                let requestEntity, responseEntity
+                if (command.request) {
+                  const requestId = typeof command.request === 'string' ? command.request : command.request.toString()
+                  requestEntity = model[requestId]
+                }
+                if (command.response) {
+                  const responseId =
+                    typeof command.response === 'string' ? command.response : command.response.toString()
+                  responseEntity = model[responseId]
+                }
+                return (
+                  <>
+                    <b>Display Name:</b>
+                    {command.displayName?.en ? (
+                      <EditableText
+                        edit={edit}
+                        definedIn={command.DefinedIn}
+                        putRoute="commandDisplayName"
+                        text={command.displayName.en}
+                        additionalBody={{ commandName: name }}
+                        maxLength={64}
+                      />
+                    ) : (
+                      <p>'displayName' key missing in original file</p>
+                    )}
+
+                    <b>Description:</b>
+                    {command.description?.en ? (
+                      <EditableText
+                        edit={edit}
+                        definedIn={command.DefinedIn}
+                        putRoute="commandDescription"
+                        text={command.description.en}
+                        additionalBody={{ commandName: name }}
+                        multiline={true}
+                        maxLength={MAX_VALUE_LENGTH}
+                      />
+                    ) : (
+                      <p>'description' key missing in original file</p>
+                    )}
+                    <b>Comment:</b>
+                    {command.comment ? (
+                      EditableText({
+                        edit,
+                        definedIn: command.DefinedIn,
+                        putRoute: 'commandComment',
+                        text: command.comment,
+                        additionalBody: { commandName: name },
+                        multiline: true,
+                        maxLength: MAX_VALUE_LENGTH,
+                      })
+                    ) : (
+                      <p>'comment' key missing in original file</p>
+                    )}
+                    <AccordionSection heading={'Request'} collapsed={false}>
+                      <b>Request displayName:</b>
+                      {requestEntity && requestEntity.displayName?.en ? (
+                        EditableText({
+                          edit,
+                          definedIn: command.DefinedIn,
+                          putRoute: 'commandRequestDisplayName',
+                          text: requestEntity.displayName?.en ?? '',
+                          additionalBody: { commandName: name },
+                          multiline: true,
+                          maxLength: MAX_VALUE_LENGTH,
+                        })
+                      ) : (
+                        <p>'request displayName' key missing in original file</p>
+                      )}
+                      <b>Request comment:</b>
+                      {requestEntity && requestEntity.comment ? (
+                        EditableText({
+                          edit,
+                          definedIn: command.DefinedIn,
+                          putRoute: 'commandRequestComment',
+                          text: requestEntity.comment ?? '',
+                          additionalBody: { commandName: name },
+                          multiline: true,
+                          maxLength: MAX_VALUE_LENGTH,
+                        })
+                      ) : (
+                        <p>'request comment' key missing in original file</p>
+                      )}
+                      <b>Request description:</b>
+                      {requestEntity && requestEntity.description ? (
+                        EditableText({
+                          edit,
+                          definedIn: command.DefinedIn,
+                          putRoute: 'commandRequestDescription',
+                          text: requestEntity.description.en ?? '',
+                          additionalBody: { commandName: name },
+                          multiline: true,
+                          maxLength: MAX_VALUE_LENGTH,
+                        })
+                      ) : (
+                        <p>'request description' key missing in original file</p>
+                      )}
+                      <b>Schema:</b>
+                      <EditableSelect
+                        edit={edit}
+                        definedIn={command.DefinedIn}
+                        putRoute="commandRequestSchema"
+                        text={
+                          requestEntity && requestEntity.schema
+                            ? model[requestEntity.schema].displayName?.en
+                              ? model[requestEntity.schema].displayName?.en
+                              : 'Complex schema'
+                            : 'schema key missing in original file'
+                        }
+                        additionalBody={{ commandName: name }}
+                        options={DTDL_VALID_SCHEMAS}
+                      />
+                    </AccordionSection>
+                    <AccordionSection heading={'Response'} collapsed={false}>
+                      <b>Response displayName:</b>
+                      {responseEntity && responseEntity.displayName?.en ? (
+                        EditableText({
+                          edit,
+                          definedIn: command.DefinedIn,
+                          putRoute: 'commandResponseDisplayName',
+                          text: responseEntity.displayName?.en ?? '',
+                          additionalBody: { commandName: name },
+                          multiline: true,
+                          maxLength: MAX_VALUE_LENGTH,
+                        })
+                      ) : (
+                        <p>'request displayName' key missing in original file</p>
+                      )}
+                      <b>Response comment:</b>
+                      {responseEntity && responseEntity.comment ? (
+                        EditableText({
+                          edit,
+                          definedIn: command.DefinedIn,
+                          putRoute: 'commandResponseComment',
+                          text: responseEntity.comment ?? '',
+                          additionalBody: { commandName: name },
+                          multiline: true,
+                          maxLength: MAX_VALUE_LENGTH,
+                        })
+                      ) : (
+                        <p>'response comment' key missing in original file</p>
+                      )}
+                      <b>Response description:</b>
+                      {responseEntity && responseEntity.description ? (
+                        EditableText({
+                          edit,
+                          definedIn: command.DefinedIn,
+                          putRoute: 'commandResponseDescription',
+                          text: responseEntity.description.en ?? '',
+                          additionalBody: { commandName: name },
+                          multiline: true,
+                          maxLength: MAX_VALUE_LENGTH,
+                        })
+                      ) : (
+                        <p>'response description' key missing in original file</p>
+                      )}
+                      <b>Schema:</b>
+                      <EditableSelect
+                        edit={edit}
+                        definedIn={command.DefinedIn}
+                        putRoute="commandResponseSchema"
+                        text={
+                          responseEntity && responseEntity.schema
+                            ? model[responseEntity.schema].displayName?.en
+                              ? model[responseEntity.schema].displayName?.en
+                              : 'Complex schema'
+                            : 'schema key missing in original file'
+                        }
+                        additionalBody={{ commandName: name }}
+                        options={DTDL_VALID_SCHEMAS}
+                      />
+                    </AccordionSection>
+
+                    <br />
+                  </>
+                )
+              })
+            : 'None'}{' '}
+        </AccordionSection>
+
         <AccordionSection heading={'See Full JSON'} collapsed={true}>
           <pre>
             <code>{escapeHtml(JSON.stringify(entity, null, 4))}</code>
@@ -567,7 +760,7 @@ export default class MermaidTemplates {
 
   navigationPanelNodeClass = (
     path: DtdlPath
-  ): 'directory' | 'file' | 'interface' | 'relationship' | 'property' | 'telemetry' => {
+  ): 'directory' | 'file' | 'interface' | 'relationship' | 'property' | 'telemetry' | 'command' => {
     if (path.type === 'directory' || path.type === 'file') {
       return path.type
     }
@@ -580,6 +773,8 @@ export default class MermaidTemplates {
         return 'property'
       case 'Telemetry':
         return 'telemetry'
+      case 'Command':
+        return 'command'
       default:
         return 'property'
     }

@@ -65,6 +65,52 @@ export const updateTelemetryDisplayName = (value: string, telemetryName: string)
 export const updateTelemetrySchema = (value: DtdlSchema, telemetryName: string) => (file: unknown) => {
   return updateContentsValue(file, value, 'Telemetry', telemetryName, 'schema', MAX_VALUE_LENGTH)
 }
+export const updateCommandDisplayName = (value: string, commandName: string) => (file: unknown) => {
+  return updateContentsValue(file, value, 'Command', commandName, 'displayName', MAX_DISPLAY_NAME_LENGTH)
+}
+export const updateCommandComment = (value: string, commandName: string) => (file: unknown) => {
+  return updateContentsValue(file, value, 'Command', commandName, 'comment', MAX_VALUE_LENGTH)
+}
+export const updateCommandDescription = (value: string, commandName: string) => (file: unknown) => {
+  return updateContentsValue(file, value, 'Command', commandName, 'description', MAX_VALUE_LENGTH)
+}
+export const updateCommandSchema = (value: DtdlSchema, commandName: string) => (file: unknown) => {
+  return updateContentsValue(file, value, 'Command', commandName, 'schema', MAX_VALUE_LENGTH)
+}
+
+// Command Request update functions
+export const updateCommandRequestDisplayName = (value: string, commandName: string) => (file: unknown) => {
+  return updateCommandRequestResponseValue(file, value, commandName, 'request', 'displayName', MAX_DISPLAY_NAME_LENGTH)
+}
+
+export const updateCommandRequestComment = (value: string, commandName: string) => (file: unknown) => {
+  return updateCommandRequestResponseValue(file, value, commandName, 'request', 'comment', MAX_VALUE_LENGTH)
+}
+
+export const updateCommandRequestDescription = (value: string, commandName: string) => (file: unknown) => {
+  return updateCommandRequestResponseValue(file, value, commandName, 'request', 'description', MAX_VALUE_LENGTH)
+}
+
+export const updateCommandRequestSchema = (value: DtdlSchema, commandName: string) => (file: unknown) => {
+  return updateCommandRequestResponseValue(file, value, commandName, 'request', 'schema', MAX_VALUE_LENGTH)
+}
+
+// Command Response update functions
+export const updateCommandResponseDisplayName = (value: string, commandName: string) => (file: unknown) => {
+  return updateCommandRequestResponseValue(file, value, commandName, 'response', 'displayName', MAX_DISPLAY_NAME_LENGTH)
+}
+
+export const updateCommandResponseComment = (value: string, commandName: string) => (file: unknown) => {
+  return updateCommandRequestResponseValue(file, value, commandName, 'response', 'comment', MAX_VALUE_LENGTH)
+}
+
+export const updateCommandResponseDescription = (value: string, commandName: string) => (file: unknown) => {
+  return updateCommandRequestResponseValue(file, value, commandName, 'response', 'description', MAX_VALUE_LENGTH)
+}
+
+export const updateCommandResponseSchema = (value: DtdlSchema, commandName: string) => (file: unknown) => {
+  return updateCommandRequestResponseValue(file, value, commandName, 'response', 'schema', MAX_VALUE_LENGTH)
+}
 
 const updateInterfaceValue = (
   file: unknown,
@@ -81,7 +127,7 @@ const updateInterfaceValue = (
     [keyToUpdate]: z.string(),
   })
 
-  const validFile: z.infer<typeof schema> = schema.passthrough().parse(file)
+  const validFile: z.infer<typeof schema> = schema.loose().parse(file)
 
   return { ...validFile, [keyToUpdate]: value }
 }
@@ -89,9 +135,9 @@ const updateInterfaceValue = (
 const updateContentsValue = (
   file: unknown,
   value: string | boolean,
-  contentType: 'Relationship' | 'Property' | 'Telemetry',
+  contentType: 'Relationship' | 'Property' | 'Telemetry' | 'Command',
   contentName: string, // effectively contentId - has to be unique in DTDL
-  keyToUpdate: 'displayName' | 'description' | 'comment' | 'schema' | 'writable',
+  keyToUpdate: 'displayName' | 'description' | 'comment' | 'schema' | 'writable' | 'request' | 'response',
   maxLength = MAX_VALUE_LENGTH
 ) => {
   if (typeof value === 'string' && invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
@@ -111,7 +157,7 @@ const updateContentsValue = (
       .refine((contents) => contents.some((c) => c['@type'] === contentType && c.name === contentName)),
   })
 
-  const validFile: z.infer<typeof schema> = schema.passthrough().parse(file)
+  const validFile: z.infer<typeof schema> = schema.loose().parse(file)
 
   const index = validFile.contents.findIndex((item) => item['@type'] === contentType && item.name === contentName)
   const updatedContents = validFile.contents.toSpliced(index, 1, {
@@ -120,4 +166,68 @@ const updateContentsValue = (
   })
 
   return { ...validFile, contents: updatedContents }
+}
+
+const updateCommandRequestResponseValue = (
+  file: unknown,
+  value: string | DtdlSchema,
+  commandName: string,
+  requestOrResponse: 'request' | 'response',
+  keyToUpdate: 'displayName' | 'description' | 'comment' | 'schema',
+  maxLength = MAX_VALUE_LENGTH
+) => {
+  if (typeof value === 'string' && invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
+
+  if (typeof value === 'string' && value.length > maxLength)
+    throw new DataError(`Command ${requestOrResponse} '${keyToUpdate}' has max length of ${maxLength} characters`)
+
+  const schema = z.object({
+    '@type': z.literal('Interface'),
+    contents: z
+      .array(
+        z.looseObject({
+          '@type': z.string(),
+          name: z.string(),
+          [requestOrResponse]: z.union([z.string(), z.object({}).loose()]).optional(),
+        })
+      )
+      .refine((contents) => contents.some((c) => c['@type'] === 'Command' && c.name === commandName)),
+  })
+
+  const validFile: z.infer<typeof schema> = schema.loose().parse(file)
+
+  // Find the command
+  const commandIndex = validFile.contents.findIndex((item) => item['@type'] === 'Command' && item.name === commandName)
+  const command = validFile.contents[commandIndex]
+
+  // Get the request/response property
+  const requestResponseProperty = command[requestOrResponse]
+
+  if (!requestResponseProperty) {
+    throw new DataError(`Command '${commandName}' has no ${requestOrResponse} defined`)
+  }
+
+  // The request/response is embedded directly in the command, not referenced by ID
+  if (typeof requestResponseProperty === 'object' && requestResponseProperty !== null) {
+    // Update the embedded request/response object directly
+    const updatedRequestResponse: any = { ...requestResponseProperty }
+
+    if (keyToUpdate === 'displayName' || keyToUpdate === 'description') {
+      updatedRequestResponse[keyToUpdate] = { en: value as string }
+    } else {
+      updatedRequestResponse[keyToUpdate] = value
+    }
+
+    // Update the command with the modified request/response
+    const updatedCommand = {
+      ...command,
+      [requestOrResponse]: updatedRequestResponse,
+    }
+
+    // Replace the command in contents
+    const updatedContents = validFile.contents.toSpliced(commandIndex, 1, updatedCommand)
+    return { ...validFile, contents: updatedContents }
+  } else {
+    throw new DataError(`Expected ${requestOrResponse} to be an object, but got: ${typeof requestResponseProperty}`)
+  }
 }

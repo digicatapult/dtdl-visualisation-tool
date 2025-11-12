@@ -1,4 +1,5 @@
 import {
+  CommandInfo,
   EntityType,
   InterfaceInfo,
   NamedEntityInfo,
@@ -18,6 +19,7 @@ export const isRelationship = (entity: EntityType): entity is RelationshipInfo =
 export const isProperty = (entity: EntityType): entity is PropertyInfo => entity.EntityKind === 'Property'
 export const isTelemetry = (entity: EntityType): entity is TelemetryInfo => entity.EntityKind === 'Telemetry'
 export const isNamedEntity = (entity: EntityType): entity is NamedEntityInfo => 'name' in entity
+export const isCommand = (entity: EntityType): entity is CommandInfo => entity.EntityKind === 'Command'
 
 export const allInterfaceFilter = () => {
   return ([, entity]: [unknown, EntityType]) => entity.EntityKind === 'Interface'
