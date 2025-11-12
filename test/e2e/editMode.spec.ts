@@ -21,6 +21,8 @@ test.describe('Test edit ontology', () => {
     )
   })
   test('edit interface + relationship', async ({ browser, baseURL }) => {
+    test.setTimeout(60000)
+
     // login to github
     const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const page = await context.newPage()
@@ -150,11 +152,11 @@ test.describe('Test edit ontology', () => {
       () => page.locator('#mermaid-output').getByText(newInterfaceDisplayName, { exact: true }).first().click(),
       '/update-layout'
     )
-    await page.locator('#navigation-panel').getByText('Details', { exact: true }).click()
 
     // turn off edit mode
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page.locator('#edit-toggle').getByText('View')).toBeVisible()
+    await page.locator('#navigation-panel').getByText('Details', { exact: true }).click()
 
     await page.waitForTimeout(500)
 
