@@ -9,7 +9,7 @@ import {
 
 export const getDisplayName = (entity: EntityType): string => {
   if (!entity) return 'Entity not found in model'
-  return entity?.displayName?.en ?? (isNamedEntity(entity) ? entity?.name : entity?.Id) ?? 'Entity not found in model'
+  return entity?.displayName?.en ?? (isNamedEntity(entity) ? entity?.name : entity?.Id)
 }
 
 export const isInterface = (entity: EntityType): entity is InterfaceInfo => entity.EntityKind === 'Interface'

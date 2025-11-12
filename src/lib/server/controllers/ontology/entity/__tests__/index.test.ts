@@ -647,7 +647,7 @@ describe('EntityController', async () => {
       expect(result).to.equal(updateLayoutOutput)
     })
 
-    it('should update db and layout for new telemetry description on array DTDL file', async () => {
+    it('should update db and layout to delete content on array DTDL file', async () => {
       const result = await controller
         .deleteContent(req, githubDtdlId, arrayDtdlFileEntityId, { contentName: relationshipName, ...defaultParams })
         .then(toHTMLString)

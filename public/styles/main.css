@@ -1324,12 +1324,6 @@ label[for='diagram-type-select'] {
 #add-node-button {
   background-image: url('../images/add-node.svg');
 }
-#edit-node-button {
-  background-image: url('../images/edit-node.svg');
-}
-#delete-node-button {
-  background-image: url('../images/delete-node.svg');
-}
 
 .nav-panel-editable {
   width: 100%;

@@ -882,8 +882,6 @@ export default class MermaidTemplates {
         </div>
         <div id="edit-buttons">
           <button id="add-node-button"></button>
-          <button id="edit-node-button"></button>
-          <button id="delete-node-button"></button>
         </div>
       </div>
     )
