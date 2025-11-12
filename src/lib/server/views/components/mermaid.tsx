@@ -68,9 +68,9 @@ export default class MermaidTemplates {
         <div id="spinner" class="spinner" />
       </div>
       <this.Legend showContent={false} />
-      <this.navPanelPlaceholder expanded={false} edit={true} />
+      <this.navPanelPlaceholder expanded={false} edit={canEdit} />
       <this.svgControls svgRawHeight={svgHeight} svgRawWidth={svgWidth} />
-      <this.editToggle canEdit={true} />
+      <this.editToggle canEdit={canEdit} />
     </Page>
   )
 
@@ -380,7 +380,6 @@ export default class MermaidTemplates {
           {isInterface(entity) && Object.keys(entity.commands).length > 0
             ? Object.entries(entity.commands).map(([name, id]) => {
                 const command = model[id]
-                console.log('command', command)
                 if (!isCommand(command) || !command.DefinedIn) return
                 let requestEntity, responseEntity
                 if (command.request) {
