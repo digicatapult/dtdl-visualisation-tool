@@ -10,12 +10,20 @@ concurrency:
 
 jobs:
   static-checks-npm:
-    uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@main
+    uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@chore/add_semgrep_scans
     with:
       matrix_commands: '["lint", "depcheck", "check", "xss-scan"]'
+      enable_semgrep_action: true
       enable_trufflehog_action: true
       trufflehog_extra_args: "--results=verified,unknown --log-level=2"
       node_version: '24'
+
+  scan-vulns:
+    uses: digicatapult/shared-workflows/.github/workflows/scan-vulns.yml@chore/add_semgrep_scans
+    with:
+      enable_semgrep_action: true
+      extra_args: '--config="p/default"'
+      sarif_path: "/tmp/results_sarif.sarif"
 
   tests-npm:
     uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
