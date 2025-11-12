@@ -190,8 +190,6 @@ const updateCommandRequestResponseValue = (
       )
       .refine((contents) => contents.some((c) => c['@type'] === 'Command' && c.name === commandName)),
   })
-  console.log(file)
-  console.log(value)
   const validFile: z.infer<typeof schema> = schema.loose().parse(file)
 
   // Find the command

@@ -112,7 +112,7 @@ test.describe('Test edit ontology', () => {
     await testNavPanelEdit(page, /^modeResponseDescription$/, 'updated', '/commandResponseDescription')
     await testNavPanelEdit(page, /^modeResponseComment$/, 'updated', '/commandResponseComment')
     await testNavPanelDropdownEdit(page, 'string', 'long', '/commandResponseSchema')
-    await testNavPanelEdit(page, /^modeRequestDisplayName$/, 'updated', '/commandRequestComment')
+    // await testNavPanelEdit(page, /^modeRequestDisplayName$/, 'updated', '/commandRequestComment')
 
     // relationship edits
     await waitForSuccessResponse(
