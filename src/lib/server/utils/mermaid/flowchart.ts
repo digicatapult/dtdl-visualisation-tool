@@ -11,9 +11,10 @@ const entityKindToShape = {
 }
 
 export const arrowTypes = {
-  Extends: '--o',
-  Relationship: '-->',
+  ThickLink: '==>',
+  LinkWithArrowHead: '-->',
   Links: '---',
+  LinkDotted: '-.->',
 } as const
 
 export type ArrowType = (typeof arrowTypes)[keyof typeof arrowTypes]
@@ -90,7 +91,7 @@ export default class Flowchart implements IDiagram<'flowchart'> {
       this.createEdgeString(
         entity.ChildOf,
         entity.target,
-        arrowTypes.Relationship,
+        arrowTypes.LinkWithArrowHead,
         entity.displayName?.en ?? entity.name
       ),
     ]
@@ -101,7 +102,7 @@ export default class Flowchart implements IDiagram<'flowchart'> {
       this.createNodeString(entity),
       ...entity.extends
         .filter((parent) => !!dtdlObjectModel[parent])
-        .map((parent) => this.createEdgeString(parent, entity.Id, arrowTypes.Extends, 'extends')),
+        .map((parent) => this.createEdgeString(parent, entity.Id, arrowTypes.LinkDotted, 'extends')),
       `class ${dtdlIdReplaceSemicolon(entity.Id)} ${getVisualisationState(entity)}`,
     ]
   }

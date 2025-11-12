@@ -30,7 +30,7 @@ describe('Mermaid', function () {
       )
       const test = [
         `dtmi:com:example_extended:1@{ shape: rect, label: "example extended"}\nclick dtmi:com:example_extended:1 getEntity`,
-        `dtmi:com:example:1 --o |extends| dtmi:com:example_extended:1`,
+        `dtmi:com:example:1 -.-> |extends| dtmi:com:example_extended:1`,
         `class dtmi:com:example_extended:1 search`,
       ]
       expect(interfaceAsMarkdown).to.deep.equal(test)
