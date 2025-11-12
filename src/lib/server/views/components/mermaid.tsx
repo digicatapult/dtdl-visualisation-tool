@@ -214,9 +214,8 @@ export default class MermaidTemplates {
     }
     const definedIn = entity.DefinedIn ?? entityId // entities only have definedIn if defined in a different file
     const isRship = isRelationship(entity)
-    // relationshipName comes from validated DTDL model structure and is never rendered directly
-    const relationshipName = (isRship && 'name' in entity ? entity.name : undefined) as string | undefined
-    const showRelationshipTarget = isRship && isRelationship(entity) && !!relationshipName
+    const relationshipName = isRship ? entity.name : undefined
+    const showRelationshipTarget = isRship && !!relationshipName
     return (
       <div id="navigation-panel-details">
         <section>
@@ -326,112 +325,107 @@ export default class MermaidTemplates {
             : 'None'}
         </AccordionSection>
         <AccordionSection heading={'Relationships'} collapsed={false}>
-          {isInterface(entity) && Object.keys(entity.relationships).length > 0
-            ? Object.entries(entity.relationships).map(([name, id]) => {
-                const relationship = model[id]
-                if (!isRelationship(relationship)) return null
+          {(() => {
+            if (!isInterface(entity) || Object.keys(entity.relationships).length === 0) {
+              return 'None'
+            }
 
-                // Determine if this relationship is inherited or defined on the current interface
-                const isInherited = relationship.DefinedIn !== definedIn
-                const relationshipDefinedIn = relationship.DefinedIn ?? definedIn
+            // Build options list for all interfaces in the model (once for all relationships)
+            const interfaceOptions = Object.values(model)
+              .filter(isInterface)
+              .map((iface) => ({
+                value: iface.Id,
+                label: `${getDisplayNameOrId(iface)} (${iface.Id})`,
+              }))
+              .sort((a, b) => a.label.localeCompare(b.label))
 
-                // Build options list for all interfaces in the model
-                const interfaceOptions = Object.values(model)
-                  .filter(isInterface)
-                  .map((iface) => ({
-                    value: iface.Id,
-                    label: `${getDisplayNameOrId(iface)} (${iface.Id})`,
-                  }))
-                  .sort((a, b) => a.label.localeCompare(b.label))
+            return Object.entries(entity.relationships).map(([name, id]) => {
+              const relationship = model[id]
+              if (!isRelationship(relationship)) return null
 
-                // Get display name for the inherited interface
-                const inheritedFromEntity = model[relationshipDefinedIn]
-                const inheritedFromName = inheritedFromEntity
-                  ? getDisplayNameOrId(inheritedFromEntity)
-                  : relationshipDefinedIn
+              // Determine if this relationship is inherited or defined on the current interface
+              const isInherited = relationship.DefinedIn !== definedIn
+              const relationshipDefinedIn = relationship.DefinedIn ?? definedIn
 
-                // Get target display name - extract friendly name from DTDL ID if target doesn't exist in model
-                const targetEntity = relationship.target ? model[relationship.target] : undefined
-                const targetName = targetEntity
-                  ? getDisplayNameOrId(targetEntity)
-                  : relationship.target
-                    ? (relationship.target.split(':').pop()?.split(';')[0] ?? relationship.target)
-                    : 'Unknown'
+              // Get display name for the inherited interface
+              const inheritedFromEntity = model[relationshipDefinedIn]
+              const inheritedFromName = inheritedFromEntity
+                ? getDisplayNameOrId(inheritedFromEntity)
+                : relationshipDefinedIn
 
-                const tooltipText = isInherited
-                  ? `Inherited from ${inheritedFromName}. Target: ${targetName}`
-                  : undefined
+              // Get target display name - extract friendly name from DTDL ID if target doesn't exist in model
+              const targetEntity = relationship.target ? model[relationship.target] : undefined
+              const targetName = targetEntity
+                ? getDisplayNameOrId(targetEntity)
+                : relationship.target
+                  ? (relationship.target.split(':').pop()?.split(';')[0] ?? relationship.target)
+                  : 'Unknown'
 
-                return (
-                  <div class={isInherited ? 'inherited-relationship' : ''} data-tooltip={tooltipText}>
-                    <p>
-                      <b>Display Name:</b>
-                    </p>
-                    {relationship.displayName?.en ? (
-                      <EditableText
-                        edit={edit && !isInherited}
-                        definedIn={relationshipDefinedIn}
-                        putRoute="relationshipDisplayName"
-                        text={relationship.displayName.en}
-                        additionalBody={{ relationshipName: name }}
-                        maxLength={64}
-                      />
-                    ) : (
-                      <p>'displayName' key missing in original file</p>
-                    )}
-                    <p>
-                      <b>Description:</b>
-                    </p>
-                    {relationship.description?.en ? (
-                      <EditableText
-                        edit={edit && !isInherited}
-                        definedIn={relationshipDefinedIn}
-                        putRoute="relationshipDescription"
-                        text={relationship.description.en}
-                        additionalBody={{ relationshipName: name }}
-                        multiline={true}
-                        maxLength={MAX_VALUE_LENGTH}
-                      />
-                    ) : (
-                      <p>'description' key missing in original file</p>
-                    )}
-                    <p>
-                      <b>Comment:</b>
-                    </p>
-                    {relationship.comment ? (
-                      <EditableText
-                        edit={edit && !isInherited}
-                        definedIn={relationshipDefinedIn}
-                        putRoute="relationshipComment"
-                        text={relationship.comment}
-                        additionalBody={{ relationshipName: name }}
-                        multiline={true}
-                        maxLength={MAX_VALUE_LENGTH}
-                      />
-                    ) : (
-                      <p>'comment' key missing in original file</p>
-                    )}
-                    <p>
-                      <b>Target:</b>
-                    </p>
-                    {relationship.target ? (
-                      <EditableSelectWithLabel
-                        edit={edit && !isInherited}
-                        definedIn={relationshipDefinedIn}
-                        putRoute="relationshipTarget"
-                        selectedValue={relationship.target}
-                        options={interfaceOptions}
-                        disabled={isInherited}
-                        additionalBody={!isInherited ? { relationshipName: name } : undefined}
-                      />
-                    ) : (
-                      <p>'target' key missing in original file</p>
-                    )}
-                    <br />
-                  </div>
-                )
-              })
-            : 'None'}
+              const tooltipText = isInherited
+                ? escapeHtml(`Inherited from ${inheritedFromName}. Target: ${targetName}`)
+                : undefined
+
+              return (
+                <div class={isInherited ? 'inherited-relationship' : ''} data-tooltip={tooltipText}>
+                  <p>
+                    <b>Display Name:</b>
+                  </p>
+                  <EditableText
+                    edit={edit && !isInherited}
+                    definedIn={relationshipDefinedIn}
+                    putRoute="relationshipDisplayName"
+                    text={relationship.displayName?.en}
+                    keyName="displayName"
+                    additionalBody={{ relationshipName: name }}
+                    maxLength={64}
+                  />
+                  <p>
+                    <b>Description:</b>
+                  </p>
+                  <EditableText
+                    edit={edit && !isInherited}
+                    definedIn={relationshipDefinedIn}
+                    putRoute="relationshipDescription"
+                    text={relationship.description?.en}
+                    keyName="description"
+                    additionalBody={{ relationshipName: name }}
+                    multiline={true}
+                    maxLength={MAX_VALUE_LENGTH}
+                  />
+                  <p>
+                    <b>Comment:</b>
+                  </p>
+                  <EditableText
+                    edit={edit && !isInherited}
+                    definedIn={relationshipDefinedIn}
+                    putRoute="relationshipComment"
+                    text={relationship.comment}
+                    keyName="comment"
+                    additionalBody={{ relationshipName: name }}
+                    multiline={true}
+                    maxLength={MAX_VALUE_LENGTH}
+                  />
+                  <p>
+                    <b>Target:</b>
+                  </p>
+                  {relationship.target ? (
+                    <EditableSelectWithLabel
+                      edit={edit && !isInherited}
+                      definedIn={relationshipDefinedIn}
+                      putRoute="relationshipTarget"
+                      selectedValue={relationship.target}
+                      options={interfaceOptions}
+                      disabled={isInherited}
+                      additionalBody={!isInherited ? { relationshipName: name } : undefined}
+                    />
+                  ) : (
+                    <p>'target' key missing in original file</p>
+                  )}
+                  <br />
+                </div>
+              )
+            })
+          })()}
         </AccordionSection>
         <AccordionSection heading={'Telemetries'} collapsed={false}>
           {isInterface(entity) && Object.keys(entity.telemetries).length > 0

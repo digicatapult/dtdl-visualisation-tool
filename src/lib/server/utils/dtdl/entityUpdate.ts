@@ -31,33 +31,8 @@ export const updateRelationshipComment = (value: string, relationshipName: strin
 }
 
 export const updateRelationshipTarget = (newTarget: string, relationshipName: string) => (file: unknown) => {
-  if (invalidChars.test(newTarget)) throw new DataError(`Invalid JSON: '${newTarget}'`)
   if (!newTarget.trim()) throw new DataError('Target cannot be empty')
-
-  const schema = z.object({
-    '@type': z.literal('Interface'),
-    contents: z
-      .array(
-        z.looseObject({
-          '@type': z.string(),
-          name: z.string(),
-          target: z.string().optional(),
-        })
-      )
-      .refine((contents) => contents.some((c) => c['@type'] === 'Relationship' && c.name === relationshipName)),
-  })
-
-  const validFile: z.infer<typeof schema> = schema.passthrough().parse(file)
-
-  const index = validFile.contents.findIndex(
-    (item) => item['@type'] === 'Relationship' && item.name === relationshipName
-  )
-  const updatedContents = validFile.contents.toSpliced(index, 1, {
-    ...validFile.contents[index],
-    target: newTarget,
-  })
-
-  return { ...validFile, contents: updatedContents }
+  return updateContentsValue(file, newTarget, 'Relationship', relationshipName, 'target', MAX_VALUE_LENGTH)
 }
 
 export const updatePropertyDisplayName = (value: string, propertyName: string) => (file: unknown) => {
@@ -121,7 +96,7 @@ const updateContentsValue = (
   value: string | boolean,
   contentType: 'Relationship' | 'Property' | 'Telemetry',
   contentName: string, // effectively contentId - has to be unique in DTDL
-  keyToUpdate: 'displayName' | 'description' | 'comment' | 'schema' | 'writable',
+  keyToUpdate: 'displayName' | 'description' | 'comment' | 'schema' | 'writable' | 'target',
   maxLength = MAX_VALUE_LENGTH
 ) => {
   if (typeof value === 'string' && invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)

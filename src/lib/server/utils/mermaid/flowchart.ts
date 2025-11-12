@@ -1,6 +1,6 @@
 import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 import { InternalError } from '../../errors.js'
-import { getDisplayNameOrId } from '../dtdl/extract.js'
+import { getDisplayNameOrId, getDisplayNameOrName } from '../dtdl/extract.js'
 import { getVisualisationState } from '../dtdl/filter.js'
 import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
 import { BoundingBox, defaultMarkdownFn, dtdlIdReplaceSemicolon, extractTransformTranslateCoords } from './helpers.js'
@@ -78,7 +78,7 @@ export default class Flowchart implements IDiagram<'flowchart'> {
       return []
     }
 
-    const label = entity.displayName?.en ?? entity.name ?? entity.Id
+    const label = getDisplayNameOrName(entity)
     return [this.createEdgeString(entity.ChildOf, entity.target, label)]
   }
 

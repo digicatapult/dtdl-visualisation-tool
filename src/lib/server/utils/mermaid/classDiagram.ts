@@ -85,7 +85,7 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
   relationshipToMarkdown(dtdlObjectModel: DtdlObjectModel, entity: RelationshipType): string[] {
     const graph: string[] = []
     if (entity.ChildOf && entity.target && entity.target in dtdlObjectModel) {
-      const label = entity.displayName?.en ?? entity.name ?? entity.Id
+      const label = getDisplayNameOrName(entity)
       graph.push(this.createEdgeString(entity.ChildOf, entity.target, arrowTypes.Association, label))
     }
     return graph

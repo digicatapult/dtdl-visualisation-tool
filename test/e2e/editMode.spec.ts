@@ -94,7 +94,7 @@ test.describe('Test edit ontology', () => {
     // extended property
     const extendedProperty = page.locator('#navigation-panel-details').getByText('Name: baseProperty')
     const backgroundColor = await extendedProperty.evaluate((el) => window.getComputedStyle(el).backgroundColor)
-    expect(backgroundColor).toBe('rgb(245, 246, 250)')
+    expect(backgroundColor).toBe('rgb(245, 245, 245)') // #f5f5f5 - matches inherited relationship styling
     await expect(extendedProperty).toHaveAttribute('title', 'Extended from dtmi:com:base;1')
 
     // telemetry edits

@@ -152,7 +152,6 @@ export const EditableSelectWithLabel = ({
   options,
   additionalBody,
   disabled,
-  tooltip,
 }: {
   edit: boolean
   definedIn: DtdlId
@@ -161,18 +160,9 @@ export const EditableSelectWithLabel = ({
   options: Array<{ value: string; label: string }>
   additionalBody?: Record<string, string>
   disabled?: boolean
-  tooltip?: string
 }): JSX.Element => {
   if (!edit || disabled) {
-    const content = <p>{escapeHtml(options.find((o) => o.value === selectedValue)?.label ?? selectedValue)}</p>
-    if (tooltip) {
-      return (
-        <div class="tooltip-wrapper" data-tooltip={escapeHtml(tooltip)}>
-          {content}
-        </div>
-      )
-    }
-    return content
+    return <p>{escapeHtml(options.find((o) => o.value === selectedValue)?.label ?? selectedValue)}</p>
   }
 
   return (
