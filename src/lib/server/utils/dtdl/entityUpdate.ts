@@ -74,9 +74,6 @@ export const updateCommandComment = (value: string, commandName: string) => (fil
 export const updateCommandDescription = (value: string, commandName: string) => (file: unknown) => {
   return updateContentsValue(file, value, 'Command', commandName, 'description', MAX_VALUE_LENGTH)
 }
-export const updateCommandSchema = (value: DtdlSchema, commandName: string) => (file: unknown) => {
-  return updateContentsValue(file, value, 'Command', commandName, 'schema', MAX_VALUE_LENGTH)
-}
 
 // Command Request update functions
 export const updateCommandRequestDisplayName = (value: string, commandName: string) => (file: unknown) => {
@@ -193,7 +190,8 @@ const updateCommandRequestResponseValue = (
       )
       .refine((contents) => contents.some((c) => c['@type'] === 'Command' && c.name === commandName)),
   })
-
+  console.log(file)
+  console.log(value)
   const validFile: z.infer<typeof schema> = schema.loose().parse(file)
 
   // Find the command

@@ -18,7 +18,6 @@ import {
   updateCommandResponseDescription,
   updateCommandResponseDisplayName,
   updateCommandResponseSchema,
-  updateCommandSchema,
   updateComment,
   updateDescription,
   updateDisplayName,
@@ -316,20 +315,6 @@ export class EntityController extends HTMLController {
     const { value, commandName, ...updateParams } = body
 
     await this.putEntityValue(ontologyId, entityId, updateCommandComment(value, commandName))
-
-    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
-  }
-  @SuccessResponse(200)
-  @Put('{entityId}/commandSchema')
-  public async putCommandSchema(
-    @Request() req: express.Request,
-    @Path() ontologyId: UUID,
-    @Path() entityId: DtdlId,
-    @Body() body: { value: DtdlSchema; commandName: string } & UpdateParams
-  ): Promise<HTML> {
-    const { value, commandName, ...updateParams } = body
-
-    await this.putEntityValue(ontologyId, entityId, updateCommandSchema(value, commandName))
 
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
   }
