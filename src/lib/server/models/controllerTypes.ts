@@ -51,3 +51,7 @@ export type EntityEntityUpdateBody = UpdateParams & {
 export interface DeleteContentParams extends UpdateParams {
   contentName: string
 }
+
+export const deletableEntities = ['Relationship', 'Interface'] as const
+
+export type DeletableEntities = (typeof deletableEntities)[number]

@@ -42,10 +42,6 @@ a:not(.button):focus-visible {
   filter: brightness(115%);
 }
 
-button:hover {
-  filter: brightness(115%);
-}
-
 #counter {
   position: relative;
 }
@@ -386,13 +382,18 @@ label[for='diagram-type-select'] {
 }
 
 #delete-dialog {
-  width: 60ch;
+  width: 40ch;
   border-radius: 1rem;
   border: 1px solid var(--border-color);
 }
 
+#delete-dialog h3 {
+  margin: 0;
+}
+
 #delete-dialog p {
   margin: 0;
+  font-size: 0.8rem;
 }
 
 #delete-confirmation {
@@ -401,11 +402,16 @@ label[for='diagram-type-select'] {
 }
 
 #delete-button {
-  background-color: var(--delete-color);
+  background-color: #d1d3d4;
   width: 20ch;
   color: white;
   justify-self: center;
-  margin-top: 4rem;
+  border: none;
+}
+
+#delete-button:enabled {
+  background-color: var(--delete-color);
+  transition: background-color 0.3s;
 }
 
 

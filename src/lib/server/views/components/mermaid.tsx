@@ -1,10 +1,11 @@
 /// <reference types="@kitajs/html/htmx.d.ts" />
 
-import { DtdlObjectModel, EntityInfo } from '@digicatapult/dtdl-parser'
+import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
 import { randomUUID } from 'crypto'
 import { container, singleton } from 'tsyringe'
 import { Env } from '../../env/index.js'
+import { DeletableEntities } from '../../models/controllerTypes.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { DTDL_VALID_SCHEMAS, DtdlId, UUID } from '../../models/strings.js'
 import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
@@ -389,8 +390,10 @@ export default class MermaidTemplates {
               hx-get={`entity/${entityId}/deleteDialog`}
               hx-vals={JSON.stringify({
                 entityKind: entity.EntityKind,
-                definedIn: entity.DefinedIn,
+                definedIn: definedIn,
                 contentName: isNamedEntity(entity) ? entity.name : '',
+                displayName: getDisplayName(entity),
+                definedInDisplayName: definedIn !== entityId ? getDisplayName(model[definedIn]) : undefined,
               })}
               hx-swap="outerHTML"
               hx-target="#delete-dialog"
@@ -681,17 +684,18 @@ export default class MermaidTemplates {
     contentName,
   }: {
     displayName?: string
-    entityKind?: EntityInfo['EntityKind']
+    entityKind?: DeletableEntities
     definedIn?: string
     definedInDisplayName?: string
     contentName?: string
   }) => {
+    const deletePath = entityKind === 'Interface' ? `entity/${definedIn}` : `entity/${definedIn}/content`
     return (
       <dialog id="delete-dialog">
         <div id="modal-wrapper">
           <h3>Delete {entityKind}</h3>
-          <p>Name: {displayName}</p>
-          {definedInDisplayName && <p>Defined in: {definedInDisplayName}</p>}
+          <p>{escapeHtml(displayName)}</p>
+          {escapeHtml(definedInDisplayName) && <p>Defined in: {escapeHtml(definedInDisplayName)}</p>}
           <br />
           <p>
             Type
@@ -705,11 +709,12 @@ export default class MermaidTemplates {
             id="delete-confirmation"
             oninput="document.getElementById('delete-button').disabled = this.value !== 'delete'"
           />
+          <br />
           <p>Are you sure you want to delete this {entityKind}?</p>
 
           <button
             id="delete-button"
-            hx-delete={`entity/${definedIn}/content`}
+            hx-delete={deletePath}
             hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
             hx-swap="outerHTML transition:true"
             hx-target="#mermaid-output"

@@ -1,7 +1,8 @@
-import { expect } from 'chai'
+import * as chai from 'chai'
+import chaiAsPromised from 'chai-as-promised'
 import { describe, it } from 'mocha'
 import sinon from 'sinon'
-import { DataError } from '../../../../errors.js'
+import { DataError, InternalError } from '../../../../errors.js'
 import { UpdateParams } from '../../../../models/controllerTypes.js'
 import { octokitTokenCookie } from '../../../../models/cookieNames.js'
 import { DtdlSchema } from '../../../../models/strings.js'
@@ -30,6 +31,9 @@ import {
 import { validSessionId } from '../../../__tests__/sessionFixtures.js'
 import { OntologyController } from '../../index.js'
 import { EntityController } from '../index.js'
+
+chai.use(chaiAsPromised)
+const { expect } = chai
 
 export const defaultParams: UpdateParams = {
   sessionId: validSessionId,
@@ -70,7 +74,7 @@ describe('EntityController', async () => {
     mockGithubRequest
   )
 
-  const controller = new EntityController(simpleMockModelDb, ontologyController, mockCache)
+  const controller = new EntityController(simpleMockModelDb, ontologyController, templateMock, mockSession, mockCache)
 
   describe('putDisplayName', () => {
     afterEach(() => updateDtdlContentsStub.resetHistory())
@@ -609,6 +613,55 @@ describe('EntityController', async () => {
           await expect(fn()).to.be.rejectedWith(DataError, 'Invalid JSON')
         })
       })
+    })
+  })
+
+  describe('deleteDialog', () => {
+    it('should return templated delete dialog', async () => {
+      const result = await controller.deleteDialog({}).then(toHTMLString)
+
+      expect(result).to.equal('deleteDialog_deleteDialog')
+    })
+  })
+
+  describe('deleteInterface', () => {
+    it('should throw not implemented', async () => {
+      await expect(controller.deleteInterface()).to.be.rejectedWith(InternalError, 'Not implemented yet')
+    })
+  })
+
+  describe('deleteContent', () => {
+    afterEach(() => updateDtdlContentsStub.resetHistory())
+
+    it('should update db and layout to delete content on non-array DTDL file', async () => {
+      const result = await controller
+        .deleteContent(req, githubDtdlId, simpleDtdlFileEntityId, { contentName: relationshipName, ...defaultParams })
+        .then(toHTMLString)
+
+      const file = simpleDtdlFileFixture({})
+      const fileWithoutRelationship = {
+        ...file,
+        contents: file.contents.filter((c) => c.name !== relationshipName),
+      }
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(fileWithoutRelationship)
+      expect(result).to.equal(updateLayoutOutput)
+    })
+
+    it('should update db and layout for new telemetry description on array DTDL file', async () => {
+      const result = await controller
+        .deleteContent(req, githubDtdlId, arrayDtdlFileEntityId, { contentName: relationshipName, ...defaultParams })
+        .then(toHTMLString)
+
+      const file = arrayDtdlFileFixture({})[1]
+      const fileWithoutRelationship = {
+        ...file,
+        contents: file.contents.filter((c) => c.name !== relationshipName),
+      }
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal([
+        simpleDtdlFileFixture({}),
+        fileWithoutRelationship,
+      ])
+      expect(result).to.equal(updateLayoutOutput)
     })
   })
 })

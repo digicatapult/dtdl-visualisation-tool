@@ -2,11 +2,11 @@ import express from 'express'
 import { Body, Delete, Get, Middlewares, Path, Produces, Put, Queries, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../../../db/modelDb.js'
-import { type DeleteContentParams, type UpdateParams } from '../../../models/controllerTypes.js'
+import { DeletableEntities, type DeleteContentParams, type UpdateParams } from '../../../models/controllerTypes.js'
 import { DtdlSchema, type DtdlId, type UUID } from '../../../models/strings.js'
 import { Cache, type ICache } from '../../../utils/cache.js'
 
-import { EntityInfo } from '@digicatapult/dtdl-parser'
+import { InternalError } from '../../../errors.js'
 import {
   deleteContent,
   updateComment,
@@ -25,7 +25,6 @@ import {
   updateTelemetryDisplayName,
   updateTelemetrySchema,
 } from '../../../utils/dtdl/entityUpdate.js'
-import { getDisplayName } from '../../../utils/dtdl/extract.js'
 import SessionStore from '../../../utils/sessions.js'
 import MermaidTemplates from '../../../views/components/mermaid.js'
 import { checkEditPermission } from '../../helpers.js'
@@ -276,22 +275,23 @@ export class EntityController extends HTMLController {
   @Produces('text/html')
   @Get('{entityId}/deleteDialog')
   public async deleteDialog(
-    @Path() ontologyId: UUID,
-    @Path() entityId: DtdlId,
     @Queries()
-    {
-      entityKind,
-      definedIn,
-      contentName,
-    }: { entityKind: EntityInfo['EntityKind']; definedIn?: string; contentName?: string }
+    query: {
+      displayName?: string
+      entityKind?: DeletableEntities
+      definedIn?: string
+      definedInDisplayName?: string
+      contentName?: string
+    }
   ): Promise<HTML> {
-    const { model } = await this.modelDb.getDtdlModelAndTree(ontologyId)
-    const displayName = getDisplayName(model[entityId])
-    const definedInDisplayName = definedIn ? getDisplayName(model[definedIn]) : undefined
+    return this.html(this.templates.deleteDialog(query))
+  }
 
-    return this.html(
-      this.templates.deleteDialog({ displayName, entityKind, definedIn, definedInDisplayName, contentName })
-    )
+  @SuccessResponse(200)
+  @Produces('text/html')
+  @Delete('{entityId}')
+  public async deleteInterface(): Promise<HTML> {
+    throw new InternalError('Not implemented yet')
   }
 
   @SuccessResponse(200)
