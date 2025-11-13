@@ -44,17 +44,17 @@ click dtmi:com:example:1 getEntity
 class dtmi:com:example:1 search
 dtmi:com:example_extended:1@{ shape: rect, label: "example extended"}
 click dtmi:com:example_extended:1 getEntity
-dtmi:com:example:1 --- |extends| dtmi:com:example_extended:1
+dtmi:com:example:1 -.-> |extends| dtmi:com:example_extended:1
 class dtmi:com:example_extended:1 search
 dtmi:com:example_related:1@{ shape: rect, label: "example related"}
 click dtmi:com:example_related:1 getEntity
 class dtmi:com:example_related:1 search
-dtmi:com:example:1 --- |A relationship| dtmi:com:example_related:1`
+dtmi:com:example:1 --> |A relationship| dtmi:com:example_related:1`
 
 export const flowchartFixtureFiltered = `flowchart TD
 dtmi:com:example:1@{ shape: rect, label: "example 1"}
 click dtmi:com:example:1 getEntity
-dtmi:com:example:1 --- |A relationship| dtmi:com:example_related:1
+dtmi:com:example:1 --> |A relationship| dtmi:com:example_related:1
 dtmi:com:example_related:1@{ shape: rect, label: "example related"}
 click dtmi:com:example_related:1 getEntity`
 
