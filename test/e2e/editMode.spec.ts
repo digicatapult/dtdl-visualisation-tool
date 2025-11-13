@@ -21,6 +21,7 @@ test.describe('Test edit ontology', () => {
     )
   })
   test('edit interface + relationship', async ({ browser, baseURL }) => {
+    test.setTimeout(60000) // Timeout to 60 seconds
     // login to github
     const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const page = await context.newPage()
@@ -43,7 +44,7 @@ test.describe('Test edit ontology', () => {
     await waitForSuccessResponse(page, () => page.press('#public-github-input', 'Enter'), '/branches')
 
     // click test/dtdl branch
-    const branchName = page.locator('.github-list li').filter({ hasText: /^main$/ })
+    const branchName = page.locator('.github-list li').filter({ hasText: /^feat\/add-commands-to-details-view$/ })
     await expect(branchName).toBeVisible()
     await waitForSuccessResponse(page, () => branchName.click(), '/contents')
 
@@ -102,6 +103,17 @@ test.describe('Test edit ontology', () => {
     await testNavPanelDropdownEdit(page, 'float', 'integer', '/telemetrySchema')
     await testNavPanelEdit(page, /^telemetryDescriptionEdit$/, 'updated', '/telemetryDescription')
     await testNavPanelEdit(page, /^telemetryCommentEdit$/, 'updated', '/telemetryComment')
+
+    // command edits
+    await testNavPanelEdit(page, /^turnOnCommandDisplayNameEdit$/, 'updated', '/commandDisplayName')
+    await testNavPanelEdit(page, /^turnOnCommandDescriptionEdit$/, 'updated', '/commandDescription')
+    await testNavPanelEdit(page, /^turnOnCommandCommentEdit$/, 'updated', '/commandComment')
+    await testNavPanelEdit(page, /^modeRequestDescription$/, 'updated', '/commandRequestDescription')
+    await testNavPanelEdit(page, /^modeRequestComment$/, 'updated', '/commandRequestComment')
+    await testNavPanelEdit(page, /^modeResponseDescription$/, 'updated', '/commandResponseDescription')
+    await testNavPanelEdit(page, /^modeResponseComment$/, 'updated', '/commandResponseComment')
+    await testNavPanelDropdownEdit(page, 'string', 'long', '/commandResponseSchema')
+    // await testNavPanelEdit(page, /^modeRequestDisplayName$/, 'updated', '/commandRequestComment')
 
     // relationship edits
     await waitForSuccessResponse(

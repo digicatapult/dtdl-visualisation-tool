@@ -25,7 +25,8 @@
     "xss-scan": "xss-scan",
     "db:cmd": "node --import @swc-node/register/esm-register ./node_modules/.bin/knex",
     "db:migrate": "npm run db:cmd -- migrate:latest",
-    "db:rollback": "npm run db:cmd -- migrate:rollback"
+    "db:rollback": "npm run db:cmd -- migrate:rollback",
+    "postinstall": "patch-package"
   },
   "repository": {
     "type": "git",
@@ -109,8 +110,10 @@
     "globals": "^16.5.0",
     "mocha": "^11.7.5",
     "otpauth": "^9.4.1",
+    "patch-package": "^8.0.1",
     "pino-colada": "^2.2.2",
     "playwright-ctrf-json-reporter": "^0.0.26",
+    "postinstall-postinstall": "^2.1.0",
     "prettier": "^3.6.2",
     "prettier-plugin-organize-imports": "^4.3.0",
     "rimraf": "^6.1.0",
