@@ -1,7 +1,6 @@
 #github-modal {
   height: 50%;
   width: 60ch;
-  align-self: center;
 }
 
 .github-list {
@@ -12,6 +11,7 @@
   cursor: pointer;
   min-height: 100px;
   margin: 0;
+  overflow: auto;
 }
 
 #modal-wrapper {

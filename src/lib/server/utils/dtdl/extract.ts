@@ -7,11 +7,10 @@ import {
   TelemetryInfo,
 } from '@digicatapult/dtdl-parser'
 
-export const getDisplayNameOrId = (entity: EntityType): string =>
-  entity?.displayName?.en ?? entity?.Id ?? 'Entity not found in model'
-
-export const getDisplayNameOrName = (entity: EntityType): string =>
-  entity?.displayName?.en ?? (isNamedEntity(entity) ? entity?.name : 'Entity not named')
+export const getDisplayName = (entity: EntityType): string => {
+  if (!entity) return 'Entity not found in model'
+  return entity?.displayName?.en ?? (isNamedEntity(entity) ? entity?.name : entity?.Id)
+}
 
 export const isInterface = (entity: EntityType): entity is InterfaceInfo => entity.EntityKind === 'Interface'
 export const isRelationship = (entity: EntityType): entity is RelationshipInfo => entity.EntityKind === 'Relationship'

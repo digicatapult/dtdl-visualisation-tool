@@ -4,7 +4,7 @@ import { DtdlObjectModel, PropertyInfo } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
 import { DTDL_VALID_SCHEMAS, DTDL_VALID_WRITABLE, DtdlId } from '../../models/strings.js'
 import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
-import { getDisplayNameOrId } from '../../utils/dtdl/extract.js'
+import { getDisplayName } from '../../utils/dtdl/extract.js'
 import { EditableSelect, EditableText } from '../common.js'
 
 export const PropertyDetails = ({
@@ -28,7 +28,7 @@ export const PropertyDetails = ({
   return (
     <div
       class={isExtended ? 'extended-detail' : undefined}
-      title={isExtended ? `Extended from ${getDisplayNameOrId(model[property.DefinedIn])}` : undefined}
+      title={isExtended ? `Extended from ${getDisplayName(model[property.DefinedIn])}` : undefined}
     >
       <b>Name: </b>
       {escapeHtml(property.name)}

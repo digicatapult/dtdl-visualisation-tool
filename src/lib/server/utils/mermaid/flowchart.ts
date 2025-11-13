@@ -1,6 +1,6 @@
 import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 import { InternalError } from '../../errors.js'
-import { getDisplayNameOrId } from '../dtdl/extract.js'
+import { getDisplayName } from '../dtdl/extract.js'
 import { getVisualisationState } from '../dtdl/filter.js'
 import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
 import { BoundingBox, defaultMarkdownFn, dtdlIdReplaceSemicolon, extractTransformTranslateCoords } from './helpers.js'
@@ -68,7 +68,7 @@ export default class Flowchart implements IDiagram<'flowchart'> {
   }
 
   createNodeString(entity: EntityType, withClick: boolean = true): string {
-    const displayName = getDisplayNameOrId(entity)
+    const displayName = getDisplayName(entity)
     const mermaidSafeId = dtdlIdReplaceSemicolon(entity.Id)
     let entityMarkdown = mermaidSafeId
     entityMarkdown += this.displayNameWithBorders(displayName, entity.EntityKind)

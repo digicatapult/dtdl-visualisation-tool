@@ -5,10 +5,11 @@ import { escapeHtml } from '@kitajs/html'
 import { randomUUID } from 'crypto'
 import { container, singleton } from 'tsyringe'
 import { Env } from '../../env/index.js'
+import { DeletableEntities } from '../../models/controllerTypes.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { DTDL_VALID_SCHEMAS, DtdlId, UUID } from '../../models/strings.js'
 import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
-import { getDisplayNameOrId, isInterface, isProperty, isRelationship, isTelemetry } from '../../utils/dtdl/extract.js'
+import { getDisplayName, isInterface, isProperty, isRelationship, isTelemetry } from '../../utils/dtdl/extract.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { AccordionSection, EditableSelect, EditableText, Page } from '../common.js'
 import { PropertyDetails } from './property.js'
@@ -64,6 +65,7 @@ export default class MermaidTemplates {
       <this.navPanelPlaceholder expanded={false} edit={canEdit} />
       <this.svgControls svgRawHeight={svgHeight} svgRawWidth={svgWidth} />
       <this.editToggle canEdit={canEdit} />
+      <this.deleteDialog />
     </Page>
   )
 
@@ -275,7 +277,7 @@ export default class MermaidTemplates {
           <p>
             <b>Extends: </b>
             {isInterface(entity) && entity.extends.length > 0
-              ? entity.extends.map((entityId) => getDisplayNameOrId(model[entityId]))
+              ? entity.extends.map((entityId) => getDisplayName(model[entityId]))
               : 'None'}
           </p>
         </AccordionSection>
@@ -303,7 +305,7 @@ export default class MermaidTemplates {
                     <p>
                       <b>Target: </b>
                       {isRelationship(relationship) && relationship.target
-                        ? getDisplayNameOrId(model[relationship.target])
+                        ? getDisplayName(model[relationship.target])
                         : '-'}
                     </p>
                     <br />
@@ -320,7 +322,7 @@ export default class MermaidTemplates {
                 return (
                   <>
                     <b>Name: </b>
-                    {escapeHtml(telemetry.name)}
+                    {escapeHtml(name)}
                     <br />
                     <b>Display Name:</b>
                     <EditableText
@@ -374,6 +376,20 @@ export default class MermaidTemplates {
             <code>{escapeHtml(JSON.stringify(entity, null, 4))}</code>
           </pre>
         </AccordionSection>
+        {edit && (
+          <section id="navigation-panel-actions">
+            <a
+              id="delete-dialog-button"
+              hx-get={`entity/${entityId}/deleteDialog`}
+              hx-swap="outerHTML"
+              hx-target="#delete-dialog"
+              class="rounded-button"
+              hx-on--after-request="globalThis.showDeleteDialog()"
+            >
+              Delete {entity.EntityKind}
+            </a>
+          </section>
+        )}
       </div>
     )
   }
@@ -646,6 +662,66 @@ export default class MermaidTemplates {
     )
   }
 
+  public deleteDialog = ({
+    displayName,
+    entityKind,
+    definedIn,
+    definedInDisplayName,
+    contentName,
+  }: {
+    displayName?: string
+    entityKind?: DeletableEntities
+    definedIn?: string
+    definedInDisplayName?: string
+    contentName?: string
+  }) => {
+    const deletePath = entityKind === 'Interface' ? `entity/${definedIn}` : `entity/${definedIn}/content`
+    const displayDefinedIn = definedInDisplayName !== undefined
+    return (
+      <dialog id="delete-dialog">
+        <div id="modal-wrapper">
+          <h3>Delete {entityKind}</h3>
+          <p>{escapeHtml(displayName ?? 'No display name')}</p>
+          {displayDefinedIn && <p>Defined in: {escapeHtml(definedInDisplayName ?? 'No defined in display name')}</p>}
+          <br />
+          <p>
+            Type
+            <b>
+              <em> delete </em>
+            </b>
+            to continue
+          </p>
+          <input
+            type="text"
+            id="delete-confirmation"
+            oninput="document.getElementById('delete-button').disabled = this.value !== 'delete'"
+          />
+          <br />
+          <p>Are you sure you want to delete this {entityKind}?</p>
+
+          <button
+            id="delete-button"
+            hx-delete={deletePath}
+            hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
+            hx-swap="outerHTML transition:true"
+            hx-target="#mermaid-output"
+            hx-vals={JSON.stringify({ contentName })}
+            hx-indicator="#spinner"
+            class="rounded-button"
+            disabled
+            hx-on--after-request="globalThis.hideDeleteDialog()"
+          >
+            Delete {entityKind}
+          </button>
+
+          <form method="dialog">
+            <button class="modal-button" />
+          </form>
+        </div>
+      </dialog>
+    )
+  }
+
   public Legend = ({ showContent }: { showContent: boolean }) => {
     return (
       <section id="legend">
@@ -705,7 +781,7 @@ export default class MermaidTemplates {
 
   private uploadForm = () => {
     return (
-      <a id="open-button" href={`/open`} class="button">
+      <a id="open-button" href={`/open`} class="rounded-button">
         Open
       </a>
     )
@@ -715,7 +791,7 @@ export default class MermaidTemplates {
     // htmx component to generate a shareable link for the ontology
     return (
       <>
-        <a id="share-ontology" onclick="globalThis.showShareModal()" class="button">
+        <a id="share-ontology" onclick="globalThis.showShareModal()" class="rounded-button">
           Share
         </a>
         <dialog id="share-link-modal" class="modal">
@@ -806,8 +882,6 @@ export default class MermaidTemplates {
         </div>
         <div id="edit-buttons">
           <button id="add-node-button"></button>
-          <button id="edit-node-button"></button>
-          <button id="delete-node-button"></button>
         </div>
       </div>
     )
