@@ -12,6 +12,7 @@ import { getDisplayNameOrId, isInterface, isProperty, isRelationship, isTelemetr
 import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { AccordionSection, EditableSelect, EditableSelectWithLabel, EditableText, Page } from '../common.js'
 import { PropertyDetails } from './property.js'
+import { RelationshipDetails } from './relationship.js'
 
 const env = container.resolve(Env)
 
@@ -213,6 +214,18 @@ export default class MermaidTemplates {
       )
     }
     const definedIn = entity.DefinedIn ?? entityId // entities only have definedIn if defined in a different file
+
+    // Build interface options list once for all relationships (if entity is an interface)
+    const interfaceOptions =
+      model && isInterface(entity)
+        ? Object.values(model)
+            .filter(isInterface)
+            .map((iface) => ({
+              value: iface.Id,
+              label: `${getDisplayNameOrId(iface)} (${iface.Id})`,
+            }))
+            .sort((a, b) => a.label.localeCompare(b.label))
+        : []
     const isRship = isRelationship(entity)
     const relationshipName = isRship ? entity.name : undefined
     const showRelationshipTarget = isRship && !!relationshipName
@@ -325,107 +338,22 @@ export default class MermaidTemplates {
             : 'None'}
         </AccordionSection>
         <AccordionSection heading={'Relationships'} collapsed={false}>
-          {(() => {
-            if (!isInterface(entity) || Object.keys(entity.relationships).length === 0) {
-              return 'None'
-            }
-
-            // Build options list for all interfaces in the model (once for all relationships)
-            const interfaceOptions = Object.values(model)
-              .filter(isInterface)
-              .map((iface) => ({
-                value: iface.Id,
-                label: `${getDisplayNameOrId(iface)} (${iface.Id})`,
-              }))
-              .sort((a, b) => a.label.localeCompare(b.label))
-
-            return Object.entries(entity.relationships).map(([name, id]) => {
-              const relationship = model[id]
-              if (!isRelationship(relationship)) return null
-
-              // Determine if this relationship is inherited or defined on the current interface
-              const isInherited = relationship.DefinedIn !== definedIn
-              const relationshipDefinedIn = relationship.DefinedIn ?? definedIn
-
-              // Get display name for the inherited interface
-              const inheritedFromEntity = model[relationshipDefinedIn]
-              const inheritedFromName = inheritedFromEntity
-                ? getDisplayNameOrId(inheritedFromEntity)
-                : relationshipDefinedIn
-
-              // Get target display name - extract friendly name from DTDL ID if target doesn't exist in model
-              const targetEntity = relationship.target ? model[relationship.target] : undefined
-              const targetName = targetEntity
-                ? getDisplayNameOrId(targetEntity)
-                : relationship.target
-                  ? (relationship.target.split(':').pop()?.split(';')[0] ?? relationship.target)
-                  : 'Unknown'
-
-              const tooltipText = isInherited
-                ? escapeHtml(`Inherited from ${inheritedFromName}. Target: ${targetName}`)
-                : undefined
-
-              return (
-                <div class={isInherited ? 'inherited-relationship' : ''} data-tooltip={tooltipText}>
-                  <p>
-                    <b>Display Name:</b>
-                  </p>
-                  <EditableText
-                    edit={edit && !isInherited}
-                    definedIn={relationshipDefinedIn}
-                    putRoute="relationshipDisplayName"
-                    text={relationship.displayName?.en}
-                    keyName="displayName"
-                    additionalBody={{ relationshipName: name }}
-                    maxLength={64}
+          {isInterface(entity) && Object.keys(entity.relationships).length > 0
+            ? Object.entries(entity.relationships).map(([name, id]) => {
+                const relationship = model[id]
+                if (!isRelationship(relationship)) return null
+                return (
+                  <RelationshipDetails
+                    relationship={relationship}
+                    name={name}
+                    model={model}
+                    edit={edit}
+                    entityId={entity.Id}
+                    interfaceOptions={interfaceOptions}
                   />
-                  <p>
-                    <b>Description:</b>
-                  </p>
-                  <EditableText
-                    edit={edit && !isInherited}
-                    definedIn={relationshipDefinedIn}
-                    putRoute="relationshipDescription"
-                    text={relationship.description?.en}
-                    keyName="description"
-                    additionalBody={{ relationshipName: name }}
-                    multiline={true}
-                    maxLength={MAX_VALUE_LENGTH}
-                  />
-                  <p>
-                    <b>Comment:</b>
-                  </p>
-                  <EditableText
-                    edit={edit && !isInherited}
-                    definedIn={relationshipDefinedIn}
-                    putRoute="relationshipComment"
-                    text={relationship.comment}
-                    keyName="comment"
-                    additionalBody={{ relationshipName: name }}
-                    multiline={true}
-                    maxLength={MAX_VALUE_LENGTH}
-                  />
-                  <p>
-                    <b>Target:</b>
-                  </p>
-                  {relationship.target ? (
-                    <EditableSelectWithLabel
-                      edit={edit && !isInherited}
-                      definedIn={relationshipDefinedIn}
-                      putRoute="relationshipTarget"
-                      selectedValue={relationship.target}
-                      options={interfaceOptions}
-                      disabled={isInherited}
-                      additionalBody={!isInherited ? { relationshipName: name } : undefined}
-                    />
-                  ) : (
-                    <p>'target' key missing in original file</p>
-                  )}
-                  <br />
-                </div>
-              )
-            })
-          })()}
+                )
+              })
+            : 'None'}
         </AccordionSection>
         <AccordionSection heading={'Telemetries'} collapsed={false}>
           {isInterface(entity) && Object.keys(entity.telemetries).length > 0
