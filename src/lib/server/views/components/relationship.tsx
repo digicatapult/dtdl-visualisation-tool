@@ -4,7 +4,7 @@ import { DtdlObjectModel, RelationshipInfo } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
 import { DtdlId } from '../../models/strings.js'
 import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
-import { getDisplayNameOrId } from '../../utils/dtdl/extract.js'
+import { getDisplayName } from '../../utils/dtdl/extract.js'
 import { EditableSelect, EditableText } from '../common.js'
 
 export const RelationshipDetails = ({
@@ -30,12 +30,12 @@ export const RelationshipDetails = ({
 
   // Get display name for the inherited interface
   const inheritedFromEntity = model[relationshipDefinedIn]
-  const inheritedFromName = inheritedFromEntity ? getDisplayNameOrId(inheritedFromEntity) : relationshipDefinedIn
+  const inheritedFromName = inheritedFromEntity ? getDisplayName(inheritedFromEntity) : relationshipDefinedIn
 
   // Get target display name - extract friendly name from DTDL ID if target doesn't exist in model
   const targetEntity = relationship.target ? model[relationship.target] : undefined
   const targetName = targetEntity
-    ? getDisplayNameOrId(targetEntity)
+    ? getDisplayName(targetEntity)
     : relationship.target
       ? (relationship.target.split(':').pop()?.split(';')[0] ?? relationship.target)
       : 'Unknown'

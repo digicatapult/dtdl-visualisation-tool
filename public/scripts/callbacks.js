@@ -175,6 +175,14 @@ globalThis.showShareModal = function showShareModal() {
   globalThis.updateShareLink()
 }
 
+globalThis.showDeleteDialog = function showDeleteDialog() {
+  document.getElementById('delete-dialog').showModal()
+}
+
+globalThis.hideDeleteDialog = function hideDeleteDialog() {
+  document.getElementById('delete-dialog').close()
+}
+
 globalThis.updateShareLink = function updateShareLink() {
   const radios = document.getElementById('share-link-modal').querySelectorAll('input[name="link-type"]')
   const linkInput = document.getElementById('link-output')

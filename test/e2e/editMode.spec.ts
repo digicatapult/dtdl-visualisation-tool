@@ -21,6 +21,8 @@ test.describe('Test edit ontology', () => {
     )
   })
   test('edit interface + relationship', async ({ browser, baseURL }) => {
+    test.setTimeout(60000)
+
     // login to github
     const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const page = await context.newPage()
@@ -174,16 +176,42 @@ test.describe('Test edit ontology', () => {
     // Verify that no editable select exists in inherited relationship (target dropdown should be read-only)
     const inheritedSelect = inheritedRelationship.locator('select.nav-panel-editable')
     await expect(inheritedSelect).toHaveCount(0)
+    // delete relationship
+    await waitForSuccessResponse(
+      page,
+      () => page.locator('#mermaid-output').getByText(newRelationshipDisplayName, { exact: true }).first().click(),
+      '/update-layout'
+    )
+
+    await waitForSuccessResponse(
+      page,
+      () => page.locator('#navigation-panel-details').getByText('Delete Relationship', { exact: true }).first().click(),
+      '/deleteDialog'
+    )
+
+    await expect(page.locator('#delete-button')).toBeDisabled()
+    await page.fill('#delete-confirmation', 'delete')
+    await expect(page.locator('#delete-button')).toBeEnabled()
+    await waitForSuccessResponse(
+      page,
+      () => page.locator('#delete-dialog').getByRole('button', { name: 'Delete Relationship' }).click(),
+      '/content'
+    )
+    await expect(page.locator('#mermaid-output')).not.toContainText(newRelationshipDisplayName)
 
     // search by new interface name
     await page.focus('#search')
     await waitForUpdateLayout(page, () => page.fill('#search', newInterfaceDisplayName))
-    await expect(page.locator('#mermaid-output').getByText(newInterfaceDisplayName)).toBeVisible()
-    await expect(page.locator('#mermaid-output').getByText(newRelationshipDisplayName)).toBeVisible()
+    await waitForSuccessResponse(
+      page,
+      () => page.locator('#mermaid-output').getByText(newInterfaceDisplayName, { exact: true }).first().click(),
+      '/update-layout'
+    )
 
     // turn off edit mode
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page.locator('#edit-toggle').getByText('View')).toBeVisible()
+    await page.locator('#navigation-panel').getByText('Details', { exact: true }).click()
 
     await page.waitForTimeout(500)
 

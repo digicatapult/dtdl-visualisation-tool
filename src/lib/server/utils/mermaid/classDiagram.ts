@@ -1,7 +1,7 @@
 import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 import { InternalError } from '../../errors.js'
 import { DtdlId } from '../../models/strings.js'
-import { getDisplayNameOrId, getDisplayNameOrName } from '../dtdl/extract.js'
+import { getDisplayName } from '../dtdl/extract.js'
 import { getVisualisationState } from '../dtdl/filter.js'
 import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
 import {
@@ -73,7 +73,7 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
     return `${this.diagramType}\n direction ${direction}\n${graph.join('\n')}`
   }
   createNodeString(entity: EntityType, withClick: boolean = true): string {
-    let entityMarkdown = `class ${this.safeClassName(entity.Id)}["${getDisplayNameOrId(entity)}"] `
+    let entityMarkdown = `class ${this.safeClassName(entity.Id)}["${getDisplayName(entity)}"] `
     entityMarkdown += withClick ? `\nclick ${this.safeClassName(entity.Id)} call getEntity()` : ``
     return entityMarkdown
   }
@@ -85,7 +85,7 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
   relationshipToMarkdown(dtdlObjectModel: DtdlObjectModel, entity: RelationshipType): string[] {
     const graph: string[] = []
     if (entity.ChildOf && entity.target && entity.target in dtdlObjectModel) {
-      const label = getDisplayNameOrName(entity)
+      const label = getDisplayName(entity)
       graph.push(this.createEdgeString(entity.ChildOf, entity.target, arrowTypes.Association, label))
     }
     return graph
@@ -97,7 +97,7 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
         .filter((parent) => !!dtdlObjectModel[parent])
         .map((parent) => this.createEdgeString(entity.Id, parent, arrowTypes.Inheritance)),
       ...Object.values(entity.properties).map(
-        (propertyId) => `${this.safeClassName(entity.Id)} : ${getDisplayNameOrName(dtdlObjectModel[propertyId])}`
+        (propertyId) => `${this.safeClassName(entity.Id)} : ${getDisplayName(dtdlObjectModel[propertyId])}`
       ),
       `class ${this.safeClassName(entity.Id)}:::${getVisualisationState(entity)}`,
     ]

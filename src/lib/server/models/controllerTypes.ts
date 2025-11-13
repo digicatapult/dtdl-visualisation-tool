@@ -47,3 +47,11 @@ export type EntityEntityUpdateBody = UpdateParams & {
   definedIn: DtdlId
   value: string
 }
+
+export interface DeleteContentParams extends UpdateParams {
+  contentName: string
+}
+
+export const deletableEntities = ['Relationship', 'Interface'] as const
+
+export type DeletableEntities = (typeof deletableEntities)[number]

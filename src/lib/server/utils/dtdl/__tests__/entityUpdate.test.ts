@@ -11,6 +11,7 @@ import {
 } from '../../../controllers/__tests__/helpers'
 import { DataError } from '../../../errors'
 import {
+  deleteContent,
   MAX_DISPLAY_NAME_LENGTH,
   MAX_VALUE_LENGTH,
   updateComment,
@@ -150,6 +151,15 @@ describe('entity updates', function () {
         baseFile({ telemetryUpdate: { displayName: newValue } })
       )
     })
+
+    test('delete content', async () => {
+      const file = baseFile({})
+      const fileWithoutRelationship = {
+        ...file,
+        contents: file.contents.filter((c) => c.name !== relationshipName),
+      }
+      expect(deleteContent(relationshipName)(baseFile({}))).to.deep.equal(fileWithoutRelationship)
+    })
   })
 
   describe('sad path', function () {
@@ -264,6 +274,9 @@ describe('entity updates', function () {
     test('throws Zod error if relationship does not exist for target update', async () => {
       expect(() => {
         updateRelationshipTarget('dtmi:com:target;1', 'nonExistentRelationship')(baseFile({}))
+    test('deleteContent throws Zod error if no matching content name in file', async () => {
+      expect(() => {
+        deleteContent(relationshipName)({})
       }).to.throw(ZodError)
     })
   })
