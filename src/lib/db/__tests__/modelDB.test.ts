@@ -13,26 +13,28 @@ import {
 import Parser from '../../server/utils/dtdl/parser.js'
 import Database from '../index.js'
 import { ModelDb } from '../modelDb.js'
-import { DtdlFile } from '../types.js'
+import { DtdlFile, DtdlSource } from '../types.js'
 
 chai.use(chaiAsPromised)
 const { expect } = chai
 
 const defaultFixture = { id: 1, source: 'default' }
 const githubFixture = { id: 2, source: 'github' }
-const fileContents = { someDtdlKey: 'someDtdlValue' }
-const mockFile: DtdlFile = { path: 'path', contents: JSON.stringify(fileContents) }
+const fileSource: DtdlSource = { '@id': 'someId', '@type': 'Interface' }
+const mockFile: DtdlFile = { path: 'path', source: JSON.stringify(fileSource) }
 const errorFixture: ModelingException = { ExceptionKind: 'Resolution', UndefinedIdentifiers: [''] }
 
 const dbTransactionMock = {
   insert: sinon.stub().resolves([{ id: '1' as UUID }]),
+  delete: sinon.stub().resolves(),
+  update: sinon.stub().resolves([mockFile]),
 }
 
 const mockDb = {
   get: sinon.stub().callsFake((_, { id, source, model_id, dtdl_id }) => {
     if (id === '1') return Promise.resolve([defaultFixture])
     if (source === 'default') return Promise.resolve([defaultFixture])
-    if (model_id === '1') return Promise.resolve([{ id: '1', path: 'path', contents: fileContents }])
+    if (model_id === '1') return Promise.resolve([{ id: '1', path: 'path', contents: fileSource }])
     if (dtdl_id === '1') return Promise.resolve([{ id: '1', error: errorFixture }])
     return Promise.resolve([])
   }),
@@ -141,10 +143,10 @@ describe('modelDB', function () {
         fileTree: singleInterfaceFirstFilePaths,
       })
       expect(mockParserParseStub.firstCall.args[0]).to.deep.equal([
-        { path: 'path', contents: JSON.stringify({ someDtdlKey: 'someDtdlValue' }), errors: [errorFixture] },
+        { path: 'path', source: JSON.stringify({ someDtdlKey: 'someDtdlValue' }), errors: [errorFixture] },
       ])
       expect(mockParserExtractPathsStub.firstCall.args).to.deep.equal([
-        [{ path: 'path', contents: JSON.stringify({ someDtdlKey: 'someDtdlValue' }), errors: [errorFixture] }],
+        [{ path: 'path', source: JSON.stringify({ someDtdlKey: 'someDtdlValue' }), errors: [errorFixture] }],
         defaultModel,
       ])
     })
@@ -159,33 +161,48 @@ describe('modelDB', function () {
     })
   })
 
-  describe('parseWithUpdatedFile', () => {
-    it('should get parse DTDL with updated value', async () => {
-      const parsedModel = await model.parseWithUpdatedFile('1', '1', JSON.stringify({ someDtdlKey: 'newValue' }))
+  describe('parseWithUpdatedFiles', () => {
+    it('should get parsed DTDL with updated value', async () => {
+      const parsedModel = await model.parseWithUpdatedFiles('1', [{ id: '1', source: fileSource }])
       expect(mockParserParseStub.firstCall.args[0]).to.deep.equal([
-        { path: 'path', contents: JSON.stringify({ someDtdlKey: 'newValue' }) },
+        { path: 'path', source: JSON.stringify({ someDtdlKey: 'newValue' }) },
       ])
       expect(parsedModel).to.deep.equal(defaultModel)
     })
 
     it('should throw error if given ID not found', async () => {
-      await expect(model.parseWithUpdatedFile('badId', '', '')).to.be.rejectedWith(InternalError)
+      await expect(model.parseWithUpdatedFiles('badId', [{ id: '', source: '' }])).to.be.rejectedWith(InternalError)
     })
   })
 
-  describe('getDtdlByEntityId', () => {
+  describe('getDtdlSourceByInterfaceId', () => {
     it('should return dtdl from database when given an entity id', async () => {
-      expect(await model.getDtdlByEntityId('1', '1')).to.deep.equal(mockFile)
+      expect(await model.getDtdlSourceByInterfaceId('1', '1')).to.deep.equal(mockFile)
     })
 
     it('should throw error if given ID not found', async () => {
-      await expect(model.getDtdlByEntityId('', 'badId')).to.be.rejectedWith(InternalError)
+      await expect(model.getDtdlSourceByInterfaceId('', 'badId')).to.be.rejectedWith(InternalError)
     })
   })
 
-  describe('updateDtdlContents', () => {
-    it('should updated dtdl from database', async () => {
-      expect(await model.updateDtdlContents('', '')).to.deep.equal(mockFile)
+  describe('updateDtdlSource', () => {
+    it('should return updated dtdl from database', async () => {
+      expect(await model.updateDtdlSource('', '')).to.deep.equal(mockFile)
+    })
+  })
+
+  describe('deleteOrUpdateDtdlSource', () => {
+    it('should update if source provided and delete if source empty', async () => {
+      const deleteStub = dbTransactionMock.delete as sinon.SinonStub
+      const updateStub = dbTransactionMock.update as sinon.SinonStub
+
+      const dtdlToUpdate = { id: 'someDtdlRowId', source: JSON.stringify(fileSource) }
+      const dtdlToDelete = { id: 'someOtherDtdlRowId', source: '' }
+      await model.deleteOrUpdateDtdlSource([dtdlToUpdate, dtdlToDelete])
+      expect(updateStub.calledOnceWith('dtdl', { id: dtdlToUpdate.id }, { contents: dtdlToUpdate.source })).to.equal(
+        true
+      )
+      expect(deleteStub.calledOnceWith('dtdl', { id: dtdlToDelete.id })).to.equal(true)
     })
   })
 })

@@ -2,7 +2,7 @@ import * as chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import { describe, it } from 'mocha'
 import sinon from 'sinon'
-import { DataError, InternalError } from '../../../../errors.js'
+import { DataError } from '../../../../errors.js'
 import { UpdateParams } from '../../../../models/controllerTypes.js'
 import { octokitTokenCookie } from '../../../../models/cookieNames.js'
 import { DtdlSchema } from '../../../../models/strings.js'
@@ -11,6 +11,7 @@ import { mockGithubRequest } from '../../../__tests__/github.test.js'
 import {
   arrayDtdlFileEntityId,
   arrayDtdlFileFixture,
+  deleteDtdlsStub,
   githubDtdlId,
   mockCache,
   mockGenerator,
@@ -625,8 +626,39 @@ describe('EntityController', async () => {
   })
 
   describe('deleteInterface', () => {
-    it('should throw not implemented', async () => {
-      await expect(controller.deleteInterface()).to.be.rejectedWith(InternalError, 'Not implemented yet')
+    afterEach(() => {
+      updateDtdlContentsStub.resetHistory()
+      deleteDtdlsStub.resetHistory()
+    })
+
+    it('should delete single interface file', async () => {
+      const result = await controller
+        .deleteInterface(req, githubDtdlId, simpleDtdlFileEntityId, defaultParams)
+        .then(toHTMLString)
+
+      expect(JSON.parse(deleteDtdlsStub.firstCall.args[1])).to.deep.equal({})
+
+      expect(result).to.equal(updateLayoutOutput)
+    })
+
+    it('should update to remove from multiple interface file', async () => {
+      const result = await controller
+        .deleteInterface(req, githubDtdlId, simpleDtdlFileEntityId, defaultParams)
+        .then(toHTMLString)
+
+      expect(JSON.parse(deleteDtdlsStub.firstCall.args[1])).to.deep.equal({})
+
+      expect(result).to.equal(updateLayoutOutput)
+    })
+
+    it('should delete extended interfaces too', async () => {
+      const result = await controller
+        .deleteInterface(req, githubDtdlId, simpleDtdlFileEntityId, defaultParams)
+        .then(toHTMLString)
+
+      expect(JSON.parse(deleteDtdlsStub.firstCall.args[1])).to.deep.equal({})
+
+      expect(result).to.equal(updateLayoutOutput)
     })
   })
 

@@ -149,12 +149,6 @@ describe('entity updates', function () {
   })
 
   describe('sad path', function () {
-    test('throws Zod error if display name key is missing in file', async () => {
-      expect(() => {
-        updateDisplayName('display name')({})
-      }).to.throw(ZodError)
-    })
-
     test('throws error for display name too long', async () => {
       const newDisplayName = 'a'.repeat(MAX_DISPLAY_NAME_LENGTH + 1)
       expect(() => {
@@ -241,7 +235,7 @@ describe('entity updates', function () {
 
     test('deleteContent throws Zod error if no matching content name in file', async () => {
       expect(() => {
-        deleteContent(relationshipName)({})
+        deleteContent(relationshipName)({ '@id': 'test', '@type': 'Interface' as const })
       }).to.throw(ZodError)
     })
   })

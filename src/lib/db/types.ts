@@ -17,8 +17,14 @@ const insertModel = z.object({
 const insertDtdl = z.object({
   path: z.string(),
   model_id: z.string(),
-  contents: z.unknown().refine((value) => value !== null && value !== undefined),
+  contents: z.string().refine((value) => value !== null && value !== undefined),
 })
+
+export const dtdlInterfaceBase = z.looseObject({ '@id': z.string(), '@type': z.literal('Interface') })
+export type DtdlInterface = z.infer<typeof dtdlInterfaceBase>
+export const dtdlSource = z.union([dtdlInterfaceBase, z.array(dtdlInterfaceBase)])
+export type DtdlSource = z.infer<typeof dtdlSource>
+export type DtdlSourceOrEmpty = DtdlSource | ''
 
 const ParsingError = z.object({
   PrimaryID: z
@@ -117,7 +123,7 @@ export type InsertDtdl = z.infer<typeof Zod.dtdl.insert>
 export type DtdlRow = z.infer<typeof Zod.dtdl.get>
 export type DtdlFile = {
   path: string
-  contents: string
+  source: string
   errors?: ModelingException[]
 }
 

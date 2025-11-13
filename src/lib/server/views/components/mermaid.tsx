@@ -668,14 +668,16 @@ export default class MermaidTemplates {
     definedIn,
     definedInDisplayName,
     contentName,
+    extendedBys,
   }: {
     displayName?: string
     entityKind?: DeletableEntities
     definedIn?: string
     definedInDisplayName?: string
     contentName?: string
+    extendedBys?: string[]
   }) => {
-    const deletePath = entityKind === 'Interface' ? `entity/${definedIn}` : `entity/${definedIn}/content`
+    const isInterface = entityKind === 'Interface'
     const displayDefinedIn = definedInDisplayName !== undefined
     return (
       <dialog id="delete-dialog">
@@ -683,7 +685,6 @@ export default class MermaidTemplates {
           <h3>Delete {entityKind}</h3>
           <p>{escapeHtml(displayName ?? 'No display name')}</p>
           {displayDefinedIn && <p>Defined in: {escapeHtml(definedInDisplayName ?? 'No defined in display name')}</p>}
-          <br />
           <p>
             Type
             <b>
@@ -698,14 +699,23 @@ export default class MermaidTemplates {
           />
           <br />
           <p>Are you sure you want to delete this {entityKind}?</p>
-
+          {extendedBys && extendedBys.length > 0 && (
+            <>
+              <p>Please note, it will also delete the following:</p>
+              <div id="extended-by-list">
+                {extendedBys.map((displayName) => (
+                  <p>{escapeHtml(displayName)}</p>
+                ))}
+              </div>
+            </>
+          )}
           <button
             id="delete-button"
-            hx-delete={deletePath}
+            hx-delete={isInterface ? `entity/${definedIn}` : `entity/${definedIn}/content`}
             hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
             hx-swap="outerHTML transition:true"
             hx-target="#mermaid-output"
-            hx-vals={JSON.stringify({ contentName })}
+            hx-vals={isInterface ? '' : JSON.stringify({ contentName })}
             hx-indicator="#spinner"
             class="rounded-button"
             disabled

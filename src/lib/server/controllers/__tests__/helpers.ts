@@ -72,7 +72,7 @@ export const dtdlFileFixture =
   }) => ({
     '@context': ['dtmi:dtdl:context;4'],
     '@id': id,
-    '@type': 'Interface',
+    '@type': 'Interface' as const,
     displayName: 'displayName',
     description: 'description',
     comment: 'comment',
@@ -195,6 +195,7 @@ export const mockDb = {
 } as unknown as Database
 
 export const updateDtdlContentsStub = sinon.stub().resolves()
+export const deleteDtdlsStub = sinon.stub().resolves()
 export const simpleMockModelDb = {
   getModelById: (id: UUID) => {
     if (id === 'badId') throw new InternalError(`Failed to find model: ${id}`)
@@ -207,8 +208,9 @@ export const simpleMockModelDb = {
   getDtdlByEntityId: (_modelId: UUID, id: UUID) => {
     return Promise.resolve(mockDtdlTable[id])
   },
-  parseWithUpdatedFile: () => Promise.resolve(),
-  updateDtdlContents: updateDtdlContentsStub,
+  parseWithUpdatedFiles: () => Promise.resolve(),
+  updateDtdlSource: updateDtdlContentsStub,
+  deleteDtdls: deleteDtdlsStub,
   getDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
   insertModel: () => Promise.resolve(1),
   deleteDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
