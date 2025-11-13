@@ -5,7 +5,7 @@ import { escapeHtml } from '@kitajs/html'
 import { DtdlId } from '../../models/strings.js'
 import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
 import { getDisplayNameOrId } from '../../utils/dtdl/extract.js'
-import { EditableSelectWithLabel, EditableText } from '../common.js'
+import { EditableSelect, EditableText } from '../common.js'
 
 export const RelationshipDetails = ({
   relationship,
@@ -86,11 +86,11 @@ export const RelationshipDetails = ({
         <b>Target:</b>
       </p>
       {relationship.target ? (
-        <EditableSelectWithLabel
+        <EditableSelect
           edit={edit && !isInherited}
           definedIn={relationshipDefinedIn}
           putRoute="relationshipTarget"
-          selectedValue={relationship.target}
+          text={relationship.target}
           options={interfaceOptions}
           disabled={isInherited}
           additionalBody={!isInherited ? { relationshipName: name } : undefined}

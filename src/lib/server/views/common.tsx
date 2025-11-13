@@ -112,16 +112,27 @@ export const EditableSelect = ({
   text,
   additionalBody,
   options,
+  disabled,
 }: {
   edit: boolean
   definedIn: DtdlId
   putRoute: string
   text: string
   additionalBody?: Record<string, string>
-  options: readonly string[]
+  options: readonly string[] | Array<{ value: string; label: string }>
+  disabled?: boolean
 }): JSX.Element => {
+  // Normalize options to { value, label } format
+  const normalizedOptions =
+    typeof options[0] === 'string'
+      ? (options as readonly string[]).map((opt) => ({ value: opt, label: opt }))
+      : (options as Array<{ value: string; label: string }>)
+
+  // Find the display label for the current value
+  const displayLabel = normalizedOptions.find((o) => o.value === text)?.label ?? text
+
   if (!text) return <p>Missing value</p>
-  if (!edit) return <p>{escapeHtml(text)}</p>
+  if (!edit || disabled) return <p>{escapeHtml(displayLabel)}</p>
 
   return (
     <form
@@ -134,50 +145,8 @@ export const EditableSelect = ({
       hx-indicator="#spinner"
     >
       <select name="value" class="nav-panel-editable">
-        {options.map((option) => (
-          <option value={option} {...(option === text && { selected: true })}>
-            {escapeHtml(option)}
-          </option>
-        ))}
-      </select>
-    </form>
-  )
-}
-
-export const EditableSelectWithLabel = ({
-  edit,
-  definedIn,
-  putRoute,
-  selectedValue,
-  options,
-  additionalBody,
-  disabled,
-}: {
-  edit: boolean
-  definedIn: DtdlId
-  putRoute: string
-  selectedValue: string
-  options: Array<{ value: string; label: string }>
-  additionalBody?: Record<string, string>
-  disabled?: boolean
-}): JSX.Element => {
-  if (!edit || disabled) {
-    return <p>{escapeHtml(options.find((o) => o.value === selectedValue)?.label ?? selectedValue)}</p>
-  }
-
-  return (
-    <form
-      hx-put={`entity/${definedIn}/${putRoute}`}
-      hx-trigger={`change[this.querySelector('select').value !== '${selectedValue}'] from:find select`}
-      hx-vals={JSON.stringify(additionalBody)}
-      hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
-      hx-swap="outerHTML transition:true"
-      hx-target="#mermaid-output"
-      hx-indicator="#spinner"
-    >
-      <select name="value" class="nav-panel-editable">
-        {options.map((option) => (
-          <option value={option.value} {...(option.value === selectedValue && { selected: true })}>
+        {normalizedOptions.map((option) => (
+          <option value={option.value} {...(option.value === text && { selected: true })}>
             {escapeHtml(option.label)}
           </option>
         ))}

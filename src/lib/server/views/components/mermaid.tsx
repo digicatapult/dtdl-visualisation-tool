@@ -10,7 +10,7 @@ import { DTDL_VALID_SCHEMAS, DtdlId, UUID } from '../../models/strings.js'
 import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
 import { getDisplayNameOrId, isInterface, isProperty, isRelationship, isTelemetry } from '../../utils/dtdl/extract.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
-import { AccordionSection, EditableSelect, EditableSelectWithLabel, EditableText, Page } from '../common.js'
+import { AccordionSection, EditableSelect, EditableText, Page } from '../common.js'
 import { PropertyDetails } from './property.js'
 import { RelationshipDetails } from './relationship.js'
 
@@ -216,16 +216,15 @@ export default class MermaidTemplates {
     const definedIn = entity.DefinedIn ?? entityId // entities only have definedIn if defined in a different file
 
     // Build interface options list once for all relationships (if entity is an interface)
-    const interfaceOptions =
-      model && isInterface(entity)
-        ? Object.values(model)
-            .filter(isInterface)
-            .map((iface) => ({
-              value: iface.Id,
-              label: `${getDisplayNameOrId(iface)} (${iface.Id})`,
-            }))
-            .sort((a, b) => a.label.localeCompare(b.label))
-        : []
+    const interfaceOptions = isInterface(entity)
+      ? Object.values(model)
+          .filter(isInterface)
+          .map((iface) => ({
+            value: iface.Id,
+            label: `${getDisplayNameOrId(iface)} (${iface.Id})`,
+          }))
+          .sort((a, b) => a.label.localeCompare(b.label))
+      : []
     const isRship = isRelationship(entity)
     const relationshipName = isRship ? entity.name : undefined
     const showRelationshipTarget = isRship && !!relationshipName
@@ -294,11 +293,11 @@ export default class MermaidTemplates {
                     .sort((a, b) => a.label.localeCompare(b.label))
 
                   return (
-                    <EditableSelectWithLabel
+                    <EditableSelect
                       edit={edit}
                       definedIn={definedIn}
                       putRoute="relationshipTarget"
-                      selectedValue={entity.target}
+                      text={entity.target}
                       options={interfaceOptions}
                       additionalBody={{ relationshipName }}
                     />
