@@ -1,0 +1,4 @@
+# List files and directories for Semgrep to ignore
+
+sample/**/*
+test/**/*
