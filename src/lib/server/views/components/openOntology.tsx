@@ -171,6 +171,7 @@ export default class OpenOntologyTemplates {
       'hx-get': nextPageLink,
       'hx-trigger': 'intersect once',
       'hx-swap': 'afterend',
+      'hx-on--after-request': 'this.remove()',
       style: 'height: 1px; overflow: hidden',
     }
 

@@ -121,3 +121,23 @@ const updateContentsValue = (
 
   return { ...validFile, contents: updatedContents }
 }
+
+export const deleteContent = (contentName: string) => (file: unknown) => {
+  const schema = z.object({
+    '@type': z.literal('Interface'),
+    contents: z
+      .array(
+        z.looseObject({
+          name: z.string(),
+        })
+      )
+      .refine((contents) => contents.some((c) => c.name === contentName)),
+  })
+
+  const validFile: z.infer<typeof schema> = schema.passthrough().parse(file)
+
+  const index = validFile.contents.findIndex((item) => item.name === contentName)
+  const updatedContents = validFile.contents.toSpliced(index, 1)
+
+  return { ...validFile, contents: updatedContents }
+}
