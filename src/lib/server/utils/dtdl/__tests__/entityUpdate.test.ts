@@ -274,6 +274,8 @@ describe('entity updates', function () {
     test('throws Zod error if relationship does not exist for target update', async () => {
       expect(() => {
         updateRelationshipTarget('dtmi:com:target;1', 'nonExistentRelationship')(baseFile({}))
+      })
+    })
     test('deleteContent throws Zod error if no matching content name in file', async () => {
       expect(() => {
         deleteContent(relationshipName)({})
