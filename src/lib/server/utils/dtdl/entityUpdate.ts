@@ -30,6 +30,11 @@ export const updateRelationshipComment = (value: string, relationshipName: strin
   return updateContentsValue(file, value, 'Relationship', relationshipName, 'comment', MAX_VALUE_LENGTH)
 }
 
+export const updateRelationshipTarget = (newTarget: string, relationshipName: string) => (file: unknown) => {
+  if (!newTarget.trim()) throw new DataError('Target cannot be empty')
+  return updateContentsValue(file, newTarget, 'Relationship', relationshipName, 'target', MAX_VALUE_LENGTH)
+}
+
 export const updatePropertyDisplayName = (value: string, propertyName: string) => (file: unknown) => {
   return updateContentsValue(file, value, 'Property', propertyName, 'displayName', MAX_DISPLAY_NAME_LENGTH)
 }
@@ -91,7 +96,7 @@ const updateContentsValue = (
   value: string | boolean,
   contentType: 'Relationship' | 'Property' | 'Telemetry',
   contentName: string, // effectively contentId - has to be unique in DTDL
-  keyToUpdate: 'displayName' | 'description' | 'comment' | 'schema' | 'writable',
+  keyToUpdate: 'displayName' | 'description' | 'comment' | 'schema' | 'writable' | 'target',
   maxLength = MAX_VALUE_LENGTH
 ) => {
   if (typeof value === 'string' && invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)

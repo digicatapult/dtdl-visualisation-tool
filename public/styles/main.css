@@ -303,9 +303,46 @@ label[for='diagram-type-select'] {
   transform: scaleX(-1);
 }
 
+/* Extended property styling - matches inherited relationship styling */
 .extended-detail {
-  background-color: var(--background-color);
-  padding: 0.5rem;
+  position: relative;
+  padding: 10px;
+  margin: 5px 0;
+  background-color: #f5f5f5;
+  border-left: 3px solid #999;
+  border-radius: 4px;
+  cursor: help;
+}
+
+.extended-detail b {
+  color: #666;
+}
+
+.extended-detail[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  background: #333;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  white-space: normal;
+  max-width: 250px;
+  word-wrap: break-word;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.extended-detail[title]:hover::before {
+  content: '';
+  position: absolute;
+  right: 15px;
+  top: 5px;
+  border: 5px solid transparent;
+  border-bottom-color: #333;
+  z-index: 1001;
 }
 
 #navigation-panel > *:not(#navigation-panel-button) {
@@ -1335,7 +1372,96 @@ label[for='diagram-type-select'] {
   height: 1.8em;
 }
 
+select.nav-panel-editable {
+  cursor: pointer;
+  padding: 0.2em 0.5em;
+}
+
+select.nav-panel-editable:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background-color: #e8e8e8;
+}
+
 textarea.multiline {
   height: 10rem;
   resize: vertical;
+}
+
+.tooltip-wrapper {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+}
+
+.tooltip-wrapper[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  margin-bottom: 5px;
+  background: #333;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  white-space: normal;
+  max-width: 250px;
+  word-wrap: break-word;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.tooltip-wrapper[data-tooltip]:hover::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  bottom: 100%;
+  margin-bottom: -1px;
+  border: 5px solid transparent;
+  border-top-color: #333;
+  z-index: 1001;
+}
+
+/* Inherited relationship styling */
+.inherited-relationship {
+  position: relative;
+  padding: 10px;
+  margin: 5px 0;
+  background-color: #f5f5f5;
+  border-left: 3px solid #999;
+  border-radius: 4px;
+  cursor: help;
+}
+
+.inherited-relationship p,
+.inherited-relationship b {
+  color: #666;
+}
+
+.inherited-relationship[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  background: #333;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  white-space: normal;
+  max-width: 250px;
+  word-wrap: break-word;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.inherited-relationship[data-tooltip]:hover::before {
+  content: '';
+  position: absolute;
+  right: 15px;
+  top: 5px;
+  border: 5px solid transparent;
+  border-bottom-color: #333;
+  z-index: 1001;
 }

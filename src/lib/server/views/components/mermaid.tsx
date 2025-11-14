@@ -13,6 +13,7 @@ import { getDisplayName, isInterface, isProperty, isRelationship, isTelemetry } 
 import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { AccordionSection, EditableSelect, EditableText, Page } from '../common.js'
 import { PropertyDetails } from './property.js'
+import { RelationshipDetails } from './relationship.js'
 
 const env = container.resolve(Env)
 
@@ -215,7 +216,20 @@ export default class MermaidTemplates {
       )
     }
     const definedIn = entity.DefinedIn ?? entityId // entities only have definedIn if defined in a different file
+
+    // Build interface options list once for all relationships (if entity is an interface)
+    const interfaceOptions = isInterface(entity)
+      ? Object.values(model)
+          .filter(isInterface)
+          .map((iface) => ({
+            value: iface.Id,
+            label: `${getDisplayName(iface)} (${iface.Id})`,
+          }))
+          .sort((a, b) => a.label.localeCompare(b.label))
+      : []
     const isRship = isRelationship(entity)
+    const relationshipName = isRship ? entity.name : undefined
+    const showRelationshipTarget = isRship && !!relationshipName
     return (
       <div id="navigation-panel-details">
         <section>
@@ -228,7 +242,7 @@ export default class MermaidTemplates {
             definedIn,
             putRoute: isRship ? 'relationshipDisplayName' : 'displayName',
             additionalBody: {
-              ...(isRship ? { relationshipName: entity.name } : {}),
+              ...(relationshipName ? { relationshipName } : {}),
             },
             text: entity?.displayName?.en,
             keyName: 'displayName',
@@ -242,7 +256,7 @@ export default class MermaidTemplates {
             definedIn,
             putRoute: isRship ? 'relationshipDescription' : 'description',
             additionalBody: {
-              ...(isRship ? { relationshipName: entity.name } : {}),
+              ...(relationshipName ? { relationshipName } : {}),
             },
             text: entity.description?.en,
             keyName: 'description',
@@ -257,13 +271,45 @@ export default class MermaidTemplates {
             definedIn,
             putRoute: isRship ? 'relationshipComment' : 'comment',
             additionalBody: {
-              ...(isRship ? { relationshipName: entity.name } : {}),
+              ...(relationshipName ? { relationshipName } : {}),
             },
             text: entity.comment,
             keyName: 'comment',
             multiline: true,
             maxLength: MAX_VALUE_LENGTH,
           })}
+          {showRelationshipTarget && (
+            <>
+              <p>
+                <b>Target:</b>
+              </p>
+              {entity.target ? (
+                (() => {
+                  // Build options list for all interfaces in the model
+                  const interfaceOptions = Object.values(model)
+                    .filter(isInterface)
+                    .map((iface) => ({
+                      value: iface.Id,
+                      label: `${getDisplayName(iface)} (${iface.Id})`,
+                    }))
+                    .sort((a, b) => a.label.localeCompare(b.label))
+
+                  return (
+                    <EditableSelect
+                      edit={edit}
+                      definedIn={definedIn}
+                      putRoute="relationshipTarget"
+                      text={entity.target}
+                      options={interfaceOptions}
+                      additionalBody={{ relationshipName }}
+                    />
+                  )
+                })()
+              ) : (
+                <p>'target' key missing in original file</p>
+              )}
+            </>
+          )}
         </section>
         <AccordionSection heading={'Entity Identifiers'} collapsed={false}>
           <p>
@@ -296,20 +342,16 @@ export default class MermaidTemplates {
           {isInterface(entity) && Object.keys(entity.relationships).length > 0
             ? Object.entries(entity.relationships).map(([name, id]) => {
                 const relationship = model[id]
+                if (!isRelationship(relationship)) return null
                 return (
-                  <>
-                    <p>
-                      <b>{escapeHtml(name)}: </b>
-                      {escapeHtml(relationship?.comment ?? '-')}
-                    </p>
-                    <p>
-                      <b>Target: </b>
-                      {isRelationship(relationship) && relationship.target
-                        ? getDisplayName(model[relationship.target])
-                        : '-'}
-                    </p>
-                    <br />
-                  </>
+                  <RelationshipDetails
+                    relationship={relationship}
+                    name={name}
+                    model={model}
+                    edit={edit}
+                    entityId={entity.Id}
+                    interfaceOptions={interfaceOptions}
+                  />
                 )
               })
             : 'None'}
