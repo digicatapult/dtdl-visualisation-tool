@@ -96,7 +96,7 @@ test.describe('Test edit ontology', () => {
     // extended property
     const extendedProperty = page.locator('#navigation-panel-details').getByText('Name: baseProperty')
     const backgroundColor = await extendedProperty.evaluate((el) => window.getComputedStyle(el).backgroundColor)
-    expect(backgroundColor).toBe('rgb(245, 246, 250)')
+    expect(backgroundColor).toBe('rgb(245, 245, 245)') // #f5f5f5 - matches inherited relationship styling
     await expect(extendedProperty).toHaveAttribute('title', 'Extended from dtmi:com:base;1')
 
     // telemetry edits
@@ -121,6 +121,61 @@ test.describe('Test edit ontology', () => {
     await testNavPanelEdit(page, /^relationshipDescriptionEdit$/, 'updated', '/relationshipDescription')
     await testNavPanelEdit(page, /^relationshipCommentEdit$/, 'updated', '/relationshipComment')
 
+    // test relationship target editing via dropdown
+    // The relationship currently targets dtmi:com:example;1 (which has no displayName, so shows as ID)
+    // We'll change it to target the main interface (dtmi:com:edit:contents;1)
+    const targetDropdown = page.locator('select.nav-panel-editable').filter({
+      has: page.locator('option[selected]:has-text("dtmi:com:example;1")'),
+    })
+    await expect(targetDropdown).toBeVisible()
+    // Get the option that contains the new interface display name and extract its value (the DTDL ID)
+    const targetOption = targetDropdown.locator(`option:has-text("${newInterfaceDisplayName}")`).first()
+    const targetValue = await targetOption.getAttribute('value')
+    await expect(targetValue).toBeTruthy()
+    // Change the target to the new interface
+    await waitForSuccessResponse(page, () => targetDropdown.selectOption(targetValue!), '/relationshipTarget')
+    await page.waitForTimeout(500)
+    // Verify the edge label updated in the diagram
+    await expect(page.locator('#mermaid-output').getByText(newRelationshipDisplayName)).toBeVisible()
+
+    // Click on the interface to view its relationships (including inherited ones)
+    await waitForSuccessResponse(
+      page,
+      () => page.locator('#mermaid-output').getByText(newInterfaceDisplayName, { exact: true }).first().click(),
+      '/update-layout'
+    )
+
+    // test inherited relationship is read-only and has styling
+    // Need to scroll down to see the Relationships section which contains inherited relationships
+    await page.locator('#navigation-panel-details').evaluate((el) => {
+      el.scrollTop = el.scrollHeight
+    })
+    await page.waitForTimeout(500)
+
+    const inheritedRelationship = page.locator('.inherited-relationship').first()
+    await expect(inheritedRelationship).toBeVisible()
+
+    // Check that inherited relationship has gray background
+    const inheritedBgColor = await inheritedRelationship.evaluate((el) => window.getComputedStyle(el).backgroundColor)
+    expect(inheritedBgColor).toBe('rgb(245, 245, 245)') // #f5f5f5
+
+    // Check that inherited relationship has tooltip
+    const tooltipText = await inheritedRelationship.getAttribute('data-tooltip')
+    expect(tooltipText).toMatch(/Inherited from.*Target:/)
+    // The baseRelationship has no target, so it will show "Unknown" which doesn't contain dtmi:
+    expect(tooltipText).toContain('base')
+
+    // Check that inherited relationship display name is read-only (shown as <p>, not editable)
+    const inheritedDisplayNameP = inheritedRelationship.locator('p').first()
+    await expect(inheritedDisplayNameP).toBeVisible()
+
+    // Verify that no editable textarea exists in inherited relationship
+    const inheritedTextarea = inheritedRelationship.locator('textarea.nav-panel-editable')
+    await expect(inheritedTextarea).toHaveCount(0)
+
+    // Verify that no editable select exists in inherited relationship (target dropdown should be read-only)
+    const inheritedSelect = inheritedRelationship.locator('select.nav-panel-editable')
+    await expect(inheritedSelect).toHaveCount(0)
     // delete relationship
     await waitForSuccessResponse(
       page,

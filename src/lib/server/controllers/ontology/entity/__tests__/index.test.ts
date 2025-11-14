@@ -273,6 +273,43 @@ describe('EntityController', async () => {
     })
   })
 
+  describe('putRelationshipTarget', () => {
+    afterEach(() => updateDtdlContentsStub.resetHistory())
+
+    it('should update db and layout for new relationship target on non-array DTDL file', async () => {
+      const newTarget = 'dtmi:com:new_target;1'
+      const putBody = {
+        ...defaultParams,
+        value: newTarget,
+        relationshipName,
+      }
+      const result = await controller
+        .putRelationshipTarget(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        simpleDtdlFileFixture({ relationshipUpdate: { target: newTarget } })
+      )
+      expect(result).to.equal(updateLayoutOutput)
+    })
+
+    it('should update db and layout for new relationship target on array DTDL file', async () => {
+      const newTarget = 'dtmi:com:new_target;1'
+      const putBody = {
+        ...defaultParams,
+        value: newTarget,
+        relationshipName,
+      }
+      const result = await controller
+        .putRelationshipTarget(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
+        .then(toHTMLString)
+      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+        arrayDtdlFileFixture({ relationshipUpdate: { target: newTarget } })
+      )
+
+      expect(result).to.equal(updateLayoutOutput)
+    })
+  })
+
   describe('putPropertyDisplayName', () => {
     afterEach(() => updateDtdlContentsStub.resetHistory())
 
