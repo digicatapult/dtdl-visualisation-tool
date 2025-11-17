@@ -867,7 +867,7 @@ describe('EntityController', async () => {
       const putBody = {
         ...defaultParams,
         value: newValue,
-        commandName: commandName,
+        commandName,
       }
       const result = await controller
         .putCommandResponseDisplayName(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
@@ -885,7 +885,7 @@ describe('EntityController', async () => {
       const putBody = {
         ...defaultParams,
         value: newValue,
-        commandName: commandName,
+        commandName,
       }
       const result = await controller
         .putCommandResponseComment(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
@@ -903,7 +903,7 @@ describe('EntityController', async () => {
       const putBody = {
         ...defaultParams,
         value: newValue,
-        commandName: commandName,
+        commandName,
       }
       const result = await controller
         .putCommandResponseDescription(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
