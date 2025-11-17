@@ -208,8 +208,7 @@ const updateCommandRequestResponseValue = (
     throw new DataError(`Command '${commandName}' has no ${requestOrResponse} defined`)
   }
 
-  // The request/response is embedded directly in the command, not referenced by ID
-  if (typeof requestResponseProperty === 'object' && requestResponseProperty !== null) {
+  if (typeof requestResponseProperty === 'object') {
     // Update the embedded request/response object directly
     const updatedRequestResponse = { ...requestResponseProperty }
 
