@@ -427,15 +427,17 @@ export default class MermaidTemplates {
                 if (!isCommand(command) || !command.DefinedIn) return
                 let requestEntity, responseEntity
                 if (command.request) {
-                  const requestId = typeof command.request === 'string' ? command.request : undefined
-                  if (requestId) {
-                    requestEntity = model[requestId]
+                  if (typeof command.request === 'string') {
+                    requestEntity = model[command.request]
+                  } else if (typeof command.request === 'object') {
+                    requestEntity = command.request
                   }
                 }
                 if (command.response) {
-                  const responseId = typeof command.response === 'string' ? command.response : undefined
-                  if (responseId) {
-                    responseEntity = model[responseId]
+                  if (typeof command.response === 'string') {
+                    responseEntity = model[command.response]
+                  } else if (typeof command.response === 'object') {
+                    responseEntity = command.response
                   }
                 }
                 return (
@@ -532,9 +534,11 @@ export default class MermaidTemplates {
                         putRoute="commandRequestSchema"
                         text={
                           requestEntity && requestEntity.schema
-                            ? model[requestEntity.schema].displayName?.en
-                              ? model[requestEntity.schema].displayName?.en
-                              : 'Complex schema'
+                            ? DTDL_VALID_SCHEMAS.includes(requestEntity.schema)
+                              ? requestEntity.schema
+                              : model[requestEntity.schema]?.displayName?.en
+                                ? model[requestEntity.schema].displayName?.en
+                                : 'Complex schema'
                             : 'schema key missing in original file'
                         }
                         additionalBody={{ commandName: name }}
@@ -554,7 +558,7 @@ export default class MermaidTemplates {
                           maxLength: MAX_VALUE_LENGTH,
                         })
                       ) : (
-                        <p>'request displayName' key missing in original file</p>
+                        <p>'response displayName' key missing in original file</p>
                       )}
                       <b>Response comment:</b>
                       {responseEntity && responseEntity.comment ? (
@@ -591,9 +595,11 @@ export default class MermaidTemplates {
                         putRoute="commandResponseSchema"
                         text={
                           responseEntity && responseEntity.schema
-                            ? model[responseEntity.schema].displayName?.en
+                            ? model[responseEntity.schema] && model[responseEntity.schema].displayName?.en
                               ? model[responseEntity.schema].displayName?.en
-                              : 'Complex schema'
+                              : typeof responseEntity.schema === 'string'
+                                ? responseEntity.schema
+                                : 'Complex schema'
                             : 'schema key missing in original file'
                         }
                         additionalBody={{ commandName: name }}

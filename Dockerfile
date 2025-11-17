@@ -37,7 +37,6 @@ COPY --from=builder /dtdl-visualisation-tool/build ./build
 
 RUN npm i -g
 
-
 USER $PPTRUSER_UID
 
 EXPOSE 3000
