@@ -7,7 +7,6 @@ COPY package*.json ./
 COPY tsconfig.json ./
 
 RUN npm ci 
-COPY patches ./patches
 COPY . .
 RUN npm run build
 
@@ -30,17 +29,13 @@ RUN groupadd -r pptruser && useradd -u $PPTRUSER_UID -rm -g pptruser -G audio,vi
 WORKDIR /dtdl-visualisation-tool
 
 COPY package*.json ./
-COPY patches ./patches
-RUN npm ci --include=dev
-RUN npx patch-package || true
-
+RUN npm ci --omit=dev
 
 COPY public ./public
 COPY knexfile.js ./
 COPY --from=builder /dtdl-visualisation-tool/build ./build
 
 RUN npm i -g
-RUN npm prune --omit=dev
 
 
 USER $PPTRUSER_UID
