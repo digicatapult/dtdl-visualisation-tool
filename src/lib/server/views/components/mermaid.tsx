@@ -367,7 +367,6 @@ export default class MermaidTemplates {
           {isInterface(entity) && Object.keys(entity.telemetries).length > 0
             ? Object.entries(entity.telemetries).map(([name, id]) => {
                 const telemetry = model[id]
-
                 if (!isTelemetry(telemetry) || !telemetry.DefinedIn) return
                 return (
                   <>

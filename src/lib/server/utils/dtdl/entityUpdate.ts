@@ -211,7 +211,7 @@ const updateCommandRequestResponseValue = (
   // The request/response is embedded directly in the command, not referenced by ID
   if (typeof requestResponseProperty === 'object' && requestResponseProperty !== null) {
     // Update the embedded request/response object directly
-    const updatedRequestResponse: any = { ...requestResponseProperty }
+    const updatedRequestResponse = { ...requestResponseProperty }
 
     if (keyToUpdate === 'displayName' || keyToUpdate === 'description') {
       updatedRequestResponse[keyToUpdate] = { en: value as string }

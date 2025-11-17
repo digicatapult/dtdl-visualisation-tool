@@ -873,7 +873,7 @@ describe('EntityController', async () => {
         .putCommandResponseDisplayName(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
 
-      expect(updateDtdlContentsStub.calledOnce).to.be.true
+      expect(updateDtdlContentsStub.calledOnce).to.be.equal(true)
       expect(result).to.equal(updateLayoutOutput)
     })
   })
@@ -891,7 +891,7 @@ describe('EntityController', async () => {
         .putCommandResponseComment(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
 
-      expect(updateDtdlContentsStub.calledOnce).to.be.true
+      expect(updateDtdlContentsStub.calledOnce).to.be.equal(true)
       expect(result).to.equal(updateLayoutOutput)
     })
   })
@@ -909,7 +909,7 @@ describe('EntityController', async () => {
         .putCommandResponseDescription(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
 
-      expect(updateDtdlContentsStub.calledOnce).to.be.true
+      expect(updateDtdlContentsStub.calledOnce).to.be.equal(true)
       expect(result).to.equal(updateLayoutOutput)
     })
   })
@@ -927,7 +927,7 @@ describe('EntityController', async () => {
         .putCommandResponseSchema(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
 
-      expect(updateDtdlContentsStub.calledOnce).to.be.true
+      expect(updateDtdlContentsStub.calledOnce).to.be.equal(true)
       expect(result).to.equal(updateLayoutOutput)
     })
   })
