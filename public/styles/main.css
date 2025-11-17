@@ -17,6 +17,7 @@ body {
   --background-color: #f5f6fa;
   --active-button-color: #397edd;
   --highlighted-color: #fbf291;
+  --delete-color: #d4596b;
   --disabled-button-color: var(--background-color);
   --svg-pan-x: 0px;
   --svg-pan-y: 0px;
@@ -31,7 +32,7 @@ button.highlighted {
 a,
 a:link,
 a:visited {
-  color: var(--text-color);
+  color: inherit;
   text-decoration: none;
 }
 
@@ -302,9 +303,46 @@ label[for='diagram-type-select'] {
   transform: scaleX(-1);
 }
 
+/* Extended property styling - matches inherited relationship styling */
 .extended-detail {
-  background-color: var(--background-color);
-  padding: 0.5rem;
+  position: relative;
+  padding: 10px;
+  margin: 5px 0;
+  background-color: #f5f5f5;
+  border-left: 3px solid #999;
+  border-radius: 4px;
+  cursor: help;
+}
+
+.extended-detail b {
+  color: #666;
+}
+
+.extended-detail[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  background: #333;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  white-space: normal;
+  max-width: 250px;
+  word-wrap: break-word;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.extended-detail[title]:hover::before {
+  content: '';
+  position: absolute;
+  right: 15px;
+  top: 5px;
+  border: 5px solid transparent;
+  border-bottom-color: #333;
+  z-index: 1001;
 }
 
 #navigation-panel > *:not(#navigation-panel-button) {
@@ -368,6 +406,51 @@ label[for='diagram-type-select'] {
 #navigation-panel section h3 * {
   cursor: pointer;
 }
+
+#navigation-panel-actions {
+  display: grid;
+  justify-content: center;
+}
+
+#delete-dialog-button {
+  background-color: var(--delete-color);
+  width: 20ch;
+  color: white;
+}
+
+#delete-dialog {
+  width: 40ch;
+  border-radius: 1rem;
+  border: 1px solid var(--border-color);
+}
+
+#delete-dialog h3 {
+  margin: 0;
+}
+
+#delete-dialog p {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+#delete-confirmation {
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+}
+
+#delete-button {
+  background-color: #d1d3d4;
+  width: 20ch;
+  color: white;
+  justify-self: center;
+  border: none;
+}
+
+#delete-button:enabled {
+  background-color: var(--delete-color);
+  transition: background-color 0.3s;
+}
+
 
 #navigation-panel.edit section h3::after {
   content: url('../images/pencil.svg');
@@ -721,20 +804,8 @@ label[for='diagram-type-select'] {
 }
 
 #open-button {
-  display: flex;
-  border-color: #e3e3e4;
-  border-style: solid;
-  border-radius: 5px;
-  border-width: 1px;
-  padding: 5px;
-  cursor: pointer;
   background-color: var(--active-button-color);
-  justify-content: center;
   width: 10ch;
-  padding: 10px;
-  margin-inline: 1ch;
-  height: fit-content;
-  align-self: center;
   color: white;
 }
 
@@ -743,21 +814,22 @@ label[for='diagram-type-select'] {
 }
 
 #share-ontology {
+  background-color: var(--active-button-color);
+  width: 10ch;
+  color: white;
+}
+
+.rounded-button {
   display: flex;
   border-color: #e3e3e4;
   border-style: solid;
   border-radius: 5px;
   border-width: 1px;
-  padding: 5px;
   cursor: pointer;
-  background-color: var(--active-button-color);
   justify-content: center;
-  width: 10ch;
   padding: 10px;
   margin-inline: 1ch;
-  height: fit-content;
   align-self: center;
-  color: white;
 }
 
 #share-ontology:hover {
@@ -1289,16 +1361,10 @@ label[for='diagram-type-select'] {
 #add-node-button {
   background-image: url('../images/add-node.svg');
 }
-#edit-node-button {
-  background-image: url('../images/edit-node.svg');
-}
-#delete-node-button {
-  background-image: url('../images/delete-node.svg');
-}
 
 .nav-panel-editable {
   width: 100%;
-  background-color: #f5f6fa;
+  background-color: var(--background-color);
   border: none;
   font-family: inherit;
   font-size: inherit;
@@ -1306,7 +1372,96 @@ label[for='diagram-type-select'] {
   height: 1.8em;
 }
 
+select.nav-panel-editable {
+  cursor: pointer;
+  padding: 0.2em 0.5em;
+}
+
+select.nav-panel-editable:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background-color: #e8e8e8;
+}
+
 textarea.multiline {
   height: 10rem;
   resize: vertical;
+}
+
+.tooltip-wrapper {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+}
+
+.tooltip-wrapper[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  margin-bottom: 5px;
+  background: #333;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  white-space: normal;
+  max-width: 250px;
+  word-wrap: break-word;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.tooltip-wrapper[data-tooltip]:hover::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  bottom: 100%;
+  margin-bottom: -1px;
+  border: 5px solid transparent;
+  border-top-color: #333;
+  z-index: 1001;
+}
+
+/* Inherited relationship styling */
+.inherited-relationship {
+  position: relative;
+  padding: 10px;
+  margin: 5px 0;
+  background-color: #f5f5f5;
+  border-left: 3px solid #999;
+  border-radius: 4px;
+  cursor: help;
+}
+
+.inherited-relationship p,
+.inherited-relationship b {
+  color: #666;
+}
+
+.inherited-relationship[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  background: #333;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  white-space: normal;
+  max-width: 250px;
+  word-wrap: break-word;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.inherited-relationship[data-tooltip]:hover::before {
+  content: '';
+  position: absolute;
+  right: 15px;
+  top: 5px;
+  border: 5px solid transparent;
+  border-bottom-color: #333;
+  z-index: 1001;
 }

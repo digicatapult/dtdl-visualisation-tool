@@ -1,12 +1,14 @@
 import express from 'express'
-import { Body, Middlewares, Path, Produces, Put, Request, Route, SuccessResponse } from 'tsoa'
+import { Body, Delete, Get, Middlewares, Path, Produces, Put, Queries, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../../../db/modelDb.js'
-import { UpdateParams } from '../../../models/controllerTypes.js'
+import { DeletableEntities, type DeleteContentParams, type UpdateParams } from '../../../models/controllerTypes.js'
 import { DtdlSchema, type DtdlId, type UUID } from '../../../models/strings.js'
 import { Cache, type ICache } from '../../../utils/cache.js'
 
+import { InternalError } from '../../../errors.js'
 import {
+  deleteContent,
   updateCommandComment,
   updateCommandDescription,
   updateCommandDisplayName,
@@ -29,11 +31,15 @@ import {
   updateRelationshipComment,
   updateRelationshipDescription,
   updateRelationshipDisplayName,
+  updateRelationshipTarget,
   updateTelemetryComment,
   updateTelemetryDescription,
   updateTelemetryDisplayName,
   updateTelemetrySchema,
 } from '../../../utils/dtdl/entityUpdate.js'
+import { getDisplayName, isNamedEntity } from '../../../utils/dtdl/extract.js'
+import SessionStore from '../../../utils/sessions.js'
+import MermaidTemplates from '../../../views/components/mermaid.js'
 import { checkEditPermission } from '../../helpers.js'
 import { HTML, HTMLController } from '../../HTMLController.js'
 import { OntologyController } from '../index.js'
@@ -46,6 +52,8 @@ export class EntityController extends HTMLController {
   constructor(
     private modelDb: ModelDb,
     private ontologyController: OntologyController,
+    private templates: MermaidTemplates,
+    private sessionStore: SessionStore,
     @inject(Cache) private cache: ICache
   ) {
     super()
@@ -137,6 +145,21 @@ export class EntityController extends HTMLController {
     const { value, relationshipName, ...updateParams } = body
 
     await this.putEntityValue(ontologyId, entityId, updateRelationshipComment(value, relationshipName))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+
+  @SuccessResponse(200)
+  @Put('{entityId}/relationshipTarget')
+  public async putRelationshipTarget(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Body() body: { value: string; relationshipName: string } & UpdateParams
+  ): Promise<HTML> {
+    const { value, relationshipName, ...updateParams } = body
+
+    await this.putEntityValue(ontologyId, entityId, updateRelationshipTarget(value, relationshipName))
 
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
   }
@@ -435,6 +458,47 @@ export class EntityController extends HTMLController {
     const { value, commandName, ...updateParams } = body
 
     await this.putEntityValue(ontologyId, entityId, updateCommandResponseSchema(value, commandName))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+  @SuccessResponse(200)
+  @Produces('text/html')
+  @Get('{entityId}/deleteDialog')
+  public async deleteDialog(@Path() ontologyId: UUID, @Path() entityId: DtdlId): Promise<HTML> {
+    const { model } = await this.modelDb.getDtdlModelAndTree(ontologyId)
+    const entity = model[entityId]
+    const definedIn = entity.DefinedIn ?? entityId
+
+    const query = {
+      entityKind: entity.EntityKind as DeletableEntities,
+      definedIn: entity.DefinedIn ?? entityId,
+      contentName: isNamedEntity(entity) ? entity.name : '',
+      displayName: getDisplayName(entity),
+      definedInDisplayName: definedIn !== entityId ? getDisplayName(model[definedIn]) : undefined,
+    }
+    return this.html(this.templates.deleteDialog(query))
+  }
+
+  @SuccessResponse(200)
+  @Produces('text/html')
+  @Delete('{entityId}')
+  public async deleteInterface(): Promise<HTML> {
+    throw new InternalError('Not implemented yet')
+  }
+
+  @SuccessResponse(200)
+  @Produces('text/html')
+  @Delete('{entityId}/content')
+  public async deleteContent(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Queries() queries: DeleteContentParams
+  ): Promise<HTML> {
+    const { contentName, ...updateParams } = queries
+
+    await this.putEntityValue(ontologyId, entityId, deleteContent(contentName))
+    this.sessionStore.update(updateParams.sessionId, { highlightNodeId: '' })
 
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
   }

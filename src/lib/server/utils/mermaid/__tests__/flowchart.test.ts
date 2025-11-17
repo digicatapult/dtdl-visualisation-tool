@@ -30,7 +30,7 @@ describe('Mermaid', function () {
       )
       const test = [
         `dtmi:com:example_extended:1@{ shape: rect, label: "example extended"}\nclick dtmi:com:example_extended:1 getEntity`,
-        `dtmi:com:example:1 --- |extends| dtmi:com:example_extended:1`,
+        `dtmi:com:example:1 -.-> |extends| dtmi:com:example_extended:1`,
         `class dtmi:com:example_extended:1 search`,
       ]
       expect(interfaceAsMarkdown).to.deep.equal(test)
@@ -40,7 +40,7 @@ describe('Mermaid', function () {
         mockDtdlObjectModel,
         mockDtdlObjectModel['dtmi:com:example_relationship;1'] as RelationshipType
       )
-      const test = [`dtmi:com:example:1 --- |A relationship| dtmi:com:example_related:1`]
+      const test = [`dtmi:com:example:1 --> |A relationship| dtmi:com:example_related:1`]
       expect(relationshipAsMarkdown).to.deep.equal(test)
     })
     it('should return undefined for a relationship with an undefined interface', () => {

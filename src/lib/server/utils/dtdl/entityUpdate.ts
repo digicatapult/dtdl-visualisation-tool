@@ -30,6 +30,11 @@ export const updateRelationshipComment = (value: string, relationshipName: strin
   return updateContentsValue(file, value, 'Relationship', relationshipName, 'comment', MAX_VALUE_LENGTH)
 }
 
+export const updateRelationshipTarget = (newTarget: string, relationshipName: string) => (file: unknown) => {
+  if (!newTarget.trim()) throw new DataError('Target cannot be empty')
+  return updateContentsValue(file, newTarget, 'Relationship', relationshipName, 'target', MAX_VALUE_LENGTH)
+}
+
 export const updatePropertyDisplayName = (value: string, propertyName: string) => (file: unknown) => {
   return updateContentsValue(file, value, 'Property', propertyName, 'displayName', MAX_DISPLAY_NAME_LENGTH)
 }
@@ -134,7 +139,7 @@ const updateContentsValue = (
   value: string | boolean,
   contentType: 'Relationship' | 'Property' | 'Telemetry' | 'Command',
   contentName: string, // effectively contentId - has to be unique in DTDL
-  keyToUpdate: 'displayName' | 'description' | 'comment' | 'schema' | 'writable' | 'request' | 'response',
+  keyToUpdate: 'displayName' | 'description' | 'comment' | 'schema' | 'writable' | 'request' | 'response' | 'target',
   maxLength = MAX_VALUE_LENGTH
 ) => {
   if (typeof value === 'string' && invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
@@ -226,4 +231,23 @@ const updateCommandRequestResponseValue = (
   } else {
     throw new DataError(`Expected ${requestOrResponse} to be an object, but got: ${typeof requestResponseProperty}`)
   }
+}
+export const deleteContent = (contentName: string) => (file: unknown) => {
+  const schema = z.object({
+    '@type': z.literal('Interface'),
+    contents: z
+      .array(
+        z.looseObject({
+          name: z.string(),
+        })
+      )
+      .refine((contents) => contents.some((c) => c.name === contentName)),
+  })
+
+  const validFile: z.infer<typeof schema> = schema.passthrough().parse(file)
+
+  const index = validFile.contents.findIndex((item) => item.name === contentName)
+  const updatedContents = validFile.contents.toSpliced(index, 1)
+
+  return { ...validFile, contents: updatedContents }
 }

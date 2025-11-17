@@ -11,6 +11,7 @@ import {
 } from '../../../controllers/__tests__/helpers'
 import { DataError } from '../../../errors'
 import {
+  deleteContent,
   MAX_DISPLAY_NAME_LENGTH,
   MAX_VALUE_LENGTH,
   updateComment,
@@ -24,6 +25,7 @@ import {
   updateRelationshipComment,
   updateRelationshipDescription,
   updateRelationshipDisplayName,
+  updateRelationshipTarget,
   updateTelemetryComment,
   updateTelemetryDescription,
   updateTelemetryDisplayName,
@@ -83,6 +85,19 @@ describe('entity updates', function () {
       )
     })
 
+    test('updates relationship target', async () => {
+      const newTarget = 'dtmi:com:new_target;1'
+      expect(updateRelationshipTarget(newTarget, relationshipName)(baseFile({}))).to.deep.equal(
+        baseFile({ relationshipUpdate: { target: newTarget } })
+      )
+    })
+
+    test('updates relationship target (no-op with same value)', async () => {
+      const currentTarget = 'dtmi:com:target;1'
+      const fileWithTarget = baseFile({ relationshipUpdate: { target: currentTarget } })
+      expect(updateRelationshipTarget(currentTarget, relationshipName)(fileWithTarget)).to.deep.equal(fileWithTarget)
+    })
+
     test('updates property display name', async () => {
       expect(updatePropertyDisplayName(newValue, propertyName)(baseFile({}))).to.deep.equal(
         baseFile({ propertyUpdate: { displayName: newValue } })
@@ -135,6 +150,15 @@ describe('entity updates', function () {
       expect(updateTelemetryDisplayName(newValue, telemetryName)(baseFile({}))).to.deep.equal(
         baseFile({ telemetryUpdate: { displayName: newValue } })
       )
+    })
+
+    test('delete content', async () => {
+      const file = baseFile({})
+      const fileWithoutRelationship = {
+        ...file,
+        contents: file.contents.filter((c) => c.name !== relationshipName),
+      }
+      expect(deleteContent(relationshipName)(baseFile({}))).to.deep.equal(fileWithoutRelationship)
     })
   })
 
@@ -227,6 +251,35 @@ describe('entity updates', function () {
       expect(() => {
         updateTelemetryDisplayName(newDisplayName, telemetryName)(baseFile({}))
       }).to.throw(DataError)
+    })
+
+    test('throws error for relationship target with invalid characters', async () => {
+      expect(() => {
+        updateRelationshipTarget('dtmi:invalid"target;1', relationshipName)(baseFile({}))
+      }).to.throw(DataError, 'Invalid JSON')
+    })
+
+    test('throws error for empty relationship target', async () => {
+      expect(() => {
+        updateRelationshipTarget('', relationshipName)(baseFile({}))
+      }).to.throw(DataError, 'Target cannot be empty')
+    })
+
+    test('throws error for relationship target with only whitespace', async () => {
+      expect(() => {
+        updateRelationshipTarget('   ', relationshipName)(baseFile({}))
+      }).to.throw(DataError, 'Target cannot be empty')
+    })
+
+    test('throws Zod error if relationship does not exist for target update', async () => {
+      expect(() => {
+        updateRelationshipTarget('dtmi:com:target;1', 'nonExistentRelationship')(baseFile({}))
+      })
+    })
+    test('deleteContent throws Zod error if no matching content name in file', async () => {
+      expect(() => {
+        deleteContent(relationshipName)({})
+      }).to.throw(ZodError)
     })
   })
 })

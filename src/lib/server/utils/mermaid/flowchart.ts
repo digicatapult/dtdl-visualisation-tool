@@ -1,6 +1,6 @@
 import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 import { InternalError } from '../../errors.js'
-import { getDisplayNameOrId } from '../dtdl/extract.js'
+import { getDisplayName } from '../dtdl/extract.js'
 import { getVisualisationState } from '../dtdl/filter.js'
 import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
 import { BoundingBox, defaultMarkdownFn, dtdlIdReplaceSemicolon, extractTransformTranslateCoords } from './helpers.js'
@@ -9,6 +9,15 @@ const entityKindToShape = {
   Interface: 'rect',
   Default: 'rect',
 }
+
+export const arrowTypes = {
+  ThickLink: '==>',
+  LinkWithArrowHead: '-->',
+  Links: '---',
+  LinkDotted: '-.->',
+} as const
+
+export type ArrowType = (typeof arrowTypes)[keyof typeof arrowTypes]
 
 function getFloatAttrOrThrow(element: Element, name: string) {
   const attr = element.getAttribute(name)
@@ -59,7 +68,7 @@ export default class Flowchart implements IDiagram<'flowchart'> {
   }
 
   createNodeString(entity: EntityType, withClick: boolean = true): string {
-    const displayName = getDisplayNameOrId(entity)
+    const displayName = getDisplayName(entity)
     const mermaidSafeId = dtdlIdReplaceSemicolon(entity.Id)
     let entityMarkdown = mermaidSafeId
     entityMarkdown += this.displayNameWithBorders(displayName, entity.EntityKind)
@@ -68,8 +77,8 @@ export default class Flowchart implements IDiagram<'flowchart'> {
     return entityMarkdown
   }
 
-  createEdgeString(nodeFrom: string, nodeTo: string, label?: string): string {
-    return `${dtdlIdReplaceSemicolon(nodeFrom)} --- ${label ? '|' + label + '|' : ``} ${dtdlIdReplaceSemicolon(nodeTo)}`
+  createEdgeString(nodeFrom: string, nodeTo: string, edgeType: ArrowType, label?: string): string {
+    return `${dtdlIdReplaceSemicolon(nodeFrom)} ${edgeType} ${label ? '|' + label + '|' : ``} ${dtdlIdReplaceSemicolon(nodeTo)}`
   }
 
   relationshipToMarkdown(dtdlObjectModel: DtdlObjectModel, entity: RelationshipType) {
@@ -78,7 +87,8 @@ export default class Flowchart implements IDiagram<'flowchart'> {
       return []
     }
 
-    return [this.createEdgeString(entity.ChildOf, entity.target, entity.displayName?.en ?? entity.name)]
+    const label = getDisplayName(entity)
+    return [this.createEdgeString(entity.ChildOf, entity.target, arrowTypes.LinkWithArrowHead, label)]
   }
 
   interfaceToMarkdown(dtdlObjectModel: DtdlObjectModel, entity: InterfaceType) {
@@ -86,7 +96,7 @@ export default class Flowchart implements IDiagram<'flowchart'> {
       this.createNodeString(entity),
       ...entity.extends
         .filter((parent) => !!dtdlObjectModel[parent])
-        .map((parent) => this.createEdgeString(parent, entity.Id, 'extends')),
+        .map((parent) => this.createEdgeString(parent, entity.Id, arrowTypes.LinkDotted, 'extends')),
       `class ${dtdlIdReplaceSemicolon(entity.Id)} ${getVisualisationState(entity)}`,
     ]
   }

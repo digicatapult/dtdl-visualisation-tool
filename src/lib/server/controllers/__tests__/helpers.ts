@@ -207,6 +207,7 @@ export const templateMock = {
     `navigationPanel_${swapOutOfBand || false}_${content || ''}_navigationPanel`,
   svgControls: ({ generatedOutput }: { generatedOutput?: JSX.Element }): JSX.Element =>
     `svgControls_${generatedOutput}_svgControls`,
+  deleteDialog: () => `deleteDialog_deleteDialog`,
 } as unknown as MermaidTemplates
 export const openOntologyMock = {
   OpenOntologyRoot: ({ populateListLink }: { populateListLink?: string }) => `root_${populateListLink}_root`,
