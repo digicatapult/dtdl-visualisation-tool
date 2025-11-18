@@ -70,7 +70,7 @@ export default class MermaidTemplates {
         <div id="spinner" class="spinner" />
       </div>
       <this.Legend showContent={false} />
-      <this.navPanelPlaceholder expanded={false} edit={canEdit} />
+      <this.navPanelPlaceholder expanded={false} edit={true} />
       <this.svgControls svgRawHeight={svgHeight} svgRawWidth={svgWidth} />
       <this.editToggle canEdit={canEdit} />
       <this.deleteDialog />
@@ -474,7 +474,7 @@ export default class MermaidTemplates {
                         edit,
                         definedIn: command.DefinedIn,
                         putRoute: 'commandRequestDisplayName',
-                        text: requestEntity.displayName?.en ?? '',
+                        text: requestEntity?.displayName?.en ?? '',
                         additionalBody: { commandName: name },
                         multiline: true,
                         maxLength: MAX_VALUE_LENGTH,
@@ -485,7 +485,7 @@ export default class MermaidTemplates {
                         edit,
                         definedIn: command.DefinedIn,
                         putRoute: 'commandRequestComment',
-                        text: requestEntity.comment ?? '',
+                        text: requestEntity?.comment ?? '',
                         additionalBody: { commandName: name },
                         multiline: true,
                         maxLength: MAX_VALUE_LENGTH,
@@ -496,7 +496,7 @@ export default class MermaidTemplates {
                         edit,
                         definedIn: command.DefinedIn,
                         putRoute: 'commandRequestDescription',
-                        text: requestEntity.description.en ?? '',
+                        text: requestEntity?.description?.en ?? '',
                         additionalBody: { commandName: name },
                         multiline: true,
                         maxLength: MAX_VALUE_LENGTH,
@@ -522,7 +522,7 @@ export default class MermaidTemplates {
                         edit,
                         definedIn: command.DefinedIn,
                         putRoute: 'commandResponseDisplayName',
-                        text: responseEntity.displayName?.en ?? '',
+                        text: responseEntity?.displayName?.en ?? '',
                         additionalBody: { commandName: name },
                         multiline: true,
                         maxLength: MAX_VALUE_LENGTH,
@@ -533,7 +533,7 @@ export default class MermaidTemplates {
                         edit,
                         definedIn: command.DefinedIn,
                         putRoute: 'commandResponseComment',
-                        text: responseEntity.comment ?? '',
+                        text: responseEntity?.comment ?? '',
                         additionalBody: { commandName: name },
                         multiline: true,
                         maxLength: MAX_VALUE_LENGTH,
@@ -544,7 +544,7 @@ export default class MermaidTemplates {
                         edit,
                         definedIn: command.DefinedIn,
                         putRoute: 'commandResponseDescription',
-                        text: responseEntity.description.en ?? '',
+                        text: responseEntity?.description?.en ?? '',
                         additionalBody: { commandName: name },
                         multiline: true,
                         maxLength: MAX_VALUE_LENGTH,
