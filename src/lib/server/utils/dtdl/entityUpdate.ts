@@ -197,35 +197,24 @@ const updateCommandRequestResponseValue = (
   })
   const validFile: z.infer<typeof schema> = schema.loose().parse(file)
 
-  // Find the command
   const commandIndex = validFile.contents.findIndex((item) => item['@type'] === 'Command' && item.name === commandName)
   const command = validFile.contents[commandIndex]
 
-  // Get the request/response property
-  const requestResponseProperty = command[requestOrResponse]
+  const objecSchema = z.object({}).loose()
+  const requestResponseProperty = objecSchema.parse(command[requestOrResponse])
 
   if (!requestResponseProperty) {
     throw new DataError(`Command '${commandName}' has no ${requestOrResponse} defined`)
   }
+  const updatedRequestResponse = { ...requestResponseProperty }
 
-  if (typeof requestResponseProperty === 'object') {
-    // Update the embedded request/response object directly
-    const updatedRequestResponse = { ...requestResponseProperty }
-
-    updatedRequestResponse[keyToUpdate] = value
-
-    // Update the command with the modified request/response
-    const updatedCommand = {
-      ...command,
-      [requestOrResponse]: updatedRequestResponse,
-    }
-
-    // Replace the command in contents
-    const updatedContents = validFile.contents.toSpliced(commandIndex, 1, updatedCommand)
-    return { ...validFile, contents: updatedContents }
-  } else {
-    throw new DataError(`Expected ${requestOrResponse} to be an object, but got: ${typeof requestResponseProperty}`)
+  updatedRequestResponse[keyToUpdate] = value
+  const updatedCommand = {
+    ...command,
+    [requestOrResponse]: updatedRequestResponse,
   }
+  const updatedContents = validFile.contents.toSpliced(commandIndex, 1, updatedCommand)
+  return { ...validFile, contents: updatedContents }
 }
 export const deleteContent = (contentName: string) => (file: unknown) => {
   const schema = z.object({
