@@ -137,8 +137,8 @@ export const dtdlFileFixture =
           comment: 'comment',
           schema: 'string',
           ...(commandRequestUpdate && {
-            displayName: commandRequestUpdate.displayName ? { en: commandRequestUpdate.displayName } : 'displayName',
-            description: commandRequestUpdate.description ? { en: commandRequestUpdate.description } : 'description',
+            displayName: commandRequestUpdate.displayName ?? 'displayName',
+            description: commandRequestUpdate.description ?? 'description',
             comment: commandRequestUpdate.comment || 'comment',
             schema: commandRequestUpdate.schema || 'string',
           }),
@@ -150,8 +150,8 @@ export const dtdlFileFixture =
           comment: 'comment',
           schema: 'string',
           ...(commandResponseUpdate && {
-            displayName: commandResponseUpdate.displayName ? { en: commandResponseUpdate.displayName } : 'displayName',
-            description: commandResponseUpdate.description ? { en: commandResponseUpdate.description } : 'description',
+            displayName: commandResponseUpdate.displayName ?? 'displayName',
+            description: commandResponseUpdate.description ?? 'description',
             comment: commandResponseUpdate.comment || 'comment',
             schema: commandResponseUpdate.schema || 'string',
           }),
