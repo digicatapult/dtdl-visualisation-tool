@@ -203,9 +203,6 @@ const updateCommandRequestResponseValue = (
   const objecSchema = z.object({}).loose()
   const requestResponseProperty = objecSchema.parse(command[requestOrResponse])
 
-  if (!requestResponseProperty) {
-    throw new DataError(`Command '${commandName}' has no ${requestOrResponse} defined`)
-  }
   const updatedRequestResponse = { ...requestResponseProperty }
 
   updatedRequestResponse[keyToUpdate] = value
@@ -228,7 +225,7 @@ export const deleteContent = (contentName: string) => (file: unknown) => {
       .refine((contents) => contents.some((c) => c.name === contentName)),
   })
 
-  const validFile: z.infer<typeof schema> = schema.passthrough().parse(file)
+  const validFile: z.infer<typeof schema> = schema.loose().parse(file)
 
   const index = validFile.contents.findIndex((item) => item.name === contentName)
   const updatedContents = validFile.contents.toSpliced(index, 1)
