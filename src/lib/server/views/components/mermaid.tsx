@@ -9,10 +9,18 @@ import { DeletableEntities } from '../../models/controllerTypes.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { DTDL_VALID_SCHEMAS, DtdlId, UUID } from '../../models/strings.js'
 import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
-import { getDisplayName, isInterface, isProperty, isRelationship, isTelemetry } from '../../utils/dtdl/extract.js'
+import {
+  getDisplayName,
+  isCommand,
+  isInterface,
+  isProperty,
+  isRelationship,
+  isTelemetry,
+} from '../../utils/dtdl/extract.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { AccordionSection, EditableSelect, EditableText, Page } from '../common.js'
 import { PropertyDetails } from './property.js'
+import { RelationshipDetails } from './relationship.js'
 
 const env = container.resolve(Env)
 
@@ -215,7 +223,20 @@ export default class MermaidTemplates {
       )
     }
     const definedIn = entity.DefinedIn ?? entityId // entities only have definedIn if defined in a different file
+
+    // Build interface options list once for all relationships (if entity is an interface)
+    const interfaceOptions = isInterface(entity)
+      ? Object.values(model)
+          .filter(isInterface)
+          .map((iface) => ({
+            value: iface.Id,
+            label: `${getDisplayName(iface)} (${iface.Id})`,
+          }))
+          .sort((a, b) => a.label.localeCompare(b.label))
+      : []
     const isRship = isRelationship(entity)
+    const relationshipName = isRship ? entity.name : undefined
+    const showRelationshipTarget = isRship && !!relationshipName
     return (
       <div id="navigation-panel-details">
         <section>
@@ -228,7 +249,7 @@ export default class MermaidTemplates {
             definedIn,
             putRoute: isRship ? 'relationshipDisplayName' : 'displayName',
             additionalBody: {
-              ...(isRship ? { relationshipName: entity.name } : {}),
+              ...(relationshipName ? { relationshipName } : {}),
             },
             text: entity?.displayName?.en,
             keyName: 'displayName',
@@ -242,7 +263,7 @@ export default class MermaidTemplates {
             definedIn,
             putRoute: isRship ? 'relationshipDescription' : 'description',
             additionalBody: {
-              ...(isRship ? { relationshipName: entity.name } : {}),
+              ...(relationshipName ? { relationshipName } : {}),
             },
             text: entity.description?.en,
             keyName: 'description',
@@ -257,13 +278,45 @@ export default class MermaidTemplates {
             definedIn,
             putRoute: isRship ? 'relationshipComment' : 'comment',
             additionalBody: {
-              ...(isRship ? { relationshipName: entity.name } : {}),
+              ...(relationshipName ? { relationshipName } : {}),
             },
             text: entity.comment,
             keyName: 'comment',
             multiline: true,
             maxLength: MAX_VALUE_LENGTH,
           })}
+          {showRelationshipTarget && (
+            <>
+              <p>
+                <b>Target:</b>
+              </p>
+              {entity.target ? (
+                (() => {
+                  // Build options list for all interfaces in the model
+                  const interfaceOptions = Object.values(model)
+                    .filter(isInterface)
+                    .map((iface) => ({
+                      value: iface.Id,
+                      label: `${getDisplayName(iface)} (${iface.Id})`,
+                    }))
+                    .sort((a, b) => a.label.localeCompare(b.label))
+
+                  return (
+                    <EditableSelect
+                      edit={edit}
+                      definedIn={definedIn}
+                      putRoute="relationshipTarget"
+                      text={entity.target}
+                      options={interfaceOptions}
+                      additionalBody={{ relationshipName }}
+                    />
+                  )
+                })()
+              ) : (
+                <p>'target' key missing in original file</p>
+              )}
+            </>
+          )}
         </section>
         <AccordionSection heading={'Entity Identifiers'} collapsed={false}>
           <p>
@@ -296,20 +349,16 @@ export default class MermaidTemplates {
           {isInterface(entity) && Object.keys(entity.relationships).length > 0
             ? Object.entries(entity.relationships).map(([name, id]) => {
                 const relationship = model[id]
+                if (!isRelationship(relationship)) return null
                 return (
-                  <>
-                    <p>
-                      <b>{escapeHtml(name)}: </b>
-                      {escapeHtml(relationship?.comment ?? '-')}
-                    </p>
-                    <p>
-                      <b>Target: </b>
-                      {isRelationship(relationship) && relationship.target
-                        ? getDisplayName(model[relationship.target])
-                        : '-'}
-                    </p>
-                    <br />
-                  </>
+                  <RelationshipDetails
+                    relationship={relationship}
+                    name={name}
+                    model={model}
+                    edit={edit}
+                    entityId={entity.Id}
+                    interfaceOptions={interfaceOptions}
+                  />
                 )
               })
             : 'None'}
@@ -371,6 +420,158 @@ export default class MermaidTemplates {
               })
             : 'None'}
         </AccordionSection>
+        <AccordionSection heading={'Commands'} collapsed={false}>
+          {isInterface(entity) && Object.keys(entity.commands).length > 0
+            ? Object.entries(entity.commands).map(([name, id]) => {
+                const command = model[id]
+                if (!isCommand(command) || !command.DefinedIn) return
+                let requestEntity, responseEntity
+                const requestId = command.request
+                if (requestId) {
+                  requestEntity = model[requestId]
+                }
+                const responseId = command.response
+                if (responseId) {
+                  responseEntity = model[responseId]
+                }
+                return (
+                  <>
+                    <b>Display Name:</b>
+                    {EditableText({
+                      edit,
+                      definedIn: command.DefinedIn,
+                      putRoute: 'commandDisplayName',
+                      text: command.displayName.en,
+                      additionalBody: { commandName: name },
+                      maxLength: 64,
+                      keyName: 'displayName',
+                    })}
+
+                    <b>Description:</b>
+                    {EditableText({
+                      edit,
+                      definedIn: command.DefinedIn,
+                      putRoute: 'commandDescription',
+                      text: command.description.en,
+                      additionalBody: { commandName: name },
+                      multiline: true,
+                      maxLength: MAX_VALUE_LENGTH,
+                      keyName: 'description',
+                    })}
+                    <b>Comment:</b>
+                    {EditableText({
+                      edit,
+                      definedIn: command.DefinedIn,
+                      putRoute: 'commandComment',
+                      text: command.comment,
+                      additionalBody: { commandName: name },
+                      multiline: true,
+                      maxLength: MAX_VALUE_LENGTH,
+                      keyName: 'comment',
+                    })}
+                    <AccordionSection heading={'Request'} collapsed={false}>
+                      <b>Request displayName:</b>
+                      {EditableText({
+                        edit,
+                        definedIn: command.DefinedIn,
+                        putRoute: 'commandRequestDisplayName',
+                        text: requestEntity?.displayName?.en ?? '',
+                        additionalBody: { commandName: name },
+                        multiline: true,
+                        maxLength: MAX_VALUE_LENGTH,
+                        keyName: 'requestDisplayName',
+                      })}
+                      <b>Request comment:</b>
+                      {EditableText({
+                        edit,
+                        definedIn: command.DefinedIn,
+                        putRoute: 'commandRequestComment',
+                        text: requestEntity?.comment ?? '',
+                        additionalBody: { commandName: name },
+                        multiline: true,
+                        maxLength: MAX_VALUE_LENGTH,
+                        keyName: 'requestComment',
+                      })}
+                      <b>Request description:</b>
+                      {EditableText({
+                        edit,
+                        definedIn: command.DefinedIn,
+                        putRoute: 'commandRequestDescription',
+                        text: requestEntity?.description?.en ?? '',
+                        additionalBody: { commandName: name },
+                        multiline: true,
+                        maxLength: MAX_VALUE_LENGTH,
+                        keyName: 'requestDescription',
+                      })}
+                      <b>Schema:</b>
+                      <EditableSelect
+                        edit={edit}
+                        definedIn={command.DefinedIn}
+                        putRoute="commandRequestSchema"
+                        text={
+                          requestEntity?.schema
+                            ? (model[requestEntity.schema].displayName?.en ?? 'Complex schema')
+                            : 'schema key missing in original file'
+                        }
+                        additionalBody={{ commandName: name }}
+                        options={DTDL_VALID_SCHEMAS}
+                      />
+                    </AccordionSection>
+                    <AccordionSection heading={'Response'} collapsed={false}>
+                      <b>Response displayName:</b>
+                      {EditableText({
+                        edit,
+                        definedIn: command.DefinedIn,
+                        putRoute: 'commandResponseDisplayName',
+                        text: responseEntity?.displayName?.en ?? '',
+                        additionalBody: { commandName: name },
+                        multiline: true,
+                        maxLength: MAX_VALUE_LENGTH,
+                        keyName: 'responseDisplayName',
+                      })}
+                      <b>Response comment:</b>
+                      {EditableText({
+                        edit,
+                        definedIn: command.DefinedIn,
+                        putRoute: 'commandResponseComment',
+                        text: responseEntity?.comment ?? '',
+                        additionalBody: { commandName: name },
+                        multiline: true,
+                        maxLength: MAX_VALUE_LENGTH,
+                        keyName: 'responseComment',
+                      })}
+                      <b>Response description:</b>
+                      {EditableText({
+                        edit,
+                        definedIn: command.DefinedIn,
+                        putRoute: 'commandResponseDescription',
+                        text: responseEntity?.description?.en ?? '',
+                        additionalBody: { commandName: name },
+                        multiline: true,
+                        maxLength: MAX_VALUE_LENGTH,
+                        keyName: 'responseDescription',
+                      })}
+                      <b>Schema:</b>
+                      <EditableSelect
+                        edit={edit}
+                        definedIn={command.DefinedIn}
+                        putRoute="commandResponseSchema"
+                        text={
+                          responseEntity?.schema
+                            ? (model[responseEntity.schema].displayName?.en ?? 'Complex schema')
+                            : 'schema key missing in original file'
+                        }
+                        additionalBody={{ commandName: name }}
+                        options={DTDL_VALID_SCHEMAS}
+                      />
+                    </AccordionSection>
+                    <br />
+                  </>
+                )
+              })
+            : 'None'}
+        </AccordionSection>
+
         <AccordionSection heading={'See Full JSON'} collapsed={true}>
           <pre>
             <code>{escapeHtml(JSON.stringify(entity, null, 4))}</code>
@@ -583,7 +784,7 @@ export default class MermaidTemplates {
 
   navigationPanelNodeClass = (
     path: DtdlPath
-  ): 'directory' | 'file' | 'interface' | 'relationship' | 'property' | 'telemetry' => {
+  ): 'directory' | 'file' | 'interface' | 'relationship' | 'property' | 'telemetry' | 'command' => {
     if (path.type === 'directory' || path.type === 'file') {
       return path.type
     }
@@ -596,6 +797,8 @@ export default class MermaidTemplates {
         return 'property'
       case 'Telemetry':
         return 'telemetry'
+      case 'Command':
+        return 'command'
       default:
         return 'property'
     }

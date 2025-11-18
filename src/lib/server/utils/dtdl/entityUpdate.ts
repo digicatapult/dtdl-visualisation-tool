@@ -57,6 +57,12 @@ export const updatePropertySchema = (value: DtdlSchema, propertyName: string) =>
   return updateContentsValue(dtdlInterface, value, 'Property', propertyName, 'schema', MAX_VALUE_LENGTH)
 }
 
+export const updateRelationshipTarget =
+  (newTarget: string, relationshipName: string) => (dtdlInterface: DtdlInterface) => {
+    if (!newTarget.trim()) throw new DataError('Target cannot be empty')
+    return updateContentsValue(dtdlInterface, newTarget, 'Relationship', relationshipName, 'target', MAX_VALUE_LENGTH)
+  }
+
 export const updatePropertyWritable = (value: boolean, propertyName: string) => (dtdlInterface: DtdlInterface) => {
   return updateContentsValue(dtdlInterface, value, 'Property', propertyName, 'writable')
 }
@@ -77,6 +83,86 @@ export const updateTelemetrySchema = (value: DtdlSchema, telemetryName: string) 
   return updateContentsValue(dtdlInterface, value, 'Telemetry', telemetryName, 'schema', MAX_VALUE_LENGTH)
 }
 
+export const updateCommandDisplayName = (value: string, commandName: string) => (dtdlInterface: DtdlInterface) => {
+  return updateContentsValue(dtdlInterface, value, 'Command', commandName, 'displayName', MAX_DISPLAY_NAME_LENGTH)
+}
+
+export const updateCommandComment = (value: string, commandName: string) => (dtdlInterface: DtdlInterface) => {
+  return updateContentsValue(dtdlInterface, value, 'Command', commandName, 'comment', MAX_VALUE_LENGTH)
+}
+
+export const updateCommandDescription = (value: string, commandName: string) => (dtdlInterface: DtdlInterface) => {
+  return updateContentsValue(dtdlInterface, value, 'Command', commandName, 'description', MAX_VALUE_LENGTH)
+}
+
+// Command Request update functions
+export const updateCommandRequestDisplayName =
+  (value: string, commandName: string) => (dtdlInterface: DtdlInterface) => {
+    return updateCommandRequestResponseValue(
+      dtdlInterface,
+      value,
+      commandName,
+      'request',
+      'displayName',
+      MAX_DISPLAY_NAME_LENGTH
+    )
+  }
+
+export const updateCommandRequestComment = (value: string, commandName: string) => (dtdlInterface: DtdlInterface) => {
+  return updateCommandRequestResponseValue(dtdlInterface, value, commandName, 'request', 'comment', MAX_VALUE_LENGTH)
+}
+
+export const updateCommandRequestDescription =
+  (value: string, commandName: string) => (dtdlInterface: DtdlInterface) => {
+    return updateCommandRequestResponseValue(
+      dtdlInterface,
+      value,
+      commandName,
+      'request',
+      'description',
+      MAX_VALUE_LENGTH
+    )
+  }
+
+export const updateCommandRequestSchema =
+  (value: DtdlSchema, commandName: string) => (dtdlInterface: DtdlInterface) => {
+    return updateCommandRequestResponseValue(dtdlInterface, value, commandName, 'request', 'schema', MAX_VALUE_LENGTH)
+  }
+
+// Command Response update functions
+export const updateCommandResponseDisplayName =
+  (value: string, commandName: string) => (dtdlInterface: DtdlInterface) => {
+    return updateCommandRequestResponseValue(
+      dtdlInterface,
+      value,
+      commandName,
+      'response',
+      'displayName',
+      MAX_DISPLAY_NAME_LENGTH
+    )
+  }
+
+export const updateCommandResponseComment = (value: string, commandName: string) => (dtdlInterface: DtdlInterface) => {
+  return updateCommandRequestResponseValue(dtdlInterface, value, commandName, 'response', 'comment', MAX_VALUE_LENGTH)
+}
+
+export const updateCommandResponseDescription =
+  (value: string, commandName: string) => (dtdlInterface: DtdlInterface) => {
+    return updateCommandRequestResponseValue(
+      dtdlInterface,
+      value,
+      commandName,
+      'response',
+      'description',
+      MAX_VALUE_LENGTH
+    )
+  }
+
+export const updateCommandResponseSchema =
+  (value: DtdlSchema, commandName: string) => (dtdlInterface: DtdlInterface) => {
+    return updateCommandRequestResponseValue(dtdlInterface, value, commandName, 'response', 'schema', MAX_VALUE_LENGTH)
+  }
+
 const updateInterfaceValue = (
   dtdlInterface: DtdlInterface,
   value: string,
@@ -93,9 +179,9 @@ const updateInterfaceValue = (
 const updateContentsValue = (
   dtdlInterface: DtdlInterface,
   value: string | boolean,
-  contentType: 'Relationship' | 'Property' | 'Telemetry',
+  contentType: 'Relationship' | 'Property' | 'Telemetry' | 'Command',
   contentName: string, // effectively contentId - has to be unique in DTDL
-  keyToUpdate: 'displayName' | 'description' | 'comment' | 'schema' | 'writable',
+  keyToUpdate: 'displayName' | 'description' | 'comment' | 'schema' | 'writable' | 'request' | 'response' | 'target',
   maxLength = MAX_VALUE_LENGTH
 ) => {
   if (typeof value === 'string' && invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
@@ -153,4 +239,47 @@ export const deleteInterface = (interfaceId: string, source: DtdlSourceOrEmpty):
     throw new DataError(`Interface with id ${interfaceId} not found in source`)
   }
   return source.toSpliced(index, 1)
+}
+
+const updateCommandRequestResponseValue = (
+  file: unknown,
+  value: string | DtdlSchema,
+  commandName: string,
+  requestOrResponse: 'request' | 'response',
+  keyToUpdate: 'displayName' | 'description' | 'comment' | 'schema',
+  maxLength = MAX_VALUE_LENGTH
+) => {
+  if (typeof value === 'string' && invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
+
+  if (typeof value === 'string' && value.length > maxLength)
+    throw new DataError(`Command ${requestOrResponse} '${keyToUpdate}' has max length of ${maxLength} characters`)
+
+  const schema = dtdlInterfaceBase.extend({
+    contents: z
+      .array(
+        z.looseObject({
+          '@type': z.string(),
+          name: z.string(),
+          [requestOrResponse]: z.union([z.string(), z.object({}).loose()]).optional(),
+        })
+      )
+      .refine((contents) => contents.some((c) => c['@type'] === 'Command' && c.name === commandName)),
+  })
+  const validFile: z.infer<typeof schema> = schema.loose().parse(file)
+
+  const commandIndex = validFile.contents.findIndex((item) => item['@type'] === 'Command' && item.name === commandName)
+  const command = validFile.contents[commandIndex]
+
+  const objecSchema = z.object({}).loose()
+  const requestResponseProperty = objecSchema.parse(command[requestOrResponse])
+
+  const updatedRequestResponse = { ...requestResponseProperty }
+
+  updatedRequestResponse[keyToUpdate] = value
+  const updatedCommand = {
+    ...command,
+    [requestOrResponse]: updatedRequestResponse,
+  }
+  const updatedContents = validFile.contents.toSpliced(commandIndex, 1, updatedCommand)
+  return { ...validFile, contents: updatedContents }
 }

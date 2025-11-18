@@ -268,6 +268,7 @@ export default class Parser {
         ? this.extractDtdlPathFileContents(parsedEntry.relationships, model, entityId)
         : [],
       'telemetries' in parsedEntry ? this.extractDtdlPathFileContents(parsedEntry.telemetries, model, entityId) : [],
+      'commands' in parsedEntry ? this.extractDtdlPathFileContents(parsedEntry.commands, model, entityId) : [],
     ].flat()
 
     const entries = [

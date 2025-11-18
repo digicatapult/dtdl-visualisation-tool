@@ -56,6 +56,8 @@ export const relationshipName = 'someRelationship'
 export const otherRelationshipName = 'someOtherRelationship'
 export const telemetryName = 'someTelemetry'
 export const otherTelemetryName = 'someOtherTelemetry'
+export const commandName = 'someCommand'
+export const otherCommandName = 'someOtherCommand'
 
 export const dtdlFileFixture =
   (id: string) =>
@@ -64,11 +66,17 @@ export const dtdlFileFixture =
     relationshipUpdate,
     propertyUpdate,
     telemetryUpdate,
+    commandUpdate,
+    commandRequestUpdate,
+    commandResponseUpdate,
   }: {
     interfaceUpdate?: Record<string, string>
     relationshipUpdate?: Record<string, string>
     propertyUpdate?: Record<string, string | boolean>
     telemetryUpdate?: Record<string, string>
+    commandUpdate?: Record<string, string>
+    commandRequestUpdate?: Record<string, string>
+    commandResponseUpdate?: Record<string, string>
   }) => ({
     '@context': ['dtmi:dtdl:context;4'],
     '@id': id,
@@ -116,6 +124,47 @@ export const dtdlFileFixture =
         name: otherTelemetryName,
         schema: 'string',
       },
+      {
+        '@type': 'Command',
+        name: commandName,
+        displayName: 'displayName',
+        comment: 'comment',
+        description: 'description',
+        request: {
+          name: 'mode',
+          displayName: 'displayName',
+          description: 'description',
+          comment: 'comment',
+          schema: 'string',
+          ...(commandRequestUpdate && {
+            displayName: commandRequestUpdate.displayName ?? 'displayName',
+            description: commandRequestUpdate.description ?? 'description',
+            comment: commandRequestUpdate.comment || 'comment',
+            schema: commandRequestUpdate.schema || 'string',
+          }),
+        },
+        response: {
+          name: 'result',
+          displayName: 'displayName',
+          description: 'description',
+          comment: 'comment',
+          schema: 'string',
+          ...(commandResponseUpdate && {
+            displayName: commandResponseUpdate.displayName ?? 'displayName',
+            description: commandResponseUpdate.description ?? 'description',
+            comment: commandResponseUpdate.comment || 'comment',
+            schema: commandResponseUpdate.schema || 'string',
+          }),
+        },
+        ...commandUpdate,
+      },
+      {
+        '@type': 'Command',
+        name: otherCommandName,
+        displayName: 'otherDisplayName',
+        comment: 'otherComment',
+        description: 'otherDescription',
+      },
     ],
     ...interfaceUpdate,
   })
@@ -128,6 +177,9 @@ export const arrayDtdlFileFixture = (updates: {
   relationshipUpdate?: Record<string, string>
   propertyUpdate?: Record<string, string | boolean>
   telemetryUpdate?: Record<string, string>
+  commandUpdate?: Record<string, string>
+  commandRequestUpdate?: Record<string, string>
+  commandResponseUpdate?: Record<string, string>
 }) => [simpleDtdlFileFixture({}), dtdlFileFixture(arrayDtdlFileEntityId)(updates)]
 
 const mockDtdlTable = {

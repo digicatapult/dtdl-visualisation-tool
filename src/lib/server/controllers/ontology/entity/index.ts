@@ -11,6 +11,17 @@ import { DtdlInterface, DtdlSourceOrEmpty } from '../../../../db/types.js'
 import {
   deleteContent,
   deleteInterface,
+  updateCommandComment,
+  updateCommandDescription,
+  updateCommandDisplayName,
+  updateCommandRequestComment,
+  updateCommandRequestDescription,
+  updateCommandRequestDisplayName,
+  updateCommandRequestSchema,
+  updateCommandResponseComment,
+  updateCommandResponseDescription,
+  updateCommandResponseDisplayName,
+  updateCommandResponseSchema,
   updateComment,
   updateDescription,
   updateDisplayName,
@@ -22,6 +33,7 @@ import {
   updateRelationshipComment,
   updateRelationshipDescription,
   updateRelationshipDisplayName,
+  updateRelationshipTarget,
   updateTelemetryComment,
   updateTelemetryDescription,
   updateTelemetryDisplayName,
@@ -135,6 +147,21 @@ export class EntityController extends HTMLController {
     const { value, relationshipName, ...updateParams } = body
 
     await this.putEntityValue(ontologyId, entityId, updateRelationshipComment(value, relationshipName))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+
+  @SuccessResponse(200)
+  @Put('{entityId}/relationshipTarget')
+  public async putRelationshipTarget(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Body() body: { value: string; relationshipName: string } & UpdateParams
+  ): Promise<HTML> {
+    const { value, relationshipName, ...updateParams } = body
+
+    await this.putEntityValue(ontologyId, entityId, updateRelationshipTarget(value, relationshipName))
 
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
   }
@@ -275,6 +302,168 @@ export class EntityController extends HTMLController {
   }
 
   @SuccessResponse(200)
+  @Put('{entityId}/commandDisplayName')
+  public async putCommandDisplayName(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Body() body: { value: string; commandName: string } & UpdateParams
+  ): Promise<HTML> {
+    const { value, commandName, ...updateParams } = body
+
+    await this.putEntityValue(ontologyId, entityId, updateCommandDisplayName(value, commandName))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+  @SuccessResponse(200)
+  @Put('{entityId}/commandDescription')
+  public async putCommandDescription(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Body() body: { value: string; commandName: string } & UpdateParams
+  ): Promise<HTML> {
+    const { value, commandName, ...updateParams } = body
+
+    await this.putEntityValue(ontologyId, entityId, updateCommandDescription(value, commandName))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+  @SuccessResponse(200)
+  @Put('{entityId}/commandComment')
+  public async putCommandComment(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Body() body: { value: string; commandName: string } & UpdateParams
+  ): Promise<HTML> {
+    const { value, commandName, ...updateParams } = body
+
+    await this.putEntityValue(ontologyId, entityId, updateCommandComment(value, commandName))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+
+  @SuccessResponse(200)
+  @Put('{entityId}/commandRequestDisplayName')
+  public async putCommandRequestDisplayName(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Body() body: { value: string; commandName: string } & UpdateParams
+  ): Promise<HTML> {
+    const { value, commandName, ...updateParams } = body
+
+    await this.putEntityValue(ontologyId, entityId, updateCommandRequestDisplayName(value, commandName))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+
+  @SuccessResponse(200)
+  @Put('{entityId}/commandRequestComment')
+  public async putCommandRequestComment(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Body() body: { value: string; commandName: string } & UpdateParams
+  ): Promise<HTML> {
+    const { value, commandName, ...updateParams } = body
+
+    await this.putEntityValue(ontologyId, entityId, updateCommandRequestComment(value, commandName))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+
+  @SuccessResponse(200)
+  @Put('{entityId}/commandRequestDescription')
+  public async putCommandRequestDescription(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Body() body: { value: string; commandName: string } & UpdateParams
+  ): Promise<HTML> {
+    const { value, commandName, ...updateParams } = body
+
+    await this.putEntityValue(ontologyId, entityId, updateCommandRequestDescription(value, commandName))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+
+  @SuccessResponse(200)
+  @Put('{entityId}/commandRequestSchema')
+  public async putCommandRequestSchema(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Body() body: { value: DtdlSchema; commandName: string } & UpdateParams
+  ): Promise<HTML> {
+    const { value, commandName, ...updateParams } = body
+
+    await this.putEntityValue(ontologyId, entityId, updateCommandRequestSchema(value, commandName))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+
+  @SuccessResponse(200)
+  @Put('{entityId}/commandResponseDisplayName')
+  public async putCommandResponseDisplayName(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Body() body: { value: string; commandName: string } & UpdateParams
+  ): Promise<HTML> {
+    const { value, commandName, ...updateParams } = body
+
+    await this.putEntityValue(ontologyId, entityId, updateCommandResponseDisplayName(value, commandName))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+
+  @SuccessResponse(200)
+  @Put('{entityId}/commandResponseComment')
+  public async putCommandResponseComment(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Body() body: { value: string; commandName: string } & UpdateParams
+  ): Promise<HTML> {
+    const { value, commandName, ...updateParams } = body
+
+    await this.putEntityValue(ontologyId, entityId, updateCommandResponseComment(value, commandName))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+
+  @SuccessResponse(200)
+  @Put('{entityId}/commandResponseDescription')
+  public async putCommandResponseDescription(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Body() body: { value: string; commandName: string } & UpdateParams
+  ): Promise<HTML> {
+    const { value, commandName, ...updateParams } = body
+
+    await this.putEntityValue(ontologyId, entityId, updateCommandResponseDescription(value, commandName))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+
+  @SuccessResponse(200)
+  @Put('{entityId}/commandResponseSchema')
+  public async putCommandResponseSchema(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Body() body: { value: DtdlSchema; commandName: string } & UpdateParams
+  ): Promise<HTML> {
+    const { value, commandName, ...updateParams } = body
+
+    await this.putEntityValue(ontologyId, entityId, updateCommandResponseSchema(value, commandName))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+  @SuccessResponse(200)
   @Produces('text/html')
   @Get('{entityId}/deleteDialog')
   public async deleteDialog(@Path() ontologyId: UUID, @Path() entityId: DtdlId): Promise<HTML> {
@@ -282,15 +471,12 @@ export class EntityController extends HTMLController {
     const entity = model[entityId]
     const definedIn = entity.DefinedIn ?? entityId
 
-    const extendedBys = this.getExtendedBy(model, entityId)
-
     const query = {
       entityKind: entity.EntityKind as DeletableEntities,
       definedIn: entity.DefinedIn ?? entityId,
       contentName: isNamedEntity(entity) ? entity.name : '',
       displayName: getDisplayName(entity),
       definedInDisplayName: definedIn !== entityId ? getDisplayName(model[definedIn]) : undefined,
-      extendedBys: extendedBys.map((e) => getDisplayName(model[e])),
     }
     return this.html(this.templates.deleteDialog(query))
   }
