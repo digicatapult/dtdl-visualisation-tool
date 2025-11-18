@@ -109,7 +109,7 @@ test.describe('Test edit ontology', () => {
     await testNavPanelEdit(page, /^turnOnCommandDisplayNameEdit$/, 'updated', '/commandDisplayName')
     await testNavPanelEdit(page, /^turnOnCommandDescriptionEdit$/, 'updated', '/commandDescription')
     await testNavPanelEdit(page, /^turnOnCommandCommentEdit$/, 'updated', '/commandComment')
-    await testNavPanelEdit(page, /^modeRequestDisplayName$/, 'updated', '/commandRequestComment')
+    await testNavPanelEdit(page, /^modeRequestDisplayName$/, 'updated', '/commandRequestDisplayName')
     await testNavPanelEdit(page, /^modeRequestDescription$/, 'updated', '/commandRequestDescription')
     await testNavPanelEdit(page, /^modeRequestComment$/, 'updated', '/commandRequestComment')
     await testNavPanelEdit(page, /^modeResponseDescription$/, 'updated', '/commandResponseDescription')
