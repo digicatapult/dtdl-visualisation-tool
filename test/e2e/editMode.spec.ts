@@ -21,7 +21,7 @@ test.describe('Test edit ontology', () => {
     )
   })
   test('edit interface + relationship', async ({ browser, baseURL }) => {
-    test.setTimeout(60000)
+    test.setTimeout(110000)
 
     // login to github
     const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
@@ -104,6 +104,17 @@ test.describe('Test edit ontology', () => {
     await testNavPanelDropdownEdit(page, 'float', 'integer', '/telemetrySchema')
     await testNavPanelEdit(page, /^telemetryDescriptionEdit$/, 'updated', '/telemetryDescription')
     await testNavPanelEdit(page, /^telemetryCommentEdit$/, 'updated', '/telemetryComment')
+
+    // command edits
+    await testNavPanelEdit(page, /^turnOnCommandDisplayNameEdit$/, 'updated', '/commandDisplayName')
+    await testNavPanelEdit(page, /^turnOnCommandDescriptionEdit$/, 'updated', '/commandDescription')
+    await testNavPanelEdit(page, /^turnOnCommandCommentEdit$/, 'updated', '/commandComment')
+    await testNavPanelEdit(page, /^modeRequestDisplayName$/, 'updated', '/commandRequestDisplayName')
+    await testNavPanelEdit(page, /^modeRequestDescription$/, 'updated', '/commandRequestDescription')
+    await testNavPanelEdit(page, /^modeRequestComment$/, 'updated', '/commandRequestComment')
+    await testNavPanelEdit(page, /^modeResponseDescription$/, 'updated', '/commandResponseDescription')
+    await testNavPanelEdit(page, /^modeResponseComment$/, 'updated', '/commandResponseComment')
+    await testNavPanelDropdownEdit(page, 'string', 'long', '/commandResponseSchema')
 
     // relationship edits
     await waitForSuccessResponse(
