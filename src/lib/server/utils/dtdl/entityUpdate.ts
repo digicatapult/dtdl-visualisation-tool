@@ -212,11 +212,7 @@ const updateCommandRequestResponseValue = (
     // Update the embedded request/response object directly
     const updatedRequestResponse = { ...requestResponseProperty }
 
-    if (keyToUpdate === 'displayName' || keyToUpdate === 'description') {
-      updatedRequestResponse[keyToUpdate] = { en: value as string }
-    } else {
-      updatedRequestResponse[keyToUpdate] = value
-    }
+    updatedRequestResponse[keyToUpdate] = value
 
     // Update the command with the modified request/response
     const updatedCommand = {

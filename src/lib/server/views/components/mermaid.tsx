@@ -426,48 +426,37 @@ export default class MermaidTemplates {
                 const command = model[id]
                 if (!isCommand(command) || !command.DefinedIn) return
                 let requestEntity, responseEntity
-                if (command.request) {
-                  const requestId = typeof command.request === 'string' ? command.request : undefined
-                  if (requestId) {
-                    requestEntity = model[requestId]
-                  }
+                const requestId = command.request
+                if (requestId) {
+                  requestEntity = model[requestId]
                 }
-                if (command.response) {
-                  const responseId = typeof command.response === 'string' ? command.response : undefined
-                  if (responseId) {
-                    responseEntity = model[responseId]
-                  }
+                const responseId = command.response
+                if (responseId) {
+                  responseEntity = model[responseId]
                 }
                 return (
                   <>
                     <b>Display Name:</b>
-                    {command.displayName?.en ? (
-                      <EditableText
-                        edit={edit}
-                        definedIn={command.DefinedIn}
-                        putRoute="commandDisplayName"
-                        text={command.displayName.en}
-                        additionalBody={{ commandName: name }}
-                        maxLength={64}
-                      />
-                    ) : (
-                      <p>'displayName' key missing in original file</p>
-                    )}
+                    {EditableText({
+                      edit,
+                      definedIn: command.DefinedIn,
+                      putRoute: 'commandDisplayName',
+                      text: command.displayName.en,
+                      additionalBody: { commandName: name },
+                      maxLength: 64,
+                      keyName: 'displayName',
+                    })}
 
                     <b>Description:</b>
-                    {command.description?.en ? (
-                      <EditableText
-                        edit={edit}
-                        definedIn={command.DefinedIn}
-                        putRoute="commandDescription"
-                        text={command.description.en}
-                        additionalBody={{ commandName: name }}
-                        multiline={true}
-                        maxLength={MAX_VALUE_LENGTH}
-                      />
-                    ) : (
-                      <p>'description' key missing in original file</p>
-                    )}
+                    {EditableText({
+                      edit,
+                      definedIn: command.DefinedIn,
+                      putRoute: 'commandDescription',
+                      text: command.description.en,
+                      additionalBody: { commandName: name },
+                      multiline: true,
+                      maxLength: MAX_VALUE_LENGTH,
+                    })}
                     <b>Comment:</b>
                     {command.comment ? (
                       EditableText({
@@ -531,10 +520,8 @@ export default class MermaidTemplates {
                         definedIn={command.DefinedIn}
                         putRoute="commandRequestSchema"
                         text={
-                          requestEntity && requestEntity.schema
-                            ? model[requestEntity.schema].displayName?.en
-                              ? model[requestEntity.schema].displayName?.en
-                              : 'Complex schema'
+                          requestEntity?.schema
+                            ? (model[requestEntity.schema].displayName?.en ?? 'Complex schema')
                             : 'schema key missing in original file'
                         }
                         additionalBody={{ commandName: name }}
@@ -590,10 +577,8 @@ export default class MermaidTemplates {
                         definedIn={command.DefinedIn}
                         putRoute="commandResponseSchema"
                         text={
-                          responseEntity && responseEntity.schema
-                            ? model[responseEntity.schema].displayName?.en
-                              ? model[responseEntity.schema].displayName?.en
-                              : 'Complex schema'
+                          responseEntity?.schema
+                            ? (model[responseEntity.schema].displayName?.en ?? 'Complex schema')
                             : 'schema key missing in original file'
                         }
                         additionalBody={{ commandName: name }}
