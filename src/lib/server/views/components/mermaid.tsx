@@ -458,62 +458,50 @@ export default class MermaidTemplates {
                       maxLength: MAX_VALUE_LENGTH,
                     })}
                     <b>Comment:</b>
-                    {command.comment ? (
-                      EditableText({
+                    {EditableText({
+                      edit,
+                      definedIn: command.DefinedIn,
+                      putRoute: 'commandComment',
+                      text: command.comment,
+                      additionalBody: { commandName: name },
+                      multiline: true,
+                      maxLength: MAX_VALUE_LENGTH,
+                      keyName: 'comment',
+                    })}
+                    <AccordionSection heading={'Request'} collapsed={false}>
+                      <b>Request displayName:</b>
+                      {EditableText({
                         edit,
                         definedIn: command.DefinedIn,
-                        putRoute: 'commandComment',
-                        text: command.comment,
+                        putRoute: 'commandRequestDisplayName',
+                        text: requestEntity.displayName?.en ?? '',
                         additionalBody: { commandName: name },
                         multiline: true,
                         maxLength: MAX_VALUE_LENGTH,
-                      })
-                    ) : (
-                      <p>'comment' key missing in original file</p>
-                    )}
-                    <AccordionSection heading={'Request'} collapsed={false}>
-                      <b>Request displayName:</b>
-                      {requestEntity && requestEntity.displayName?.en ? (
-                        EditableText({
-                          edit,
-                          definedIn: command.DefinedIn,
-                          putRoute: 'commandRequestDisplayName',
-                          text: requestEntity.displayName?.en ?? '',
-                          additionalBody: { commandName: name },
-                          multiline: true,
-                          maxLength: MAX_VALUE_LENGTH,
-                        })
-                      ) : (
-                        <p>'request displayName' key missing in original file</p>
-                      )}
+                        keyName: 'requestDisplayName',
+                      })}
                       <b>Request comment:</b>
-                      {requestEntity && requestEntity.comment ? (
-                        EditableText({
-                          edit,
-                          definedIn: command.DefinedIn,
-                          putRoute: 'commandRequestComment',
-                          text: requestEntity.comment ?? '',
-                          additionalBody: { commandName: name },
-                          multiline: true,
-                          maxLength: MAX_VALUE_LENGTH,
-                        })
-                      ) : (
-                        <p>'request comment' key missing in original file</p>
-                      )}
+                      {EditableText({
+                        edit,
+                        definedIn: command.DefinedIn,
+                        putRoute: 'commandRequestComment',
+                        text: requestEntity.comment ?? '',
+                        additionalBody: { commandName: name },
+                        multiline: true,
+                        maxLength: MAX_VALUE_LENGTH,
+                        keyName: 'requestComment',
+                      })}
                       <b>Request description:</b>
-                      {requestEntity && requestEntity.description ? (
-                        EditableText({
-                          edit,
-                          definedIn: command.DefinedIn,
-                          putRoute: 'commandRequestDescription',
-                          text: requestEntity.description.en ?? '',
-                          additionalBody: { commandName: name },
-                          multiline: true,
-                          maxLength: MAX_VALUE_LENGTH,
-                        })
-                      ) : (
-                        <p>'request description' key missing in original file</p>
-                      )}
+                      {EditableText({
+                        edit,
+                        definedIn: command.DefinedIn,
+                        putRoute: 'commandRequestDescription',
+                        text: requestEntity.description.en ?? '',
+                        additionalBody: { commandName: name },
+                        multiline: true,
+                        maxLength: MAX_VALUE_LENGTH,
+                        keyName: 'requestDescription',
+                      })}
                       <b>Schema:</b>
                       <EditableSelect
                         edit={edit}
@@ -530,47 +518,38 @@ export default class MermaidTemplates {
                     </AccordionSection>
                     <AccordionSection heading={'Response'} collapsed={false}>
                       <b>Response displayName:</b>
-                      {responseEntity && responseEntity.displayName?.en ? (
-                        EditableText({
-                          edit,
-                          definedIn: command.DefinedIn,
-                          putRoute: 'commandResponseDisplayName',
-                          text: responseEntity.displayName?.en ?? '',
-                          additionalBody: { commandName: name },
-                          multiline: true,
-                          maxLength: MAX_VALUE_LENGTH,
-                        })
-                      ) : (
-                        <p>'request displayName' key missing in original file</p>
-                      )}
+                      {EditableText({
+                        edit,
+                        definedIn: command.DefinedIn,
+                        putRoute: 'commandResponseDisplayName',
+                        text: responseEntity.displayName?.en ?? '',
+                        additionalBody: { commandName: name },
+                        multiline: true,
+                        maxLength: MAX_VALUE_LENGTH,
+                        keyName: 'responseDisplayName',
+                      })}
                       <b>Response comment:</b>
-                      {responseEntity && responseEntity.comment ? (
-                        EditableText({
-                          edit,
-                          definedIn: command.DefinedIn,
-                          putRoute: 'commandResponseComment',
-                          text: responseEntity.comment ?? '',
-                          additionalBody: { commandName: name },
-                          multiline: true,
-                          maxLength: MAX_VALUE_LENGTH,
-                        })
-                      ) : (
-                        <p>'response comment' key missing in original file</p>
-                      )}
+                      {EditableText({
+                        edit,
+                        definedIn: command.DefinedIn,
+                        putRoute: 'commandResponseComment',
+                        text: responseEntity.comment ?? '',
+                        additionalBody: { commandName: name },
+                        multiline: true,
+                        maxLength: MAX_VALUE_LENGTH,
+                        keyName: 'responseComment',
+                      })}
                       <b>Response description:</b>
-                      {responseEntity && responseEntity.description ? (
-                        EditableText({
-                          edit,
-                          definedIn: command.DefinedIn,
-                          putRoute: 'commandResponseDescription',
-                          text: responseEntity.description.en ?? '',
-                          additionalBody: { commandName: name },
-                          multiline: true,
-                          maxLength: MAX_VALUE_LENGTH,
-                        })
-                      ) : (
-                        <p>'response description' key missing in original file</p>
-                      )}
+                      {EditableText({
+                        edit,
+                        definedIn: command.DefinedIn,
+                        putRoute: 'commandResponseDescription',
+                        text: responseEntity.description.en ?? '',
+                        additionalBody: { commandName: name },
+                        multiline: true,
+                        maxLength: MAX_VALUE_LENGTH,
+                        keyName: 'responseDescription',
+                      })}
                       <b>Schema:</b>
                       <EditableSelect
                         edit={edit}
