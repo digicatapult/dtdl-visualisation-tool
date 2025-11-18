@@ -70,7 +70,7 @@ export default class MermaidTemplates {
         <div id="spinner" class="spinner" />
       </div>
       <this.Legend showContent={false} />
-      <this.navPanelPlaceholder expanded={false} edit={true} />
+      <this.navPanelPlaceholder expanded={false} edit={canEdit} />
       <this.svgControls svgRawHeight={svgHeight} svgRawWidth={svgWidth} />
       <this.editToggle canEdit={canEdit} />
       <this.deleteDialog />
