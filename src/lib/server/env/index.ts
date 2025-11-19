@@ -41,7 +41,6 @@ export const envConfig = {
   }),
   NEXT_PUBLIC_POSTHOG_HOST: optionalStrValidator({
     default: undefined,
-    devDefault: 'https://eu.i.posthog.com',
   }),
 }
 
