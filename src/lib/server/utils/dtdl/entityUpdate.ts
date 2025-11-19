@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { DtdlInterface, dtdlInterfaceBase, DtdlSourceOrEmpty } from '../../../db/types.js'
+import { DtdlInterface, dtdlInterfaceBase, NullableDtdlSource } from '../../../db/types.js'
 import { DataError } from '../../errors.js'
 import { DtdlSchema } from '../../models/strings.js'
 
@@ -199,7 +199,6 @@ const updateContentsValue = (
       )
       .refine((contents) => contents.some((c) => c['@type'] === contentType && c.name === contentName)),
   })
-
   const validInterface: z.infer<typeof schema> = schema.loose().parse(dtdlInterface)
 
   const index = validInterface.contents.findIndex((item) => item['@type'] === contentType && item.name === contentName)
@@ -230,9 +229,9 @@ export const deleteContent = (contentName: string) => (dtdlInterface: DtdlInterf
   return { ...validInterface, contents: updatedContents }
 }
 
-export const deleteInterface = (interfaceId: string, source: DtdlSourceOrEmpty): DtdlSourceOrEmpty => {
-  if (source === '' || !Array.isArray(source) || source.length === 1) {
-    return '' // delete whole file
+export const deleteInterface = (interfaceId: string, source: NullableDtdlSource): NullableDtdlSource => {
+  if (source === null || !Array.isArray(source) || source.length === 1) {
+    return null // delete whole file
   }
   const index = source.findIndex((entity) => entity['@id'] === interfaceId)
   if (index === -1) {

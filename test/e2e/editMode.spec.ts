@@ -22,41 +22,9 @@ test.describe('Test edit ontology', () => {
   })
   test('edit interface + relationship', async ({ browser, baseURL }) => {
     test.setTimeout(110000)
-
-    // login to github
     const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const page = await context.newPage()
-    await page.setViewportSize({ width: 1920, height: 1080 })
-    await page.goto('./open')
-    await expect(page.locator('#main-view').getByTitle('Upload New Ontology')).toBeVisible()
-
-    await waitForSuccessResponse(
-      page,
-      () => page.locator('#main-view').getByTitle('Upload New Ontology').click(),
-      '/menu'
-    )
-    await expect(page.locator('#main-view').getByText('GitHub')).toBeVisible()
-
-    await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/github/picker')
-
-    // open dtdl test fixture
-    await expect(page.locator('#public-github-input')).toBeVisible()
-    await page.fill('#public-github-input', 'digicatapult/dtdl-test-fixtures')
-    await waitForSuccessResponse(page, () => page.press('#public-github-input', 'Enter'), '/branches')
-
-    // click test/dtdl branch
-    const branchName = page.locator('.github-list li').filter({ hasText: /^main$/ })
-    await expect(branchName).toBeVisible()
-    await waitForSuccessResponse(page, () => branchName.click(), '/contents')
-
-    // click edit
-    const dirName = page.locator('.github-list li').filter({ hasText: /edit$/ })
-    await expect(dirName).toBeVisible()
-    await waitForSuccessResponse(page, () => dirName.click(), '/contents')
-
-    // get dtdl from github
-    await waitForSuccessResponse(page, () => page.click('#select-folder'), '/ontology')
-    await expect(page.locator('#mermaid-output').getByText('displayNameEdit', { exact: true })).toBeVisible()
+    await openEditRepo(page)
 
     // turn on edit mode
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
@@ -142,7 +110,7 @@ test.describe('Test edit ontology', () => {
     // Get the option that contains the new interface display name and extract its value (the DTDL ID)
     const targetOption = targetDropdown.locator(`option:has-text("${newInterfaceDisplayName}")`).first()
     const targetValue = await targetOption.getAttribute('value')
-    await expect(targetValue).toBeTruthy()
+    expect(targetValue).toBeTruthy()
     // Change the target to the new interface
     await waitForSuccessResponse(page, () => targetDropdown.selectOption(targetValue!), '/relationshipTarget')
     await page.waitForTimeout(500)
@@ -187,28 +155,6 @@ test.describe('Test edit ontology', () => {
     // Verify that no editable select exists in inherited relationship (target dropdown should be read-only)
     const inheritedSelect = inheritedRelationship.locator('select.nav-panel-editable')
     await expect(inheritedSelect).toHaveCount(0)
-    // delete relationship
-    await waitForSuccessResponse(
-      page,
-      () => page.locator('#mermaid-output').getByText(newRelationshipDisplayName, { exact: true }).first().click(),
-      '/update-layout'
-    )
-
-    await waitForSuccessResponse(
-      page,
-      () => page.locator('#navigation-panel-details').getByText('Delete Relationship', { exact: true }).first().click(),
-      '/deleteDialog'
-    )
-
-    await expect(page.locator('#delete-button')).toBeDisabled()
-    await page.fill('#delete-confirmation', 'delete')
-    await expect(page.locator('#delete-button')).toBeEnabled()
-    await waitForSuccessResponse(
-      page,
-      () => page.locator('#delete-dialog').getByRole('button', { name: 'Delete Relationship' }).click(),
-      '/content'
-    )
-    await expect(page.locator('#mermaid-output')).not.toContainText(newRelationshipDisplayName)
 
     // search by new interface name
     await page.focus('#search')
@@ -233,6 +179,65 @@ test.describe('Test edit ontology', () => {
       'content'
     )
     expect(navigationAfterContentNull).toBe('none')
+  })
+
+  test('delete interface + relationship', async ({ browser }) => {
+    const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
+    const page = await context.newPage()
+    await openEditRepo(page)
+
+    // turn on edit mode
+    await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
+    await expect(page.locator('#edit-toggle').getByText('Edit')).toBeVisible()
+
+    // delete relationship
+    const relationshipName = 'relationshipDisplayNameEdit'
+    await waitForSuccessResponse(
+      page,
+      () => page.locator('#mermaid-output').getByText(relationshipName, { exact: true }).first().click(),
+      '/update-layout'
+    )
+
+    await waitForSuccessResponse(
+      page,
+      () => page.locator('#navigation-panel-details').getByText('Delete Relationship', { exact: true }).first().click(),
+      '/deleteDialog'
+    )
+
+    await expect(page.locator('#delete-button')).toBeDisabled()
+    await page.fill('#delete-confirmation', 'delete')
+    await expect(page.locator('#delete-button')).toBeEnabled()
+    await waitForSuccessResponse(
+      page,
+      () => page.locator('#delete-dialog').getByRole('button', { name: 'Delete Relationship' }).click(),
+      '/content'
+    )
+    await expect(page.locator('#mermaid-output')).not.toContainText(relationshipName)
+
+    // delete interface
+    const baseInterface = 'dtmi:com:base;1'
+    const extendedInterface = 'displayNameEdit'
+    await waitForSuccessResponse(
+      page,
+      () => page.locator('#mermaid-output').getByText(baseInterface, { exact: true }).first().click(),
+      '/update-layout'
+    )
+    await page.locator('#navigation-panel').getByText('Details', { exact: true }).click()
+
+    await waitForSuccessResponse(
+      page,
+      () => page.locator('#navigation-panel-details').getByText('Delete Interface', { exact: true }).first().click(),
+      '/deleteDialog'
+    )
+
+    await page.fill('#delete-confirmation', 'delete')
+    await waitForSuccessResponse(
+      page,
+      () => page.locator('#delete-dialog').getByRole('button', { name: 'Delete Interface' }).click(),
+      '/entity'
+    )
+    await expect(page.locator('#mermaid-output')).not.toContainText(baseInterface)
+    await expect(page.locator('#mermaid-output')).not.toContainText(extendedInterface)
   })
 })
 
@@ -260,4 +265,38 @@ const getStyledComponent = async (page: Page, selector: string, pseudoElement: s
     },
     { selector, pseudoElement, property }
   )
+}
+
+const openEditRepo = async (page: Page) => {
+  await page.setViewportSize({ width: 1920, height: 1080 })
+  await page.goto('./open')
+  await expect(page.locator('#main-view').getByTitle('Upload New Ontology')).toBeVisible()
+
+  await waitForSuccessResponse(
+    page,
+    () => page.locator('#main-view').getByTitle('Upload New Ontology').click(),
+    '/menu'
+  )
+  await expect(page.locator('#main-view').getByText('GitHub')).toBeVisible()
+
+  await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/github/picker')
+
+  // open dtdl test fixture
+  await expect(page.locator('#public-github-input')).toBeVisible()
+  await page.fill('#public-github-input', 'digicatapult/dtdl-test-fixtures')
+  await waitForSuccessResponse(page, () => page.press('#public-github-input', 'Enter'), '/branches')
+
+  // click test/dtdl branch
+  const branchName = page.locator('.github-list li').filter({ hasText: /^main$/ })
+  await expect(branchName).toBeVisible()
+  await waitForSuccessResponse(page, () => branchName.click(), '/contents')
+
+  // click edit
+  const dirName = page.locator('.github-list li').filter({ hasText: /edit$/ })
+  await expect(dirName).toBeVisible()
+  await waitForSuccessResponse(page, () => dirName.click(), '/contents')
+
+  // get dtdl from github
+  await waitForSuccessResponse(page, () => page.click('#select-folder'), '/ontology')
+  await expect(page.locator('#mermaid-output').getByText('displayNameEdit', { exact: true })).toBeVisible()
 }

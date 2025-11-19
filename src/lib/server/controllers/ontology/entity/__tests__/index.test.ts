@@ -11,8 +11,9 @@ import { mockGithubRequest } from '../../../__tests__/github.test.js'
 import {
   arrayDtdlFileEntityId,
   arrayDtdlFileFixture,
+  arrayDtdlRowId,
   commandName,
-  deleteDtdlsStub,
+  deleteOrUpdateDtdlSourceStub,
   githubDtdlId,
   mockCache,
   mockGenerator,
@@ -24,11 +25,12 @@ import {
   relationshipName,
   simpleDtdlFileEntityId,
   simpleDtdlFileFixture,
+  simpleDtdlRowId,
   simpleMockModelDb,
   telemetryName,
   templateMock,
   toHTMLString,
-  updateDtdlContentsStub,
+  updateDtdlSourceStub,
 } from '../../../__tests__/helpers.js'
 import { validSessionId } from '../../../__tests__/sessionFixtures.js'
 import { OntologyController } from '../../index.js'
@@ -79,7 +81,7 @@ describe('EntityController', async () => {
   const controller = new EntityController(simpleMockModelDb, ontologyController, templateMock, mockSession, mockCache)
 
   describe('putDisplayName', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new display name on non-array DTDL file', async () => {
       const putBody = {
@@ -89,7 +91,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putDisplayName(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ interfaceUpdate: { displayName: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -103,7 +105,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putDisplayName(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ interfaceUpdate: { displayName: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -111,7 +113,7 @@ describe('EntityController', async () => {
   })
 
   describe('putRelationshipDisplayName', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new relationship display name on non-array DTDL file', async () => {
       const putBody = {
@@ -122,7 +124,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putRelationshipDisplayName(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ relationshipUpdate: { displayName: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -137,7 +139,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putRelationshipDisplayName(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ relationshipUpdate: { displayName: newValue } })
       )
 
@@ -146,7 +148,7 @@ describe('EntityController', async () => {
   })
 
   describe('putDescription', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new description on non-array DTDL file', async () => {
       const putBody = {
@@ -156,7 +158,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putDescription(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ interfaceUpdate: { description: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -170,7 +172,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putDescription(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ interfaceUpdate: { description: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -178,7 +180,7 @@ describe('EntityController', async () => {
   })
 
   describe('putRelationshipDescription', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new relationship description on non-array DTDL file', async () => {
       const putBody = {
@@ -189,7 +191,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putRelationshipDescription(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ relationshipUpdate: { description: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -204,7 +206,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putRelationshipDescription(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ relationshipUpdate: { description: newValue } })
       )
 
@@ -213,7 +215,7 @@ describe('EntityController', async () => {
   })
 
   describe('putComment', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new interface comment on non-array DTDL file', async () => {
       const putBody = {
@@ -221,7 +223,7 @@ describe('EntityController', async () => {
         value: newValue,
       }
       const result = await controller.putComment(req, githubDtdlId, simpleDtdlFileEntityId, putBody).then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ interfaceUpdate: { comment: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -233,7 +235,7 @@ describe('EntityController', async () => {
         value: newValue,
       }
       const result = await controller.putComment(req, githubDtdlId, arrayDtdlFileEntityId, putBody).then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ interfaceUpdate: { comment: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -241,7 +243,7 @@ describe('EntityController', async () => {
   })
 
   describe('putRelationshipComment', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new relationship comment name on non-array DTDL file', async () => {
       const putBody = {
@@ -252,7 +254,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putRelationshipComment(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ relationshipUpdate: { comment: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -267,7 +269,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putRelationshipComment(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ relationshipUpdate: { comment: newValue } })
       )
 
@@ -276,7 +278,7 @@ describe('EntityController', async () => {
   })
 
   describe('putRelationshipTarget', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new relationship target on non-array DTDL file', async () => {
       const newTarget = 'dtmi:com:new_target;1'
@@ -288,7 +290,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putRelationshipTarget(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ relationshipUpdate: { target: newTarget } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -304,7 +306,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putRelationshipTarget(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ relationshipUpdate: { target: newTarget } })
       )
 
@@ -313,7 +315,7 @@ describe('EntityController', async () => {
   })
 
   describe('putPropertyDisplayName', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new property display name on non-array DTDL file', async () => {
       const putBody = {
@@ -324,7 +326,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putPropertyDisplayName(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ propertyUpdate: { displayName: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -339,7 +341,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putPropertyDisplayName(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ propertyUpdate: { displayName: newValue } })
       )
 
@@ -348,7 +350,7 @@ describe('EntityController', async () => {
   })
 
   describe('putPropertyDescription', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new property description on non-array DTDL file', async () => {
       const putBody = {
@@ -359,7 +361,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putPropertyDescription(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ propertyUpdate: { description: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -374,7 +376,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putPropertyDescription(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ propertyUpdate: { description: newValue } })
       )
 
@@ -383,7 +385,7 @@ describe('EntityController', async () => {
   })
 
   describe('putPropertyComment', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new property comment name on non-array DTDL file', async () => {
       const putBody = {
@@ -394,7 +396,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putPropertyComment(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ propertyUpdate: { comment: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -409,7 +411,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putPropertyComment(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ propertyUpdate: { comment: newValue } })
       )
 
@@ -418,7 +420,7 @@ describe('EntityController', async () => {
   })
 
   describe('putPropertySchema', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new property schema on non-array DTDL file', async () => {
       const putBody = {
@@ -429,7 +431,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putPropertySchema(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ propertyUpdate: { schema: 'float' } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -444,7 +446,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putPropertySchema(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ propertyUpdate: { schema: 'float' } })
       )
 
@@ -453,7 +455,7 @@ describe('EntityController', async () => {
   })
 
   describe('putPropertyWritable', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new property writable on non-array DTDL file', async () => {
       const putBody = {
@@ -464,7 +466,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putPropertyWritable(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ propertyUpdate: { writable: false } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -479,7 +481,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putPropertyWritable(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ propertyUpdate: { writable: false } })
       )
 
@@ -488,7 +490,7 @@ describe('EntityController', async () => {
   })
 
   describe('putTelemetryComment', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new telemetry comment on non-array DTDL file', async () => {
       const putBody = {
@@ -499,7 +501,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putTelemetryComment(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ telemetryUpdate: { comment: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -514,7 +516,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putTelemetryComment(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ telemetryUpdate: { comment: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -522,7 +524,7 @@ describe('EntityController', async () => {
   })
 
   describe('putTelemetrySchema', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new telemetry schema on non-array DTDL file', async () => {
       const putBody = {
@@ -533,7 +535,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putTelemetrySchema(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ telemetryUpdate: { schema: 'boolean' } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -548,7 +550,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putTelemetrySchema(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ telemetryUpdate: { schema: 'boolean' } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -556,7 +558,7 @@ describe('EntityController', async () => {
   })
 
   describe('putTelemetryDescription', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new telemetry description on non-array DTDL file', async () => {
       const putBody = {
@@ -567,7 +569,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putTelemetryDescription(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ telemetryUpdate: { description: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -582,7 +584,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putTelemetryDescription(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ telemetryUpdate: { description: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -590,7 +592,7 @@ describe('EntityController', async () => {
   })
 
   describe('putTelemetryDisplayName', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new telemetry displayName on non-array DTDL file', async () => {
       const putBody = {
@@ -601,7 +603,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putTelemetryDisplayName(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ telemetryUpdate: { displayName: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -616,7 +618,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putTelemetryDisplayName(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ telemetryUpdate: { displayName: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -624,7 +626,7 @@ describe('EntityController', async () => {
   })
 
   describe('putCommandDisplayName', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new command displayName on non-array DTDL file', async () => {
       const putBody = {
@@ -635,7 +637,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putCommandDisplayName(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ commandUpdate: { displayName: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -650,7 +652,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putCommandDisplayName(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ commandUpdate: { displayName: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -658,7 +660,7 @@ describe('EntityController', async () => {
   })
 
   describe('putCommandDescription', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new command description on non-array DTDL file', async () => {
       const putBody = {
@@ -669,7 +671,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putCommandDescription(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ commandUpdate: { description: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -684,7 +686,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putCommandDescription(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ commandUpdate: { description: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -692,7 +694,7 @@ describe('EntityController', async () => {
   })
 
   describe('putCommandComment', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new command comment on non-array DTDL file', async () => {
       const putBody = {
@@ -703,7 +705,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putCommandComment(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ commandUpdate: { comment: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -718,7 +720,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putCommandComment(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ commandUpdate: { comment: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -726,7 +728,7 @@ describe('EntityController', async () => {
   })
 
   describe('putCommandRequestDisplayName', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new command request displayName on non-array DTDL file', async () => {
       const putBody = {
@@ -737,7 +739,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putCommandRequestDisplayName(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ commandRequestUpdate: { displayName: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -752,7 +754,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putCommandRequestDisplayName(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ commandRequestUpdate: { displayName: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -760,7 +762,7 @@ describe('EntityController', async () => {
   })
 
   describe('putCommandRequestComment', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new command request comment on non-array DTDL file', async () => {
       const putBody = {
@@ -771,7 +773,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putCommandRequestComment(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ commandRequestUpdate: { comment: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -786,7 +788,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putCommandRequestComment(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ commandRequestUpdate: { comment: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -794,7 +796,7 @@ describe('EntityController', async () => {
   })
 
   describe('putCommandRequestDescription', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new command request description on non-array DTDL file', async () => {
       const putBody = {
@@ -805,7 +807,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putCommandRequestDescription(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ commandRequestUpdate: { description: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -820,7 +822,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putCommandRequestDescription(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ commandRequestUpdate: { description: newValue } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -828,7 +830,7 @@ describe('EntityController', async () => {
   })
 
   describe('putCommandRequestSchema', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new command request schema on non-array DTDL file', async () => {
       const putBody = {
@@ -839,7 +841,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putCommandRequestSchema(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         simpleDtdlFileFixture({ commandRequestUpdate: { schema: 'integer' } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -854,7 +856,7 @@ describe('EntityController', async () => {
       const result = await controller
         .putCommandRequestSchema(req, githubDtdlId, arrayDtdlFileEntityId, putBody)
         .then(toHTMLString)
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(
         arrayDtdlFileFixture({ commandRequestUpdate: { schema: 'integer' } })
       )
       expect(result).to.equal(updateLayoutOutput)
@@ -862,7 +864,7 @@ describe('EntityController', async () => {
   })
 
   describe('putCommandResponseDisplayName', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new command response displayName', async () => {
       const putBody = {
@@ -874,13 +876,13 @@ describe('EntityController', async () => {
         .putCommandResponseDisplayName(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
 
-      expect(updateDtdlContentsStub.calledOnce).to.be.equal(true)
+      expect(updateDtdlSourceStub.calledOnce).to.be.equal(true)
       expect(result).to.equal(updateLayoutOutput)
     })
   })
 
   describe('putCommandResponseComment', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new command response comment', async () => {
       const putBody = {
@@ -892,13 +894,13 @@ describe('EntityController', async () => {
         .putCommandResponseComment(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
 
-      expect(updateDtdlContentsStub.calledOnce).to.be.equal(true)
+      expect(updateDtdlSourceStub.calledOnce).to.be.equal(true)
       expect(result).to.equal(updateLayoutOutput)
     })
   })
 
   describe('putCommandResponseDescription', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new command response description', async () => {
       const putBody = {
@@ -910,13 +912,13 @@ describe('EntityController', async () => {
         .putCommandResponseDescription(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
 
-      expect(updateDtdlContentsStub.calledOnce).to.be.equal(true)
+      expect(updateDtdlSourceStub.calledOnce).to.be.equal(true)
       expect(result).to.equal(updateLayoutOutput)
     })
   })
 
   describe('putCommandResponseSchema', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout for new command response schema', async () => {
       const putBody = {
@@ -928,7 +930,7 @@ describe('EntityController', async () => {
         .putCommandResponseSchema(req, githubDtdlId, simpleDtdlFileEntityId, putBody)
         .then(toHTMLString)
 
-      expect(updateDtdlContentsStub.calledOnce).to.be.equal(true)
+      expect(updateDtdlSourceStub.calledOnce).to.be.equal(true)
       expect(result).to.equal(updateLayoutOutput)
     })
   })
@@ -985,43 +987,38 @@ describe('EntityController', async () => {
 
   describe('deleteInterface', () => {
     afterEach(() => {
-      updateDtdlContentsStub.resetHistory()
-      deleteDtdlsStub.resetHistory()
+      updateDtdlSourceStub.resetHistory()
+      deleteOrUpdateDtdlSourceStub.resetHistory()
     })
 
-    it('should delete single interface file', async () => {
+    it('should delete single interface file - not extended', async () => {
       const result = await controller
-        .deleteInterface(req, githubDtdlId, simpleDtdlFileEntityId, defaultParams)
+        .deleteInterface(req, githubDtdlId, 'dtmi:com:example_extended;1', defaultParams)
         .then(toHTMLString)
 
-      expect(JSON.parse(deleteDtdlsStub.firstCall.args[1])).to.deep.equal({})
+      expect(deleteOrUpdateDtdlSourceStub.firstCall.args).to.deep.equal([[{ id: arrayDtdlRowId, source: null }]])
 
       expect(result).to.equal(updateLayoutOutput)
     })
 
-    it('should update to remove from multiple interface file', async () => {
+    it('should delete multiple interfaces - extended', async () => {
       const result = await controller
-        .deleteInterface(req, githubDtdlId, simpleDtdlFileEntityId, defaultParams)
+        .deleteInterface(req, githubDtdlId, 'dtmi:com:example;1', defaultParams)
         .then(toHTMLString)
 
-      expect(JSON.parse(deleteDtdlsStub.firstCall.args[1])).to.deep.equal({})
-
-      expect(result).to.equal(updateLayoutOutput)
-    })
-
-    it('should delete extended interfaces too', async () => {
-      const result = await controller
-        .deleteInterface(req, githubDtdlId, simpleDtdlFileEntityId, defaultParams)
-        .then(toHTMLString)
-
-      expect(JSON.parse(deleteDtdlsStub.firstCall.args[1])).to.deep.equal({})
+      expect(deleteOrUpdateDtdlSourceStub.firstCall.args).to.deep.equal([
+        [
+          { id: simpleDtdlRowId, source: null },
+          { id: arrayDtdlRowId, source: null },
+        ],
+      ])
 
       expect(result).to.equal(updateLayoutOutput)
     })
   })
 
   describe('deleteContent', () => {
-    afterEach(() => updateDtdlContentsStub.resetHistory())
+    afterEach(() => updateDtdlSourceStub.resetHistory())
 
     it('should update db and layout to delete content on non-array DTDL file', async () => {
       const result = await controller
@@ -1033,7 +1030,7 @@ describe('EntityController', async () => {
         ...file,
         contents: file.contents.filter((c) => c.name !== relationshipName),
       }
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal(fileWithoutRelationship)
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(fileWithoutRelationship)
       expect(result).to.equal(updateLayoutOutput)
     })
 
@@ -1047,10 +1044,7 @@ describe('EntityController', async () => {
         ...file,
         contents: file.contents.filter((c) => c.name !== relationshipName),
       }
-      expect(JSON.parse(updateDtdlContentsStub.firstCall.args[1])).to.deep.equal([
-        simpleDtdlFileFixture({}),
-        fileWithoutRelationship,
-      ])
+      expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal([simpleDtdlFileFixture({}), fileWithoutRelationship])
       expect(result).to.equal(updateLayoutOutput)
     })
   })

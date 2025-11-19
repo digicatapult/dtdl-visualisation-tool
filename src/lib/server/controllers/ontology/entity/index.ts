@@ -7,7 +7,7 @@ import { DtdlSchema, type DtdlId, type UUID } from '../../../models/strings.js'
 import { Cache, type ICache } from '../../../utils/cache.js'
 
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
-import { DtdlInterface, DtdlSourceOrEmpty } from '../../../../db/types.js'
+import { DtdlInterface, NullableDtdlSource } from '../../../../db/types.js'
 import {
   deleteContent,
   deleteInterface,
@@ -471,12 +471,15 @@ export class EntityController extends HTMLController {
     const entity = model[entityId]
     const definedIn = entity.DefinedIn ?? entityId
 
+    const extendedBys = this.getExtendedBy(model, entityId)
+
     const query = {
       entityKind: entity.EntityKind as DeletableEntities,
       definedIn: entity.DefinedIn ?? entityId,
       contentName: isNamedEntity(entity) ? entity.name : '',
       displayName: getDisplayName(entity),
       definedInDisplayName: definedIn !== entityId ? getDisplayName(model[definedIn]) : undefined,
+      extendedBys: extendedBys.map((e) => getDisplayName(model[e])),
     }
     return this.html(this.templates.deleteDialog(query))
   }
@@ -529,22 +532,25 @@ export class EntityController extends HTMLController {
 
     // validate new DTDL parses before saving
     await this.modelDb.parseWithUpdatedFiles(ontologyId, [{ id, source: updatedSource }])
-    await this.modelDb.updateDtdlSource(id, JSON.stringify(updatedSource))
+    await this.modelDb.updateDtdlSource(id, updatedSource)
 
     this.cache.clear()
   }
 
   deleteInterfaces = async (ontologyId: UUID, interfaceIds: DtdlId[]) => {
-    const sources: { id: UUID; source: string }[] = []
-    const updates = new Map<DtdlId, { id: DtdlId; source: DtdlSourceOrEmpty }>() // track source updates in case same source updated multiple times
+    const trackChanges = new Map<UUID, { id: UUID; source: NullableDtdlSource }>() // track source updates in case same source updated multiple times
     for (const interfaceId of interfaceIds) {
       const { id, source } = await this.modelDb.getDtdlSourceByInterfaceId(ontologyId, interfaceId)
-      const alreadyUpdated = updates.get(id)
-      const updatedSource = alreadyUpdated ? deleteInterface(id, alreadyUpdated.source) : deleteInterface(id, source)
-      updates.set(interfaceId, { id: interfaceId, source: updatedSource })
+      const alreadyUpdated = trackChanges.get(id)
+      const updatedSource = alreadyUpdated
+        ? deleteInterface(interfaceId, alreadyUpdated.source)
+        : deleteInterface(interfaceId, source)
+      trackChanges.set(id, { id, source: updatedSource })
     }
-    await this.modelDb.parseWithUpdatedFiles(ontologyId, Array.from(updates.values()))
-    await this.modelDb.deleteOrUpdateDtdlSource(sources)
+    const updates = Array.from(trackChanges.values())
+    await this.modelDb.parseWithUpdatedFiles(ontologyId, updates)
+
+    await this.modelDb.deleteOrUpdateDtdlSource(updates)
 
     this.cache.clear()
   }

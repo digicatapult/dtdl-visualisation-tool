@@ -6,7 +6,7 @@ import { DtdlId, type UUID } from '../server/models/strings.js'
 import { allInterfaceFilter } from '../server/utils/dtdl/extract.js'
 import Parser, { DtdlPath } from '../server/utils/dtdl/parser.js'
 import Database from './index.js'
-import { DtdlFile, DtdlRow, DtdlSource, dtdlSource, DtdlSourceOrEmpty, ModelRow } from './types.js'
+import { DtdlFile, DtdlRow, DtdlSource, ModelRow, NullableDtdlSource } from './types.js'
 
 @singleton()
 export class ModelDb {
@@ -50,7 +50,7 @@ export class ModelDb {
       for (const file of files) {
         const [{ id: dtdlId }] = await db.insert('dtdl', {
           path: file.path,
-          contents: file.source,
+          source: file.source,
           model_id: modelId,
         })
         for (const error of file.errors ?? []) {
@@ -71,7 +71,7 @@ export class ModelDb {
         const errors = errorRows.map(({ error }) => error)
         return {
           path: file.path,
-          source: JSON.stringify(file.contents),
+          source: JSON.stringify(file.source),
           ...(errors.length > 0 && { errors }),
         }
       })
@@ -86,16 +86,16 @@ export class ModelDb {
   }
 
   // validate the updated files works with rest of model
-  async parseWithUpdatedFiles(model_id: UUID, updates: { id: UUID; source: DtdlSourceOrEmpty }[]) {
+  async parseWithUpdatedFiles(model_id: UUID, updates: { id: UUID; source: NullableDtdlSource }[]) {
     const files = await this.db.get('dtdl', { model_id })
     if (files.length === 0) throw new InternalError(`Failed to find model: ${model_id}`)
     const updatesMap = new Map(updates.map((u) => [u.id, u.source]))
     const filesStringified = files.map((file) => {
       const updatedSource = updatesMap.get(file.id)
       if (updatedSource) {
-        return { path: file.path, source: JSON.stringify(updatedSource) }
+        return { path: file.path, source: updatedSource !== null ? JSON.stringify(updatedSource) : '' }
       } else {
-        return { path: file.path, source: JSON.stringify(file.contents) }
+        return { path: file.path, source: JSON.stringify(file.source) }
       }
     })
 
@@ -114,7 +114,7 @@ export class ModelDb {
     const [dtdl] = await this.db.getJsonb(
       'dtdl',
       'jsonb_path_exists',
-      'contents',
+      'source',
       // filter root of json ($), recursively (**), for the (@id) field where (?) it matches (@ == ??) entity id (prepared statement)
       // recursive is required because DTDL can be a single entity or an array of entities (multiple IDs in one file)
       `$.**."@id" \\? (@ == ??)`,
@@ -124,23 +124,22 @@ export class ModelDb {
       }
     )
     if (!dtdl) throw new InternalError(`Failed to find dtdl containing @id: ${interfaceId} for model: ${model_id}`)
-    const source = dtdlSource.parse(dtdl.contents)
-    return { id: dtdl.id, source }
+    return { id: dtdl.id, source: dtdl.source }
   }
 
-  async updateDtdlSource(id: UUID, source: string): Promise<DtdlRow> {
-    const [dtdl] = await this.db.update('dtdl', { id }, { contents: source })
+  async updateDtdlSource(id: UUID, source: DtdlSource): Promise<DtdlRow> {
+    const [dtdl] = await this.db.update('dtdl', { id }, { source: JSON.stringify(source) })
     if (!dtdl) throw new InternalError(`Failed to find dtdl: ${id}`)
     return dtdl
   }
 
-  async deleteOrUpdateDtdlSource(sources: { id: UUID; source: string }[]): Promise<void> {
+  async deleteOrUpdateDtdlSource(sources: { id: UUID; source: NullableDtdlSource }[]): Promise<void> {
     await this.db.withTransaction(async (db) => {
       for (const { id, source } of sources) {
-        if (source === '') {
+        if (source === null) {
           await db.delete('dtdl', { id })
         } else {
-          const [dtdl] = await db.update('dtdl', { id }, { contents: source })
+          const [dtdl] = await db.update('dtdl', { id }, { source: JSON.stringify(source) })
           if (!dtdl) throw new InternalError(`Failed to find dtdl: ${id}`)
         }
       }
