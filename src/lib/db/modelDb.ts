@@ -92,7 +92,7 @@ export class ModelDb {
     const updatesMap = new Map(updates.map((u) => [u.id, u.source]))
     const filesStringified = files.map((file) => {
       const updatedSource = updatesMap.get(file.id)
-      if (updatedSource) {
+      if (updatedSource !== undefined) {
         return { path: file.path, source: updatedSource !== null ? JSON.stringify(updatedSource) : '' }
       } else {
         return { path: file.path, source: JSON.stringify(file.source) }

@@ -882,6 +882,7 @@ export default class MermaidTemplates {
   }) => {
     const isInterface = entityKind === 'Interface'
     const displayDefinedIn = definedInDisplayName !== undefined
+    const displayExtendedBys = extendedBys !== undefined && extendedBys.length > 0
     return (
       <dialog id="delete-dialog">
         <div id="modal-wrapper">
@@ -902,7 +903,7 @@ export default class MermaidTemplates {
           />
           <br />
           <p>Are you sure you want to delete this {entityKind}?</p>
-          {extendedBys && extendedBys.length > 0 && (
+          {displayExtendedBys && (
             <>
               <p>Please note, it will also delete the following:</p>
               <div id="extended-by-list">
