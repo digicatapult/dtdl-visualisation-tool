@@ -1,4 +1,5 @@
 import express from 'express'
+import { randomUUID } from 'node:crypto'
 import { dirname } from 'node:path'
 import { Get, Middlewares, Produces, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { container, inject, injectable } from 'tsyringe'
@@ -11,6 +12,7 @@ import { type ICache, Cache } from '../utils/cache.js'
 import Parser from '../utils/dtdl/parser.js'
 import { GithubRequest, authRedirectURL } from '../utils/githubRequest.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
+import { PostHogService } from '../utils/postHog/postHogService.js'
 import { RateLimiter } from '../utils/rateLimit.js'
 import { safeUrl } from '../utils/url.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
@@ -28,6 +30,7 @@ export class GithubController extends HTMLController {
     private githubRequest: GithubRequest,
     private generator: SvgGenerator,
     private parser: Parser,
+    private postHog: PostHogService,
     @inject(Logger) private logger: ILogger,
     @inject(Cache) private cache: ICache
   ) {
@@ -67,6 +70,20 @@ export class GithubController extends HTMLController {
       signed: true,
       secure: process.env.NODE_ENV === 'production',
     })
+
+    // Identify user in PostHog after successful authentication (fire-and-forget)
+    try {
+      const user = await this.githubRequest.getAuthenticatedUser(access_token)
+      this.postHog.identify(`github:${user.login}`, {
+        github_id: user.id,
+        github_login: user.login,
+        github_email: user.email,
+        github_name: user.name,
+      })
+    } catch (error) {
+      // Silently fail if identification fails - don't block the OAuth flow
+      this.logger.debug({ error }, 'Failed to identify user during GitHub OAuth callback')
+    }
 
     this.setHeader('Refresh', `0; url=${returnUrl || '/github/picker'}`)
     return
@@ -247,6 +264,18 @@ export class GithubController extends HTMLController {
     )
 
     setCacheWithDefaultParams(this.cache, id, output)
+
+    // Track GitHub ontology upload with proper user identification (fire-and-forget)
+    const sessionId = randomUUID()
+    const distinctId = await this.postHog.getDistinctId(octokitToken, sessionId)
+
+    this.postHog.trackUploadOntology(distinctId, {
+      ontologyId: id,
+      source: 'github',
+      fileCount: files.length,
+      fileName: `${owner}/${repo}/${ref}/${path}`,
+    })
+
     this.setHeader('HX-Redirect', `/ontology/${id}/view`)
     return
   }

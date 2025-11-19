@@ -13,3 +13,7 @@ export const strArrayValidator = envalid.makeValidator((input) => {
   const res: [string, ...string[]] = [first, ...arr]
   return res
 })
+
+export const optionalStrValidator = envalid.makeValidator((input) => {
+  return input || undefined
+})

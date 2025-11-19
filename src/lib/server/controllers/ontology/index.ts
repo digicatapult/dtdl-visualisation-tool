@@ -26,6 +26,7 @@ import { authRedirectURL, GithubRequest } from '../../utils/githubRequest.js'
 import { SvgGenerator } from '../../utils/mermaid/generator.js'
 import { dtdlIdReinstateSemicolon } from '../../utils/mermaid/helpers.js'
 import { SvgMutator } from '../../utils/mermaid/svgMutator.js'
+import { PostHogService } from '../../utils/postHog/postHogService.js'
 import { RateLimiter } from '../../utils/rateLimit.js'
 import SessionStore, { Session } from '../../utils/sessions.js'
 import { ErrorPage } from '../../views/components/errors.js'
@@ -52,6 +53,7 @@ export class OntologyController extends HTMLController {
     private generator: SvgGenerator,
     private svgMutator: SvgMutator,
     private templates: MermaidTemplates,
+    private postHog: PostHogService,
     @inject(Logger) private logger: ILogger,
     @inject(Cache) private cache: ICache,
     private sessionStore: SessionStore,
@@ -99,14 +101,22 @@ export class OntologyController extends HTMLController {
 
     const { source, owner, repo } = await this.modelDb.getModelById(dtdlModelId)
     let permission: ViewAndEditPermission = 'view'
+    const octokitToken = req.signedCookies[octokitTokenCookie]
+
     if (source === 'github') {
-      const octokitToken = req.signedCookies[octokitTokenCookie]
       if (!octokitToken) {
         this.setStatus(302)
         this.setHeader('Location', authRedirectURL(`/ontology/${dtdlModelId}/view`))
         return
       }
       permission = await this.checkPermissions(octokitToken, owner, repo)
+    }
+
+    // Identify user in PostHog (fire-and-forget)
+    if (octokitToken) {
+      this.postHog.identifyFromGitHubToken(octokitToken, sessionId)
+    } else {
+      this.postHog.identifySession(sessionId)
     }
 
     if (permission === 'unauthorised') {
@@ -138,6 +148,10 @@ export class OntologyController extends HTMLController {
     this.logger.debug('search: %o', { search: params.search })
 
     const session = this.sessionStore.get(params.sessionId)
+    const octokitToken = req.signedCookies[octokitTokenCookie]
+
+    // Determine distinct ID for tracking (prefer GitHub user over session)
+    const distinctId = await this.postHog.getDistinctId(octokitToken, params.sessionId)
 
     // get the base dtdl model that we will derive the graph from
     const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
@@ -188,6 +202,29 @@ export class OntologyController extends HTMLController {
     // perform out manipulations on the svg
     const { pan, zoom } = this.manipulateOutput(output, dtdlModelId, filteredModel, session, newSession, params)
 
+    // Track node selection event when a different node is highlighted (fire-and-forget)
+    if (
+      newSession.highlightNodeId &&
+      newSession.highlightNodeId !== session.highlightNodeId &&
+      dtdlIdReinstateSemicolon(newSession.highlightNodeId) in baseModel
+    ) {
+      const entity = baseModel[dtdlIdReinstateSemicolon(newSession.highlightNodeId)]
+      this.postHog.trackNodeSelected(distinctId, {
+        ontologyId: dtdlModelId,
+        entityId: newSession.highlightNodeId,
+        entityKind: entity.EntityKind,
+      })
+    }
+
+    // Track view update event (fire-and-forget)
+    this.postHog.trackUpdateOntologyView(distinctId, {
+      ontologyId: dtdlModelId,
+      diagramType: newSession.diagramType,
+      hasSearch: !!newSession.search,
+      expandedCount: newSession.expandedIds.length,
+      highlightNodeId: newSession.highlightNodeId,
+    })
+
     // store the updated session
     this.sessionStore.set(params.sessionId, { ...session, ...newSession })
 
@@ -235,6 +272,7 @@ export class OntologyController extends HTMLController {
   @Get('{dtdlModelId}/edit-model')
   @Middlewares(checkEditPermission)
   public async editModel(
+    @Request() req: express.Request,
     @Path() dtdlModelId: UUID,
     @Query() sessionId: UUID,
     @Query() editMode: boolean,
@@ -246,6 +284,14 @@ export class OntologyController extends HTMLController {
     const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
 
     this.sessionStore.update(sessionId, { editMode })
+
+    // Track mode toggle event (fire-and-forget)
+    const octokitToken = req.signedCookies[octokitTokenCookie]
+    const distinctId = await this.postHog.getDistinctId(octokitToken, sessionId)
+    this.postHog.trackModeToggle(distinctId, {
+      ontologyId: dtdlModelId,
+      editMode,
+    })
 
     return this.html(
       this.templates.navigationPanel({

@@ -6,6 +6,7 @@ import { logger, Logger, type ILogger } from './logger.js'
 import { pool, Pool, type IPool } from './pool.js'
 import { Cache, type ICache } from './utils/cache.js'
 import { LRUCache } from './utils/lruCache.js'
+import { PostHogService } from './utils/postHog/postHogService.js'
 
 const env = container.resolve(Env)
 
@@ -18,6 +19,9 @@ container.register<ICache>(Cache, {
 })
 
 container.register<IPool>(Pool, { useValue: pool })
+
+// Register PostHogService as singleton
+container.resolve(PostHogService)
 
 export const iocContainer: IocContainer = {
   get: <T>(controller) => {

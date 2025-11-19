@@ -15,6 +15,7 @@ import { LRUCache } from '../../utils/lruCache.js'
 import { generatedSVGFixture, simpleMockDtdlObjectModel } from '../../utils/mermaid/__tests__/fixtures'
 import { SvgGenerator } from '../../utils/mermaid/generator.js'
 import { SvgMutator } from '../../utils/mermaid/svgMutator.js'
+import { PostHogService } from '../../utils/postHog/postHogService.js'
 import SessionStore from '../../utils/sessions.js'
 import MermaidTemplates from '../../views/components/mermaid'
 import OpenOntologyTemplates from '../../views/components/openOntology'
@@ -288,6 +289,7 @@ export const toHTMLString = async (...streams: Readable[]) => {
 export const mockReq = (headers: Record<string, string>) => {
   return {
     header: (key: string) => headers[key],
+    signedCookies: {},
   } as unknown as express.Request
 }
 
@@ -303,3 +305,17 @@ export const mockReqWithCookie = (cookie: Record<string, unknown>) => {
     header: () => '',
   } as unknown as express.Request
 }
+
+export const mockPostHog = {
+  getDistinctId: sinon.stub().resolves('test-session-id'),
+  trackUploadOntology: sinon.stub().resolves(),
+  trackUpdateOntologyView: sinon.stub().resolves(),
+  trackNodeSelected: sinon.stub().resolves(),
+  trackModeToggle: sinon.stub().resolves(),
+  captureEvent: sinon.stub().resolves(),
+  identify: sinon.stub().resolves(),
+  alias: sinon.stub().resolves(),
+  identifyFromGitHubToken: sinon.stub().resolves(),
+  identifySession: sinon.stub().resolves(),
+  shutdown: sinon.stub().resolves(),
+} as unknown as PostHogService
