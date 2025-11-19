@@ -124,7 +124,7 @@ export class ModelDb {
       }
     )
     if (!dtdl) throw new InternalError(`Failed to find dtdl containing @id: ${interfaceId} for model: ${model_id}`)
-    return { id: dtdl.id, source: dtdl.source }
+    return dtdl
   }
 
   async updateDtdlSource(id: UUID, source: DtdlSource): Promise<DtdlRow> {

@@ -186,6 +186,11 @@ test.describe('Test edit ontology', () => {
     const page = await context.newPage()
     await openEditRepo(page)
 
+    // zoom out until visible
+    for (let i = 0; i < 10; i++) {
+      await page.locator('#zoom-out').click()
+    }
+
     // turn on edit mode
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page.locator('#edit-toggle').getByText('Edit')).toBeVisible()

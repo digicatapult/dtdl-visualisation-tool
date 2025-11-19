@@ -210,25 +210,6 @@ const updateContentsValue = (
   return { ...validInterface, contents: updatedContents }
 }
 
-export const deleteContent = (contentName: string) => (dtdlInterface: DtdlInterface) => {
-  const schema = dtdlInterfaceBase.extend({
-    contents: z
-      .array(
-        z.looseObject({
-          name: z.string(),
-        })
-      )
-      .refine((contents) => contents.some((c) => c.name === contentName)),
-  })
-
-  const validInterface: z.infer<typeof schema> = schema.loose().parse(dtdlInterface)
-
-  const index = validInterface.contents.findIndex((item) => item.name === contentName)
-  const updatedContents = validInterface.contents.toSpliced(index, 1)
-
-  return { ...validInterface, contents: updatedContents }
-}
-
 export const deleteInterface = (interfaceId: string, source: NullableDtdlSource): NullableDtdlSource => {
   if (source === null || !Array.isArray(source) || source.length === 1) {
     return null // delete whole file
@@ -281,4 +262,23 @@ const updateCommandRequestResponseValue = (
   }
   const updatedContents = validFile.contents.toSpliced(commandIndex, 1, updatedCommand)
   return { ...validFile, contents: updatedContents }
+}
+
+export const deleteContent = (contentName: string) => (dtdlInterface: DtdlInterface) => {
+  const schema = dtdlInterfaceBase.extend({
+    contents: z
+      .array(
+        z.looseObject({
+          name: z.string(),
+        })
+      )
+      .refine((contents) => contents.some((c) => c.name === contentName)),
+  })
+
+  const validInterface: z.infer<typeof schema> = schema.loose().parse(dtdlInterface)
+
+  const index = validInterface.contents.findIndex((item) => item.name === contentName)
+  const updatedContents = validInterface.contents.toSpliced(index, 1)
+
+  return { ...validInterface, contents: updatedContents }
 }

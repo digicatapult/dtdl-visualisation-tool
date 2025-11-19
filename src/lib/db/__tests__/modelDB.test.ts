@@ -176,7 +176,11 @@ describe('modelDB', function () {
 
   describe('getDtdlSourceByInterfaceId', () => {
     it('should return dtdl from database when given an interface id', async () => {
-      expect(await model.getDtdlSourceByInterfaceId('1', '1')).to.deep.equal({ id: 1, source: fileSource })
+      expect(await model.getDtdlSourceByInterfaceId('1', '1')).to.deep.equal({
+        id: 1,
+        path: 'path',
+        source: fileSource,
+      })
     })
 
     it('should throw error if given ID not found', async () => {
