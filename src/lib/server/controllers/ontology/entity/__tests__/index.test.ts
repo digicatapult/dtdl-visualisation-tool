@@ -14,6 +14,7 @@ import {
   arrayDtdlRowId,
   commandName,
   deleteOrUpdateDtdlSourceStub,
+  dtdlFileFixture,
   githubDtdlId,
   mockCache,
   mockGenerator,
@@ -995,8 +996,7 @@ describe('EntityController', async () => {
       const result = await controller
         .deleteInterface(req, githubDtdlId, 'dtmi:com:example_extended;1', defaultParams)
         .then(toHTMLString)
-
-      expect(deleteOrUpdateDtdlSourceStub.firstCall.args).to.deep.equal([[{ id: arrayDtdlRowId, source: null }]])
+      expect(deleteOrUpdateDtdlSourceStub.firstCall.args).to.deep.equal([[{ id: simpleDtdlRowId, source: null }]])
 
       expect(result).to.equal(updateLayoutOutput)
     })
@@ -1008,12 +1008,18 @@ describe('EntityController', async () => {
 
       expect(deleteOrUpdateDtdlSourceStub.firstCall.args).to.deep.equal([
         [
+          { id: arrayDtdlRowId, source: [dtdlFileFixture('dtmi:com:partial;1')({})] },
           { id: simpleDtdlRowId, source: null },
-          { id: arrayDtdlRowId, source: null },
         ],
       ])
 
       expect(result).to.equal(updateLayoutOutput)
+    })
+
+    it('should delete multiple interfaces in same file', async () => {
+      await controller.deleteInterfaces(githubDtdlId, ['dtmi:com:example;1', 'dtmi:com:partial;1'])
+
+      expect(deleteOrUpdateDtdlSourceStub.firstCall.args).to.deep.equal([[{ id: arrayDtdlRowId, source: null }]])
     })
   })
 

@@ -186,32 +186,32 @@ export const arrayDtdlFileFixture = (updates: {
   commandResponseUpdate?: Record<string, string>
 }) => [simpleDtdlFileFixture({}), dtdlFileFixture(arrayDtdlFileEntityId)(updates)]
 
-const mockDtdlTable = {
-  [simpleDtdlFileEntityId]: {
+const mockDtdlTable = [
+  {
     id: simpleDtdlRowId,
     model_id: simpleDtdlId,
     path: 'path',
     source: simpleDtdlFileFixture({}),
   },
-  [arrayDtdlFileEntityId]: {
-    id: arrayDtdlRowId,
+  {
+    id: simpleDtdlRowId,
     model_id: simpleDtdlId,
     path: 'path',
     source: arrayDtdlFileFixture({}),
   },
-  ['dtmi:com:example;1']: {
-    id: simpleDtdlRowId,
+  {
+    id: arrayDtdlRowId,
     model_id: githubDtdlId,
     path: 'path',
-    source: dtdlFileFixture('dtmi:com:example;1')({}),
+    source: [dtdlFileFixture('dtmi:com:partial;1')({}), dtdlFileFixture('dtmi:com:example;1')({})],
   },
-  ['dtmi:com:example_extended;1']: {
-    id: arrayDtdlRowId,
+  {
+    id: simpleDtdlRowId,
     model_id: githubDtdlId,
     path: 'path',
     source: dtdlFileFixture('dtmi:com:example_extended;1')({}),
   },
-}
+]
 
 export const templateMock = {
   MermaidRoot: ({ search }: { search: string }) => `root_${search}_root`,
@@ -274,7 +274,17 @@ export const simpleMockModelDb = {
     }
   },
   getDtdlSourceByInterfaceId: (_modelId: UUID, interfaceId: DtdlId) => {
-    return Promise.resolve(mockDtdlTable[interfaceId])
+    return Promise.resolve(
+      mockDtdlTable.find((dtdl) => {
+        if (dtdl.source['@id'] === interfaceId) {
+          return true
+        }
+        if (Array.isArray(dtdl.source)) {
+          return dtdl.source.some((sourceItem) => sourceItem['@id'] === interfaceId)
+        }
+        return false
+      })
+    )
   },
   parseWithUpdatedFiles: () => Promise.resolve(),
   updateDtdlSource: updateDtdlSourceStub,
