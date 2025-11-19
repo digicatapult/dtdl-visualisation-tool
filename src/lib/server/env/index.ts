@@ -38,7 +38,6 @@ export const envConfig = {
   POSTHOG_ENABLED: envalid.bool({ default: false, devDefault: true }),
   NEXT_PUBLIC_POSTHOG_KEY: optionalStrValidator({
     default: undefined,
-    devDefault: 'phc_wClAu0o6whUl1qtjkkrIOrnYuSgEQBDctE5uEgN7dHL',
   }),
   NEXT_PUBLIC_POSTHOG_HOST: optionalStrValidator({
     default: undefined,
