@@ -70,9 +70,9 @@ export default class MermaidTemplates {
         <div id="spinner" class="spinner" />
       </div>
       <this.Legend showContent={false} />
-      <this.navPanelPlaceholder expanded={false} edit={canEdit} />
+      <this.navPanelPlaceholder expanded={false} edit={true} />
       <this.svgControls svgRawHeight={svgHeight} svgRawWidth={svgWidth} />
-      <this.editToggle canEdit={canEdit} />
+      <this.editToggle canEdit={true} />
       <this.deleteDialog />
     </Page>
   )
@@ -199,6 +199,42 @@ export default class MermaidTemplates {
         <div id="navigation-panel-content">
           <this.navigationPanelDetails entityId={entityId} model={model} edit={edit} />
           <this.navigationPanelTree entityId={entityId} fileTree={fileTree} />
+        </div>
+      </aside>
+    )
+  }
+
+  public addNode = ({ dtdlModelId, swapOutOfBand }: { dtdlModelId: string; swapOutOfBand?: boolean }): JSX.Element => {
+    return (
+      <aside
+        id="navigation-panel"
+        hx-swap-oob={swapOutOfBand ? 'true' : undefined}
+        {...{ ['aria-expanded']: '' }}
+        class={'edit'}
+      >
+        <input id="navigationPanelExpanded" name="navigationPanelExpanded" type="hidden" value={'true'} />
+        <button id="navigation-panel-button" onclick="globalThis.toggleNavPanel(event)"></button>
+        <div id="navigation-panel-controls">
+          <label>
+            <h2>New Node</h2>
+            <input type="radio" name="navigationPanelTab" value="details" checked={true} />
+          </label>
+        </div>
+        <div id="navigation-panel-content">
+          <div>
+            <h1>Test</h1>
+            <button type="button">create node</button>
+            <button
+              type="button"
+              hx-get={`/ontology/${dtdlModelId}/edit-model`}
+              hx-target="#navigation-panel"
+              hx-swap="outerHTML"
+              hx-include="#sessionId, #navigationPanelExpanded" // should I be using commonUpdateAttrs instead?
+              hx-vals='{"editMode": true}'
+            >
+              cancel
+            </button>
+          </div>{' '}
         </div>
       </aside>
     )
@@ -1083,7 +1119,7 @@ export default class MermaidTemplates {
           <span class="edit-text">Edit</span>
         </div>
         <div id="edit-buttons">
-          <button id="add-node-button"></button>
+          <button id="add-node-button" hx-get="add-new-node" hx-target="#navigation-panel" hx-swap="outerHTML"></button>
         </div>
       </div>
     )

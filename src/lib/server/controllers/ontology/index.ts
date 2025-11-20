@@ -260,6 +260,12 @@ export class OntologyController extends HTMLController {
     )
   }
 
+  @SuccessResponse(200)
+  @Get('{dtdlModelId}/add-new-node')
+  public async addNewNode(@Path() dtdlModelId: UUID, @Request() req: express.Request): Promise<HTML | void> {
+    return this.html(this.templates.addNode({ dtdlModelId }))
+  }
+
   private getCurrentPathQuery(req: express.Request): { path: string; query: URLSearchParams } | undefined {
     const currentUrl = req.header('hx-current-url')
     if (!currentUrl) {
