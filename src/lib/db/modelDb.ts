@@ -36,6 +36,7 @@ export class ModelDb {
     source: FileSourceKeys,
     owner: string | null,
     repo: string | null,
+    baseBranch: string | null,
     files: DtdlFile[]
   ): Promise<UUID> {
     return this.db.withTransaction(async (db) => {
@@ -45,6 +46,7 @@ export class ModelDb {
         source,
         owner,
         repo,
+        base_branch: baseBranch,
       })
 
       for (const file of files) {

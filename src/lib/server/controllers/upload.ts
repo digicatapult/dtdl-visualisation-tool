@@ -63,7 +63,15 @@ export class OpenOntologyController extends HTMLController {
     const files = await this.parser.validate(jsonFiles)
     const parsedDtdl = await this.parser.parseAll(files)
     const output = await this.generator.run(parsedDtdl, 'flowchart', 'elk')
-    const id = await this.modelDb.insertModel(file.originalname, output.renderForMinimap(), 'zip', null, null, files)
+    const id = await this.modelDb.insertModel(
+      file.originalname,
+      output.renderForMinimap(),
+      'zip',
+      null,
+      null,
+      null,
+      files
+    )
 
     setCacheWithDefaultParams(this.cache, id, output)
 

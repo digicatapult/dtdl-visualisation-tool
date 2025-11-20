@@ -48,6 +48,7 @@ export default class MermaidTemplates {
     svgWidth,
     svgHeight,
     canEdit,
+    ontologyId,
   }: {
     search?: string
     sessionId: UUID
@@ -55,6 +56,7 @@ export default class MermaidTemplates {
     svgWidth?: number
     svgHeight?: number
     canEdit: boolean
+    ontologyId: UUID
   }) => (
     <Page title={'UKDTC'}>
       <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
@@ -62,7 +64,7 @@ export default class MermaidTemplates {
         <this.searchPanel search={search} diagramType={diagramType} svgWidth={svgWidth} svgHeight={svgHeight} />
         <this.uploadForm />
         <this.shareOntology />
-        <this.publishForm canPublish={false} />
+        <this.publishForm canPublish={canEdit} ontologyId={ontologyId} />
       </section>
 
       <div id="mermaid-wrapper">
@@ -1042,21 +1044,25 @@ export default class MermaidTemplates {
     )
   }
 
-  private publishForm = ({ canPublish }: { canPublish: boolean }) => {
+  private publishForm = ({ canPublish, ontologyId }: { canPublish: boolean; ontologyId: UUID }) => {
     if (!env.get('EDIT_ONTOLOGY')) return <></>
     return (
-      <a
-        id="publish-ontology"
-        href={`${!canPublish ? 'javascript:void(0)' : '/publish'}`}
-        class={`button ${!canPublish ? 'disabled' : ''}`}
-        title={
-          canPublish
-            ? 'Click to publish ontology'
-            : 'Only Ontologies from github that you have write permissions on, can be published'
-        }
-      >
-        Publish
-      </a>
+      <form hx-post="/publish" hx-disabled-elt="button">
+        <input type="hidden" name="ontologyId" value={escapeHtml(ontologyId)} />
+        <button
+          id="publish-ontology"
+          type="submit"
+          class={`button ${!canPublish ? 'disabled' : ''}`}
+          disabled={!canPublish}
+          title={
+            canPublish
+              ? 'Click to publish ontology'
+              : 'Only Ontologies from github that you have write permissions on, can be published'
+          }
+        >
+          Publish
+        </button>
+      </form>
     )
   }
 

@@ -243,7 +243,8 @@ export class GithubController extends HTMLController {
       'github',
       owner,
       repo,
-      files
+      files,
+      ref
     )
 
     setCacheWithDefaultParams(this.cache, id, output)
