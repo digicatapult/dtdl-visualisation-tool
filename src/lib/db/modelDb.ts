@@ -89,18 +89,18 @@ export class ModelDb {
   async parseWithUpdatedFiles(model_id: UUID, updates: { id: UUID; source: NullableDtdlSource }[]) {
     const files = await this.db.get('dtdl', { model_id })
     if (files.length === 0) throw new InternalError(`Failed to find model: ${model_id}`)
-    const updatesMap = new Map(updates.map((u) => [u.id, u.source]))
-    const filesStringified = files.map((file) => {
-      const updatedSource = updatesMap.get(file.id)
-      if (updatedSource !== undefined) {
-        return { path: file.path, source: updatedSource !== null ? JSON.stringify(updatedSource) : '' }
-      } else {
-        return { path: file.path, source: JSON.stringify(file.source) }
-      }
-    })
 
-    const parsedDtdl = await this.parser.parseAll(filesStringified)
-    return parsedDtdl
+    const updatesMap = new Map(updates.map((u) => [u.id, u.source]))
+
+    const filesStringified = files.reduce<DtdlFile[]>((acc, file) => {
+      const source = updatesMap.has(file.id) ? updatesMap.get(file.id) : file.source
+      if (source !== null) {
+        acc.push({ path: file.path, source: JSON.stringify(source) })
+      }
+      return acc
+    }, [])
+
+    return this.parser.parseAll(filesStringified)
   }
 
   // collection for searching
