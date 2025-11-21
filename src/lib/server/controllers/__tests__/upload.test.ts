@@ -13,6 +13,8 @@ import {
   mockCache,
   mockGenerator,
   mockLogger,
+  mockPostHog,
+  mockReq,
   mockReqWithCookie,
   openOntologyMock,
   previewDtdlId,
@@ -40,6 +42,7 @@ describe('OpenOntologyController', async () => {
     mockGenerator,
     openOntologyMock,
     mockParser,
+    mockPostHog,
     mockLogger,
     mockCache
   )
@@ -100,7 +103,8 @@ describe('OpenOntologyController', async () => {
         buffer: readFileSync(path.resolve(__dirname, './simple.zip')),
         originalname: 'test.zip',
       }
-      await controller.uploadZip(mockFile as Express.Multer.File)
+      const req = mockReq({})
+      await controller.uploadZip(mockFile as Express.Multer.File, req)
       const hxRedirectHeader = setHeaderSpy.firstCall.args[1]
 
       // assert model and file inserted
@@ -112,8 +116,9 @@ describe('OpenOntologyController', async () => {
       const mockFile = {
         mimetype: 'application/json',
       }
+      const req = mockReq({})
 
-      await expect(controller.uploadZip(mockFile as Express.Multer.File)).to.be.rejectedWith(
+      await expect(controller.uploadZip(mockFile as Express.Multer.File, req)).to.be.rejectedWith(
         UploadError,
         'File must be a .zip'
       )
@@ -124,10 +129,10 @@ describe('OpenOntologyController', async () => {
       const mockFile = {
         mimetype: 'application/zip',
         buffer: readFileSync(path.resolve(__dirname, './simple.zip')),
-        originalname: 'test.zip',
       }
+      const req = mockReq({})
 
-      await expect(controller.uploadZip(mockFile as Express.Multer.File)).to.be.rejectedWith(
+      await expect(controller.uploadZip(mockFile as Express.Multer.File, req)).to.be.rejectedWith(
         UploadError,
         `No valid '.json' files found`
       )
