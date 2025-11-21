@@ -1,6 +1,5 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import express from 'express'
-import { randomUUID } from 'node:crypto'
 import { Get, Middlewares, Path, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { container, inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../../db/modelDb.js'
@@ -15,7 +14,7 @@ import {
   type RootParams,
   type UpdateParams,
 } from '../../models/controllerTypes.js'
-import { modelHistoryCookie, octokitTokenCookie } from '../../models/cookieNames.js'
+import { modelHistoryCookie, octokitTokenCookie, posthogIdCookie } from '../../models/cookieNames.js'
 import { ViewAndEditPermission } from '../../models/github.js'
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../models/renderedDiagram/index.js'
 import { type UUID } from '../../models/strings.js'
@@ -32,7 +31,7 @@ import SessionStore, { Session } from '../../utils/sessions.js'
 import { ErrorPage } from '../../views/components/errors.js'
 import MermaidTemplates from '../../views/components/mermaid.js'
 import { HTML, HTMLController } from '../HTMLController.js'
-import { checkEditPermission, dtdlCacheKey } from '../helpers.js'
+import { checkEditPermission, dtdlCacheKey, ensurePostHogId } from '../helpers.js'
 
 const rateLimiter = container.resolve(RateLimiter)
 
@@ -64,6 +63,7 @@ export class OntologyController extends HTMLController {
   }
 
   @SuccessResponse(200)
+  @Middlewares(ensurePostHogId)
   @Get('{dtdlModelId}/view')
   public async view(
     @Path() dtdlModelId: UUID,
@@ -82,6 +82,8 @@ export class OntologyController extends HTMLController {
     let sessionId = params.sessionId
 
     if (!sessionId || !this.sessionStore.get(sessionId)) {
+      // Note: sessionId is for session store, posthogId cookie is for analytics
+      const { randomUUID } = await import('node:crypto')
       sessionId = randomUUID()
       const session = {
         layout: 'elk' as const,
@@ -112,11 +114,12 @@ export class OntologyController extends HTMLController {
       permission = await this.checkPermissions(octokitToken, owner, repo)
     }
 
-    // Identify user in PostHog (fire-and-forget)
+    // Identify user in PostHog using persistent POSTHOG_ID cookie (fire-and-forget)
+    const posthogId = req.signedCookies[posthogIdCookie] as string
     if (octokitToken) {
-      this.postHog.identifyFromGitHubToken(octokitToken, sessionId)
+      this.postHog.identifyFromGitHubToken(octokitToken, posthogId)
     } else {
-      this.postHog.identifySession(sessionId)
+      this.postHog.identifySession(posthogId)
     }
 
     if (permission === 'unauthorised') {
@@ -138,7 +141,7 @@ export class OntologyController extends HTMLController {
   }
 
   @SuccessResponse(200)
-  @Middlewares(rateLimiter.strictLimitMiddleware)
+  @Middlewares(rateLimiter.strictLimitMiddleware, ensurePostHogId)
   @Get('{dtdlModelId}/update-layout')
   public async updateLayout(
     @Request() req: express.Request,
@@ -149,9 +152,10 @@ export class OntologyController extends HTMLController {
 
     const session = this.sessionStore.get(params.sessionId)
     const octokitToken = req.signedCookies[octokitTokenCookie]
+    const posthogId = req.signedCookies[posthogIdCookie] as string
 
-    // Determine distinct ID for tracking (prefer GitHub user over session)
-    const distinctId = await this.postHog.getDistinctId(octokitToken, params.sessionId)
+    // Determine distinct ID for tracking (prefer GitHub user over anonymous posthog ID)
+    const distinctId = await this.postHog.getDistinctId(octokitToken, posthogId)
 
     // get the base dtdl model that we will derive the graph from
     const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
@@ -270,7 +274,7 @@ export class OntologyController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('{dtdlModelId}/edit-model')
-  @Middlewares(checkEditPermission)
+  @Middlewares(ensurePostHogId, checkEditPermission)
   public async editModel(
     @Request() req: express.Request,
     @Path() dtdlModelId: UUID,
@@ -285,9 +289,10 @@ export class OntologyController extends HTMLController {
 
     this.sessionStore.update(sessionId, { editMode })
 
-    // Track mode toggle event (fire-and-forget)
+    // Track mode toggle event using persistent POSTHOG_ID cookie (fire-and-forget)
     const octokitToken = req.signedCookies[octokitTokenCookie]
-    const distinctId = await this.postHog.getDistinctId(octokitToken, sessionId)
+    const posthogId = req.signedCookies[posthogIdCookie] as string
+    const distinctId = await this.postHog.getDistinctId(octokitToken, posthogId)
     this.postHog.trackModeToggle(distinctId, {
       ontologyId: dtdlModelId,
       editMode,

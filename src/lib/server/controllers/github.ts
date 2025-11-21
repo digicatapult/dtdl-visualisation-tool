@@ -1,12 +1,11 @@
 import express from 'express'
-import { randomUUID } from 'node:crypto'
 import { dirname } from 'node:path'
 import { Get, Middlewares, Produces, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { container, inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../db/modelDb.js'
 import { GithubNotFound, GithubReqError } from '../errors.js'
 import { type ILogger, Logger } from '../logger.js'
-import { octokitTokenCookie } from '../models/cookieNames.js'
+import { octokitTokenCookie, posthogIdCookie } from '../models/cookieNames.js'
 import { ListItem } from '../models/github.js'
 import { type ICache, Cache } from '../utils/cache.js'
 import Parser from '../utils/dtdl/parser.js'
@@ -17,7 +16,7 @@ import { RateLimiter } from '../utils/rateLimit.js'
 import { safeUrl } from '../utils/url.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
-import { recentFilesFromCookies, setCacheWithDefaultParams } from './helpers.js'
+import { ensurePostHogId, recentFilesFromCookies, setCacheWithDefaultParams } from './helpers.js'
 
 const rateLimiter = container.resolve(RateLimiter)
 
@@ -40,6 +39,7 @@ export class GithubController extends HTMLController {
 
   @SuccessResponse(200, '')
   @Produces('text/html')
+  @Middlewares(ensurePostHogId)
   @Get('/picker')
   public async picker(@Request() req: express.Request): Promise<HTML | void> {
     if (!req.signedCookies[octokitTokenCookie]) {
@@ -55,6 +55,7 @@ export class GithubController extends HTMLController {
 
   // Called by GitHub after external OAuth login
   @SuccessResponse(200)
+  @Middlewares(ensurePostHogId)
   @Get('/callback')
   public async callback(
     @Request() req: express.Request,
@@ -91,6 +92,7 @@ export class GithubController extends HTMLController {
 
   @SuccessResponse(200, '')
   @Produces('text/html')
+  @Middlewares(ensurePostHogId)
   @Get('/repos')
   public async repos(@Query() page: number, @Request() req: express.Request): Promise<HTML | void> {
     const octokitToken = req.signedCookies[octokitTokenCookie]
@@ -120,6 +122,7 @@ export class GithubController extends HTMLController {
 
   @SuccessResponse(200, '')
   @Produces('text/html')
+  @Middlewares(ensurePostHogId)
   @Get('/branches')
   public async branches(
     @Query() owner: string,
@@ -163,6 +166,7 @@ export class GithubController extends HTMLController {
 
   @SuccessResponse(200, '')
   @Produces('text/html')
+  @Middlewares(ensurePostHogId)
   @Get('/contents')
   public async contents(
     @Query() owner: string,
@@ -228,7 +232,7 @@ export class GithubController extends HTMLController {
 
   @SuccessResponse(200, '')
   @Produces('text/html')
-  @Middlewares(rateLimiter.strictLimitMiddleware)
+  @Middlewares(rateLimiter.strictLimitMiddleware, ensurePostHogId)
   @Get('/directory')
   public async directory(
     @Query() owner: string,
@@ -266,8 +270,8 @@ export class GithubController extends HTMLController {
     setCacheWithDefaultParams(this.cache, id, output)
 
     // Track GitHub ontology upload with proper user identification (fire-and-forget)
-    const sessionId = randomUUID()
-    const distinctId = await this.postHog.getDistinctId(octokitToken, sessionId)
+    const posthogId = req.signedCookies[posthogIdCookie] as string
+    const distinctId = await this.postHog.getDistinctId(octokitToken, posthogId)
 
     this.postHog.trackUploadOntology(distinctId, {
       ontologyId: id,
@@ -291,6 +295,7 @@ export class GithubController extends HTMLController {
    */
   @SuccessResponse(200, '')
   @Produces('text/html')
+  @Middlewares(ensurePostHogId)
   @Get('/navigate')
   public async navigate(@Query() url: string, @Request() req: express.Request): Promise<HTML | void> {
     const octokitToken = req.signedCookies[octokitTokenCookie]

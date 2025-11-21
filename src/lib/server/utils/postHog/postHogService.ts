@@ -63,30 +63,32 @@ export class PostHogService {
   }
 
   /**
-   * Get distinct ID for tracking (GitHub user or session)
+   * Get distinct ID for tracking (GitHub user or persistent anonymous ID)
    * @param octokitToken - Optional GitHub OAuth token
-   * @param sessionId - Session ID fallback
-   * @returns distinctId as 'github:username' or sessionId
+   * @param anonymousId - Persistent anonymous ID from POSTHOG_ID cookie
+   * @returns distinctId as 'github:username' or anonymousId
    */
-  async getDistinctId(octokitToken: string | undefined, sessionId: string): Promise<string> {
+  async getDistinctId(octokitToken: string | undefined, anonymousId: string): Promise<string> {
     if (!octokitToken) {
-      return sessionId
+      return anonymousId
     }
 
     try {
       const user = await this.githubRequest.getAuthenticatedUser(octokitToken)
       return `github:${user.login}`
     } catch (error) {
-      this.logger.debug({ error }, 'Failed to get GitHub user for tracking, using session ID')
-      return sessionId
+      this.logger.debug({ error }, 'Failed to get GitHub user for tracking, using anonymous ID')
+      return anonymousId
     }
   }
 
   /**
    * Identify user from GitHub token
    * This fetches user info from GitHub and identifies them in PostHog
+   * @param octokitToken - GitHub OAuth token
+   * @param anonymousId - Persistent anonymous ID from POSTHOG_ID cookie to alias
    */
-  async identifyFromGitHubToken(octokitToken: string, sessionId: string): Promise<void> {
+  async identifyFromGitHubToken(octokitToken: string, anonymousId: string): Promise<void> {
     if (!this.enabled || !this.postHogClient) {
       return
     }
@@ -94,7 +96,7 @@ export class PostHogService {
     try {
       const user = await this.githubRequest.getAuthenticatedUser(octokitToken)
 
-      // Use GitHub login as distinct ID, alias with session ID
+      // Use GitHub login as distinct ID, alias with anonymous ID
       await this.identify(`github:${user.login}`, {
         github_id: user.id,
         github_login: user.login,
@@ -102,28 +104,29 @@ export class PostHogService {
         github_name: user.name,
       })
 
-      // Alias session ID to GitHub user
-      await this.alias(`github:${user.login}`, sessionId)
+      // Alias anonymous ID to GitHub user
+      await this.alias(`github:${user.login}`, anonymousId)
 
-      this.logger.debug({ user: user.login, sessionId }, 'Identified user from GitHub token')
+      this.logger.debug({ user: user.login, anonymousId }, 'Identified user from GitHub token')
     } catch (error) {
       this.logger.warn({ error }, 'Failed to identify user from GitHub token')
     }
   }
 
   /**
-   * Identify anonymous user with session ID
+   * Identify anonymous user with persistent anonymous ID
+   * @param anonymousId - Persistent anonymous ID from POSTHOG_ID cookie
    */
-  async identifySession(sessionId: string): Promise<void> {
+  async identifySession(anonymousId: string): Promise<void> {
     if (!this.enabled || !this.postHogClient) {
       return
     }
 
     try {
-      await this.identify(sessionId, {
+      await this.identify(anonymousId, {
         anonymous: true,
       })
-      this.logger.debug({ sessionId }, 'Identified anonymous session')
+      this.logger.debug({ anonymousId }, 'Identified anonymous session')
     } catch (error) {
       this.logger.warn({ error }, 'Failed to identify session')
     }

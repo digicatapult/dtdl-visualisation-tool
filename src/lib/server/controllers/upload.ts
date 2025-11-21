@@ -1,10 +1,9 @@
 import express from 'express'
-import { randomUUID } from 'node:crypto'
 import { Get, Middlewares, Post, Produces, Query, Request, Route, SuccessResponse, UploadedFile } from 'tsoa'
 import { container, inject, injectable } from 'tsyringe'
 
 import { UploadError } from '../errors.js'
-import { octokitTokenCookie } from '../models/cookieNames.js'
+import { octokitTokenCookie, posthogIdCookie } from '../models/cookieNames.js'
 import Parser from '../utils/dtdl/parser.js'
 import { PostHogService } from '../utils/postHog/postHogService.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
@@ -15,7 +14,7 @@ import { Logger, type ILogger } from '../logger.js'
 import { Cache, type ICache } from '../utils/cache.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
 import { RateLimiter } from '../utils/rateLimit.js'
-import { recentFilesFromCookies, setCacheWithDefaultParams } from './helpers.js'
+import { ensurePostHogId, recentFilesFromCookies, setCacheWithDefaultParams } from './helpers.js'
 
 const rateLimiter = container.resolve(RateLimiter)
 
@@ -37,6 +36,7 @@ export class OpenOntologyController extends HTMLController {
 
   @SuccessResponse(200)
   @Produces('text/html')
+  @Middlewares(ensurePostHogId)
   @Get('/')
   public async open(@Request() req: express.Request): Promise<HTML> {
     this.setHeader('HX-Push-Url', `/open`)
@@ -47,13 +47,14 @@ export class OpenOntologyController extends HTMLController {
 
   @SuccessResponse(200)
   @Produces('text/html')
+  @Middlewares(ensurePostHogId)
   @Get('/menu')
   public async getMenu(@Query() showContent: boolean): Promise<HTML> {
     return this.html(this.openOntologyTemplates.getMenu({ showContent }))
   }
 
   @SuccessResponse(302, 'File uploaded successfully')
-  @Middlewares(rateLimiter.strictLimitMiddleware)
+  @Middlewares(rateLimiter.strictLimitMiddleware, ensurePostHogId)
   @Post('/')
   public async uploadZip(
     @UploadedFile('file') file: Express.Multer.File,
@@ -76,8 +77,8 @@ export class OpenOntologyController extends HTMLController {
 
     // Track upload event with proper user/session identification (fire-and-forget)
     const octokitToken = req.signedCookies[octokitTokenCookie]
-    const sessionId = randomUUID()
-    const distinctId = await this.postHog.getDistinctId(octokitToken, sessionId)
+    const posthogId = req.signedCookies[posthogIdCookie] as string
+    const distinctId = await this.postHog.getDistinctId(octokitToken, posthogId)
 
     this.postHog.trackUploadOntology(distinctId, {
       ontologyId: id,

@@ -15,5 +15,5 @@ export const strArrayValidator = envalid.makeValidator((input) => {
 })
 
 export const optionalStrValidator = envalid.makeValidator((input) => {
-  return input || undefined
+  return input === '' ? undefined : input
 })

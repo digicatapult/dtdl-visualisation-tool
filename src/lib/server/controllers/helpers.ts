@@ -1,11 +1,12 @@
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns'
 import express from 'express'
+import { randomUUID } from 'node:crypto'
 import { container } from 'tsyringe'
 import { ModelDb } from '../../db/modelDb.js'
 import { InternalError, UnauthorisedError } from '../errors.js'
 import { ILogger } from '../logger'
 import { CookieHistoryParams, GenerateParams, relevantParams } from '../models/controllerTypes.js'
-import { modelHistoryCookie, octokitTokenCookie } from '../models/cookieNames.js'
+import { modelHistoryCookie, octokitTokenCookie, posthogIdCookie } from '../models/cookieNames.js'
 import { RecentFile } from '../models/openTypes.js'
 import { MermaidSvgRender, PlainTextRender } from '../models/renderedDiagram'
 import { UUID } from '../models/strings.js'
@@ -109,5 +110,30 @@ export const checkEditPermission = async (
   }
   const permission = await githubRequest.getRepoPermissions(octokitToken, owner, repo)
   if (permission !== 'edit') throw new UnauthorisedError('User is unauthorised to make this request')
+  next()
+}
+
+const POSTHOG_COOKIE_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000 // 1 year
+const POSTHOG_COOKIE_OPTIONS: express.CookieOptions = {
+  sameSite: true,
+  maxAge: POSTHOG_COOKIE_MAX_AGE_MS,
+  httpOnly: true,
+  signed: true,
+  secure: process.env.NODE_ENV === 'production',
+}
+
+export const ensurePostHogId = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+): Promise<void> => {
+  if (req.signedCookies[posthogIdCookie]) {
+    next()
+    return
+  }
+
+  const anonymousId = randomUUID()
+  res.cookie(posthogIdCookie, anonymousId, POSTHOG_COOKIE_OPTIONS)
+  req.signedCookies[posthogIdCookie] = anonymousId
   next()
 }
