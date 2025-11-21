@@ -70,7 +70,7 @@ program
       setCacheWithDefaultParams(cache, id, output)
 
       // Track default model load (fire-and-forget) - no user context in CLI
-      postHog.trackUploadOntology('system', {
+      postHog.trackUploadOntology(undefined, 'system', {
         ontologyId: id,
         source: 'default',
         fileCount: files.length,

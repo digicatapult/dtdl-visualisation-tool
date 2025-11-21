@@ -161,7 +161,7 @@ describe('PostHogService', () => {
         mockGithubRequest as unknown as GithubRequest
       )
 
-      await service.trackUploadOntology('ontology-123', {
+      await service.trackUploadOntology(undefined, 'anonymous-id-123', {
         ontologyId: 'ontology-123',
         source: 'zip',
         fileCount: 5,
@@ -171,7 +171,7 @@ describe('PostHogService', () => {
       expect(postHogCaptureStub.calledOnce).to.equal(true)
       expect(
         postHogCaptureStub.calledWith({
-          distinctId: 'ontology-123',
+          distinctId: 'anonymous-id-123',
           event: 'uploadOntology',
           properties: {
             ontologyId: 'ontology-123',
@@ -196,7 +196,7 @@ describe('PostHogService', () => {
         mockGithubRequest as unknown as GithubRequest
       )
 
-      await service.trackUpdateOntologyView('ontology-123', {
+      await service.trackUpdateOntologyView(undefined, 'anonymous-id-123', {
         ontologyId: 'ontology-123',
         diagramType: 'flowchart',
         hasSearch: true,
@@ -207,7 +207,7 @@ describe('PostHogService', () => {
       expect(postHogCaptureStub.calledOnce).to.equal(true)
       expect(
         postHogCaptureStub.calledWith({
-          distinctId: 'ontology-123',
+          distinctId: 'anonymous-id-123',
           event: 'updateOntologyView',
           properties: {
             ontologyId: 'ontology-123',
@@ -233,7 +233,7 @@ describe('PostHogService', () => {
         mockGithubRequest as unknown as GithubRequest
       )
 
-      await service.trackNodeSelected('ontology-123', {
+      await service.trackNodeSelected(undefined, 'anonymous-id-123', {
         ontologyId: 'ontology-123',
         entityId: 'entity-456',
         entityKind: 'Interface',
@@ -242,7 +242,7 @@ describe('PostHogService', () => {
       expect(postHogCaptureStub.calledOnce).to.equal(true)
       expect(
         postHogCaptureStub.calledWith({
-          distinctId: 'ontology-123',
+          distinctId: 'anonymous-id-123',
           event: 'nodeSelected',
           properties: {
             ontologyId: 'ontology-123',
@@ -266,7 +266,7 @@ describe('PostHogService', () => {
         mockGithubRequest as unknown as GithubRequest
       )
 
-      await service.trackModeToggle('session-123', {
+      await service.trackModeToggle(undefined, 'anonymous-id-123', {
         ontologyId: 'ontology-456',
         editMode: true,
       })
@@ -274,7 +274,7 @@ describe('PostHogService', () => {
       expect(postHogCaptureStub.calledOnce).to.equal(true)
       expect(
         postHogCaptureStub.calledWith({
-          distinctId: 'session-123',
+          distinctId: 'anonymous-id-123',
           event: 'modeToggle',
           properties: {
             ontologyId: 'ontology-456',
@@ -288,6 +288,12 @@ describe('PostHogService', () => {
       mockEnv.get.withArgs('POSTHOG_ENABLED').returns(true)
       mockEnv.get.withArgs('NEXT_PUBLIC_POSTHOG_KEY').returns('test-key')
       mockEnv.get.withArgs('NEXT_PUBLIC_POSTHOG_HOST').returns('https://test.posthog.com')
+      mockGithubRequest.getAuthenticatedUser.resolves({
+        id: 123,
+        login: 'testuser',
+        email: 'test@test.com',
+        name: 'Test User',
+      })
 
       const service = new PostHogService(
         mockLogger,
@@ -295,7 +301,7 @@ describe('PostHogService', () => {
         mockGithubRequest as unknown as GithubRequest
       )
 
-      await service.trackModeToggle('github:testuser', {
+      await service.trackModeToggle('test-token', 'anonymous-id-456', {
         ontologyId: 'ontology-789',
         editMode: false,
       })

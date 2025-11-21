@@ -76,11 +76,7 @@ export class OpenOntologyController extends HTMLController {
     setCacheWithDefaultParams(this.cache, id, output)
 
     // Track upload event with proper user/session identification (fire-and-forget)
-    const octokitToken = req.signedCookies[octokitTokenCookie]
-    const posthogId = req.signedCookies[posthogIdCookie] as string
-    const distinctId = await this.postHog.getDistinctId(octokitToken, posthogId)
-
-    this.postHog.trackUploadOntology(distinctId, {
+    this.postHog.trackUploadOntology(req.signedCookies[octokitTokenCookie], req.signedCookies[posthogIdCookie], {
       ontologyId: id,
       source: 'zip',
       fileCount: files.length,

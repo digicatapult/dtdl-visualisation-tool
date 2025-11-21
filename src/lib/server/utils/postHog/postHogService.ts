@@ -158,37 +158,57 @@ export class PostHogService {
 
   /**
    * Track ontology upload event
-   * @param distinctId - User identifier (anonymousId or github:username)
+   * @param octokitToken - Optional GitHub OAuth token from cookies
+   * @param posthogId - Persistent anonymous ID from POSTHOG_ID cookie
    * @param event - Event properties including ontologyId, source, fileCount, and fileName
    */
-  async trackUploadOntology(distinctId: string, event: UploadOntologyEvent): Promise<void> {
+  async trackUploadOntology(
+    octokitToken: string | undefined,
+    posthogId: string,
+    event: UploadOntologyEvent
+  ): Promise<void> {
+    const distinctId = await this.getDistinctId(octokitToken, posthogId)
     return this.captureEvent(distinctId, 'uploadOntology', event)
   }
 
   /**
    * Track ontology view update event
-   * @param distinctId - User identifier (anonymousId or github:username)
+   * @param octokitToken - Optional GitHub OAuth token from cookies
+   * @param posthogId - Persistent anonymous ID from POSTHOG_ID cookie
    * @param event - Event properties including ontologyId, diagramType, hasSearch, expandedCount, and highlightNodeId
    */
-  async trackUpdateOntologyView(distinctId: string, event: UpdateOntologyViewEvent): Promise<void> {
+  async trackUpdateOntologyView(
+    octokitToken: string | undefined,
+    posthogId: string,
+    event: UpdateOntologyViewEvent
+  ): Promise<void> {
+    const distinctId = await this.getDistinctId(octokitToken, posthogId)
     return this.captureEvent(distinctId, 'updateOntologyView', event)
   }
 
   /**
    * Track node selection event
-   * @param distinctId - User identifier (anonymousId or github:username)
+   * @param octokitToken - Optional GitHub OAuth token from cookies
+   * @param posthogId - Persistent anonymous ID from POSTHOG_ID cookie
    * @param event - Event properties including ontologyId, entityId, and entityKind
    */
-  async trackNodeSelected(distinctId: string, event: NodeSelectedEvent): Promise<void> {
+  async trackNodeSelected(
+    octokitToken: string | undefined,
+    posthogId: string,
+    event: NodeSelectedEvent
+  ): Promise<void> {
+    const distinctId = await this.getDistinctId(octokitToken, posthogId)
     return this.captureEvent(distinctId, 'nodeSelected', event)
   }
 
   /**
    * Track mode toggle event (view/edit)
-   * @param distinctId - User identifier (anonymousId or github:username)
+   * @param octokitToken - Optional GitHub OAuth token from cookies
+   * @param posthogId - Persistent anonymous ID from POSTHOG_ID cookie
    * @param event - Event properties including ontologyId and editMode
    */
-  async trackModeToggle(distinctId: string, event: ModeToggleEvent): Promise<void> {
+  async trackModeToggle(octokitToken: string | undefined, posthogId: string, event: ModeToggleEvent): Promise<void> {
+    const distinctId = await this.getDistinctId(octokitToken, posthogId)
     return this.captureEvent(distinctId, 'modeToggle', event)
   }
 

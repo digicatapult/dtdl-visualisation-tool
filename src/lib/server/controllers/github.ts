@@ -270,10 +270,7 @@ export class GithubController extends HTMLController {
     setCacheWithDefaultParams(this.cache, id, output)
 
     // Track GitHub ontology upload with proper user identification (fire-and-forget)
-    const posthogId = req.signedCookies[posthogIdCookie] as string
-    const distinctId = await this.postHog.getDistinctId(octokitToken, posthogId)
-
-    this.postHog.trackUploadOntology(distinctId, {
+    this.postHog.trackUploadOntology(octokitToken, req.signedCookies[posthogIdCookie], {
       ontologyId: id,
       source: 'github',
       fileCount: files.length,

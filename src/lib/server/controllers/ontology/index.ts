@@ -151,10 +151,6 @@ export class OntologyController extends HTMLController {
 
     const session = this.sessionStore.get(params.sessionId)
     const octokitToken = req.signedCookies[octokitTokenCookie]
-    const posthogId = req.signedCookies[posthogIdCookie] as string
-
-    // Determine distinct ID for tracking (prefer GitHub user over anonymous posthog ID)
-    const distinctId = await this.postHog.getDistinctId(octokitToken, posthogId)
 
     // get the base dtdl model that we will derive the graph from
     const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
@@ -212,7 +208,7 @@ export class OntologyController extends HTMLController {
       dtdlIdReinstateSemicolon(newSession.highlightNodeId) in baseModel
     ) {
       const entity = baseModel[dtdlIdReinstateSemicolon(newSession.highlightNodeId)]
-      this.postHog.trackNodeSelected(distinctId, {
+      this.postHog.trackNodeSelected(octokitToken, req.signedCookies[posthogIdCookie], {
         ontologyId: dtdlModelId,
         entityId: newSession.highlightNodeId,
         entityKind: entity.EntityKind,
@@ -220,7 +216,7 @@ export class OntologyController extends HTMLController {
     }
 
     // Track view update event (fire-and-forget)
-    this.postHog.trackUpdateOntologyView(distinctId, {
+    this.postHog.trackUpdateOntologyView(octokitToken, req.signedCookies[posthogIdCookie], {
       ontologyId: dtdlModelId,
       diagramType: newSession.diagramType,
       hasSearch: !!newSession.search,
@@ -289,10 +285,7 @@ export class OntologyController extends HTMLController {
     this.sessionStore.update(sessionId, { editMode })
 
     // Track mode toggle event using persistent POSTHOG_ID cookie (fire-and-forget)
-    const octokitToken = req.signedCookies[octokitTokenCookie]
-    const posthogId = req.signedCookies[posthogIdCookie] as string
-    const distinctId = await this.postHog.getDistinctId(octokitToken, posthogId)
-    this.postHog.trackModeToggle(distinctId, {
+    this.postHog.trackModeToggle(req.signedCookies[octokitTokenCookie], req.signedCookies[posthogIdCookie], {
       ontologyId: dtdlModelId,
       editMode,
     })
