@@ -52,7 +52,8 @@ jobs:
     secrets: inherit
 
   build-docker:
-    uses: digicatapult/shared-workflows/.github/workflows/build-docker.yml@main
+    uses: digicatapult/shared-workflows/.github/workflows/build-docker.yml@feature/add_sbom_generators
     permissions:
       packages: write
       contents: write
+      security-events: write
