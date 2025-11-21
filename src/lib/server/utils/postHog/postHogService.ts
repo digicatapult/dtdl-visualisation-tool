@@ -1,7 +1,10 @@
+import express from 'express'
+import { randomUUID } from 'node:crypto'
 import { PostHog } from 'posthog-node'
 import { inject, singleton } from 'tsyringe'
 import { Env } from '../../env/index.js'
 import { Logger, type ILogger } from '../../logger.js'
+import { octokitTokenCookie, posthogIdCookie } from '../../models/cookieNames.js'
 import { GithubRequest } from '../githubRequest.js'
 
 export type PostHogEventProperties = Record<string, string | number | boolean | null | undefined>
@@ -30,6 +33,31 @@ export interface NodeSelectedEvent extends PostHogEventProperties {
 export interface ModeToggleEvent extends PostHogEventProperties {
   ontologyId: string
   editMode: boolean
+}
+
+const POSTHOG_COOKIE_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000 // 1 year
+const POSTHOG_COOKIE_OPTIONS: express.CookieOptions = {
+  sameSite: true,
+  maxAge: POSTHOG_COOKIE_MAX_AGE_MS,
+  httpOnly: true,
+  signed: true,
+  secure: process.env.NODE_ENV === 'production',
+}
+
+export const ensurePostHogId = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+): Promise<void> => {
+  if (req.signedCookies[posthogIdCookie]) {
+    next()
+    return
+  }
+
+  const anonymousId = randomUUID()
+  res.cookie(posthogIdCookie, anonymousId, POSTHOG_COOKIE_OPTIONS)
+  req.signedCookies[posthogIdCookie] = anonymousId
+  next()
 }
 
 @singleton()
@@ -83,16 +111,32 @@ export class PostHogService {
   }
 
   /**
+   * Identify user from request cookies
+   * Automatically determines whether to identify from GitHub token or anonymous session
+   * @param req - Express request object containing signed cookies
+   */
+  async identifyFromRequest(req: express.Request): Promise<void> {
+    if (!this.enabled || !this.postHogClient) {
+      return
+    }
+
+    const octokitToken = req.signedCookies[octokitTokenCookie] as string | undefined
+    const posthogId = req.signedCookies[posthogIdCookie] as string
+
+    if (octokitToken) {
+      await this.identifyFromGitHubToken(octokitToken, posthogId)
+    } else {
+      await this.identifySession(posthogId)
+    }
+  }
+
+  /**
    * Identify user from GitHub token
    * This fetches user info from GitHub and identifies them in PostHog
    * @param octokitToken - GitHub OAuth token
    * @param anonymousId - Persistent anonymous ID from POSTHOG_ID cookie to alias
    */
-  async identifyFromGitHubToken(octokitToken: string, anonymousId: string): Promise<void> {
-    if (!this.enabled || !this.postHogClient) {
-      return
-    }
-
+  private async identifyFromGitHubToken(octokitToken: string, anonymousId: string): Promise<void> {
     try {
       const user = await this.githubRequest.getAuthenticatedUser(octokitToken)
 
@@ -117,11 +161,7 @@ export class PostHogService {
    * Identify anonymous user with persistent anonymous ID
    * @param anonymousId - Persistent anonymous ID from POSTHOG_ID cookie
    */
-  async identifySession(anonymousId: string): Promise<void> {
-    if (!this.enabled || !this.postHogClient) {
-      return
-    }
-
+  private async identifySession(anonymousId: string): Promise<void> {
     try {
       await this.identify(anonymousId, {
         anonymous: true,

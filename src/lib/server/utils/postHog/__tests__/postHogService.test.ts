@@ -1,4 +1,5 @@
 import { expect } from 'chai'
+import type { Request } from 'express'
 import { describe, it } from 'mocha'
 import { PostHog } from 'posthog-node'
 import sinon from 'sinon'
@@ -428,8 +429,8 @@ describe('PostHogService', () => {
     })
   })
 
-  describe('identifyFromGitHubToken', () => {
-    it('should identify GitHub user and alias session', async () => {
+  describe('identifyFromRequest', () => {
+    it('should identify from GitHub token when present', async () => {
       mockEnv.get.withArgs('POSTHOG_ENABLED').returns(true)
       mockEnv.get.withArgs('NEXT_PUBLIC_POSTHOG_KEY').returns('test-key')
       mockEnv.get.withArgs('NEXT_PUBLIC_POSTHOG_HOST').returns('https://test.posthog.com')
@@ -448,7 +449,14 @@ describe('PostHogService', () => {
         mockGithubRequest as unknown as GithubRequest
       )
 
-      await service.identifyFromGitHubToken('test-token', 'session-123')
+      const mockReq = {
+        signedCookies: {
+          OCTOKIT_TOKEN: 'test-token',
+          POSTHOG_ID: 'session-123',
+        },
+      } as Request
+
+      await service.identifyFromRequest(mockReq)
 
       expect(mockGithubRequest.getAuthenticatedUser.calledOnceWith('test-token')).to.equal(true)
       expect(postHogIdentifyStub.calledOnce).to.equal(true)
@@ -467,8 +475,10 @@ describe('PostHogService', () => {
       expect(postHogAliasStub.calledWith({ distinctId: 'github:testuser', alias: 'session-123' })).to.equal(true)
     })
 
-    it('should not identify when disabled', async () => {
-      mockEnv.get.withArgs('POSTHOG_ENABLED').returns(false)
+    it('should identify anonymous session when no GitHub token', async () => {
+      mockEnv.get.withArgs('POSTHOG_ENABLED').returns(true)
+      mockEnv.get.withArgs('NEXT_PUBLIC_POSTHOG_KEY').returns('test-key')
+      mockEnv.get.withArgs('NEXT_PUBLIC_POSTHOG_HOST').returns('https://test.posthog.com')
 
       const service = new PostHogService(
         mockLogger,
@@ -476,48 +486,15 @@ describe('PostHogService', () => {
         mockGithubRequest as unknown as GithubRequest
       )
 
-      await service.identifyFromGitHubToken('test-token', 'session-123')
+      const mockReq = {
+        signedCookies: {
+          POSTHOG_ID: 'session-456',
+        },
+      } as Request
+
+      await service.identifyFromRequest(mockReq)
 
       expect(mockGithubRequest.getAuthenticatedUser.called).to.equal(false)
-      expect(postHogIdentifyStub.called).to.equal(false)
-      expect(postHogAliasStub.called).to.equal(false)
-    })
-
-    it('should handle GitHub API errors gracefully', async () => {
-      mockEnv.get.withArgs('POSTHOG_ENABLED').returns(true)
-      mockEnv.get.withArgs('NEXT_PUBLIC_POSTHOG_KEY').returns('test-key')
-      mockEnv.get.withArgs('NEXT_PUBLIC_POSTHOG_HOST').returns('https://test.posthog.com')
-
-      mockGithubRequest.getAuthenticatedUser.rejects(new Error('GitHub API error'))
-
-      const service = new PostHogService(
-        mockLogger,
-        mockEnv as unknown as Env,
-        mockGithubRequest as unknown as GithubRequest
-      )
-
-      // Should not throw
-      await service.identifyFromGitHubToken('test-token', 'session-123')
-
-      expect(postHogIdentifyStub.called).to.equal(false)
-      expect(postHogAliasStub.called).to.equal(false)
-    })
-  })
-
-  describe('identifySession', () => {
-    it('should identify anonymous user with session ID', async () => {
-      mockEnv.get.withArgs('POSTHOG_ENABLED').returns(true)
-      mockEnv.get.withArgs('NEXT_PUBLIC_POSTHOG_KEY').returns('test-key')
-      mockEnv.get.withArgs('NEXT_PUBLIC_POSTHOG_HOST').returns('https://test.posthog.com')
-
-      const service = new PostHogService(
-        mockLogger,
-        mockEnv as unknown as Env,
-        mockGithubRequest as unknown as GithubRequest
-      )
-
-      await service.identifySession('session-456')
-
       expect(postHogIdentifyStub.calledOnce).to.equal(true)
       expect(
         postHogIdentifyStub.calledWith({
@@ -538,26 +515,18 @@ describe('PostHogService', () => {
         mockGithubRequest as unknown as GithubRequest
       )
 
-      await service.identifySession('session-456')
+      const mockReq = {
+        signedCookies: {
+          OCTOKIT_TOKEN: 'test-token',
+          POSTHOG_ID: 'session-123',
+        },
+      } as Request
 
+      await service.identifyFromRequest(mockReq)
+
+      expect(mockGithubRequest.getAuthenticatedUser.called).to.equal(false)
       expect(postHogIdentifyStub.called).to.equal(false)
-    })
-
-    it('should handle errors gracefully', async () => {
-      mockEnv.get.withArgs('POSTHOG_ENABLED').returns(true)
-      mockEnv.get.withArgs('NEXT_PUBLIC_POSTHOG_KEY').returns('test-key')
-      mockEnv.get.withArgs('NEXT_PUBLIC_POSTHOG_HOST').returns('https://test.posthog.com')
-
-      postHogIdentifyStub.throws(new Error('PostHog error'))
-
-      const service = new PostHogService(
-        mockLogger,
-        mockEnv as unknown as Env,
-        mockGithubRequest as unknown as GithubRequest
-      )
-
-      // Should not throw
-      await service.identifySession('session-456')
+      expect(postHogAliasStub.called).to.equal(false)
     })
   })
 })

@@ -370,4 +370,5 @@ export const mockPostHog = {
   alias: sinon.stub().resolves(),
   identifyFromGitHubToken: sinon.stub().resolves(),
   identifySession: sinon.stub().resolves(),
+  identifyFromRequest: sinon.stub().resolves(),
 } as unknown as PostHogService

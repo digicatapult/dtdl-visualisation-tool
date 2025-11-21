@@ -26,13 +26,13 @@ import { authRedirectURL, GithubRequest } from '../../utils/githubRequest.js'
 import { SvgGenerator } from '../../utils/mermaid/generator.js'
 import { dtdlIdReinstateSemicolon } from '../../utils/mermaid/helpers.js'
 import { SvgMutator } from '../../utils/mermaid/svgMutator.js'
-import { PostHogService } from '../../utils/postHog/postHogService.js'
+import { ensurePostHogId, PostHogService } from '../../utils/postHog/postHogService.js'
 import { RateLimiter } from '../../utils/rateLimit.js'
 import SessionStore, { Session } from '../../utils/sessions.js'
 import { ErrorPage } from '../../views/components/errors.js'
 import MermaidTemplates from '../../views/components/mermaid.js'
 import { HTML, HTMLController } from '../HTMLController.js'
-import { checkEditPermission, dtdlCacheKey, ensurePostHogId } from '../helpers.js'
+import { checkEditPermission, dtdlCacheKey } from '../helpers.js'
 
 const rateLimiter = container.resolve(RateLimiter)
 
@@ -114,12 +114,7 @@ export class OntologyController extends HTMLController {
     }
 
     // Identify user in PostHog using persistent POSTHOG_ID cookie (fire-and-forget)
-    const posthogId = req.signedCookies[posthogIdCookie] as string
-    if (octokitToken) {
-      this.postHog.identifyFromGitHubToken(octokitToken, posthogId)
-    } else {
-      this.postHog.identifySession(posthogId)
-    }
+    this.postHog.identifyFromRequest(req)
 
     if (permission === 'unauthorised') {
       this.setStatus(401)

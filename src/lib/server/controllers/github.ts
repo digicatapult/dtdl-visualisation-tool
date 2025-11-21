@@ -11,12 +11,12 @@ import { type ICache, Cache } from '../utils/cache.js'
 import Parser from '../utils/dtdl/parser.js'
 import { GithubRequest, authRedirectURL } from '../utils/githubRequest.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
-import { PostHogService } from '../utils/postHog/postHogService.js'
+import { PostHogService, ensurePostHogId } from '../utils/postHog/postHogService.js'
 import { RateLimiter } from '../utils/rateLimit.js'
 import { safeUrl } from '../utils/url.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
-import { ensurePostHogId, recentFilesFromCookies, setCacheWithDefaultParams } from './helpers.js'
+import { recentFilesFromCookies, setCacheWithDefaultParams } from './helpers.js'
 
 const rateLimiter = container.resolve(RateLimiter)
 
@@ -72,19 +72,11 @@ export class GithubController extends HTMLController {
       secure: process.env.NODE_ENV === 'production',
     })
 
+    // Make the token available for identifyFromRequest
+    req.signedCookies[octokitTokenCookie] = access_token
+
     // Identify user in PostHog after successful authentication (fire-and-forget)
-    try {
-      const user = await this.githubRequest.getAuthenticatedUser(access_token)
-      this.postHog.identify(`github:${user.login}`, {
-        github_id: user.id,
-        github_login: user.login,
-        github_email: user.email,
-        github_name: user.name,
-      })
-    } catch (error) {
-      // Silently fail if identification fails - don't block the OAuth flow
-      this.logger.debug({ error }, 'Failed to identify user during GitHub OAuth callback')
-    }
+    this.postHog.identifyFromRequest(req)
 
     this.setHeader('Refresh', `0; url=${returnUrl || '/github/picker'}`)
     return

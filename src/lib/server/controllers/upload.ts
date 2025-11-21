@@ -5,7 +5,7 @@ import { container, inject, injectable } from 'tsyringe'
 import { UploadError } from '../errors.js'
 import { octokitTokenCookie, posthogIdCookie } from '../models/cookieNames.js'
 import Parser from '../utils/dtdl/parser.js'
-import { PostHogService } from '../utils/postHog/postHogService.js'
+import { PostHogService, ensurePostHogId } from '../utils/postHog/postHogService.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
@@ -14,7 +14,7 @@ import { Logger, type ILogger } from '../logger.js'
 import { Cache, type ICache } from '../utils/cache.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
 import { RateLimiter } from '../utils/rateLimit.js'
-import { ensurePostHogId, recentFilesFromCookies, setCacheWithDefaultParams } from './helpers.js'
+import { recentFilesFromCookies, setCacheWithDefaultParams } from './helpers.js'
 
 const rateLimiter = container.resolve(RateLimiter)
 
