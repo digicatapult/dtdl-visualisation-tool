@@ -56,4 +56,3 @@ jobs:
     permissions:
       packages: write
       contents: write
-      security-events: write
