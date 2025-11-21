@@ -1,5 +1,6 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import express from 'express'
+import { randomUUID } from 'node:crypto'
 import { Get, Middlewares, Path, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { container, inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../../db/modelDb.js'
@@ -82,8 +83,6 @@ export class OntologyController extends HTMLController {
     let sessionId = params.sessionId
 
     if (!sessionId || !this.sessionStore.get(sessionId)) {
-      // Note: sessionId is for session store, posthogId cookie is for analytics
-      const { randomUUID } = await import('node:crypto')
       sessionId = randomUUID()
       const session = {
         layout: 'elk' as const,
