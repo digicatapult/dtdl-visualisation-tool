@@ -555,9 +555,12 @@ export class EntityController extends HTMLController {
     this.cache.clear()
   }
 
-  getExtendedBy = (model: DtdlObjectModel, entityId: UUID): DtdlId[] => {
+  getExtendedBy = (model: DtdlObjectModel, entityId: DtdlId, visited = new Set<DtdlId>()): DtdlId[] => {
+    if (visited.has(entityId)) throw new Error('Circular reference in extended bys')
+
+    visited.add(entityId)
     const entity = model[entityId]
     if (!isInterface(entity)) return []
-    return entity.extendedBy.flatMap((e) => [e, ...this.getExtendedBy(model, e)])
+    return entity.extendedBy.flatMap((e) => [e, ...this.getExtendedBy(model, e, visited)])
   }
 }
