@@ -91,6 +91,7 @@ export const mockDtdlObjectModel = {
     ...visualisationState,
     ...emptyEntityProperties,
     ...emptyInterfaceProperties,
+    extendedBy: ['dtmi:com:example_extended;1'],
   },
   'dtmi:com:example_extended;1': {
     Id: 'dtmi:com:example_extended;1',

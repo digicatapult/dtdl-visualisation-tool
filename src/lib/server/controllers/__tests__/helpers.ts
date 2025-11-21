@@ -8,11 +8,15 @@ import Database from '../../../db/index.js'
 import { ModelDb } from '../../../db/modelDb.js'
 import { InternalError } from '../../errors.js'
 import { ListItem } from '../../models/github.js'
-import { type UUID } from '../../models/strings.js'
+import { DtdlId, type UUID } from '../../models/strings.js'
 import { allInterfaceFilter } from '../../utils/dtdl/extract.js'
 import { FuseSearch } from '../../utils/fuseSearch.js'
 import { LRUCache } from '../../utils/lruCache.js'
-import { generatedSVGFixture, simpleMockDtdlObjectModel } from '../../utils/mermaid/__tests__/fixtures'
+import {
+  generatedSVGFixture,
+  mockDtdlObjectModel,
+  simpleMockDtdlObjectModel,
+} from '../../utils/mermaid/__tests__/fixtures'
 import { SvgGenerator } from '../../utils/mermaid/generator.js'
 import { SvgMutator } from '../../utils/mermaid/svgMutator.js'
 import SessionStore from '../../utils/sessions.js'
@@ -80,7 +84,7 @@ export const dtdlFileFixture =
   }) => ({
     '@context': ['dtmi:dtdl:context;4'],
     '@id': id,
-    '@type': 'Interface',
+    '@type': 'Interface' as const,
     displayName: 'displayName',
     description: 'description',
     comment: 'comment',
@@ -182,20 +186,32 @@ export const arrayDtdlFileFixture = (updates: {
   commandResponseUpdate?: Record<string, string>
 }) => [simpleDtdlFileFixture({}), dtdlFileFixture(arrayDtdlFileEntityId)(updates)]
 
-const mockDtdlTable = {
-  [simpleDtdlFileEntityId]: {
+const mockDtdlTable = [
+  {
     id: simpleDtdlRowId,
     model_id: simpleDtdlId,
     path: 'path',
-    contents: simpleDtdlFileFixture({}),
+    source: simpleDtdlFileFixture({}),
   },
-  [arrayDtdlFileEntityId]: {
-    id: arrayDtdlRowId,
+  {
+    id: simpleDtdlRowId,
     model_id: simpleDtdlId,
     path: 'path',
-    contents: arrayDtdlFileFixture({}),
+    source: arrayDtdlFileFixture({}),
   },
-}
+  {
+    id: arrayDtdlRowId,
+    model_id: githubDtdlId,
+    path: 'path',
+    source: [dtdlFileFixture('dtmi:com:partial;1')({}), dtdlFileFixture('dtmi:com:example;1')({})],
+  },
+  {
+    id: simpleDtdlRowId,
+    model_id: githubDtdlId,
+    path: 'path',
+    source: dtdlFileFixture('dtmi:com:example_extended;1')({}),
+  },
+]
 
 export const templateMock = {
   MermaidRoot: ({ search }: { search: string }) => `root_${search}_root`,
@@ -246,7 +262,8 @@ export const mockDb = {
   }),
 } as unknown as Database
 
-export const updateDtdlContentsStub = sinon.stub().resolves()
+export const updateDtdlSourceStub = sinon.stub().resolves()
+export const deleteOrUpdateDtdlSourceStub = sinon.stub().resolves()
 export const simpleMockModelDb = {
   getModelById: (id: UUID) => {
     if (id === 'badId') throw new InternalError(`Failed to find model: ${id}`)
@@ -256,15 +273,26 @@ export const simpleMockModelDb = {
       return Promise.resolve(null)
     }
   },
-  getDtdlByEntityId: (_modelId: UUID, id: UUID) => {
-    return Promise.resolve(mockDtdlTable[id])
+  getDtdlSourceByInterfaceId: (_modelId: UUID, interfaceId: DtdlId) => {
+    return Promise.resolve(
+      mockDtdlTable.find((dtdl) => {
+        if (dtdl.source['@id'] === interfaceId) {
+          return true
+        }
+        if (Array.isArray(dtdl.source)) {
+          return dtdl.source.some((sourceItem) => sourceItem['@id'] === interfaceId)
+        }
+        return false
+      })
+    )
   },
-  parseWithUpdatedFile: () => Promise.resolve(),
-  updateDtdlContents: updateDtdlContentsStub,
+  parseWithUpdatedFiles: () => Promise.resolve(),
+  updateDtdlSource: updateDtdlSourceStub,
+  deleteOrUpdateDtdlSource: deleteOrUpdateDtdlSourceStub,
   getDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
   insertModel: () => Promise.resolve(1),
   deleteDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
-  getDtdlModelAndTree: () => Promise.resolve({ model: simpleMockDtdlObjectModel, fileTree: [] }),
+  getDtdlModelAndTree: () => Promise.resolve({ model: mockDtdlObjectModel, fileTree: [] }),
   getCollection: (dtdlModel: DtdlObjectModel) =>
     Object.entries(dtdlModel)
       .filter(allInterfaceFilter)

@@ -73,7 +73,7 @@ export const EditableText = ({
   definedIn: DtdlId
   putRoute: string
   text?: string
-  keyName?: string
+  keyName: string
   additionalBody?: Record<string, string>
   multiline?: boolean
   maxLength?: number

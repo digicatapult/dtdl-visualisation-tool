@@ -14,10 +14,16 @@ const insertModel = z.object({
   repo: z.string().nullable(),
 })
 
+export const dtdlInterfaceBase = z.looseObject({ '@id': z.string(), '@type': z.literal('Interface') })
+export type DtdlInterface = z.infer<typeof dtdlInterfaceBase>
+export const dtdlSource = z.union([dtdlInterfaceBase, z.array(dtdlInterfaceBase)])
+export type DtdlSource = z.infer<typeof dtdlSource>
+export type NullableDtdlSource = DtdlSource | null
+
 const insertDtdl = z.object({
   path: z.string(),
   model_id: z.string(),
-  contents: z.unknown().refine((value) => value !== null && value !== undefined),
+  source: z.string(),
 })
 
 const ParsingError = z.object({
@@ -99,6 +105,7 @@ const Zod = {
     get: insertDtdl.extend({
       id: z.string(),
       created_at: z.date(),
+      source: dtdlSource.refine((value) => value !== null && value !== undefined),
     }),
   },
   dtdl_error: {
@@ -117,7 +124,7 @@ export type InsertDtdl = z.infer<typeof Zod.dtdl.insert>
 export type DtdlRow = z.infer<typeof Zod.dtdl.get>
 export type DtdlFile = {
   path: string
-  contents: string
+  source: string
   errors?: ModelingException[]
 }
 
@@ -142,7 +149,7 @@ export type WhereMatch<M extends TABLE> = {
 }
 
 export type Where<M extends TABLE> = WhereMatch<M> | (WhereMatch<M> | WhereComparison<M>[keyof Models[M]['get']])[]
-export type Update<M extends TABLE> = Partial<Models[M]['get']>
+export type Update<M extends TABLE> = Partial<Models[M]['insert']>
 
 export type IDatabase = {
   [key in TABLE]: () => Knex.QueryBuilder
