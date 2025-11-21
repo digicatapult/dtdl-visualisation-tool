@@ -14,7 +14,6 @@ describe('PostHogService', () => {
   let postHogCaptureStub: sinon.SinonStub
   let postHogIdentifyStub: sinon.SinonStub
   let postHogAliasStub: sinon.SinonStub
-  let postHogShutdownStub: sinon.SinonStub
 
   beforeEach(() => {
     mockEnv = sinon.createStubInstance(Env)
@@ -28,7 +27,6 @@ describe('PostHogService', () => {
     postHogCaptureStub = sinon.stub(PostHog.prototype, 'capture')
     postHogIdentifyStub = sinon.stub(PostHog.prototype, 'identify')
     postHogAliasStub = sinon.stub(PostHog.prototype, 'alias')
-    postHogShutdownStub = sinon.stub(PostHog.prototype, 'shutdown')
   })
 
   afterEach(() => {
@@ -421,37 +419,6 @@ describe('PostHogService', () => {
       )
 
       await expect(service.alias('user-123', 'user-alias-456')).to.not.be.rejected
-    })
-  })
-
-  describe('shutdown', () => {
-    it('should shutdown PostHog client when enabled', async () => {
-      mockEnv.get.withArgs('POSTHOG_ENABLED').returns(true)
-      mockEnv.get.withArgs('NEXT_PUBLIC_POSTHOG_KEY').returns('test-key')
-      mockEnv.get.withArgs('NEXT_PUBLIC_POSTHOG_HOST').returns('https://test.posthog.com')
-
-      const service = new PostHogService(
-        mockLogger,
-        mockEnv as unknown as Env,
-        mockGithubRequest as unknown as GithubRequest
-      )
-
-      await service.shutdown()
-
-      expect(postHogShutdownStub.calledOnce).to.equal(true)
-    })
-
-    it('should not throw when shutting down disabled service', async () => {
-      mockEnv.get.withArgs('POSTHOG_ENABLED').returns(false)
-
-      const service = new PostHogService(
-        mockLogger,
-        mockEnv as unknown as Env,
-        mockGithubRequest as unknown as GithubRequest
-      )
-
-      await expect(service.shutdown()).to.not.be.rejected
-      expect(postHogShutdownStub.called).to.equal(false)
     })
   })
 

@@ -135,6 +135,9 @@ export class PostHogService {
   /**
    * Capture a generic event with properties
    * Non-blocking, swallows errors
+   * @param distinctId - User identifier (anonymousId or github:username)
+   * @param event - Event name
+   * @param properties - Optional event properties
    */
   async captureEvent(distinctId: string, event: string, properties?: PostHogEventProperties): Promise<void> {
     if (!this.enabled || !this.postHogClient) {
@@ -155,8 +158,8 @@ export class PostHogService {
 
   /**
    * Track ontology upload event
-   * @param distinctId - User/session identifier (sessionId or github:username)
-   * @param event - Event properties including ontologyId
+   * @param distinctId - User identifier (anonymousId or github:username)
+   * @param event - Event properties including ontologyId, source, fileCount, and fileName
    */
   async trackUploadOntology(distinctId: string, event: UploadOntologyEvent): Promise<void> {
     return this.captureEvent(distinctId, 'uploadOntology', event)
@@ -164,8 +167,8 @@ export class PostHogService {
 
   /**
    * Track ontology view update event
-   * @param distinctId - User/session identifier (sessionId or github:username)
-   * @param event - Event properties including ontologyId
+   * @param distinctId - User identifier (anonymousId or github:username)
+   * @param event - Event properties including ontologyId, diagramType, hasSearch, expandedCount, and highlightNodeId
    */
   async trackUpdateOntologyView(distinctId: string, event: UpdateOntologyViewEvent): Promise<void> {
     return this.captureEvent(distinctId, 'updateOntologyView', event)
@@ -173,8 +176,8 @@ export class PostHogService {
 
   /**
    * Track node selection event
-   * @param distinctId - User/session identifier (sessionId or github:username)
-   * @param event - Event properties including ontologyId
+   * @param distinctId - User identifier (anonymousId or github:username)
+   * @param event - Event properties including ontologyId, entityId, and entityKind
    */
   async trackNodeSelected(distinctId: string, event: NodeSelectedEvent): Promise<void> {
     return this.captureEvent(distinctId, 'nodeSelected', event)
@@ -182,7 +185,7 @@ export class PostHogService {
 
   /**
    * Track mode toggle event (view/edit)
-   * @param distinctId - User/session identifier (sessionId or github:username)
+   * @param distinctId - User identifier (anonymousId or github:username)
    * @param event - Event properties including ontologyId and editMode
    */
   async trackModeToggle(distinctId: string, event: ModeToggleEvent): Promise<void> {
@@ -191,6 +194,8 @@ export class PostHogService {
 
   /**
    * Identify a user with properties
+   * @param distinctId - User identifier (anonymousId or github:username)
+   * @param properties - Optional user properties to associate with the distinct ID
    */
   async identify(distinctId: string, properties?: PostHogEventProperties): Promise<void> {
     if (!this.enabled || !this.postHogClient) {
@@ -210,6 +215,9 @@ export class PostHogService {
 
   /**
    * Alias a user ID to another ID
+   * Links two distinct IDs together, typically used to connect an anonymous ID to a GitHub user
+   * @param distinctId - Primary user identifier (typically github:username)
+   * @param alias - Secondary identifier to link (typically anonymousId from POSTHOG_ID cookie)
    */
   async alias(distinctId: string, alias: string): Promise<void> {
     if (!this.enabled || !this.postHogClient) {
@@ -224,16 +232,6 @@ export class PostHogService {
       this.logger.debug(`Aliased user: ${distinctId} -> ${alias}`)
     } catch (error) {
       this.logger.warn({ error }, `Failed to alias user in PostHog: ${distinctId}`)
-    }
-  }
-
-  /**
-   * Shutdown the PostHog client gracefully
-   */
-  async shutdown(): Promise<void> {
-    if (this.postHogClient) {
-      await this.postHogClient.shutdown()
-      this.logger.info('PostHogService shutdown complete')
     }
   }
 }
