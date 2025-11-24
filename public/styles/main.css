@@ -154,14 +154,7 @@ label[for='diagram-type-select'] {
 }
 
 #mermaid-output-message {
-  position: absolute;
-  top: 10%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: none;
-  border-radius: 5px;
   padding: 2rem;
-  max-width: 50ch;
 }
 #mermaid-output-message > .info-logo {
   width: 75px;
@@ -431,6 +424,11 @@ label[for='diagram-type-select'] {
 #delete-dialog p {
   margin: 0;
   font-size: 0.8rem;
+}
+
+#extended-by-list {
+  overflow: auto;
+  max-height: 9.5rem;
 }
 
 #delete-confirmation {
