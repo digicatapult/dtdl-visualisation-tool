@@ -62,7 +62,7 @@ export class GithubController extends HTMLController {
 
     req.res?.cookie(octokitTokenCookie, access_token, {
       sameSite: true,
-      maxAge: (expires_in - 5 * 60) * 1000, // 5 mins less than expiry
+      maxAge: expires_in ? (expires_in - 5 * 60) * 1000 : undefined, // 5 mins less than expiry
       httpOnly: true,
       signed: true,
       secure: process.env.NODE_ENV === 'production',
@@ -243,8 +243,8 @@ export class GithubController extends HTMLController {
       'github',
       owner,
       repo,
-      files,
-      ref
+      ref,
+      files
     )
 
     setCacheWithDefaultParams(this.cache, id, output)

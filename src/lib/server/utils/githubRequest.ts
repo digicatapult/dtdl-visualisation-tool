@@ -316,16 +316,6 @@ export class GithubRequest {
     return response.data
   }
 
-  checkTokenPermissions = async (token: string) => {
-    const octokit = new Octokit({ auth: token })
-    const response = await this.requestWrapper(async () => octokit.request('GET /user'))
-
-    return {
-      permissions: response.headers['x-accepted-github-permissions'],
-      scopes: response.headers['x-oauth-scopes'],
-    }
-  }
-
   public async requestWrapper<T>(request: () => Promise<T>): Promise<T> {
     try {
       return await request()

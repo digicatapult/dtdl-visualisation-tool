@@ -52,7 +52,36 @@ export function errorToast(error: unknown) {
             )}
           </div>
           <form method="dialog">
-            <button class="modal-button" />
+            <button class="close-button">×</button>
+          </form>
+        </dialog>
+        <div class="toast-wrapper" />
+      </>
+    ),
+  }
+}
+
+export function successToast(title: string, message: string, link?: string) {
+  const dialogId = randomUUID()
+  return {
+    dialogId,
+    response: (
+      <>
+        <dialog open id={dialogId}>
+          <img src="/public/images/tick-circle.svg" width="54px" height="50px" />
+          <div class="toast-content">
+            <h1>{escapeHtml(title)}</h1>
+            <p>{escapeHtml(message)}</p>
+            {link && (
+              <p>
+                <a href={link} target="_blank">
+                  View Pull Request
+                </a>
+              </p>
+            )}
+          </div>
+          <form method="dialog">
+            <button class="close-button">×</button>
           </form>
         </dialog>
         <div class="toast-wrapper" />

@@ -76,6 +76,7 @@ export default class MermaidTemplates {
       <this.svgControls svgRawHeight={svgHeight} svgRawWidth={svgWidth} />
       <this.editToggle canEdit={canEdit} />
       <this.deleteDialog />
+      <this.PublishDialog />
     </Page>
   )
 
@@ -867,6 +868,65 @@ export default class MermaidTemplates {
     )
   }
 
+  public PublishDialog = ({ ontologyId }: { ontologyId?: UUID } = {}) => {
+    if (!env.get('EDIT_ONTOLOGY')) return <></>
+    const timestamp = Date.now()
+    const defaultBranchName = `ontology-update-${timestamp}`
+
+    return (
+      <dialog id="publish-dialog">
+        <form
+          hx-post="/publish"
+          hx-target="#toast-container"
+          hx-swap="beforeend"
+          hx-on--after-request="document.getElementById('publish-dialog').close()"
+        >
+          <header>
+            <h3>Publish Changes</h3>
+            <button
+              type="button"
+              class="close-button"
+              onclick="document.getElementById('publish-dialog').close()"
+              aria-label="Close"
+            >
+              ×
+            </button>
+          </header>
+          <div class="modal-content">
+            <label for="commitMessage">Commit message</label>
+            <input
+              type="text"
+              id="commitMessage"
+              name="commitMessage"
+              value="Update ontology files from DTDL visualisation tool"
+              required
+            />
+
+            <label for="description">Extended description</label>
+            <textarea id="description" name="description" rows="4" required>
+              This PR was automatically created by the DTDL visualisation tool.
+            </textarea>
+
+            <div class="radio-group">
+              <label>
+                <input type="radio" name="publishType" value="newBranch" checked />
+                Create a new branch for this commit and start a pull request
+              </label>
+            </div>
+
+            <input type="text" name="branchName" value={defaultBranchName} required />
+            <input type="hidden" name="ontologyId" value={escapeHtml(ontologyId || '')} />
+          </div>
+          <footer>
+            <button type="submit" class="button primary">
+              Publish Changes
+            </button>
+          </footer>
+        </form>
+      </dialog>
+    )
+  }
+
   public deleteDialog = ({
     displayName,
     entityKind,
@@ -1047,22 +1107,22 @@ export default class MermaidTemplates {
   private publishForm = ({ canPublish, ontologyId }: { canPublish: boolean; ontologyId: UUID }) => {
     if (!env.get('EDIT_ONTOLOGY')) return <></>
     return (
-      <form hx-post="/publish" hx-disabled-elt="button">
-        <input type="hidden" name="ontologyId" value={escapeHtml(ontologyId)} />
-        <button
-          id="publish-ontology"
-          type="submit"
-          class={`button ${!canPublish ? 'disabled' : ''}`}
-          disabled={!canPublish}
-          title={
-            canPublish
-              ? 'Click to publish ontology'
-              : 'Only Ontologies from github that you have write permissions on, can be published'
-          }
-        >
-          Publish
-        </button>
-      </form>
+      <button
+        id="publish-ontology"
+        class={`button ${!canPublish ? 'disabled' : ''}`}
+        disabled={!canPublish}
+        hx-get={`/publish/dialog?ontologyId=${ontologyId}`}
+        hx-target="#publish-dialog"
+        hx-swap="outerHTML"
+        hx-on--after-request="document.getElementById('publish-dialog').showModal()"
+        title={
+          canPublish
+            ? 'Click to publish ontology'
+            : 'Only Ontologies from github that you have write permissions on, can be published'
+        }
+      >
+        Publish
+      </button>
     )
   }
 
