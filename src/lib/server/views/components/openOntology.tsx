@@ -125,19 +125,6 @@ export default class OpenOntologyTemplates {
                   id="github-list-view"
                   class="github-list"
                   hx-indicator="#spin-view"
-                  hx-get={populateViewListLink}
-                  hx-trigger="load"
-                ></ul>
-              </div>
-            </div>
-            <div class="repo-list-column" style="flex: 1;">
-              <h3>Editable Repos</h3>
-              <div id="github-list-wrapper-edit" class="github-list-wrapper">
-                <div id="spin-edit" class="spinner" />
-                <ul
-                  id="github-list-edit"
-                  class="github-list"
-                  hx-indicator="#spin-edit"
                   hx-get={populateEditListLink}
                   hx-trigger="load"
                 ></ul>
