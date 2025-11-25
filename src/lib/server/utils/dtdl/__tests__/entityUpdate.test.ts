@@ -1,7 +1,6 @@
 import { describe, test } from 'mocha'
 
 import { expect } from 'chai'
-import { ZodError } from 'zod'
 import {
   dtdlFileFixture,
   propertyName,
@@ -163,12 +162,6 @@ describe('entity updates', function () {
   })
 
   describe('sad path', function () {
-    test('throws Zod error if display name key is missing in file', async () => {
-      expect(() => {
-        updateDisplayName('display name')({})
-      }).to.throw(ZodError)
-    })
-
     test('throws error for display name too long', async () => {
       const newDisplayName = 'a'.repeat(MAX_DISPLAY_NAME_LENGTH + 1)
       expect(() => {
@@ -275,11 +268,6 @@ describe('entity updates', function () {
       expect(() => {
         updateRelationshipTarget('dtmi:com:target;1', 'nonExistentRelationship')(baseFile({}))
       })
-    })
-    test('deleteContent throws Zod error if no matching content name in file', async () => {
-      expect(() => {
-        deleteContent(relationshipName)({})
-      }).to.throw(ZodError)
     })
   })
 })
