@@ -226,7 +226,13 @@ export const templateMock = {
   deleteDialog: () => `deleteDialog_deleteDialog`,
 } as unknown as MermaidTemplates
 export const openOntologyMock = {
-  OpenOntologyRoot: ({ populateListLink }: { populateListLink?: string }) => `root_${populateListLink}_root`,
+  OpenOntologyRoot: ({
+    populateViewListLink,
+    populateEditListLink,
+  }: {
+    populateViewListLink?: string
+    populateEditListLink?: string
+  }) => `root_${populateViewListLink}_${populateEditListLink}_root`,
   mainView: (): JSX.Element => `mainView_SomethingHere_mainView`,
   getMenu: ({ showContent }: { showContent: boolean }) => `uploadMethod_${showContent}_uploadMethod`,
   uploadZip: () => `uploadZip_Zip_uploadZip`,

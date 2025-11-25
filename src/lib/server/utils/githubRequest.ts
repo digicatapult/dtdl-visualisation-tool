@@ -1,5 +1,7 @@
+import { createAppAuth } from '@octokit/auth-app'
 import { Octokit } from '@octokit/core'
 import { RequestError } from '@octokit/request-error'
+import { readFileSync } from 'fs'
 import { container, inject, singleton } from 'tsyringe'
 
 import { Env } from '../env/index.js'
@@ -35,6 +37,37 @@ export class GithubRequest {
       })
     )
     return response.data
+  }
+
+  getPushableRepos = async (token: string | undefined, page: number) => {
+    if (!token) throw new GithubReqError('Missing GitHub token')
+
+    const octokit = new Octokit({ auth: token })
+    const response = await this.requestWrapper(async () =>
+      octokit.request('GET /user/installations', {
+        per_page: perPage,
+        page,
+      })
+    )
+    const installations = response.data
+    if (installations.total_count === 0) {
+      return []
+    }
+
+    const installation = installations.installations.find((inst) => inst.client_id === env.get('GH_CLIENT_ID'))
+
+    if (!installation) {
+      return []
+    }
+
+    const reposResponse = await this.requestWrapper(async () =>
+      octokit.request('GET /user/installations/{installation_id}/repositories', {
+        installation_id: installation.id,
+        per_page: perPage,
+        page,
+      })
+    )
+    return reposResponse.data.repositories.filter((repo) => repo.permissions?.push)
   }
 
   getBranches = async (token: string | undefined, owner: string, repo: string, page: number) => {
@@ -95,27 +128,60 @@ export class GithubRequest {
   }
 
   getRepoPermissions = async (token: string, owner: string, repo: string): Promise<ViewAndEditPermission> => {
-    const octokit = new Octokit({ auth: token })
-    try {
-      const response = await this.requestWrapper(async () =>
-        octokit.request('GET /repos/{owner}/{repo}', {
-          owner,
-          repo,
-        })
-      )
-      const data = response.data
-      if (data.permissions?.push) {
-        return 'edit'
-      } else if (data.permissions?.pull) {
-        return 'view'
-      }
-      return 'unauthorised'
-    } catch (error) {
-      if (error instanceof GithubNotFound) {
-        return 'unauthorised'
-      }
-      throw error
+    const privateKey = readFileSync('test.pem', 'utf-8')
+    const appId = 1113102
+
+    const appOctokit = new Octokit({
+      authStrategy: createAppAuth,
+      auth: {
+        appId,
+        privateKey,
+      },
+    })
+
+    const { data: installation } = await this.requestWrapper(async () =>
+      appOctokit.request('GET /repos/{owner}/{repo}/installation', {
+        owner,
+        repo,
+      })
+    )
+    if (installation.permissions.contents === 'write' && installation.permissions.pull_requests === 'write') {
+      return 'edit'
     }
+
+    return 'unauthorised'
+
+    // const userOctokit = new Octokit({ auth: token })
+    // const { data: userInstallations } = await this.requestWrapper(async () =>
+    //   userOctokit.request('GET /user/installations', {
+    //     per_page: perPage,
+    //     page: 1,
+    //   })
+    // )
+
+    // const hasInstallation = userInstallations.installations.some(
+    //   (inst) => inst.id === installation.id && inst.client_id === env.get('GH_CLIENT_ID')
+    // )
+
+    // if (!hasInstallation) {
+    //   return 'unauthorised'
+    // }
+
+    // const { data: repos } = await this.requestWrapper(async () =>
+    //   userOctokit.request('GET /user/installations/{installation_id}/repositories', {
+    //     installation_id: installation.id,
+    //     per_page: perPage,
+    //   })
+    // )
+
+    //const repoPermissions = repos.repositories.find((r) => r.full_name === `${owner}/${repo}`)?.permissions
+
+    if (repoPermissions?.push) {
+      return 'edit'
+    } else if (repoPermissions?.pull) {
+      return 'view'
+    }
+    return 'unauthorised'
   }
 
   getZip = async (token: string | undefined, owner: string, repo: string, ref: string) => {

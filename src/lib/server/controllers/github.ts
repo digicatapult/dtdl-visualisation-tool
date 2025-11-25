@@ -45,9 +45,12 @@ export class GithubController extends HTMLController {
       return
     }
 
-    const populateListLink = safeUrl(`/github/repos`, { page: '1' })
+    const octokitToken = req.signedCookies[octokitTokenCookie]
+
+    const populateViewListLink = safeUrl(`/github/repos`, { page: '1', type: 'view' })
+    const populateEditListLink = safeUrl(`/github/repos`, { page: '1', type: 'edit' })
     const recentFiles = await recentFilesFromCookies(this.modelDb, req.signedCookies, this.logger)
-    return this.html(this.templates.OpenOntologyRoot({ populateListLink, recentFiles }))
+    return this.html(this.templates.OpenOntologyRoot({ populateViewListLink, populateEditListLink, recentFiles }))
   }
 
   // Called by GitHub after external OAuth login
@@ -75,7 +78,11 @@ export class GithubController extends HTMLController {
   @SuccessResponse(200, '')
   @Produces('text/html')
   @Get('/repos')
-  public async repos(@Query() page: number, @Request() req: express.Request): Promise<HTML | void> {
+  public async repos(
+    @Query() page: number,
+    @Request() req: express.Request,
+    @Query() type: 'view' | 'edit' = 'view'
+  ): Promise<HTML | void> {
     const octokitToken = req.signedCookies[octokitTokenCookie]
     if (!octokitToken) {
       this.setStatus(302)
@@ -83,7 +90,10 @@ export class GithubController extends HTMLController {
       return
     }
 
-    const response = await this.githubRequest.getRepos(octokitToken, page)
+    const response =
+      type === 'edit'
+        ? await this.githubRequest.getPushableRepos(octokitToken, page)
+        : await this.githubRequest.getRepos(octokitToken, page)
 
     const repos: ListItem[] = response.map(({ full_name, owner: { login: owner }, name }) => ({
       text: full_name,
@@ -91,12 +101,9 @@ export class GithubController extends HTMLController {
     }))
 
     return this.html(
-      this.templates.githubPathLabel({
-        path: `Repos:`,
-      }),
       this.templates.githubListItems({
         list: repos,
-        nextPageLink: safeUrl(`/github/repos`, { page: `${page + 1}` }),
+        nextPageLink: safeUrl(`/github/repos`, { page: `${page + 1}`, type }),
       })
     )
   }

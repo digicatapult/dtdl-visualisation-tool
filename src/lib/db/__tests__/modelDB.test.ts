@@ -101,8 +101,8 @@ describe('modelDB', function () {
         'default' as FileSourceKeys,
         'owner',
         'repo',
-        [{ ...mockFile, errors: [errorFixture] }],
-        'main'
+        'branch',
+        [{ ...mockFile, errors: [errorFixture] }]
       )
       expect(newModelId).to.equal('1')
       expect((dbTransactionMock.insert as sinon.SinonStub).calledThrice).to.equal(true)

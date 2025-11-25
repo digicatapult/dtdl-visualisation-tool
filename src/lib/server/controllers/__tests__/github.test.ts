@@ -97,6 +97,7 @@ const getContentsStub = sinon.stub()
 
 export const mockGithubRequest = {
   getRepos: () => Promise.resolve(repos),
+  getPushableRepos: () => Promise.resolve(repos),
   getBranches: () => Promise.resolve(branches),
   getContents: getContentsStub,
   getAccessToken: () => Promise.resolve(token),
@@ -151,7 +152,7 @@ describe('GithubController', async () => {
       }
       const html = await toHTMLString(result)
 
-      expect(html).to.equal(`root_/github/repos?page=1_root`)
+      expect(html).to.equal(`root_/github/repos?page=1&type=view_/github/repos?page=1&type=edit_root`)
     })
 
     it('should redirect if octokit token NOT present in cookies', async () => {
@@ -182,7 +183,7 @@ describe('GithubController', async () => {
     const page = 1
     it('should return repo full names in list', async () => {
       const onClickLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=1`
-      const nextPageLink = `/github/repos?page=${page + 1}`
+      const nextPageLink = `/github/repos?page=${page + 1}&type=view`
       const backLink = undefined
       const result = await controller.repos(page, mockReqWithCookie(cookie))
 
@@ -193,10 +194,7 @@ describe('GithubController', async () => {
       const html = await toHTMLString(result)
 
       expect(html).to.equal(
-        [
-          `githubPathLabel_Repos:_githubPathLabel`,
-          `githubListItems_${mockFullName}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`,
-        ].join('')
+        [`githubListItems_${mockFullName}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`].join('')
       )
     })
 
