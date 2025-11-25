@@ -14,6 +14,7 @@ import { logger } from './lib/server/logger.js'
 import { Cache, ICache } from './lib/server/utils/cache.js'
 import Parser from './lib/server/utils/dtdl/parser.js'
 import { SvgGenerator } from './lib/server/utils/mermaid/generator.js'
+import { PostHogService } from './lib/server/utils/postHog/postHogService.js'
 import version from './version.js'
 
 const program = new Command()
@@ -38,6 +39,7 @@ program
     const generator = container.resolve(SvgGenerator)
     const cache = container.resolve<ICache>(Cache)
     const parser = container.resolve(Parser)
+    const postHog = container.resolve(PostHogService)
     logger.info(`Loading default model`)
 
     const modelDb = new ModelDb(db, parser)
@@ -66,6 +68,14 @@ program
 
       const id = await modelDb.insertModel(`default`, output.renderForMinimap(), 'default', null, null, null, files)
       setCacheWithDefaultParams(cache, id, output)
+
+      // Track default model load (fire-and-forget) - no user context in CLI
+      postHog.trackUploadOntology(undefined, 'system', {
+        ontologyId: id,
+        source: 'default',
+        fileCount: files.length,
+        fileName: 'default',
+      })
     }
 
     logger.info(`Complete`)

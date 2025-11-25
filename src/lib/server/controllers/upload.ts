@@ -3,7 +3,9 @@ import { Get, Middlewares, Post, Produces, Query, Request, Route, SuccessRespons
 import { container, inject, injectable } from 'tsyringe'
 
 import { UploadError } from '../errors.js'
+import { octokitTokenCookie, posthogIdCookie } from '../models/cookieNames.js'
 import Parser from '../utils/dtdl/parser.js'
+import { PostHogService, ensurePostHogId } from '../utils/postHog/postHogService.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
@@ -24,6 +26,7 @@ export class OpenOntologyController extends HTMLController {
     private generator: SvgGenerator,
     private openOntologyTemplates: OpenOntologyTemplates,
     private parser: Parser,
+    private postHog: PostHogService,
     @inject(Logger) private logger: ILogger,
     @inject(Cache) private cache: ICache
   ) {
@@ -33,6 +36,7 @@ export class OpenOntologyController extends HTMLController {
 
   @SuccessResponse(200)
   @Produces('text/html')
+  @Middlewares(ensurePostHogId)
   @Get('/')
   public async open(@Request() req: express.Request): Promise<HTML> {
     this.setHeader('HX-Push-Url', `/open`)
@@ -43,15 +47,19 @@ export class OpenOntologyController extends HTMLController {
 
   @SuccessResponse(200)
   @Produces('text/html')
+  @Middlewares(ensurePostHogId)
   @Get('/menu')
   public async getMenu(@Query() showContent: boolean): Promise<HTML> {
     return this.html(this.openOntologyTemplates.getMenu({ showContent }))
   }
 
   @SuccessResponse(302, 'File uploaded successfully')
-  @Middlewares(rateLimiter.strictLimitMiddleware)
+  @Middlewares(rateLimiter.strictLimitMiddleware, ensurePostHogId)
   @Post('/')
-  public async uploadZip(@UploadedFile('file') file: Express.Multer.File): Promise<void> {
+  public async uploadZip(
+    @UploadedFile('file') file: Express.Multer.File,
+    @Request() req: express.Request
+  ): Promise<void> {
     if (file.mimetype !== 'application/zip') {
       throw new UploadError('File must be a .zip')
     }
@@ -74,6 +82,14 @@ export class OpenOntologyController extends HTMLController {
     )
 
     setCacheWithDefaultParams(this.cache, id, output)
+
+    // Track upload event with proper user/session identification (fire-and-forget)
+    this.postHog.trackUploadOntology(req.signedCookies[octokitTokenCookie], req.signedCookies[posthogIdCookie], {
+      ontologyId: id,
+      source: 'zip',
+      fileCount: files.length,
+      fileName: file.originalname,
+    })
 
     this.setHeader('HX-Redirect', `/ontology/${id}/view`)
     return

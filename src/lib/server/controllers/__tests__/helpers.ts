@@ -7,6 +7,7 @@ import sinon from 'sinon'
 import Database from '../../../db/index.js'
 import { ModelDb } from '../../../db/modelDb.js'
 import { InternalError } from '../../errors.js'
+import { posthogIdCookie } from '../../models/cookieNames.js'
 import { ListItem } from '../../models/github.js'
 import { DtdlId, type UUID } from '../../models/strings.js'
 import { allInterfaceFilter } from '../../utils/dtdl/extract.js'
@@ -19,6 +20,7 @@ import {
 } from '../../utils/mermaid/__tests__/fixtures'
 import { SvgGenerator } from '../../utils/mermaid/generator.js'
 import { SvgMutator } from '../../utils/mermaid/svgMutator.js'
+import { PostHogService } from '../../utils/postHog/postHogService.js'
 import SessionStore from '../../utils/sessions.js'
 import MermaidTemplates from '../../views/components/mermaid'
 import OpenOntologyTemplates from '../../views/components/openOntology'
@@ -371,9 +373,10 @@ export const toHTMLString = async (...streams: Readable[]) => {
   return Buffer.concat(chunks).toString('utf8')
 }
 
-export const mockReq = (headers: Record<string, string>) => {
+export const mockReq = (headers: Record<string, string>, cookies: Record<string, unknown> = {}) => {
   return {
     header: (key: string) => headers[key],
+    signedCookies: { [posthogIdCookie]: 'test-posthog-id', ...cookies },
   } as unknown as express.Request
 }
 
@@ -385,7 +388,21 @@ export const mockReqWithCookie = (cookie: Record<string, unknown>) => {
       statusCode: 200,
       sendStatus: sinon.spy(),
     },
-    signedCookies: cookie,
+    signedCookies: { [posthogIdCookie]: 'test-posthog-id', ...cookie },
     header: () => '',
   } as unknown as express.Request
 }
+
+export const mockPostHog = {
+  getDistinctId: sinon.stub().resolves('test-session-id'),
+  trackUploadOntology: sinon.stub().resolves(),
+  trackUpdateOntologyView: sinon.stub().resolves(),
+  trackNodeSelected: sinon.stub().resolves(),
+  trackModeToggle: sinon.stub().resolves(),
+  captureEvent: sinon.stub().resolves(),
+  identify: sinon.stub().resolves(),
+  alias: sinon.stub().resolves(),
+  identifyFromGitHubToken: sinon.stub().resolves(),
+  identifySession: sinon.stub().resolves(),
+  identifyFromRequest: sinon.stub().resolves(),
+} as unknown as PostHogService

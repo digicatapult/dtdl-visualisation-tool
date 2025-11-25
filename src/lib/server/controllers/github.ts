@@ -5,12 +5,13 @@ import { container, inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../db/modelDb.js'
 import { GithubNotFound, GithubReqError } from '../errors.js'
 import { type ILogger, Logger } from '../logger.js'
-import { octokitTokenCookie } from '../models/cookieNames.js'
+import { octokitTokenCookie, posthogIdCookie } from '../models/cookieNames.js'
 import { ListItem } from '../models/github.js'
 import { type ICache, Cache } from '../utils/cache.js'
 import Parser from '../utils/dtdl/parser.js'
 import { GithubRequest, authRedirectURL } from '../utils/githubRequest.js'
 import { SvgGenerator } from '../utils/mermaid/generator.js'
+import { PostHogService, ensurePostHogId } from '../utils/postHog/postHogService.js'
 import { RateLimiter } from '../utils/rateLimit.js'
 import { safeUrl } from '../utils/url.js'
 import OpenOntologyTemplates from '../views/components/openOntology.js'
@@ -28,6 +29,7 @@ export class GithubController extends HTMLController {
     private githubRequest: GithubRequest,
     private generator: SvgGenerator,
     private parser: Parser,
+    private postHog: PostHogService,
     @inject(Logger) private logger: ILogger,
     @inject(Cache) private cache: ICache
   ) {
@@ -37,6 +39,7 @@ export class GithubController extends HTMLController {
 
   @SuccessResponse(200, '')
   @Produces('text/html')
+  @Middlewares(ensurePostHogId)
   @Get('/picker')
   public async picker(@Request() req: express.Request): Promise<HTML | void> {
     if (!req.signedCookies[octokitTokenCookie]) {
@@ -55,6 +58,7 @@ export class GithubController extends HTMLController {
 
   // Called by GitHub after external OAuth login
   @SuccessResponse(200)
+  @Middlewares(ensurePostHogId)
   @Get('/callback')
   public async callback(
     @Request() req: express.Request,
@@ -71,12 +75,19 @@ export class GithubController extends HTMLController {
       secure: process.env.NODE_ENV === 'production',
     })
 
+    // Make the token available for identifyFromRequest
+    req.signedCookies[octokitTokenCookie] = access_token
+
+    // Identify user in PostHog after successful authentication (fire-and-forget)
+    this.postHog.identifyFromRequest(req)
+
     this.setHeader('Refresh', `0; url=${returnUrl || '/github/picker'}`)
     return
   }
 
   @SuccessResponse(200, '')
   @Produces('text/html')
+  @Middlewares(ensurePostHogId)
   @Get('/repos')
   public async repos(
     @Query() page: number,
@@ -110,6 +121,7 @@ export class GithubController extends HTMLController {
 
   @SuccessResponse(200, '')
   @Produces('text/html')
+  @Middlewares(ensurePostHogId)
   @Get('/branches')
   public async branches(
     @Query() owner: string,
@@ -153,6 +165,7 @@ export class GithubController extends HTMLController {
 
   @SuccessResponse(200, '')
   @Produces('text/html')
+  @Middlewares(ensurePostHogId)
   @Get('/contents')
   public async contents(
     @Query() owner: string,
@@ -218,7 +231,7 @@ export class GithubController extends HTMLController {
 
   @SuccessResponse(200, '')
   @Produces('text/html')
-  @Middlewares(rateLimiter.strictLimitMiddleware)
+  @Middlewares(rateLimiter.strictLimitMiddleware, ensurePostHogId)
   @Get('/directory')
   public async directory(
     @Query() owner: string,
@@ -255,6 +268,15 @@ export class GithubController extends HTMLController {
     )
 
     setCacheWithDefaultParams(this.cache, id, output)
+
+    // Track GitHub ontology upload with proper user identification (fire-and-forget)
+    this.postHog.trackUploadOntology(octokitToken, req.signedCookies[posthogIdCookie], {
+      ontologyId: id,
+      source: 'github',
+      fileCount: files.length,
+      fileName: `${owner}/${repo}/${ref}/${path}`,
+    })
+
     this.setHeader('HX-Redirect', `/ontology/${id}/view`)
     return
   }
@@ -270,6 +292,7 @@ export class GithubController extends HTMLController {
    */
   @SuccessResponse(200, '')
   @Produces('text/html')
+  @Middlewares(ensurePostHogId)
   @Get('/navigate')
   public async navigate(@Query() url: string, @Request() req: express.Request): Promise<HTML | void> {
     const octokitToken = req.signedCookies[octokitTokenCookie]

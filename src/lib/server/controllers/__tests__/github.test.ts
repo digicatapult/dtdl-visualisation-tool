@@ -18,6 +18,7 @@ import {
   mockCache,
   mockGenerator,
   mockLogger,
+  mockPostHog,
   mockReqWithCookie,
   openOntologyMock,
   simpleMockModelDb,
@@ -103,6 +104,12 @@ export const mockGithubRequest = {
   getAccessToken: () => Promise.resolve(token),
   getZip: () => Promise.resolve(readFileSync(path.resolve(__dirname, './simple.zip'))),
   getRepoPermissions: () => Promise.resolve('edit'),
+  getAuthenticatedUser: sinon.stub().resolves({
+    login: 'testuser',
+    id: 12345,
+    email: 'test@example.com',
+    name: 'Test User',
+  }),
 } as unknown as GithubRequest
 
 const unzipJsonFilesStub = sinon.stub()
@@ -120,6 +127,7 @@ describe('GithubController', async () => {
     mockGithubRequest,
     mockGenerator,
     mockParser,
+    mockPostHog,
     mockLogger,
     mockCache
   )

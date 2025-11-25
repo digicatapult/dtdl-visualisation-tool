@@ -184,6 +184,17 @@ export class GithubRequest {
     return 'unauthorised'
   }
 
+  getAuthenticatedUser = async (token: string) => {
+    const octokit = new Octokit({ auth: token })
+    const response = await this.requestWrapper(async () => octokit.request('GET /user'))
+    return {
+      login: response.data.login,
+      id: response.data.id,
+      email: response.data.email,
+      name: response.data.name,
+    }
+  }
+
   getZip = async (token: string | undefined, owner: string, repo: string, ref: string) => {
     if (!token) throw new GithubReqError('Missing GitHub token')
 

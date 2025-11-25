@@ -95,31 +95,34 @@ The application can be run in Docker. `sample/energygrid` is automatically parse
 
 ## Environment variables
 
-| variable name        | required | default                   | description                                                                                                                                  |
-| -------------------- | -------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| LOG_LEVEL            | n        | info                      | Logging level. Valid values are [ trace , debug , info , warn , error , fatal ]                                                              |
-| CACHE_TTL            | n        | `1000 * 60 * 5`           | Time to live (in seconds) for cached diagrams                                                                                                |
-| CACHE_SIZE           | n        | `100`                     | Maximum number of diagrams to cache                                                                                                          |
-| SEARCH_THRESHOLD     | n        | `0.4`                     | Threshold for a fuzzy search match. 0.0 is a perfect match, 1.0 matches anything.                                                            |
-| DB_HOST              | n        | `localhost`               | The database hostname / host                                                                                                                 |
-| DB_NAME              | n        | `dtdl-visualisation-tool` | The database name                                                                                                                            |
-| DB_USERNAME          | n        | `postgres`                | The database username                                                                                                                        |
-| DB_PASSWORD          | n        | `postgres`                | The database password                                                                                                                        |
-| DB_PORT              | n        | `5432`                    | The database port number                                                                                                                     |
-| UPLOAD_LIMIT_MB      | n        | `10`                      | Upload limit for DTDLs in MB                                                                                                                 |
-| GH_APP_NAME          | y        | -                         | See [GitHub Integration](#github-integration)                                                                                                |
-| GH_CLIENT_ID         | y        | -                         | See [GitHub Integration](#github-integration)                                                                                                |
-| GH_CLIENT_SECRET     | y        | -                         | See [GitHub Integration](#github-integration)                                                                                                |
-| GH_PER_PAGE          | n        | `50`                      | The number of results per GitHub API request (max 100)                                                                                       |
-| GH_REDIRECT_ORIGIN   | n        | `http://localhost:3000`   | Origin to redirect to for GitHub OAuth callback. See [GitHub Integration](#github-integration)                                               |
-| COOKIE_SESSION_KEYS  | y        | -                         | Secret for signed cookies, devDefault `secret`                                                                                               |
-| PUPPETEER_ARGS       | n        | ''                        | Comma separated string of puppeteer [launch args](https://pptr.dev/api/puppeteer.launchoptions) e.g. `--no-sandbox,--disable-setuid-sandbox` |
-| EDIT_ONTOLOGY        | n        | 'false'                   | Edit toggle is disabled on all ontologys when false and works as normal when true                                                            |
-| JSON_DEPTH_LIMIT     | n        | '10'                      | Maximum depth allowed of DTDL files                                                                                                          |
-| STRICT_RATE_LIMIT    | n        | '1000'                    | Number of requests allowed per client on strict routes within the `RATE_LIMIT_WINDOW_MS`                                                     |
-| GLOBAL_RATE_LIMIT    | n        | '10000'                   | Number of requests allowed per client on all routes within the `RATE_LIMIT_WINDOW_MS`                                                        |
-| IP_ALLOW_LIST        | n        | -                         | Comma separated IPs that can make unlimited requests                                                                                         |
-| RATE_LIMIT_WINDOW_MS | n        | '10 _ 60 _ 1000'          | How long client requests are counted before resetting                                                                                        |
+| variable name            | required | default                   | description                                                                                                                                  |
+| ------------------------ | -------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| LOG_LEVEL                | n        | info                      | Logging level. Valid values are [ trace , debug , info , warn , error , fatal ]                                                              |
+| CACHE_TTL                | n        | `1000 * 60 * 5`           | Time to live (in seconds) for cached diagrams                                                                                                |
+| CACHE_SIZE               | n        | `100`                     | Maximum number of diagrams to cache                                                                                                          |
+| SEARCH_THRESHOLD         | n        | `0.4`                     | Threshold for a fuzzy search match. 0.0 is a perfect match, 1.0 matches anything.                                                            |
+| DB_HOST                  | n        | `localhost`               | The database hostname / host                                                                                                                 |
+| DB_NAME                  | n        | `dtdl-visualisation-tool` | The database name                                                                                                                            |
+| DB_USERNAME              | n        | `postgres`                | The database username                                                                                                                        |
+| DB_PASSWORD              | n        | `postgres`                | The database password                                                                                                                        |
+| DB_PORT                  | n        | `5432`                    | The database port number                                                                                                                     |
+| UPLOAD_LIMIT_MB          | n        | `10`                      | Upload limit for DTDLs in MB                                                                                                                 |
+| GH_APP_NAME              | y        | -                         | See [GitHub Integration](#github-integration)                                                                                                |
+| GH_CLIENT_ID             | y        | -                         | See [GitHub Integration](#github-integration)                                                                                                |
+| GH_CLIENT_SECRET         | y        | -                         | See [GitHub Integration](#github-integration)                                                                                                |
+| GH_PER_PAGE              | n        | `50`                      | The number of results per GitHub API request (max 100)                                                                                       |
+| GH_REDIRECT_ORIGIN       | n        | `http://localhost:3000`   | Origin to redirect to for GitHub OAuth callback. See [GitHub Integration](#github-integration)                                               |
+| COOKIE_SESSION_KEYS      | y        | -                         | Secret for signed cookies, devDefault `secret`                                                                                               |
+| PUPPETEER_ARGS           | n        | ''                        | Comma separated string of puppeteer [launch args](https://pptr.dev/api/puppeteer.launchoptions) e.g. `--no-sandbox,--disable-setuid-sandbox` |
+| EDIT_ONTOLOGY            | n        | 'false'                   | Edit toggle is disabled on all ontologys when false and works as normal when true                                                            |
+| JSON_DEPTH_LIMIT         | n        | '10'                      | Maximum depth allowed of DTDL files                                                                                                          |
+| STRICT_RATE_LIMIT        | n        | '1000'                    | Number of requests allowed per client on strict routes within the `RATE_LIMIT_WINDOW_MS`                                                     |
+| GLOBAL_RATE_LIMIT        | n        | '10000'                   | Number of requests allowed per client on all routes within the `RATE_LIMIT_WINDOW_MS`                                                        |
+| IP_ALLOW_LIST            | n        | -                         | Comma separated IPs that can make unlimited requests                                                                                         |
+| RATE_LIMIT_WINDOW_MS     | n        | '10 _ 60 _ 1000'          | How long client requests are counted before resetting                                                                                        |
+| POSTHOG_ENABLED          | n        | 'false'                   | Feature flag for PostHog analytics tracking                                                                                                  |
+| NEXT_PUBLIC_POSTHOG_KEY  | n        | ''                        | API key for Posthog dashboard                                                                                                                |
+| NEXT_PUBLIC_POSTHOG_HOST | n        | ''                        | endpoint for Posthog dashboard                                                                                                               |
 
 ## GitHub integration
 

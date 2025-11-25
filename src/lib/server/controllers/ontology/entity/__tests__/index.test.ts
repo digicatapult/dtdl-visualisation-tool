@@ -1,3 +1,4 @@
+import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import * as chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import { describe, it } from 'mocha'
@@ -20,6 +21,7 @@ import {
   mockGenerator,
   mockLogger,
   mockMutator,
+  mockPostHog,
   mockReqWithCookie,
   mockSession,
   propertyName,
@@ -73,6 +75,7 @@ describe('EntityController', async () => {
     mockGenerator,
     mockMutator,
     templateMock,
+    mockPostHog,
     mockLogger,
     mockCache,
     mockSession,
@@ -1020,6 +1023,14 @@ describe('EntityController', async () => {
       await controller.deleteInterfaces(githubDtdlId, ['dtmi:com:example;1', 'dtmi:com:partial;1'])
 
       expect(deleteOrUpdateDtdlSourceStub.firstCall.args).to.deep.equal([[{ id: arrayDtdlRowId, source: null }]])
+    })
+
+    it('should handle circular extended by refs', async () => {
+      const model = {
+        '1': { EntityKind: 'Interface', extendedBy: ['2'] },
+        '2': { EntityKind: 'Interface', extendedBy: ['1'] },
+      } as unknown as DtdlObjectModel
+      expect(() => controller.getExtendedBy(model, '1')).to.throw(Error, 'Circular reference in extended bys')
     })
   })
 
