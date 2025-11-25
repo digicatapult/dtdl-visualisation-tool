@@ -41,19 +41,20 @@ export class GithubController extends HTMLController {
   @Produces('text/html')
   @Middlewares(ensurePostHogId)
   @Get('/picker')
-  public async picker(@Request() req: express.Request): Promise<HTML | void> {
+  public async picker(@Request() req: express.Request, @Query() type: 'view' | 'edit' = 'view'): Promise<HTML | void> {
     if (!req.signedCookies[octokitTokenCookie]) {
       this.setStatus(302)
       this.setHeader('Location', authRedirectURL(`/github/picker`))
       return
     }
 
-    const octokitToken = req.signedCookies[octokitTokenCookie]
-
-    const populateViewListLink = safeUrl(`/github/repos`, { page: '1', type: 'view' })
-    const populateEditListLink = safeUrl(`/github/repos`, { page: '1', type: 'edit' })
+    const populateListLink =
+      type === 'view'
+        ? safeUrl(`/github/repos`, { page: '1', type: 'view' })
+        : safeUrl(`/github/repos`, { page: '1', type: 'edit' })
     const recentFiles = await recentFilesFromCookies(this.modelDb, req.signedCookies, this.logger)
-    return this.html(this.templates.OpenOntologyRoot({ populateViewListLink, populateEditListLink, recentFiles }))
+
+    return this.html(this.templates.OpenOntologyRoot({ populateListLink, recentFiles, type }))
   }
 
   // Called by GitHub after external OAuth login

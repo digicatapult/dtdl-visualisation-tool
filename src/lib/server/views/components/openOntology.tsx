@@ -26,15 +26,15 @@ export default class OpenOntologyTemplates {
   constructor() {}
 
   public OpenOntologyRoot = ({
-    populateViewListLink,
-    populateEditListLink,
+    populateListLink,
     recentFiles,
+    type,
   }: {
-    populateViewListLink?: string
-    populateEditListLink?: string
+    populateListLink?: string
     recentFiles: RecentFile[]
+    type?: 'view' | 'edit'
   }) => {
-    const showGithubModal = populateViewListLink !== undefined && populateEditListLink !== undefined
+    const showGithubModal = populateListLink !== undefined
     return (
       <Page title="UKDTC">
         <section id="upload-toolbar">
@@ -47,9 +47,7 @@ export default class OpenOntologyTemplates {
           <h1>Open Ontology</h1>
           <this.getMenu showContent={false} />
           <this.recentFiles recentFiles={recentFiles} />
-          {showGithubModal && (
-            <this.githubModal populateViewListLink={populateViewListLink} populateEditListLink={populateEditListLink} />
-          )}
+          {showGithubModal && <this.githubModal populateListLink={populateListLink} type={type} />}
           <div id="spinner-wrapper">
             <div id="spinner" class="spinner" />
           </div>
@@ -82,13 +80,9 @@ export default class OpenOntologyTemplates {
     )
   }
 
-  public githubModal = ({
-    populateViewListLink,
-    populateEditListLink,
-  }: {
-    populateViewListLink: string
-    populateEditListLink: string
-  }) => {
+  public githubModal = ({ populateListLink, type }: { populateListLink: string; type?: 'view' | 'edit' }) => {
+    const pathLabel = type === 'view' ? 'Select a repository to view' : 'Select a repository to edit'
+    const otherType = type === 'view' ? 'edit' : 'view'
     return (
       <dialog id="github-modal">
         <div id="modal-wrapper">
@@ -97,10 +91,10 @@ export default class OpenOntologyTemplates {
               id="public-github-input"
               placeholder="Enter public GitHub repo {org}/{repo} e.g. 'digicatapult/dtdl-visualisation-tool'"
               hx-get="/github/navigate"
-              hx-indicator="#spin-view"
+              hx-indicator="#spin"
               hx-trigger="keyup[event.key=='Enter'], input changed delay:500ms"
               name="url"
-              hx-target="#github-list-view"
+              hx-target=".github-list"
               hx-validate={true}
               oninput="globalThis.validatePublicRepoInput(this)"
               hx-on-htmx-before-request="if (this.validity.valid === false) event.preventDefault()"
@@ -115,21 +109,11 @@ export default class OpenOntologyTemplates {
           >
             Authorise private repos ↗
           </a>
-          <this.githubPathLabel path="Repos:" />
-          <div class="repo-lists-container" style="display: flex; gap: 20px; width: 100%;">
-            <div class="repo-list-column" style="flex: 1;">
-              <h3>Viewable Repos</h3>
-              <div id="github-list-wrapper-view" class="github-list-wrapper">
-                <div id="spin-view" class="spinner" />
-                <ul
-                  id="github-list-view"
-                  class="github-list"
-                  hx-indicator="#spin-view"
-                  hx-get={populateEditListLink}
-                  hx-trigger="load"
-                ></ul>
-              </div>
-            </div>
+          <a href={`/github/picker?type=${otherType}`}>Switch to {otherType} mode</a>
+          <this.githubPathLabel path={pathLabel} />
+          <div id="github-list-wrapper">
+            <div id="spin" class="spinner" />
+            <ul class="github-list" hx-indicator="#spin" hx-get={populateListLink} hx-trigger="load"></ul>
           </div>
           <this.selectFolder stage="repo" />
         </div>
