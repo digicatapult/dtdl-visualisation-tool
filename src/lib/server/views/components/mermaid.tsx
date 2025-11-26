@@ -112,9 +112,11 @@ export default class MermaidTemplates {
   public mermaidTarget = ({
     generatedOutput,
     target,
+    swapOutOfBand,
   }: {
     generatedOutput?: JSX.Element
     target: string
+    swapOutOfBand?: boolean
   }): JSX.Element => {
     const attributes = generatedOutput
       ? { 'hx-on::after-settle': `globalThis.setMermaidListeners()`, 'pending-listeners': '' }
@@ -125,7 +127,7 @@ export default class MermaidTemplates {
     const output = generatedOutput ?? ''
     const content = target === 'mermaid-output' ? output : this.mermaidMessage(output, target)
     return (
-      <div id="mermaid-output" class="mermaid" {...attributes}>
+      <div id="mermaid-output" class="mermaid" hx-swap-oob={swapOutOfBand ? 'true' : undefined} {...attributes}>
         {content}
       </div>
     )
@@ -204,42 +206,110 @@ export default class MermaidTemplates {
     )
   }
 
-  public addNode = ({ dtdlModelId, swapOutOfBand }: { dtdlModelId: string; swapOutOfBand?: boolean }): JSX.Element => {
+  public addNode = ({
+    dtdlModelId,
+    swapOutOfBand,
+    displayNameIdMap,
+  }: {
+    dtdlModelId: string
+    swapOutOfBand?: boolean
+    displayNameIdMap: Record<string, string>
+  }): JSX.Element => {
     return (
-      <aside
-        id="navigation-panel"
-        hx-swap-oob={swapOutOfBand ? 'true' : undefined}
-        {...{ ['aria-expanded']: '' }}
-        class={'edit'}
-      >
-        <input id="navigationPanelExpanded" name="navigationPanelExpanded" type="hidden" value={'true'} />
+      <aside id="navigation-panel" hx-swap-oob={swapOutOfBand ? 'true' : undefined} aria-expanded="" class="edit">
+        <input id="navigationPanelExpanded" name="navigationPanelExpanded" type="hidden" value="true" />
         <button id="navigation-panel-button" onclick="globalThis.toggleNavPanel(event)"></button>
+
         <div id="navigation-panel-controls">
           <label>
             <h2>New Node</h2>
-            <input type="radio" name="navigationPanelTab" value="details" checked={true} />
+            <input type="radio" name="navigationPanelTab" value="details" checked />
           </label>
         </div>
-        <div id="navigation-panel-content">
-          <div>
-            <h1>Test</h1>
-            <button type="button">create node</button>
-            <button
-              type="button"
-              hx-get={`/ontology/${dtdlModelId}/edit-model`}
-              hx-target="#navigation-panel"
-              hx-swap="outerHTML"
-              hx-include="#sessionId, #navigationPanelExpanded" // should I be using commonUpdateAttrs instead?
-              hx-vals='{"editMode": true}'
-            >
-              cancel
-            </button>
-          </div>{' '}
-        </div>
+
+        <form
+          id="create-node-form"
+          hx-post={`/ontology/${dtdlModelId}/new-node`} //  create endpoint
+          hx-target="#navigation-panel"
+          hx-swap="outerHTML"
+          hx-include="#sessionId, #navigationPanelExpanded"
+          hx-vals='{"editMode": true}'
+        >
+          <div id="navigation-panel-content">
+            <section>
+              <h3>Basic Information</h3>
+
+              <p>
+                <b>Display Name:</b>
+              </p>
+              <input
+                type="text"
+                name="displayName"
+                placeholder="Enter display name"
+                maxlength={64}
+                class="nav-panel-editable"
+                required
+              />
+
+              <p>
+                <b>Description:</b>
+              </p>
+              <textarea
+                name="description"
+                placeholder="Enter description"
+                maxlength={MAX_VALUE_LENGTH}
+                class="nav-panel-editable multiline"
+              />
+
+              <p>
+                <b>Comment:</b>
+              </p>
+              <textarea
+                name="comment"
+                placeholder="Enter comment"
+                maxlength={MAX_VALUE_LENGTH}
+                class="nav-panel-editable multiline"
+              />
+
+              <p>
+                <b>Extends:</b>
+              </p>
+              <select name="extends" class="nav-panel-editable" required>
+                <option value="">None</option>
+                {Object.entries(displayNameIdMap).map(([label, value]) => (
+                  <option value={value}>{escapeHtml(label)}</option>
+                ))}
+              </select>
+              <small>DTDL allows only single inheritance. Select one node to extend, or choose 'None'.</small>
+
+              <p>
+                <b>Select Folder*:</b>
+              </p>
+              <select name="folderPath" class="nav-panel-editable" required>
+                <option value="root">root</option>
+              </select>
+              <small>Choose a folder for the new node. </small>
+
+              <br />
+
+              <button type="submit">Create Node</button>
+
+              <button
+                type="button"
+                hx-get={`/ontology/${dtdlModelId}/edit-model`}
+                hx-target="#navigation-panel"
+                hx-swap="outerHTML"
+                hx-include="#sessionId, #navigationPanelExpanded"
+                hx-vals='{"editMode": true}'
+              >
+                cancel
+              </button>
+            </section>
+          </div>
+        </form>
       </aside>
     )
   }
-
   navigationPanelDetails = ({
     entityId,
     model,

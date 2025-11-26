@@ -1,8 +1,11 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import express from 'express'
 import { randomUUID } from 'node:crypto'
-import { Get, Middlewares, Path, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import { Get, Middlewares, Path, Post, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { container, inject, injectable } from 'tsyringe'
+import z from 'zod'
 import { ModelDb } from '../../../db/modelDb.js'
 import { InternalError } from '../../errors.js'
 import { Logger, type ILogger } from '../../logger.js'
@@ -31,7 +34,7 @@ import SessionStore, { Session } from '../../utils/sessions.js'
 import { ErrorPage } from '../../views/components/errors.js'
 import MermaidTemplates from '../../views/components/mermaid.js'
 import { HTML, HTMLController } from '../HTMLController.js'
-import { checkEditPermission, dtdlCacheKey } from '../helpers.js'
+import { checkEditPermission, dtdlCacheKey, setCacheWithDefaultParams } from '../helpers.js'
 
 const rateLimiter = container.resolve(RateLimiter)
 
@@ -263,7 +266,10 @@ export class OntologyController extends HTMLController {
   @SuccessResponse(200)
   @Get('{dtdlModelId}/add-new-node')
   public async addNewNode(@Path() dtdlModelId: UUID, @Request() req: express.Request): Promise<HTML | void> {
-    return this.html(this.templates.addNode({ dtdlModelId }))
+    const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
+    const displayNameIdMap = this.getDisplayNameIdMap(baseModel)
+    const filePath = 'root'
+    return this.html(this.templates.addNode({ dtdlModelId, displayNameIdMap }))
   }
 
   private getCurrentPathQuery(req: express.Request): { path: string; query: URLSearchParams } | undefined {
@@ -277,7 +283,84 @@ export class OntologyController extends HTMLController {
       query: url.searchParams,
     }
   }
+  @SuccessResponse(201)
+  @Middlewares(checkEditPermission)
+  @Post('{dtdlModelId}/new-node')
+  public async createNewNode(@Path() dtdlModelId: UUID, @Request() req: express.Request): Promise<HTML> {
+    // Parse and validate input
+    const body = req.body
+    const newNodeSchema = z.object({
+      displayName: z.string().min(1).max(64),
+      description: z.string().max(1024),
+      comment: z.string().max(1024),
+      extends: z.string(),
+      editMode: z.boolean(),
+      folderPath: z.string(),
+      navigationPanelExpanded: z.string(),
+      sessionId: z.string(),
+    })
+    console.log('=================')
+    console.log('body', body)
+    const {
+      displayName,
+      description,
+      comment,
+      extends: extendsId,
+      editMode,
+      folderPath,
+      navigationPanelExpanded,
+      sessionId,
+    } = newNodeSchema.parse(body)
+    const newId = `dtmi:digitaltwins:ngsi_ld:cim:energy:${displayName.replace(/\s+/g, '').toLowerCase()};1`
+    const newNode = {
+      '@id': newId,
+      '@type': 'Interface',
+      '@context': 'dtmi:dtdl:context;4',
+      displayName: displayName,
+      description: description ? description : undefined,
+      comment: comment ?? undefined,
+      extends: extendsId ? [extendsId] : [],
+      contents: [],
+    }
+    const energyGridPath = path.resolve(process.cwd(), 'sample/energygrid/Test.json')
+    await fs.writeFile(energyGridPath, JSON.stringify(newNode, null, 2), 'utf8')
 
+    const stringJson = JSON.stringify(newNode, null, 2)
+    await this.modelDb.addEntityToModel(dtdlModelId, stringJson, 'Test.json')
+
+    // Get updated model and fileTree and update cache
+    const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
+    const output = await this.generator.run(baseModel, 'flowchart', 'elk')
+    setCacheWithDefaultParams(this.cache, dtdlModelId, output)
+    // Return updated navigation panel in edit mode
+    return this.html(
+      this.templates.navigationPanel({
+        swapOutOfBand: false,
+        entityId: newId,
+        model: baseModel,
+        expanded: true,
+        edit: true,
+        tab: 'details',
+        fileTree,
+      }),
+      this.templates.mermaidTarget({
+        generatedOutput: output.renderToString(),
+        target: 'mermaid-output',
+        swapOutOfBand: true,
+      })
+    )
+  }
+
+  private getDisplayNameIdMap(model: DtdlObjectModel): Record<string, string> {
+    const map: Record<string, string> = {}
+    for (const [id, node] of Object.entries(model)) {
+      if (node.EntityKind === 'Interface') {
+        const displayName = typeof node.displayName === 'object' ? node.displayName.en : node.displayName
+        if (displayName) map[displayName] = id
+      }
+    }
+    return map
+  }
   private setReplaceUrl(
     current: { path: string; query: URLSearchParams },
     params: { [key in UrlQueryKeys]?: string }
