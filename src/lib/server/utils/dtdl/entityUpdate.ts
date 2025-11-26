@@ -282,3 +282,53 @@ export const deleteContent = (contentName: string) => (dtdlInterface: DtdlInterf
 
   return { ...validInterface, contents: updatedContents }
 }
+
+export const addContent =
+  (contentName: string, contentType: 'Property' | 'Relationship' | 'Telemetry' | 'Command') =>
+  (dtdlInterface: DtdlInterface) => {
+    if (!contentName.trim()) throw new DataError('Content name cannot be empty')
+    if (invalidChars.test(contentName)) throw new DataError(`Invalid JSON: '${contentName}'`)
+    if (contentName.length > MAX_VALUE_LENGTH)
+      throw new DataError(`Content name has max length of ${MAX_VALUE_LENGTH} characters`)
+
+    // DTDL naming rules: must start with letter, contain only letters, numbers, underscores
+    // and end with letter or number (not underscore)
+    const dtdlNamePattern = /^[A-Za-z](?:[A-Za-z0-9_]*[A-Za-z0-9])?$/
+    if (!dtdlNamePattern.test(contentName)) {
+      throw new DataError(
+        `Content name '${contentName}' is invalid. Must start with a letter, contain only letters, numbers, and underscores, and cannot end with an underscore.`
+      )
+    }
+
+    const schema = dtdlInterfaceBase.extend({
+      contents: z.array(
+        z.looseObject({
+          '@type': z.string(),
+          name: z.string(),
+        })
+      ),
+    })
+
+    const validInterface: z.infer<typeof schema> = schema.loose().parse(dtdlInterface)
+
+    // Validate uniqueness
+    const existingContent = validInterface.contents.find((c) => c.name === contentName)
+    if (existingContent) {
+      throw new DataError(`Content with name '${contentName}' already exists`)
+    }
+
+    // Create new content object based on type
+    const newContent: Record<string, unknown> = {
+      '@type': contentType,
+      name: contentName,
+    }
+
+    // Add default schema for Property and Telemetry
+    if (contentType === 'Property' || contentType === 'Telemetry') {
+      newContent.schema = 'string'
+    }
+
+    const updatedContents = [...validInterface.contents, newContent]
+
+    return { ...validInterface, contents: updatedContents }
+  }

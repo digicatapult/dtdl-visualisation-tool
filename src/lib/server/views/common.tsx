@@ -42,7 +42,9 @@ export const Page = (props: PropsWithChildren<{ title: string }>): JSX.Element =
   </>
 )
 
-export const AccordionSection = (props: PropsWithChildren<{ heading: string; collapsed: boolean }>): JSX.Element => (
+export const AccordionSection = (
+  props: PropsWithChildren<{ heading: string; collapsed: boolean; action?: JSX.Element }>
+): JSX.Element => (
   <section class="accordion-parent">
     <h3>
       <button
@@ -52,6 +54,7 @@ export const AccordionSection = (props: PropsWithChildren<{ heading: string; col
       >
         {escapeHtml(props.heading)}
       </button>
+      {props.action && <div class="accordion-action">{props.action}</div>}
     </h3>
     <div class="accordion-content" {...(props.collapsed && { 'aria-hidden': '' })}>
       <div>{props.children}</div>

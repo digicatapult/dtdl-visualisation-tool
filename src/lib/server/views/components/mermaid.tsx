@@ -19,6 +19,7 @@ import {
 } from '../../utils/dtdl/extract.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { AccordionSection, EditableSelect, EditableText, Page } from '../common.js'
+import { AddContentButton, AddContentFormPlaceholder } from './addContent.js'
 import { PropertyDetails } from './property.js'
 import { RelationshipDetails } from './relationship.js'
 
@@ -334,7 +335,18 @@ export default class MermaidTemplates {
               : 'None'}
           </p>
         </AccordionSection>
-        <AccordionSection heading={'Properties'} collapsed={false}>
+        <AccordionSection
+          heading={'Properties'}
+          collapsed={false}
+          action={
+            edit && isInterface(entity) ? (
+              <>
+                <AddContentButton contentType="Property" entityId={entity.Id} />
+                <AddContentFormPlaceholder contentType="Property" />
+              </>
+            ) : undefined
+          }
+        >
           {isInterface(entity) && Object.keys(entity.properties).length > 0
             ? Object.entries(entity.properties).map(([name, id]) => {
                 const property = model[id]
@@ -345,7 +357,18 @@ export default class MermaidTemplates {
               })
             : 'None'}
         </AccordionSection>
-        <AccordionSection heading={'Relationships'} collapsed={false}>
+        <AccordionSection
+          heading={'Relationships'}
+          collapsed={false}
+          action={
+            edit && isInterface(entity) ? (
+              <>
+                <AddContentButton contentType="Relationship" entityId={entity.Id} />
+                <AddContentFormPlaceholder contentType="Relationship" />
+              </>
+            ) : undefined
+          }
+        >
           {isInterface(entity) && Object.keys(entity.relationships).length > 0
             ? Object.entries(entity.relationships).map(([name, id]) => {
                 const relationship = model[id]
@@ -363,7 +386,18 @@ export default class MermaidTemplates {
               })
             : 'None'}
         </AccordionSection>
-        <AccordionSection heading={'Telemetries'} collapsed={false}>
+        <AccordionSection
+          heading={'Telemetries'}
+          collapsed={false}
+          action={
+            edit && isInterface(entity) ? (
+              <>
+                <AddContentButton contentType="Telemetry" entityId={entity.Id} />
+                <AddContentFormPlaceholder contentType="Telemetry" />
+              </>
+            ) : undefined
+          }
+        >
           {isInterface(entity) && Object.keys(entity.telemetries).length > 0
             ? Object.entries(entity.telemetries).map(([name, id]) => {
                 const telemetry = model[id]
@@ -420,7 +454,18 @@ export default class MermaidTemplates {
               })
             : 'None'}
         </AccordionSection>
-        <AccordionSection heading={'Commands'} collapsed={false}>
+        <AccordionSection
+          heading={'Commands'}
+          collapsed={false}
+          action={
+            edit && isInterface(entity) ? (
+              <>
+                <AddContentButton contentType="Command" entityId={entity.Id} />
+                <AddContentFormPlaceholder contentType="Command" />
+              </>
+            ) : undefined
+          }
+        >
           {isInterface(entity) && Object.keys(entity.commands).length > 0
             ? Object.entries(entity.commands).map(([name, id]) => {
                 const command = model[id]

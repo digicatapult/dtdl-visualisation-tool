@@ -32,3 +32,116 @@
 .accordion-button:not([aria-expanded])::after {
   transform: rotate(180deg);
 }
+
+/* Add Content Button and Form Styles */
+.accordion-parent h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.accordion-action {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.add-content-button {
+  background: var(--color-primary, #007bff);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.add-content-button:hover {
+  background: var(--color-primary-dark, #0056b3);
+}
+
+.add-content-button:active {
+  transform: scale(0.95);
+}
+
+.add-content-form {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.add-content-form form {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+}
+
+.add-content-input {
+  padding: 4px 8px;
+  border: 1px solid var(--color-border, #ccc);
+  border-radius: 4px;
+  font-size: 14px;
+  min-width: 150px;
+}
+
+.add-content-input:focus {
+  outline: none;
+  border-color: var(--color-primary, #007bff);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+}
+
+.add-content-input:invalid {
+  border-color: var(--color-danger, #dc3545);
+}
+
+.add-content-input:invalid:focus {
+  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.1);
+}
+
+.add-content-submit,
+.add-content-cancel {
+  background: transparent;
+  border: 1px solid var(--color-border, #ccc);
+  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.add-content-submit {
+  color: var(--color-success, #28a745);
+}
+
+.add-content-submit:hover {
+  background: var(--color-success, #28a745);
+  color: white;
+  border-color: var(--color-success, #28a745);
+}
+
+.add-content-cancel {
+  color: var(--color-danger, #dc3545);
+}
+
+.add-content-cancel:hover {
+  background: var(--color-danger, #dc3545);
+  color: white;
+  border-color: var(--color-danger, #dc3545);
+}
+
+.add-content-form-placeholder {
+  display: none;
+}
+
