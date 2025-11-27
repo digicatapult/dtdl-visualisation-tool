@@ -172,14 +172,11 @@ test.describe('Test edit ontology', () => {
 
     await page.waitForTimeout(500)
 
-    await expect.poll(async () => {
-      return getStyledComponent(
-        page,
-        '#navigation-panel h3:first-of-type',
-        '::after',
-        'content'
-      )
-    }).toBe('none')
+    await expect
+      .poll(async () => {
+        return getStyledComponent(page, '#navigation-panel h3:first-of-type', '::after', 'content')
+      })
+      .toBe('none')
   })
 
   test('delete interface + relationship', async ({ browser }) => {
