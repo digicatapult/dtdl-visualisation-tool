@@ -20,6 +20,16 @@ import { recentFilesFromCookies, setCacheWithDefaultParams } from './helpers.js'
 
 const rateLimiter = container.resolve(RateLimiter)
 
+export function ensureOctokitToken(req: express.Request, res: express.Response, next: express.NextFunction): void {
+  if (!req.signedCookies[octokitTokenCookie]) {
+    res.status(302)
+    res.setHeader('HX-Redirect', authRedirectURL(`/github/picker`))
+    res.end()
+    return
+  }
+  next()
+}
+
 @injectable()
 @Route('/github')
 export class GithubController extends HTMLController {
@@ -39,22 +49,20 @@ export class GithubController extends HTMLController {
 
   @SuccessResponse(200, '')
   @Produces('text/html')
-  @Middlewares(ensurePostHogId)
+  @Middlewares(ensurePostHogId, ensureOctokitToken)
   @Get('/picker')
-  public async picker(@Request() req: express.Request, @Query() type: 'view' | 'edit' = 'view'): Promise<HTML | void> {
-    if (!req.signedCookies[octokitTokenCookie]) {
-      this.setStatus(302)
-      this.setHeader('Location', authRedirectURL(`/github/picker`))
-      return
-    }
-
-    const populateListLink =
-      type === 'view'
-        ? safeUrl(`/github/repos`, { page: '1', type: 'view' })
-        : safeUrl(`/github/repos`, { page: '1', type: 'edit' })
+  public async picker(@Request() req: express.Request): Promise<HTML | void> {
     const recentFiles = await recentFilesFromCookies(this.modelDb, req.signedCookies, this.logger)
 
-    return this.html(this.templates.OpenOntologyRoot({ populateListLink, recentFiles, type }))
+    return this.html(this.templates.OpenOntologyRoot({ recentFiles, showGithubModal: true }))
+  }
+
+  @SuccessResponse(200, '')
+  @Produces('text/html')
+  @Middlewares(ensurePostHogId, ensureOctokitToken)
+  @Get('/modal')
+  public async modal(@Query() type: 'view' | 'edit' = 'view'): Promise<HTML | void> {
+    return this.html(this.templates.githubModalContent({ type }))
   }
 
   // Called by GitHub after external OAuth login
@@ -88,7 +96,7 @@ export class GithubController extends HTMLController {
 
   @SuccessResponse(200, '')
   @Produces('text/html')
-  @Middlewares(ensurePostHogId)
+  @Middlewares(ensurePostHogId, ensureOctokitToken)
   @Get('/repos')
   public async repos(
     @Query() page: number,
@@ -96,11 +104,6 @@ export class GithubController extends HTMLController {
     @Query() type: 'view' | 'edit' = 'view'
   ): Promise<HTML | void> {
     const octokitToken = req.signedCookies[octokitTokenCookie]
-    if (!octokitToken) {
-      this.setStatus(302)
-      this.setHeader('HX-Redirect', authRedirectURL(`/github/picker`))
-      return
-    }
 
     const response =
       type === 'edit'
@@ -113,6 +116,10 @@ export class GithubController extends HTMLController {
     }))
 
     return this.html(
+      this.templates.githubPathLabel({
+        path: `Select a repository to ${type}`,
+        swapOutOfBand: true,
+      }),
       this.templates.githubListItems({
         list: repos,
         nextPageLink: safeUrl(`/github/repos`, { page: `${page + 1}`, type }),
@@ -122,7 +129,7 @@ export class GithubController extends HTMLController {
 
   @SuccessResponse(200, '')
   @Produces('text/html')
-  @Middlewares(ensurePostHogId)
+  @Middlewares(ensurePostHogId, ensureOctokitToken)
   @Get('/branches')
   public async branches(
     @Query() owner: string,
@@ -131,11 +138,6 @@ export class GithubController extends HTMLController {
     @Request() req: express.Request
   ): Promise<HTML | void> {
     const octokitToken = req.signedCookies[octokitTokenCookie]
-    if (!octokitToken) {
-      this.setStatus(302)
-      this.setHeader('HX-Redirect', authRedirectURL(`/github/picker`))
-      return
-    }
 
     const response = await this.githubRequest.getBranches(octokitToken, owner, repo, page)
 
@@ -147,6 +149,7 @@ export class GithubController extends HTMLController {
     return this.html(
       this.templates.githubPathLabel({
         path: `${owner}/${repo}`,
+        swapOutOfBand: true,
       }),
       this.templates.githubListItems({
         list: branches,
@@ -166,7 +169,7 @@ export class GithubController extends HTMLController {
 
   @SuccessResponse(200, '')
   @Produces('text/html')
-  @Middlewares(ensurePostHogId)
+  @Middlewares(ensurePostHogId, ensureOctokitToken)
   @Get('/contents')
   public async contents(
     @Query() owner: string,
@@ -176,11 +179,6 @@ export class GithubController extends HTMLController {
     @Request() req: express.Request
   ): Promise<HTML | void> {
     const octokitToken = req.signedCookies[octokitTokenCookie]
-    if (!octokitToken) {
-      this.setStatus(302)
-      this.setHeader('HX-Redirect', authRedirectURL(`/github/picker`))
-      return
-    }
 
     const response = await this.githubRequest.getContents(octokitToken, owner, repo, path, ref)
 
@@ -211,6 +209,7 @@ export class GithubController extends HTMLController {
     return this.html(
       this.templates.githubPathLabel({
         path: `${owner}/${repo}/${ref}${path === '.' ? '' : `/${path}`}`,
+        swapOutOfBand: true,
       }),
       this.templates.githubListItems({
         list: contents,
@@ -232,7 +231,7 @@ export class GithubController extends HTMLController {
 
   @SuccessResponse(200, '')
   @Produces('text/html')
-  @Middlewares(rateLimiter.strictLimitMiddleware, ensurePostHogId)
+  @Middlewares(rateLimiter.strictLimitMiddleware, ensurePostHogId, ensureOctokitToken)
   @Get('/directory')
   public async directory(
     @Query() owner: string,
@@ -242,11 +241,6 @@ export class GithubController extends HTMLController {
     @Request() req: express.Request
   ): Promise<void> {
     const octokitToken = req.signedCookies[octokitTokenCookie]
-    if (!octokitToken) {
-      this.setStatus(302)
-      this.setHeader('HX-Redirect', authRedirectURL(`/github/picker`))
-      return
-    }
 
     const zippedBranch = await this.githubRequest.getZip(octokitToken, owner, repo, ref)
     const jsonFiles = await this.parser.unzipJsonFiles(Buffer.from(zippedBranch), path)
@@ -293,15 +287,9 @@ export class GithubController extends HTMLController {
    */
   @SuccessResponse(200, '')
   @Produces('text/html')
-  @Middlewares(ensurePostHogId)
+  @Middlewares(ensurePostHogId, ensureOctokitToken)
   @Get('/navigate')
   public async navigate(@Query() url: string, @Request() req: express.Request): Promise<HTML | void> {
-    const octokitToken = req.signedCookies[octokitTokenCookie]
-    if (!octokitToken) {
-      this.setStatus(302)
-      this.setHeader('HX-Redirect', authRedirectURL(`/github/picker`))
-      return
-    }
     const safeUrl = url.replace(/\/$/, '') // remove any trailing slash
     const match = safeUrl.match(
       /^(?:https:\/\/(?:www\.)?github\.com\/)?([^/]+)\/([^/]+)(?:\/(?:tree\/)?([^/]+)(?:\/(.+))?)?$/

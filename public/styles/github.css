@@ -17,7 +17,7 @@
 #modal-wrapper {
   align-items: center;
   display: grid;
-  grid-template-rows: auto auto auto 1fr auto;
+  grid-template-rows: auto 1fr;
   height: 100%;
   gap: 1rem;
   padding: 2rem 1rem 0 1rem;
@@ -38,7 +38,7 @@ a.authorise-link:hover {
 }
 
 #public-github-input-wrapper::after {
-  content: 'Please select your ontology to load from GitHub';
+  content: 'Select an ontology to load from GitHub';
   padding-block: 0.5rem;
 }
 
@@ -57,15 +57,21 @@ a.authorise-link:hover {
   background: var(--background-color);
 }
 
-#github-path-label {
-  display: grid;
+#github-path-label-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   width: 100%;
+}
+
+#github-path-label {
   margin: 0;
 }
 
 #github-list-wrapper {
   display: grid;
   height: 100%;
+  grid-row: 2;
   overflow: auto;
 }
 

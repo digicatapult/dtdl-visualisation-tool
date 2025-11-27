@@ -6,6 +6,7 @@ import version from '../../../../version.js'
 import { Env } from '../../env/index.js'
 import { ListItem } from '../../models/github.js'
 import { RecentFile } from '../../models/openTypes.js'
+import { safeUrl } from '../../utils/url.js'
 import { Page } from '../common.js'
 
 type SelectFolderProps =
@@ -26,15 +27,12 @@ export default class OpenOntologyTemplates {
   constructor() {}
 
   public OpenOntologyRoot = ({
-    populateListLink,
     recentFiles,
-    type,
+    showGithubModal,
   }: {
-    populateListLink?: string
     recentFiles: RecentFile[]
-    type?: 'view' | 'edit'
+    showGithubModal?: boolean
   }) => {
-    const showGithubModal = populateListLink !== undefined
     return (
       <Page title="UKDTC">
         <section id="upload-toolbar">
@@ -47,7 +45,14 @@ export default class OpenOntologyTemplates {
           <h1>Open Ontology</h1>
           <this.getMenu showContent={false} />
           <this.recentFiles recentFiles={recentFiles} />
-          {showGithubModal && <this.githubModal populateListLink={populateListLink} type={type} />}
+          {showGithubModal && (
+            <dialog id="github-modal">
+              <this.githubModalContent type="edit" />
+              <form method="dialog">
+                <button class="modal-button" />
+              </form>
+            </dialog>
+          )}
           <div id="spinner-wrapper">
             <div id="spinner" class="spinner" />
           </div>
@@ -80,12 +85,15 @@ export default class OpenOntologyTemplates {
     )
   }
 
-  public githubModal = ({ populateListLink, type }: { populateListLink: string; type?: 'view' | 'edit' }) => {
-    const pathLabel = type === 'view' ? 'Select a repository to view' : 'Select a repository to edit'
-    const otherType = type === 'view' ? 'edit' : 'view'
+  public githubModalContent = ({ type }: { type?: 'view' | 'edit' }) => {
+    const showEditableRepos = type === 'edit'
+    const populateListLink = showEditableRepos
+      ? safeUrl(`/github/repos`, { page: '1', type: 'edit' })
+      : safeUrl(`/github/repos`, { page: '1', type: 'view' })
+    const otherType = showEditableRepos ? 'view' : 'edit'
     return (
-      <dialog id="github-modal">
-        <div id="modal-wrapper">
+      <div id="modal-wrapper">
+        {!showEditableRepos && (
           <div id="public-github-input-wrapper">
             <input
               id="public-github-input"
@@ -101,32 +109,34 @@ export default class OpenOntologyTemplates {
             />
             <img src="/public/images/arrow-enter.svg" />
           </div>
-          <a
-            class="authorise-link"
-            href={`https://github.com/apps/${env.get('GH_APP_NAME')}`}
-            target="_blank"
-            aria-label="Authorise private repos (opens in a new tab)"
-          >
-            Authorise private repos ↗
+        )}
+        <div id="github-path-label-wrapper">
+          <this.githubPathLabel path={`Select a repository to ${type}`} />
+          <a hx-get={`/github/modal?type=${otherType}`} hx-target="#modal-wrapper" hx-swap="outerHTML">
+            Show {showEditableRepos ? 'viewable' : 'editable'} repos
           </a>
-          <a href={`/github/picker?type=${otherType}`}>Switch to {otherType} mode</a>
-          <this.githubPathLabel path={pathLabel} />
-          <div id="github-list-wrapper">
-            <div id="spin" class="spinner" />
-            <ul class="github-list" hx-indicator="#spin" hx-get={populateListLink} hx-trigger="load"></ul>
-          </div>
-          <this.selectFolder stage="repo" />
         </div>
-        <form method="dialog">
-          <button class="modal-button" />
-        </form>
-      </dialog>
+
+        <div id="github-list-wrapper">
+          <div id="spin" class="spinner" />
+          <ul class="github-list" hx-indicator="#spin" hx-get={populateListLink} hx-trigger="load"></ul>
+        </div>
+        <a
+          class="authorise-link"
+          href={`https://github.com/apps/${env.get('GH_APP_NAME')}`}
+          target="_blank"
+          aria-label="Authorise private repos (opens in a new tab)"
+        >
+          Repo missing? Authorise on GitHub ↗
+        </a>
+        <this.selectFolder stage="repo" />
+      </div>
     )
   }
 
-  public githubPathLabel = ({ path }: { path: string }) => {
+  public githubPathLabel = ({ path, swapOutOfBand }: { path: string; swapOutOfBand?: boolean }) => {
     return (
-      <h4 id="github-path-label" hx-swap-oob="true" hx-swap="outerHTML">
+      <h4 id="github-path-label" hx-swap-oob={swapOutOfBand ? 'true' : undefined} hx-swap="outerHTML">
         {escapeHtml(path)}
       </h4>
     )
