@@ -121,7 +121,8 @@ export class GithubRequest {
         permission = 'view'
       }
 
-      this.cache.set(cacheKey, permission)
+      // Cache permissions for 1 minute to balance performance and freshness
+      this.cache.set(cacheKey, permission, 60 * 1000)
       return permission
     } catch (error) {
       if (error instanceof GithubNotFound) {
