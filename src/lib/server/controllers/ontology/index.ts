@@ -1,8 +1,6 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import express from 'express'
 import { randomUUID } from 'node:crypto'
-import fs from 'node:fs/promises'
-import path from 'node:path'
 import { Get, Middlewares, Path, Post, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { container, inject, injectable } from 'tsyringe'
 import z from 'zod'
@@ -24,6 +22,7 @@ import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../
 import { type UUID } from '../../models/strings.js'
 import { Cache, type ICache } from '../../utils/cache.js'
 import { filterModelByDisplayName, getRelatedIdsById } from '../../utils/dtdl/filter.js'
+import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { FuseSearch } from '../../utils/fuseSearch.js'
 import { authRedirectURL, GithubRequest } from '../../utils/githubRequest.js'
 import { SvgGenerator } from '../../utils/mermaid/generator.js'
@@ -265,11 +264,35 @@ export class OntologyController extends HTMLController {
 
   @SuccessResponse(200)
   @Get('{dtdlModelId}/add-new-node')
-  public async addNewNode(@Path() dtdlModelId: UUID, @Request() req: express.Request): Promise<HTML | void> {
+  public async addNewNode(
+    @Path() dtdlModelId: UUID,
+    @Queries() params: UpdateParams,
+    @Request() req: express.Request
+  ): Promise<HTML | void> {
+    const session = this.sessionStore.get(params.sessionId)
+    const newSession: Session = {
+      diagramType: 'flowchart',
+      layout: 'elk' as const,
+      search: undefined,
+      expandedIds: [...session.expandedIds],
+      highlightNodeId: undefined,
+    }
+    this.sessionStore.set(params.sessionId, { ...session, ...newSession })
+
     const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
     const displayNameIdMap = this.getDisplayNameIdMap(baseModel)
-    const filePath = 'root'
-    return this.html(this.templates.addNode({ dtdlModelId, displayNameIdMap }))
+    const folderPaths = this.extractFolderPaths(fileTree)
+
+    await this.updateLayout(req, dtdlModelId, params) // this doesn't do anything
+
+    return this.html(
+      this.templates.addNode({
+        dtdlModelId,
+        displayNameIdMap,
+        folderPaths,
+        swapOutOfBand: true, // ensures right panel updates
+      })
+    )
   }
 
   private getCurrentPathQuery(req: express.Request): { path: string; query: URLSearchParams } | undefined {
@@ -299,8 +322,6 @@ export class OntologyController extends HTMLController {
       navigationPanelExpanded: z.string(),
       sessionId: z.string(),
     })
-    console.log('=================')
-    console.log('body', body)
     const {
       displayName,
       description,
@@ -322,11 +343,15 @@ export class OntologyController extends HTMLController {
       extends: extendsId ? [extendsId] : [],
       contents: [],
     }
-    const energyGridPath = path.resolve(process.cwd(), 'sample/energygrid/Test.json')
-    await fs.writeFile(energyGridPath, JSON.stringify(newNode, null, 2), 'utf8')
+    // const energyGridPath = path.resolve(process.cwd(), 'sample/energygrid/Test.json')
+    // await fs.writeFile(energyGridPath, JSON.stringify(newNode, null, 2), 'utf8')
 
     const stringJson = JSON.stringify(newNode, null, 2)
-    await this.modelDb.addEntityToModel(dtdlModelId, stringJson, 'Test.json')
+    await this.modelDb.addEntityToModel(
+      dtdlModelId,
+      stringJson,
+      `${folderPath}/${displayName.replace(/\s+/g, '')}.json`
+    )
 
     // Get updated model and fileTree and update cache
     const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
@@ -360,6 +385,21 @@ export class OntologyController extends HTMLController {
       }
     }
     return map
+  }
+
+  private extractFolderPaths(fileTree: DtdlPath[], currentPath = ''): string[] {
+    const folderPaths: string[] = []
+
+    for (const path of fileTree) {
+      if (path.type === 'directory') {
+        const fullPath = currentPath ? `${currentPath}/${path.name}` : path.name
+        folderPaths.push(fullPath)
+        // Recursively extract subdirectories
+        folderPaths.push(...this.extractFolderPaths(path.entries, fullPath))
+      }
+    }
+
+    return folderPaths
   }
   private setReplaceUrl(
     current: { path: string; query: URLSearchParams },

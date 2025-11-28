@@ -210,10 +210,12 @@ export default class MermaidTemplates {
     dtdlModelId,
     swapOutOfBand,
     displayNameIdMap,
+    folderPaths,
   }: {
     dtdlModelId: string
     swapOutOfBand?: boolean
     displayNameIdMap: Record<string, string>
+    folderPaths: string[]
   }): JSX.Element => {
     return (
       <aside id="navigation-panel" hx-swap-oob={swapOutOfBand ? 'true' : undefined} aria-expanded="" class="edit">
@@ -229,7 +231,7 @@ export default class MermaidTemplates {
 
         <form
           id="create-node-form"
-          hx-post={`/ontology/${dtdlModelId}/new-node`} //  create endpoint
+          hx-post={`/ontology/${dtdlModelId}/new-node`}
           hx-target="#navigation-panel"
           hx-swap="outerHTML"
           hx-include="#sessionId, #navigationPanelExpanded"
@@ -274,8 +276,9 @@ export default class MermaidTemplates {
               <p>
                 <b>Extends:</b>
               </p>
-              <select name="extends" class="nav-panel-editable" required>
+              <select name="extends" class="nav-panel-editable">
                 <option value="">None</option>
+
                 {Object.entries(displayNameIdMap).map(([label, value]) => (
                   <option value={value}>{escapeHtml(label)}</option>
                 ))}
@@ -286,23 +289,31 @@ export default class MermaidTemplates {
                 <b>Select Folder*:</b>
               </p>
               <select name="folderPath" class="nav-panel-editable" required>
-                <option value="root">root</option>
+                {Object.keys(folderPaths).length === 0 ? (
+                  <option value="root">root</option>
+                ) : (
+                  folderPaths.map((folderPath) => <option value={folderPath}>{escapeHtml(folderPath)}</option>)
+                )}
               </select>
               <small>Choose a folder for the new node. </small>
 
               <br />
 
-              <button type="submit">Create Node</button>
+              <button type="submit" class="rounded-button" id="create-new-node-button">
+                Create Node
+              </button>
 
               <button
                 type="button"
+                id="cancel-button"
+                class="rounded-button"
                 hx-get={`/ontology/${dtdlModelId}/edit-model`}
                 hx-target="#navigation-panel"
                 hx-swap="outerHTML"
                 hx-include="#sessionId, #navigationPanelExpanded"
                 hx-vals='{"editMode": true}'
               >
-                cancel
+                Cancel
               </button>
             </section>
           </div>
@@ -1189,7 +1200,13 @@ export default class MermaidTemplates {
           <span class="edit-text">Edit</span>
         </div>
         <div id="edit-buttons">
-          <button id="add-node-button" hx-get="add-new-node" hx-target="#navigation-panel" hx-swap="outerHTML"></button>
+          <button
+            {...commonUpdateAttrs}
+            id="add-node-button"
+            hx-get="add-new-node"
+            hx-target="#navigation-panel"
+            hx-swap="outerHTML"
+          ></button>
         </div>
       </div>
     )
