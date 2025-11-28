@@ -47,7 +47,7 @@ jobs:
       - e2e-tests-npm
       - tests-npm
       - static-checks-npm
-    uses: digicatapult/shared-workflows/.github/workflows/build-docker.yml@feature/add_sbom_generators
+    uses: digicatapult/shared-workflows/.github/workflows/build-docker.yml@main
     with:
       push_dockerhub: true
       push_ghcr: true
@@ -55,6 +55,7 @@ jobs:
       packages: write
       contents: write
       security-events: write
+      actions: read
     secrets:
       DOCKERHUB_TOKEN: ${{ secrets.SQNC_DOCKERHUB_TOKEN }}
       DOCKERHUB_USERNAME: ${{ secrets.SQNC_DOCKERHUB_USERNAME }}
