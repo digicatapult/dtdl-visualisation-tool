@@ -54,6 +54,8 @@ jobs:
     permissions:
       packages: write
       contents: write
+      security-events: write
+      actions: read
     secrets:
       DOCKERHUB_TOKEN: ${{ secrets.SQNC_DOCKERHUB_TOKEN }}
       DOCKERHUB_USERNAME: ${{ secrets.SQNC_DOCKERHUB_USERNAME }}
