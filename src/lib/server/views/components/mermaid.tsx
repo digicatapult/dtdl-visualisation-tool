@@ -215,7 +215,11 @@ export default class MermaidTemplates {
     dtdlModelId: string
     swapOutOfBand?: boolean
     displayNameIdMap: Record<string, string>
-    folderPaths: string[]
+    folderPaths: {
+      name: string
+      path: string
+      depth: number
+    }[]
   }): JSX.Element => {
     return (
       <aside id="navigation-panel" hx-swap-oob={swapOutOfBand ? 'true' : undefined} aria-expanded="" class="edit">
@@ -289,10 +293,12 @@ export default class MermaidTemplates {
                 <b>Select Folder*:</b>
               </p>
               <select name="folderPath" class="nav-panel-editable" required>
-                {Object.keys(folderPaths).length === 0 ? (
-                  <option value="root">root</option>
+                {folderPaths.length === 0 ? (
+                  <option value="">No folders available. Please add a folder first.</option>
                 ) : (
-                  folderPaths.map((folderPath) => <option value={folderPath}>{escapeHtml(folderPath)}</option>)
+                  folderPaths.map((folder) => (
+                    <option value={folder.path}>{`${'-'.repeat(folder.depth)} ${escapeHtml(folder.name)}`}</option>
+                  ))
                 )}
               </select>
               <small>Choose a folder for the new node. </small>

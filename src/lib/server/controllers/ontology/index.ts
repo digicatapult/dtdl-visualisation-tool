@@ -36,6 +36,17 @@ import { HTML, HTMLController } from '../HTMLController.js'
 import { checkEditPermission, dtdlCacheKey, setCacheWithDefaultParams } from '../helpers.js'
 
 const rateLimiter = container.resolve(RateLimiter)
+interface FolderNode {
+  /** Unique ID for this folder − full path like 'Ontology/Asset/Equipment' */
+  id: string
+
+  /** The folder's own name − last path segment like 'Equipment' */
+  name: string
+
+  /** Sub-folders */
+  children: FolderNode[]
+}
+type FolderTree = FolderNode[]
 
 @injectable()
 @Route('/ontology')
@@ -281,7 +292,8 @@ export class OntologyController extends HTMLController {
 
     const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
     const displayNameIdMap = this.getDisplayNameIdMap(baseModel)
-    const folderPaths = this.extractFolderPaths(fileTree)
+    const filteredFolderPaths = this.filterDirectoriesOnly(fileTree)
+    const folderOptions = this.flattenFoldersWithDepth(filteredFolderPaths)
 
     await this.updateLayout(req, dtdlModelId, params) // this doesn't do anything
 
@@ -289,7 +301,7 @@ export class OntologyController extends HTMLController {
       this.templates.addNode({
         dtdlModelId,
         displayNameIdMap,
-        folderPaths,
+        folderPaths: folderOptions,
         swapOutOfBand: true, // ensures right panel updates
       })
     )
@@ -387,19 +399,28 @@ export class OntologyController extends HTMLController {
     return map
   }
 
-  private extractFolderPaths(fileTree: DtdlPath[], currentPath = ''): string[] {
-    const folderPaths: string[] = []
+  private filterDirectoriesOnly(tree: DtdlPath[]): DtdlPath[] {
+    return tree
+      .filter((node) => node.type === 'directory')
+      .map((node) => ({
+        ...node,
+        // Recurse; if no children or only files, children become []
+        entries: node.entries ? this.filterDirectoriesOnly(node.entries) : [],
+      }))
+  }
 
-    for (const path of fileTree) {
-      if (path.type === 'directory') {
-        const fullPath = currentPath ? `${currentPath}/${path.name}` : path.name
-        folderPaths.push(fullPath)
-        // Recursively extract subdirectories
-        folderPaths.push(...this.extractFolderPaths(path.entries, fullPath))
+  private flattenFoldersWithDepth(tree: DtdlPath[], parentPath = '', depth = 0) {
+    const result: { name: string; path: string; depth: number }[] = []
+    for (const node of tree) {
+      if (node.type === 'directory') {
+        const name = node.name
+        const nameOnlySegment = name.includes('/') ? name.substring(name.lastIndexOf('/') + 1) : name
+        const fullPath = parentPath ? `${parentPath}/${node.name}` : node.name
+        result.push({ name: nameOnlySegment, path: fullPath, depth })
+        result.push(...this.flattenFoldersWithDepth(node.entries, fullPath, depth + 1))
       }
     }
-
-    return folderPaths
+    return result
   }
   private setReplaceUrl(
     current: { path: string; query: URLSearchParams },
