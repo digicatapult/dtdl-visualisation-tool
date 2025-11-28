@@ -22,8 +22,8 @@ export class LRUCache implements ICache {
     return parser.parse(JSON.parse(fromCache))
   }
 
-  set = <T>(key: string, value: T): void => {
-    this.cache.set(key, JSON.stringify(value))
+  set = <T>(key: string, value: T, ttl?: number): void => {
+    this.cache.set(key, JSON.stringify(value), { ttl })
   }
 
   has = (key: string): boolean => this.cache.has(key)
