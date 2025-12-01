@@ -302,6 +302,7 @@ export class OntologyController extends HTMLController {
         dtdlModelId,
         displayNameIdMap,
         folderPaths: folderOptions,
+        folderTree: filteredFolderPaths,
         swapOutOfBand: true, // ensures right panel updates
       })
     )

@@ -211,6 +211,8 @@ export default class MermaidTemplates {
     swapOutOfBand,
     displayNameIdMap,
     folderPaths,
+    folderTree,
+    entityId,
   }: {
     dtdlModelId: string
     swapOutOfBand?: boolean
@@ -220,7 +222,31 @@ export default class MermaidTemplates {
       path: string
       depth: number
     }[]
+    folderTree: DtdlPath[]
+    entityId?: DtdlId
   }): JSX.Element => {
+    const reducer = (set: Set<DtdlPath> | null, path: DtdlPath): Set<DtdlPath> | null => {
+      if (set) {
+        return set
+      }
+
+      if (path.type === 'file' || path.type === 'directory' || (path.type === 'fileEntry' && path.id !== entityId)) {
+        const entries = path.entries.reduce(reducer, null)
+        if (entries === null) {
+          return null
+        }
+        entries.add(path)
+        return entries
+      }
+
+      if (path.id === entityId) {
+        return new Set([path])
+      }
+
+      return null
+    }
+    const defaultExpandSet = folderTree.reduce(reducer, null) || new Set<DtdlPath>()
+
     return (
       <aside id="navigation-panel" hx-swap-oob={swapOutOfBand ? 'true' : undefined} aria-expanded="" class="edit">
         <input id="navigationPanelExpanded" name="navigationPanelExpanded" type="hidden" value="true" />
@@ -304,11 +330,16 @@ export default class MermaidTemplates {
               <small>Choose a folder for the new node. </small>
 
               <br />
+              <p>
+                <b>Select Folder:</b>
+              </p>
+              <div id="selectedFolder">
+                {this.folderTreeLevel({ highlightedEntitySet: defaultExpandSet, fileTree: folderTree })}
+              </div>
 
               <button type="submit" class="rounded-button" id="create-new-node-button">
                 Create Node
               </button>
-
               <button
                 type="button"
                 id="cancel-button"
@@ -894,6 +925,53 @@ export default class MermaidTemplates {
                     fileTree={path.entries}
                     hasErrors={hasErrors}
                     hasChildErrors={hasChildErrors}
+                  />
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </>
+    )
+  }
+
+  folderTreeLevel = ({
+    highlightedEntityId,
+    highlightedEntitySet,
+    fileTree,
+  }: {
+    highlightedEntityId?: DtdlId
+    highlightedEntitySet: Set<DtdlPath>
+    fileTree: DtdlPath[]
+  }): JSX.Element => {
+    return (
+      <>
+        {fileTree.map((path) => {
+          const isHighlighted = 'id' in path ? path.id === highlightedEntityId : false
+          const highlightClass = isHighlighted ? 'folder-tree-leaf-highlighted' : ''
+          const isExpanded = highlightedEntitySet.has(path)
+          if (path.type !== 'directory') {
+            return (
+              <div class={` ${this.navigationPanelNodeClass(path)} ${highlightClass}`.trim()}>
+                {escapeHtml(path.name)}
+              </div>
+            )
+          }
+          return (
+            <div class="accordion-parent">
+              <button
+                class={`folder-tree-button tree-icon ${this.navigationPanelNodeClass(path)} ${highlightClass}`.trim()}
+                {...{ [isExpanded ? 'aria-expanded' : 'aria-hidden']: '' }}
+                onclick="globalThis.toggleAccordion(event)"
+              >
+                {escapeHtml(path.name)}
+              </button>
+              <div class="accordion-content" {...{ [isExpanded ? 'aria-expanded' : 'aria-hidden']: '' }}>
+                <div>
+                  <this.folderTreeLevel
+                    highlightedEntityId={highlightedEntityId}
+                    highlightedEntitySet={highlightedEntitySet}
+                    fileTree={path.entries}
                   />
                 </div>
               </div>

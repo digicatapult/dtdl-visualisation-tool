@@ -32,3 +32,59 @@
 .accordion-button:not([aria-expanded])::after {
   transform: rotate(180deg);
 }
+
+/* Folder tree button styling to match navigation panel tree */
+#selectedFolder .accordion-parent .folder-tree-button {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  width: 100%;
+  text-align: start;
+  cursor: pointer;
+  position: relative;
+  padding-left: 2.25em;
+}
+
+#selectedFolder .accordion-parent .folder-tree-button:hover {
+  background-color: var(--border-color);
+}
+
+#selectedFolder .accordion-parent .folder-tree-button::before {
+  display: inline-block;
+  content: '⌃';
+  transform: rotate(90deg);
+  transition: transform var(--transition-duration);
+  position: absolute;
+  left: 0;
+}
+
+#selectedFolder .accordion-parent .folder-tree-button.tree-icon::after {
+  left: 1em;
+}
+
+#selectedFolder .accordion-parent .folder-tree-button[aria-expanded]::before {
+  transform: rotate(180deg);
+}
+
+/* Tree icon styling for folder tree */
+#selectedFolder .tree-icon::after {
+  display: inline-block;
+  content: '';
+  width: 0.8em;
+  height: 0.8em;
+  background-size: cover;
+  position: absolute;
+  inset: 0;
+  margin-block: auto;
+}
+
+#selectedFolder .directory::after {
+  background-image: url('../images/directory.svg');
+}
+
+/* Indentation for nested folder structure */
+#selectedFolder .accordion-content > div > .accordion-parent {
+  padding-left: 0.5rem;
+  border-left: 1px solid var(--border-color);
+  margin-left: 0.25em;
+}
