@@ -293,7 +293,6 @@ export class OntologyController extends HTMLController {
     const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
     const displayNameIdMap = this.getDisplayNameIdMap(baseModel)
     const filteredFolderPaths = this.filterDirectoriesOnly(fileTree)
-    const folderOptions = this.flattenFoldersWithDepth(filteredFolderPaths)
 
     await this.updateLayout(req, dtdlModelId, params) // this doesn't do anything
 
@@ -301,7 +300,6 @@ export class OntologyController extends HTMLController {
       this.templates.addNode({
         dtdlModelId,
         displayNameIdMap,
-        folderPaths: folderOptions,
         folderTree: filteredFolderPaths,
         swapOutOfBand: true, // ensures right panel updates
       })
@@ -422,19 +420,7 @@ export class OntologyController extends HTMLController {
       }))
   }
 
-  private flattenFoldersWithDepth(tree: DtdlPath[], parentPath = '', depth = 0) {
-    const result: { name: string; path: string; depth: number }[] = []
-    for (const node of tree) {
-      if (node.type === 'directory') {
-        const name = node.name
-        const nameOnlySegment = name.includes('/') ? name.substring(name.lastIndexOf('/') + 1) : name
-        const fullPath = parentPath ? `${parentPath}/${node.name}` : node.name
-        result.push({ name: nameOnlySegment, path: fullPath, depth })
-        result.push(...this.flattenFoldersWithDepth(node.entries, fullPath, depth + 1))
-      }
-    }
-    return result
-  }
+
   private setReplaceUrl(
     current: { path: string; query: URLSearchParams },
     params: { [key in UrlQueryKeys]?: string }

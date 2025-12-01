@@ -210,18 +210,12 @@ export default class MermaidTemplates {
     dtdlModelId,
     swapOutOfBand,
     displayNameIdMap,
-    folderPaths,
     folderTree,
     entityId,
   }: {
     dtdlModelId: string
     swapOutOfBand?: boolean
     displayNameIdMap: Record<string, string>
-    folderPaths: {
-      name: string
-      path: string
-      depth: number
-    }[]
     folderTree: DtdlPath[]
     entityId?: DtdlId
   }): JSX.Element => {
@@ -936,12 +930,12 @@ export default class MermaidTemplates {
     )
   }
 
-  // Helper function to check if a directory contains subdirectories
+  // Check if a directory contains subdirectories
   private hasSubdirectories = (entries: DtdlPath[]): boolean => {
     return entries.some((entry) => entry.type === 'directory')
   }
 
-  // Helper function to build folder tree button classes
+  // Build folder tree button classes
   private buildFolderButtonClasses = (
     path: DtdlPath,
     hasSubdirs: boolean,
