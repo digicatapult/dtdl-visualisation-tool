@@ -139,48 +139,37 @@ export class GithubRequest {
       },
     })
 
-    const { data: installation } = await this.requestWrapper(async () =>
+    const response = await this.requestWrapper(async () =>
       appOctokit.request('GET /repos/{owner}/{repo}/installation', {
         owner,
         repo,
       })
-    )
-    if (installation.permissions.contents === 'write' && installation.permissions.pull_requests === 'write') {
+    ).catch((err) => {
+      if (err instanceof GithubNotFound) return null
+      throw err
+    })
+
+    if (response?.data.permissions.contents === 'write' && response.data.permissions.pull_requests === 'write') {
       return 'edit'
     }
 
-    return 'unauthorised'
+    return this.getUserPermissions(token, owner, repo)
+  }
 
-    // const userOctokit = new Octokit({ auth: token })
-    // const { data: userInstallations } = await this.requestWrapper(async () =>
-    //   userOctokit.request('GET /user/installations', {
-    //     per_page: perPage,
-    //     page: 1,
-    //   })
-    // )
+  getUserPermissions = async (token: string, owner: string, repo: string): Promise<ViewAndEditPermission> => {
+    const octokit = new Octokit({ auth: token })
 
-    // const hasInstallation = userInstallations.installations.some(
-    //   (inst) => inst.id === installation.id && inst.client_id === env.get('GH_CLIENT_ID')
-    // )
+    const response = await this.requestWrapper(async () =>
+      octokit.request('GET /repos/{owner}/{repo}', {
+        owner,
+        repo,
+      })
+    ).catch((error) => {
+      if (error instanceof GithubNotFound) return null
+      throw error
+    })
 
-    // if (!hasInstallation) {
-    //   return 'unauthorised'
-    // }
-
-    // const { data: repos } = await this.requestWrapper(async () =>
-    //   userOctokit.request('GET /user/installations/{installation_id}/repositories', {
-    //     installation_id: installation.id,
-    //     per_page: perPage,
-    //   })
-    // )
-
-    //const repoPermissions = repos.repositories.find((r) => r.full_name === `${owner}/${repo}`)?.permissions
-
-    if (repoPermissions?.push) {
-      return 'edit'
-    } else if (repoPermissions?.pull) {
-      return 'view'
-    }
+    if (response?.data.permissions?.pull) return 'view'
     return 'unauthorised'
   }
 
@@ -399,9 +388,8 @@ export class GithubRequest {
     } catch (err) {
       this.logger.debug(err, 'GitHub API request failed')
 
-      if (err instanceof RequestError) {
-        if (err.status === 404) throw new GithubNotFound(`'${err.response?.url}' not found`)
-        throw new GithubReqError(err.message)
+      if (err instanceof RequestError && err.status === 404) {
+        throw new GithubNotFound(`'${err.response?.url}' not found`)
       }
 
       throw new GithubReqError('GitHub API request failed')

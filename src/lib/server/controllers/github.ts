@@ -117,7 +117,7 @@ export class GithubController extends HTMLController {
 
     return this.html(
       this.templates.githubPathLabel({
-        path: `Select a repository to ${type}`,
+        path: 'Your repos:',
         swapOutOfBand: true,
       }),
       this.templates.githubListItems({

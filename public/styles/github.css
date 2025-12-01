@@ -1,6 +1,7 @@
 #github-modal {
   height: 50%;
   width: 60ch;
+  padding: 2rem;
 }
 
 .github-list {
@@ -12,19 +13,21 @@
   min-height: 100px;
   margin: 0;
   overflow: auto;
+  height: 100%;
 }
 
-#modal-wrapper {
-  align-items: center;
+#github-modal-content {
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto auto 1fr auto auto;
   height: 100%;
   gap: 1rem;
-  padding: 2rem 1rem 0 1rem;
+  overflow: hidden;
 }
+
 
 a.authorise-link {
   color: var(--active-button-color);
+  text-decoration: none;
 }
 
 a.authorise-link:hover {
@@ -37,13 +40,9 @@ a.authorise-link:hover {
   grid-template-columns: 1fr auto;
 }
 
-#public-github-input-wrapper::after {
-  content: 'Select an ontology to load from GitHub';
-  padding-block: 0.5rem;
-}
-
 #public-github-input {
   font-size: 0.9rem;
+  transition: none;
 }
 
 #public-github-input-wrapper img {
@@ -57,22 +56,15 @@ a.authorise-link:hover {
   background: var(--background-color);
 }
 
-#github-path-label-wrapper {
+#github-modal-title-wrapper {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-#github-path-label {
-  margin: 0;
 }
 
 #github-list-wrapper {
   display: grid;
-  height: 100%;
-  grid-row: 2;
   overflow: auto;
+  min-height: 0;
 }
 
 #select-folder {

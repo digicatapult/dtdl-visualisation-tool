@@ -92,40 +92,50 @@ export default class OpenOntologyTemplates {
       : safeUrl(`/github/repos`, { page: '1', type: 'view' })
     const otherType = showEditableRepos ? 'view' : 'edit'
     return (
-      <div id="modal-wrapper">
-        {!showEditableRepos && (
-          <div id="public-github-input-wrapper">
-            <input
-              id="public-github-input"
-              placeholder="Enter public GitHub repo {org}/{repo} e.g. 'digicatapult/dtdl-visualisation-tool'"
-              hx-get="/github/navigate"
-              hx-indicator="#spin"
-              hx-trigger="keyup[event.key=='Enter'], input changed delay:500ms"
-              name="url"
-              hx-target=".github-list"
-              hx-validate={true}
-              oninput="globalThis.validatePublicRepoInput(this)"
-              hx-on-htmx-before-request="if (this.validity.valid === false) event.preventDefault()"
-            />
-            <img src="/public/images/arrow-enter.svg" />
-          </div>
-        )}
-        <div id="github-path-label-wrapper">
-          <this.githubPathLabel path={`Select a repository to ${type}`} />
-          <a hx-get={`/github/modal?type=${otherType}`} hx-target="#modal-wrapper" hx-swap="outerHTML">
-            Show {showEditableRepos ? 'viewable' : 'editable'} repos
+      <div id="github-modal-content">
+        <div id="github-modal-title-wrapper">
+          <b>Select a repository to {type}</b>
+          <a
+            hx-get={`/github/modal?type=${otherType}`}
+            hx-target="#github-modal-content"
+            hx-swap="outerHTML"
+            class="authorise-link"
+          >
+            {showEditableRepos ? 'Viewable' : 'Editable'} repos
           </a>
         </div>
+        <div id="public-github-input-wrapper" style={showEditableRepos ? 'visibility: hidden;' : undefined}>
+          <input
+            id="public-github-input"
+            placeholder="Enter public GitHub repo e.g. 'digicatapult/dtdl-visualisation-tool'"
+            hx-get="/github/navigate"
+            hx-indicator="#spin"
+            hx-trigger="keyup[event.key=='Enter'], input changed delay:500ms"
+            name="url"
+            hx-target=".github-list"
+            hx-validate={true}
+            oninput="globalThis.validatePublicRepoInput(this)"
+            hx-on-htmx-before-request="if (this.validity.valid === false) event.preventDefault()"
+          />
+          <img src="/public/images/arrow-enter.svg" />
+        </div>
+        <this.githubPathLabel path="Your repos:" />
 
         <div id="github-list-wrapper">
           <div id="spin" class="spinner" />
-          <ul class="github-list" hx-indicator="#spin" hx-get={populateListLink} hx-trigger="load"></ul>
+          <ul
+            class="github-list"
+            hx-indicator="#spin"
+            hx-get={populateListLink}
+            hx-trigger="load"
+            hx-on-htmx-after-settle="this.scrollTop = 0"
+          ></ul>
         </div>
         <a
           class="authorise-link"
           href={`https://github.com/apps/${env.get('GH_APP_NAME')}`}
           target="_blank"
-          aria-label="Authorise private repos (opens in a new tab)"
+          aria-label="Authorise repos (opens in a new tab)"
         >
           Repo missing? Authorise on GitHub ↗
         </a>
@@ -136,9 +146,9 @@ export default class OpenOntologyTemplates {
 
   public githubPathLabel = ({ path, swapOutOfBand }: { path: string; swapOutOfBand?: boolean }) => {
     return (
-      <h4 id="github-path-label" hx-swap-oob={swapOutOfBand ? 'true' : undefined} hx-swap="outerHTML">
+      <b id="github-path-label" hx-swap-oob={swapOutOfBand ? 'true' : undefined} hx-swap="outerHTML">
         {escapeHtml(path)}
-      </h4>
+      </b>
     )
   }
 
