@@ -9,6 +9,26 @@ globalThis.toggleAccordion = (event) => {
   content?.toggleAttribute('aria-hidden')
 }
 
+globalThis.handleFolderSelection = (event, folderPath) => {
+  // Prevent event bubbling
+  event.stopPropagation()
+
+  // Remove previous selection
+  const previousSelected = document.querySelector('.folder-tree-selected')
+  if (previousSelected) {
+    previousSelected.classList.remove('folder-tree-selected')
+  }
+
+  // Add selection to clicked folder
+  event.target.classList.add('folder-tree-selected')
+
+  // Update hidden input field with selected path
+  const hiddenInput = document.getElementById('selectedFolderPath')
+  if (hiddenInput) {
+    hiddenInput.value = folderPath
+  }
+}
+
 globalThis.toggleNavPanel = (event) => {
   const panel = event.target.parentElement
   const input = panel?.querySelector('#navigationPanelExpanded')
