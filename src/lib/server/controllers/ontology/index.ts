@@ -357,7 +357,7 @@ export class OntologyController extends HTMLController {
       throw new InternalError(`Display name '${displayName}' already exists.`)
     }
 
-    const newId = `dtmi:digitaltwins:ngsi_ld:cim:energy:${displayName.toLowerCase()};1`
+    const newId = `dtmi:digitaltwins:ngsi_ld:cim:energy:${displayName};1`
     const newNode = {
       '@id': newId,
       '@type': 'Interface',
@@ -397,22 +397,19 @@ export class OntologyController extends HTMLController {
   }
 
   private getDisplayNameIdMap(model: DtdlObjectModel): Record<string, string> {
-    const map: Record<string, string> = {}
-    for (const [id, node] of Object.entries(model)) {
-      if (node.EntityKind === 'Interface') {
-        const displayName = typeof node.displayName === 'object' ? node.displayName.en : node.displayName
-        if (displayName) map[displayName] = id
-      }
-    }
-    return map
+    return Object.fromEntries(
+      Object.entries(model)
+        .filter(([, node]) => node.EntityKind === 'Interface')
+        .map(([id, node]) => {
+          const displayName = typeof node.displayName === 'object' ? node.displayName.en : node.displayName
+          return [displayName, id]
+        })
+        .filter(([displayName]) => displayName)
+    )
   }
 
   private toPascalCase(str: string): string {
-    return str
-      .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
-        return index === 0 ? word.toUpperCase() : word.toUpperCase()
-      })
-      .replace(/\s+/g, '')
+    return str.replace(/(?:^\w|[A-Z]|\b\w)/g, (word) => word.toUpperCase()).replace(/\s+/g, '')
   }
 
   private filterDirectoriesOnly(tree: DtdlPath[]): DtdlPath[] {

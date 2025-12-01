@@ -33,7 +33,7 @@
   transform: rotate(180deg);
 }
 
-#selectedFolder .accordion-parent .folder-tree-button {
+#selectedFolder .folder-tree-button {
   background: transparent;
   border: 0;
   padding: 0;
@@ -44,11 +44,11 @@
   padding-left: 2.25em;
 }
 
-#selectedFolder .accordion-parent .folder-tree-button:hover {
+#selectedFolder .folder-tree-button:hover {
   background-color: var(--border-color);
 }
 
-#selectedFolder .accordion-parent .folder-tree-button::before {
+#selectedFolder .folder-tree-button::before {
   display: inline-block;
   content: '⌃';
   transform: rotate(90deg);
@@ -57,11 +57,11 @@
   left: 0;
 }
 
-#selectedFolder .accordion-parent .folder-tree-button.tree-icon::after {
+#selectedFolder .folder-tree-button.tree-icon::after {
   left: 1em;
 }
 
-#selectedFolder .accordion-parent .folder-tree-button[aria-expanded]::before {
+#selectedFolder .folder-tree-button[aria-expanded]::before {
   transform: rotate(180deg);
 }
 
