@@ -314,16 +314,15 @@ export default class MermaidTemplates {
                 ))}
               </select>
               <small>DTDL allows only single inheritance. Select one node to extend, or choose 'None'.</small>
-
               <p>
                 <b>Select Folder*:</b>
               </p>
-              <input type="hidden" name="folderPath" id="selectedFolderPath" required />
+              <input type="hidden" name="folderPath" id="selectedFolderPath" required value="" />
               <div id="selectedFolder">
                 <div class="accordion-parent">
                   <button
                     type="button"
-                    class="folder-tree-button tree-icon directory"
+                    class="folder-tree-button tree-icon directory folder-tree-selected"
                     onclick="globalThis.handleFolderSelection(event, '');"
                     data-folder-path=""
                   >
@@ -339,16 +338,7 @@ export default class MermaidTemplates {
               </div>
               <small>Click a folder or root to select where to save the new node.</small>
 
-              <div id="folder-selection-status" class="selection-status hidden">
-                ⚠️ Please select a folder or root directory first
-              </div>
-
-              <button
-                type="submit"
-                class="rounded-button"
-                id="create-new-node-button"
-                onclick="return globalThis.validateFolderSelection(event);"
-              >
+              <button type="submit" class="rounded-button" id="create-new-node-button">
                 Create Node
               </button>
               <button

@@ -27,29 +27,7 @@ globalThis.handleFolderSelection = (event, folderPath) => {
   if (hiddenInput) {
     hiddenInput.value = folderPath
   }
-
-  // Hide any error message
-  const statusDiv = document.getElementById('folder-selection-status')
-  if (statusDiv) {
-    statusDiv.classList.add('hidden')
-  }
 }
-
-globalThis.validateFolderSelection = (event) => {
-  const hiddenInput = document.getElementById('selectedFolderPath')
-  const statusDiv = document.getElementById('folder-selection-status')
-
-  if (!hiddenInput || hiddenInput.value === undefined || hiddenInput.value === null) {
-    if (statusDiv) {
-      statusDiv.classList.remove('hidden')
-    }
-    event.preventDefault()
-    return false
-  }
-
-  return true
-}
-
 globalThis.toggleNavPanel = (event) => {
   const panel = event.target.parentElement
   const input = panel?.querySelector('#navigationPanelExpanded')
