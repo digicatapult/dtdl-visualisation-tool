@@ -336,7 +336,7 @@ export class OntologyController extends HTMLController {
       sessionId: z.string(),
     })
     const {
-      displayName,
+      displayName: rawDisplayName,
       description,
       comment,
       extends: extendsId,
@@ -345,7 +345,19 @@ export class OntologyController extends HTMLController {
       navigationPanelExpanded,
       sessionId,
     } = newNodeSchema.parse(body)
-    const newId = `dtmi:digitaltwins:ngsi_ld:cim:energy:${displayName.replace(/\s+/g, '').toLowerCase()};1`
+
+    // Convert to PascalCase and trim
+    const displayName = this.toPascalCase(rawDisplayName.trim())
+
+    // Check for duplicate display names and throw is duplicate found
+    const { model: baseModel } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
+    const displayNameIdMap = this.getDisplayNameIdMap(baseModel)
+
+    if (displayNameIdMap[displayName]) {
+      throw new InternalError(`Display name '${displayName}' already exists.`)
+    }
+
+    const newId = `dtmi:digitaltwins:ngsi_ld:cim:energy:${displayName.toLowerCase()};1`
     const newNode = {
       '@id': newId,
       '@type': 'Interface',
@@ -356,18 +368,13 @@ export class OntologyController extends HTMLController {
       extends: extendsId ? [extendsId] : [],
       contents: [],
     }
-    // const energyGridPath = path.resolve(process.cwd(), 'sample/energygrid/Test.json')
-    // await fs.writeFile(energyGridPath, JSON.stringify(newNode, null, 2), 'utf8')
 
     const stringJson = JSON.stringify(newNode, null, 2)
-    await this.modelDb.addEntityToModel(
-      dtdlModelId,
-      stringJson,
-      `${folderPath}/${displayName.replace(/\s+/g, '')}.json`
-    )
+    const fileName = folderPath ? `${folderPath}/${displayName}.json` : `${displayName}.json`
+    await this.modelDb.addEntityToModel(dtdlModelId, stringJson, fileName)
 
     // Get updated model and fileTree and update cache
-    const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
+    const { model: updatedBaseModel, fileTree: updatedFileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
     const output = await this.generator.run(baseModel, 'flowchart', 'elk')
     setCacheWithDefaultParams(this.cache, dtdlModelId, output)
     // Return updated navigation panel in edit mode
@@ -375,11 +382,11 @@ export class OntologyController extends HTMLController {
       this.templates.navigationPanel({
         swapOutOfBand: false,
         entityId: newId,
-        model: baseModel,
+        model: updatedBaseModel,
         expanded: true,
         edit: true,
         tab: 'details',
-        fileTree,
+        fileTree: updatedFileTree,
       }),
       this.templates.mermaidTarget({
         generatedOutput: output.renderToString(),
@@ -398,6 +405,14 @@ export class OntologyController extends HTMLController {
       }
     }
     return map
+  }
+
+  private toPascalCase(str: string): string {
+    return str
+      .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
+        return index === 0 ? word.toUpperCase() : word.toUpperCase()
+      })
+      .replace(/\s+/g, '')
   }
 
   private filterDirectoriesOnly(tree: DtdlPath[]): DtdlPath[] {
