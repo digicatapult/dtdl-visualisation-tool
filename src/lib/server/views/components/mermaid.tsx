@@ -318,24 +318,16 @@ export default class MermaidTemplates {
               <p>
                 <b>Select Folder*:</b>
               </p>
-              <select name="folderPath" class="nav-panel-editable" required>
-                {folderPaths.length === 0 ? (
-                  <option value="">No folders available. Please add a folder first.</option>
-                ) : (
-                  folderPaths.map((folder) => (
-                    <option value={folder.path}>{`${'-'.repeat(folder.depth)} ${escapeHtml(folder.name)}`}</option>
-                  ))
-                )}
-              </select>
-              <small>Choose a folder for the new node. </small>
-
-              <br />
-              <p>
-                <b>Select Folder:</b>
-              </p>
+              <input type="hidden" name="folderPath" id="selectedFolderPath" required />
               <div id="selectedFolder">
-                {this.folderTreeLevel({ highlightedEntitySet: defaultExpandSet, fileTree: folderTree })}
+                {this.folderTreeLevel({
+                  highlightedEntitySet: defaultExpandSet,
+                  fileTree: folderTree,
+                  pathPrefix: '',
+                  selectedPath: null,
+                })}
               </div>
+              <small>Click a folder to select it for the new node.</small>
 
               <button type="submit" class="rounded-button" id="create-new-node-button">
                 Create Node
@@ -939,17 +931,25 @@ export default class MermaidTemplates {
     highlightedEntityId,
     highlightedEntitySet,
     fileTree,
+    pathPrefix = '',
+    selectedPath = null,
   }: {
     highlightedEntityId?: DtdlId
     highlightedEntitySet: Set<DtdlPath>
     fileTree: DtdlPath[]
+    pathPrefix?: string
+    selectedPath?: string | null
   }): JSX.Element => {
     return (
       <>
         {fileTree.map((path) => {
+          const currentPath = pathPrefix ? `${pathPrefix}/${path.name}` : path.name
           const isHighlighted = 'id' in path ? path.id === highlightedEntityId : false
+          const isSelected = selectedPath === currentPath
           const highlightClass = isHighlighted ? 'folder-tree-leaf-highlighted' : ''
+          const selectedClass = isSelected ? 'folder-tree-selected' : ''
           const isExpanded = highlightedEntitySet.has(path)
+
           if (path.type !== 'directory') {
             return (
               <div class={` ${this.navigationPanelNodeClass(path)} ${highlightClass}`.trim()}>
@@ -957,12 +957,14 @@ export default class MermaidTemplates {
               </div>
             )
           }
+
           return (
             <div class="accordion-parent">
               <button
-                class={`folder-tree-button tree-icon ${this.navigationPanelNodeClass(path)} ${highlightClass}`.trim()}
+                class={`folder-tree-button tree-icon ${this.navigationPanelNodeClass(path)} ${highlightClass} ${selectedClass}`.trim()}
                 {...{ [isExpanded ? 'aria-expanded' : 'aria-hidden']: '' }}
-                onclick="globalThis.toggleAccordion(event)"
+                onclick={`globalThis.handleFolderSelection(event, '${escapeHtml(currentPath)}'); globalThis.toggleAccordion(event);`}
+                data-folder-path={currentPath}
               >
                 {escapeHtml(path.name)}
               </button>
@@ -972,6 +974,8 @@ export default class MermaidTemplates {
                     highlightedEntityId={highlightedEntityId}
                     highlightedEntitySet={highlightedEntitySet}
                     fileTree={path.entries}
+                    pathPrefix={currentPath}
+                    selectedPath={selectedPath}
                   />
                 </div>
               </div>
