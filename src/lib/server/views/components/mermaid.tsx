@@ -320,6 +320,16 @@ export default class MermaidTemplates {
               </p>
               <input type="hidden" name="folderPath" id="selectedFolderPath" required />
               <div id="selectedFolder">
+                <div class="accordion-parent">
+                  <button
+                    type="button"
+                    class="folder-tree-button tree-icon directory"
+                    onclick="globalThis.handleFolderSelection(event, '');"
+                    data-folder-path=""
+                  >
+                    Root
+                  </button>
+                </div>
                 {this.folderTreeLevel({
                   highlightedEntitySet: defaultExpandSet,
                   fileTree: folderTree,
@@ -327,9 +337,18 @@ export default class MermaidTemplates {
                   selectedPath: null,
                 })}
               </div>
-              <small>Click a folder to select it for the new node.</small>
+              <small>Click a folder or root to select where to save the new node.</small>
 
-              <button type="submit" class="rounded-button" id="create-new-node-button">
+              <div id="folder-selection-status" class="selection-status hidden">
+                ⚠️ Please select a folder or root directory first
+              </div>
+
+              <button
+                type="submit"
+                class="rounded-button"
+                id="create-new-node-button"
+                onclick="return globalThis.validateFolderSelection(event);"
+              >
                 Create Node
               </button>
               <button
