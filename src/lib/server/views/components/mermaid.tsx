@@ -322,7 +322,7 @@ export default class MermaidTemplates {
                 <div class="accordion-parent">
                   <button
                     type="button"
-                    class="folder-tree-button tree-icon directory folder-tree-selected"
+                    class={`folder-tree-button tree-icon no-arrow directory folder-tree-selected`.trim()}
                     onclick="globalThis.handleFolderSelection(event, '');"
                     data-folder-path=""
                   >
@@ -936,6 +936,11 @@ export default class MermaidTemplates {
     )
   }
 
+  // Helper function to check if a directory contains subdirectories
+  private hasSubdirectories = (entries: DtdlPath[]): boolean => {
+    return entries.some((entry) => entry.type === 'directory')
+  }
+
   folderTreeLevel = ({
     highlightedEntityId,
     highlightedEntitySet,
@@ -967,11 +972,15 @@ export default class MermaidTemplates {
             )
           }
 
+          // Check if this directory contains subdirectories to show/hide arrow
+          const hasSubdirs = this.hasSubdirectories(path.entries)
+          const noArrowClass = hasSubdirs ? '' : 'no-arrow'
+
           return (
             <div class="accordion-parent">
               <button
                 type="button"
-                class={`folder-tree-button tree-icon ${this.navigationPanelNodeClass(path)} ${highlightClass} ${selectedClass}`.trim()}
+                class={`folder-tree-button tree-icon ${noArrowClass} ${this.navigationPanelNodeClass(path)} ${highlightClass} ${selectedClass}`.trim()}
                 {...{ [isExpanded ? 'aria-expanded' : 'aria-hidden']: '' }}
                 onclick={`globalThis.handleFolderSelection(event, '${escapeHtml(currentPath)}'); globalThis.toggleAccordion(event);`}
                 data-folder-path={currentPath}
