@@ -961,6 +961,7 @@ export default class MermaidTemplates {
           return (
             <div class="accordion-parent">
               <button
+                type="button"
                 class={`folder-tree-button tree-icon ${this.navigationPanelNodeClass(path)} ${highlightClass} ${selectedClass}`.trim()}
                 {...{ [isExpanded ? 'aria-expanded' : 'aria-hidden']: '' }}
                 onclick={`globalThis.handleFolderSelection(event, '${escapeHtml(currentPath)}'); globalThis.toggleAccordion(event);`}
