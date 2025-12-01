@@ -108,6 +108,8 @@ The application can be run in Docker. `sample/energygrid` is automatically parse
 | DB_PORT                  | n        | `5432`                    | The database port number                                                                                                                     |
 | UPLOAD_LIMIT_MB          | n        | `10`                      | Upload limit for DTDLs in MB                                                                                                                 |
 | GH_APP_NAME              | y        | -                         | See [GitHub Integration](#github-integration)                                                                                                |
+| GH_APP_ID                | y        | -                         | See [GitHub Integration](#github-integration)                                                                                                |
+| GH_APP_PRIVATE_KEY       | y        | -                         | See [GitHub Integration](#github-integration)                                                                                                |
 | GH_CLIENT_ID             | y        | -                         | See [GitHub Integration](#github-integration)                                                                                                |
 | GH_CLIENT_SECRET         | y        | -                         | See [GitHub Integration](#github-integration)                                                                                                |
 | GH_PER_PAGE              | n        | `50`                      | The number of results per GitHub API request (max 100)                                                                                       |
@@ -136,6 +138,13 @@ With GitHub integration, users can choose to upload directories of DTDL files to
 Create a `.env` at root and set:
 
 - `GH_APP_NAME=` to the GitHub App's name.
+- `GH_APP_ID=` to the GitHub App's ID.
+- `GH_APP_PRIVATE_KEY=` to the GitHub App's private key (not to be confused with client secret) as a base64 encoded string. To convert a `.pem` file to base64:
+
+  ```sh
+  base64 -i your-app-private-key.pem | tr -d '\n'
+  ```
+
 - `GH_CLIENT_ID=` to the GitHub App's Client ID.
 - `GH_CLIENT_SECRET=` a generated token on the GitHub App.
 
