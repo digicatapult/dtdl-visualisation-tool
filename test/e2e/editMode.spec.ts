@@ -21,7 +21,7 @@ test.describe('Test edit ontology', () => {
     )
   })
   test('edit interface + relationship', async ({ browser, baseURL }) => {
-    test.setTimeout(180000)
+    test.setTimeout(110000)
     const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const page = await context.newPage()
     await openEditRepo(page)
