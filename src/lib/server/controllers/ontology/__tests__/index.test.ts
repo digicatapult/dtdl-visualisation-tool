@@ -480,7 +480,9 @@ describe('OntologyController', async () => {
   describe('addNewNode', () => {
     it('should return rendered addNode template with folder tree', async () => {
       const req = mockReq({})
-      const result = await controller.addNewNode(simpleDtdlId, defaultParams, req).then(toHTMLString)
+      const res = await controller.addNewNode(simpleDtdlId, defaultParams, req)
+      expect(res).to.exist
+      const result = await toHTMLString(res!)
 
       expect(result).to.include('addNode')
       expect(result).to.include(simpleDtdlId)
@@ -590,7 +592,7 @@ describe('OntologyController', async () => {
 
       const [, entityJson] = addEntityToModelStub.firstCall.args
       const parsedEntity = JSON.parse(entityJson)
-      expect(parsedEntity.description).to.be.undefined
+      expect(parsedEntity.description).to.be.equal(undefined)
       expect(parsedEntity.comment).to.equal('')
       expect(parsedEntity.extends).to.deep.equal([])
     })
