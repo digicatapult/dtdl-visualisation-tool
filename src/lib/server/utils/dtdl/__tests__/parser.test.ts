@@ -27,27 +27,27 @@ describe('getJsonfiles', function () {
   test('nested directories', async () => {
     const dir = path.resolve(__dirname, './fixtures/nestedDtdl')
     const result = await parser.getJsonFiles(dir)
-    expect(JSON.parse(result[0].contents)).to.deep.equal(nestedTwo)
-    expect(JSON.parse(result[1].contents)).to.deep.equal(nestedOne)
+    expect(JSON.parse(result[0].source)).to.deep.equal(nestedTwo)
+    expect(JSON.parse(result[1].source)).to.deep.equal(nestedOne)
   })
 
   test('accepts BOM encoded json', async () => {
     const dir = path.resolve(__dirname, './fixtures/bom')
     const result = await parser.getJsonFiles(dir)
-    expect(JSON.parse(result[0].contents)).to.deep.equal(bom)
+    expect(JSON.parse(result[0].source)).to.deep.equal(bom)
   })
 
   test('ignores invalid json', async () => {
     const dir = path.resolve(__dirname, './fixtures/someInvalid')
     const result = await parser.getJsonFiles(dir)
     expect(result.length).to.equal(1)
-    expect(JSON.parse(result[0].contents)).to.deep.equal(valid)
+    expect(JSON.parse(result[0].source)).to.deep.equal(valid)
   })
 
   test('accepts complex nested json', async () => {
     const dir = path.resolve(__dirname, './fixtures/complexNested')
     const result = await parser.getJsonFiles(dir)
-    expect(JSON.parse(result[0].contents)).to.deep.equal(complexNested)
+    expect(JSON.parse(result[0].source)).to.deep.equal(complexNested)
   })
 
   test('should throw error if json too deeply nested on a single branch', async () => {
@@ -63,8 +63,8 @@ describe('unzipJsonfiles', function () {
     const buffer = await readFile(zip)
 
     const result = await parser.unzipJsonFiles(buffer)
-    expect(JSON.parse(result[0].contents)).to.deep.equal(nestedOne)
-    expect(JSON.parse(result[1].contents)).to.deep.equal(nestedTwo)
+    expect(JSON.parse(result[0].source)).to.deep.equal(nestedOne)
+    expect(JSON.parse(result[1].source)).to.deep.equal(nestedTwo)
   })
 
   test('subdirectory only', async () => {
@@ -74,7 +74,7 @@ describe('unzipJsonfiles', function () {
     const result = await parser.unzipJsonFiles(buffer, 'nested')
     expect(result.length).to.equal(1)
 
-    expect(JSON.parse(result[0].contents)).to.deep.equal(nestedTwo)
+    expect(JSON.parse(result[0].source)).to.deep.equal(nestedTwo)
   })
 
   test('accepts BOM encoded json', async () => {
@@ -82,7 +82,7 @@ describe('unzipJsonfiles', function () {
     const buffer = await readFile(zip)
 
     const result = await parser.unzipJsonFiles(buffer)
-    expect(JSON.parse(result[0].contents)).to.deep.equal(bom)
+    expect(JSON.parse(result[0].source)).to.deep.equal(bom)
   })
 
   test('ignores invalid json', async () => {
@@ -91,7 +91,7 @@ describe('unzipJsonfiles', function () {
 
     const result = await parser.unzipJsonFiles(buffer)
     expect(result.length).to.equal(1)
-    expect(JSON.parse(result[0].contents)).to.deep.equal(valid)
+    expect(JSON.parse(result[0].source)).to.deep.equal(valid)
   })
 
   test('accepts complex nested json', async () => {
@@ -99,7 +99,7 @@ describe('unzipJsonfiles', function () {
     const buffer = await readFile(zip)
 
     const result = await parser.unzipJsonFiles(buffer)
-    expect(JSON.parse(result[0].contents)).to.deep.equal(complexNested)
+    expect(JSON.parse(result[0].source)).to.deep.equal(complexNested)
   })
 
   test('should throw error if json too deeply nested on a single branch', async () => {
@@ -131,8 +131,8 @@ describe('unzipJsonfiles', function () {
 describe('parse', function () {
   test('parses multiple files successfully', async () => {
     const files = [
-      { path: '', contents: JSON.stringify(nestedOne) },
-      { path: '', contents: JSON.stringify(nestedTwo) },
+      { path: '', source: JSON.stringify(nestedOne) },
+      { path: '', source: JSON.stringify(nestedTwo) },
     ]
     const result = await parser.parseAll(files)
     expect(result[nestedOne['@id']].Id).to.equal(nestedOne['@id'])
@@ -140,15 +140,15 @@ describe('parse', function () {
   })
 
   test('throws error if bad DTDL', async () => {
-    const files = [{ path: '', contents: JSON.stringify({}) }]
+    const files = [{ path: '', source: JSON.stringify({}) }]
     await expect(parser.parseAll(files)).to.be.rejectedWith(ModellingError)
   })
 
   test('parsed dtdl loaded from cache', async () => {
-    const files = [{ path: '', contents: JSON.stringify(nestedOne) }]
+    const files = [{ path: '', source: JSON.stringify(nestedOne) }]
 
-    const allContents = Parser.fileContentsToString(files)
-    const dtdlHashKey = createHash('sha256').update(allContents).digest('base64')
+    const allSource = Parser.fileSourceToString(files)
+    const dtdlHashKey = createHash('sha256').update(allSource).digest('base64')
 
     const parsedDtdl = {
       [nestedOne['@id']]: {
@@ -170,9 +170,9 @@ describe('parse', function () {
   })
 
   test('parses DTDL and sets cache if not found', async () => {
-    const files = [{ path: '', contents: JSON.stringify(nestedOne) }]
-    const allContents = Parser.fileContentsToString(files)
-    const dtdlHashKey = createHash('sha256').update(allContents).digest('base64')
+    const files = [{ path: '', source: JSON.stringify(nestedOne) }]
+    const allSource = Parser.fileSourceToString(files)
+    const dtdlHashKey = createHash('sha256').update(allSource).digest('base64')
     const parsedDtdl = {
       [nestedOne['@id']]: {
         EntityKind: 'Interface',
@@ -196,8 +196,8 @@ describe('parse', function () {
 describe('validate', function () {
   test('multiple valid files', async () => {
     const files = [
-      { path: '', contents: JSON.stringify(nestedOne) },
-      { path: '', contents: JSON.stringify(nestedTwo) },
+      { path: '', source: JSON.stringify(nestedOne) },
+      { path: '', source: JSON.stringify(nestedTwo) },
     ]
     const result = await parser.validate(files)
     expect(result).to.deep.equal(files)
@@ -205,8 +205,8 @@ describe('validate', function () {
 
   test('valid file and invalid file', async () => {
     const files = [
-      { path: '', contents: JSON.stringify(nestedOne) },
-      { path: '', contents: JSON.stringify({}) },
+      { path: '', source: JSON.stringify(nestedOne) },
+      { path: '', source: JSON.stringify({}) },
     ]
     const result = await parser.validate(files)
     expect(result[0]).to.deep.equal(files[0])
@@ -215,7 +215,7 @@ describe('validate', function () {
   })
 
   test('should throw error if all invalid files', async () => {
-    const files = [{ path: '', contents: JSON.stringify({}) }]
+    const files = [{ path: '', source: JSON.stringify({}) }]
     await expect(parser.validate(files)).to.be.rejectedWith(ModellingError)
   })
 })
@@ -233,7 +233,7 @@ describe('extractDtdlPaths', function () {
   } as DtdlObjectModel
 
   test('extracts paths from simple DTDL', () => {
-    const files = [{ path: 'file.json', contents: JSON.stringify(nestedOne) }]
+    const files = [{ path: 'file.json', source: JSON.stringify(nestedOne) }]
     const result = parser.extractDtdlPaths(files, model)
     expect(result).to.deep.equal([
       {
@@ -253,7 +253,7 @@ describe('extractDtdlPaths', function () {
   })
 
   test('extracts and nests paths from simple DTDL', () => {
-    const files = [{ path: 'some/path/file.json', contents: JSON.stringify(nestedOne) }]
+    const files = [{ path: 'some/path/file.json', source: JSON.stringify(nestedOne) }]
     const result = parser.extractDtdlPaths(files, model)
     expect(result).to.deep.equal([
       {
@@ -286,8 +286,8 @@ describe('extractDtdlPaths', function () {
 
   test('extracts and merges paths from multiple files', () => {
     const files = [
-      { path: 'some/path/file.json', contents: JSON.stringify(nestedOne) },
-      { path: 'some/other/file2.json', contents: JSON.stringify(nestedTwo) },
+      { path: 'some/path/file.json', source: JSON.stringify(nestedOne) },
+      { path: 'some/other/file2.json', source: JSON.stringify(nestedTwo) },
     ]
     const result = parser.extractDtdlPaths(files, model)
     expect(result).to.deep.equal([
@@ -339,7 +339,7 @@ describe('extractDtdlPaths', function () {
   })
 
   test('extracts and merges multiple entries in single file', () => {
-    const files = [{ path: 'some/path/file.json', contents: JSON.stringify([nestedOne, nestedTwo]) }]
+    const files = [{ path: 'some/path/file.json', source: JSON.stringify([nestedOne, nestedTwo]) }]
     const result = parser.extractDtdlPaths(files, model)
     expect(result).to.deep.equal([
       {
@@ -378,7 +378,7 @@ describe('extractDtdlPaths', function () {
   })
 
   test('extracts and merges multiple entries in single file (deep)', () => {
-    const files = [{ path: 'some/path/file.json', contents: JSON.stringify([[[nestedOne, nestedTwo]]]) }]
+    const files = [{ path: 'some/path/file.json', source: JSON.stringify([[[nestedOne, nestedTwo]]]) }]
     const result = parser.extractDtdlPaths(files, model)
     expect(result).to.deep.equal([
       {
@@ -417,7 +417,7 @@ describe('extractDtdlPaths', function () {
   })
 
   test('extracts properties and relationships', async () => {
-    const files = [{ path: 'file.json', contents: JSON.stringify(withPropsAndRels) }]
+    const files = [{ path: 'file.json', source: JSON.stringify(withPropsAndRels) }]
     const model = await parser.parseAll(files)
 
     const result = parser.extractDtdlPaths(files, model)
@@ -468,8 +468,8 @@ describe('extractDtdlPaths', function () {
   test('extracts and merges paths from multiple files - including errors', () => {
     const error: ModelingException = { ExceptionKind: 'Resolution', UndefinedIdentifiers: [''] }
     const files = [
-      { path: 'some/path/file.json', contents: JSON.stringify(nestedOne), errors: [error] },
-      { path: 'some/other/file2.json', contents: JSON.stringify(nestedTwo) },
+      { path: 'some/path/file.json', source: JSON.stringify(nestedOne), errors: [error] },
+      { path: 'some/other/file2.json', source: JSON.stringify(nestedTwo) },
     ]
     const result = parser.extractDtdlPaths(files, model)
     expect(result).to.deep.equal([

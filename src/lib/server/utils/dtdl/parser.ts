@@ -43,9 +43,9 @@ const entityParser = z.object({
   '@id': z.string(),
 })
 type DtdlFileEntry = z.infer<typeof entityParser>
-type DtdlFileContents = DtdlFileContents[] | DtdlFileEntry
-const dtdlFileContentParser: z.ZodSchema<DtdlFileContents> = z.union([
-  z.array(z.lazy(() => dtdlFileContentParser)),
+type DtdlFileSource = DtdlFileSource[] | DtdlFileEntry
+const dtdlFileSourceParser: z.ZodSchema<DtdlFileSource> = z.union([
+  z.array(z.lazy(() => dtdlFileSourceParser)),
   entityParser,
 ])
 
@@ -72,8 +72,8 @@ export default class Parser {
     }
 
     if (entry.isFile() && entry.name.endsWith('.json')) {
-      const contents = await readFile(fullPath, 'utf-8')
-      const noBomJson = contents.replace(/^\uFEFF/, '')
+      const source = await readFile(fullPath, 'utf-8')
+      const noBomJson = source.replace(/^\uFEFF/, '')
 
       let json = {}
       try {
@@ -83,7 +83,7 @@ export default class Parser {
         return
       }
       this.isWithinDepthLimit(json)
-      return [{ path: relative(topDir, fullPath), contents: noBomJson }]
+      return [{ path: relative(topDir, fullPath), source: noBomJson }]
     }
   }
 
@@ -120,11 +120,11 @@ export default class Parser {
         throw new UploadError(`Uncompressed zip exceeds ${env.get('UPLOAD_LIMIT_MB')}MB limit`)
 
       const fileBuffer = await file.buffer()
-      const contents = fileBuffer.toString().replace(/^\uFEFF/, '') // Remove BOM
+      const source = fileBuffer.toString().replace(/^\uFEFF/, '') // Remove BOM
 
       let json = {}
       try {
-        json = JSON.parse(contents) // Validate JSON
+        json = JSON.parse(source) // Validate JSON
       } catch {
         this.logger.trace(`Ignoring invalid json: '${file.path}'`)
         return
@@ -132,7 +132,7 @@ export default class Parser {
       this.isWithinDepthLimit(json)
       const path = relative(topDir, file.path)
       if (path.length > DEFAULT_DB_STRING_LENGTH) throw new UploadError(`File path too long: '${path}'`)
-      return [{ path, contents }]
+      return [{ path, source }]
     }
   }
 
@@ -144,7 +144,7 @@ export default class Parser {
     const parser = await getInterop()
 
     const filesWithErrors = files.map((file) => {
-      const parsed = parseDtdl(file.contents, parser)
+      const parsed = parseDtdl(file.source, parser)
       return {
         ...file,
         ...(parsed.ExceptionKind === 'Parsing' && { errors: [parsed] }),
@@ -158,16 +158,16 @@ export default class Parser {
   }
 
   async parseAll(files: DtdlFile[]): Promise<DtdlObjectModel> {
-    const allContents = Parser.fileContentsToString(files)
+    const source = Parser.fileSourceToString(files)
 
-    const dtdlHashKey = createHash('sha256').update(allContents).digest('base64')
+    const dtdlHashKey = createHash('sha256').update(source).digest('base64')
     if (this.cache.has(dtdlHashKey)) {
       const cachedParsedDtdl = this.cache.get(dtdlHashKey, dtdlObjectModelParser)
       if (cachedParsedDtdl) return cachedParsedDtdl
     }
 
     const parser = await getInterop()
-    const parsedDtdl = parseDtdl(allContents, parser)
+    const parsedDtdl = parseDtdl(source, parser)
 
     if (parsedDtdl.ExceptionKind) {
       throw new ModellingError(`${parsedDtdl.ExceptionKind} error. Open details:`, JSON.stringify(parsedDtdl))
@@ -178,7 +178,7 @@ export default class Parser {
   }
 
   extractDtdlPaths(files: DtdlFile[], model: DtdlObjectModel): DtdlPath[] {
-    // for each file parse the contents and extract the entities along their file system path
+    // for each file parse the source and extract the entities along their file system path
     const dtdlFilePaths = files.map((file) => {
       const filePath = path.parse(file.path)
       if (file.errors)
@@ -189,7 +189,7 @@ export default class Parser {
           errors: file.errors,
         })
 
-      const json = dtdlFileContentParser.parse(JSON.parse(file.contents))
+      const json = dtdlFileSourceParser.parse(JSON.parse(file.source))
       const pathFile = this.extractDtdlEntities(filePath.base, json, model)
       return this.wrapDtdlPathEntry(filePath, pathFile)
     })
@@ -245,17 +245,17 @@ export default class Parser {
     return this.wrapDtdlPathEntry(parentPath, wrapped)
   }
 
-  // extracts DTDL entities from the parsed contents and builds a DtdlPathFile structure
-  private extractDtdlEntities(name: string, contents: DtdlFileContents, model: DtdlObjectModel): DtdlPathFile {
-    if (Array.isArray(contents)) {
+  // extracts DTDL entities from the parsed source and builds a DtdlPathFile structure
+  private extractDtdlEntities(name: string, source: DtdlFileSource, model: DtdlObjectModel): DtdlPathFile {
+    if (Array.isArray(source)) {
       return {
         type: 'file',
         name,
-        entries: contents.map((c) => this.extractDtdlEntities(name, c, model).entries).flat(),
+        entries: source.map((c) => this.extractDtdlEntities(name, c, model).entries).flat(),
       }
     }
 
-    const entityId = contents['@id']
+    const entityId = source['@id']
     const parsedEntry = model[entityId]
 
     if (!parsedEntry) {
@@ -322,8 +322,8 @@ export default class Parser {
     }
   }
 
-  static fileContentsToString(files: DtdlFile[]): string {
+  static fileSourceToString(files: DtdlFile[]): string {
     const validFiles = files.filter((f) => !f.errors)
-    return `[${validFiles.map((f) => f.contents).join(',')}]`
+    return `[${validFiles.map((f) => f.source).join(',')}]`
   }
 }

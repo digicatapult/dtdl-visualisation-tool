@@ -1,7 +1,7 @@
 import dotenv from 'dotenv'
 import * as envalid from 'envalid'
 import { singleton } from 'tsyringe'
-import { strArrayValidator } from './validators.js'
+import { optionalStrValidator, strArrayValidator } from './validators.js'
 
 if (process.env.NODE_ENV === 'test') {
   dotenv.config({ path: 'test/test.env' })
@@ -35,6 +35,13 @@ export const envConfig = {
   IP_ALLOW_LIST: strArrayValidator({ default: [''] }),
   RATE_LIMIT_WINDOW_MS: envalid.num({ default: 10 * 60 * 1000 }),
   MAX_DTDL_OBJECT_SIZE: envalid.num({ default: 1000 }),
+  POSTHOG_ENABLED: envalid.bool({ default: false, devDefault: true }),
+  NEXT_PUBLIC_POSTHOG_KEY: optionalStrValidator({
+    default: undefined,
+  }),
+  NEXT_PUBLIC_POSTHOG_HOST: optionalStrValidator({
+    default: undefined,
+  }),
 }
 
 export type ENV_CONFIG = typeof envConfig

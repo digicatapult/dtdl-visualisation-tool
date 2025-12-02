@@ -6,9 +6,11 @@ import { DeletableEntities, type DeleteContentParams, type UpdateParams } from '
 import { DtdlSchema, type DtdlId, type UUID } from '../../../models/strings.js'
 import { Cache, type ICache } from '../../../utils/cache.js'
 
-import { InternalError } from '../../../errors.js'
+import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
+import { DtdlInterface, NullableDtdlSource } from '../../../../db/types.js'
 import {
   deleteContent,
+  deleteInterface,
   updateCommandComment,
   updateCommandDescription,
   updateCommandDisplayName,
@@ -37,7 +39,7 @@ import {
   updateTelemetryDisplayName,
   updateTelemetrySchema,
 } from '../../../utils/dtdl/entityUpdate.js'
-import { getDisplayName, isNamedEntity } from '../../../utils/dtdl/extract.js'
+import { getDisplayName, isInterface, isNamedEntity } from '../../../utils/dtdl/extract.js'
 import SessionStore from '../../../utils/sessions.js'
 import MermaidTemplates from '../../../views/components/mermaid.js'
 import { checkEditPermission } from '../../helpers.js'
@@ -469,12 +471,15 @@ export class EntityController extends HTMLController {
     const entity = model[entityId]
     const definedIn = entity.DefinedIn ?? entityId
 
+    const extendedBys = this.getExtendedBy(model, entityId)
+
     const query = {
       entityKind: entity.EntityKind as DeletableEntities,
       definedIn: entity.DefinedIn ?? entityId,
       contentName: isNamedEntity(entity) ? entity.name : '',
       displayName: getDisplayName(entity),
       definedInDisplayName: definedIn !== entityId ? getDisplayName(model[definedIn]) : undefined,
+      extendedBys: extendedBys.map((e) => getDisplayName(model[e])),
     }
     return this.html(this.templates.deleteDialog(query))
   }
@@ -482,8 +487,19 @@ export class EntityController extends HTMLController {
   @SuccessResponse(200)
   @Produces('text/html')
   @Delete('{entityId}')
-  public async deleteInterface(): Promise<HTML> {
-    throw new InternalError('Not implemented yet')
+  public async deleteInterface(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Queries() updateParams: UpdateParams
+  ): Promise<HTML> {
+    const { model } = await this.modelDb.getDtdlModelAndTree(ontologyId)
+    const extendedBys = this.getExtendedBy(model, entityId)
+
+    await this.deleteInterfaces(ontologyId, [entityId, ...extendedBys])
+
+    this.sessionStore.update(updateParams.sessionId, { highlightNodeId: '' })
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
   }
 
   @SuccessResponse(200)
@@ -503,18 +519,48 @@ export class EntityController extends HTMLController {
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
   }
 
-  putEntityValue = async (ontologyId: UUID, entityId: UUID, updateFn: (entity: unknown) => unknown) => {
-    const { id, contents } = await this.modelDb.getDtdlByEntityId(ontologyId, entityId)
+  putEntityValue = async (
+    ontologyId: UUID,
+    entityId: DtdlId,
+    updateFn: (dtdlInterface: DtdlInterface) => DtdlInterface
+  ) => {
+    const { id, source } = await this.modelDb.getDtdlSourceByInterfaceId(ontologyId, entityId)
 
-    // DTDL files can be array or single object
-    const updatedContents = Array.isArray(contents)
-      ? contents.map((c) => (c['@id'] === entityId ? updateFn(c) : c))
-      : updateFn(contents)
+    const updatedSource = Array.isArray(source)
+      ? source.map((c) => (c['@id'] === entityId ? updateFn(c) : c))
+      : updateFn(source)
 
     // validate new DTDL parses before saving
-    await this.modelDb.parseWithUpdatedFile(ontologyId, id, JSON.stringify(updatedContents))
-    await this.modelDb.updateDtdlContents(id, JSON.stringify(updatedContents))
+    await this.modelDb.parseWithUpdatedFiles(ontologyId, [{ id, source: updatedSource }])
+    await this.modelDb.updateDtdlSource(id, updatedSource)
 
     this.cache.clear()
+  }
+
+  deleteInterfaces = async (ontologyId: UUID, interfaceIds: DtdlId[]) => {
+    const trackChanges = new Map<UUID, { id: UUID; source: NullableDtdlSource }>() // track source updates in case same source updated multiple times
+    for (const interfaceId of interfaceIds) {
+      const { id, source } = await this.modelDb.getDtdlSourceByInterfaceId(ontologyId, interfaceId)
+      const alreadyUpdated = trackChanges.get(id)
+      const updatedSource = alreadyUpdated
+        ? deleteInterface(interfaceId, alreadyUpdated.source)
+        : deleteInterface(interfaceId, source)
+      trackChanges.set(id, { id, source: updatedSource })
+    }
+    const updates = Array.from(trackChanges.values())
+    await this.modelDb.parseWithUpdatedFiles(ontologyId, updates)
+
+    await this.modelDb.deleteOrUpdateDtdlSource(updates)
+
+    this.cache.clear()
+  }
+
+  getExtendedBy = (model: DtdlObjectModel, entityId: DtdlId, visited = new Set<DtdlId>()): DtdlId[] => {
+    if (visited.has(entityId)) throw new Error('Circular reference in extended bys')
+
+    visited.add(entityId)
+    const entity = model[entityId]
+    if (!isInterface(entity)) return []
+    return entity.extendedBy.flatMap((e) => [e, ...this.getExtendedBy(model, e, visited)])
   }
 }
