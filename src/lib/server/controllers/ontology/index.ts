@@ -36,17 +36,6 @@ import { HTML, HTMLController } from '../HTMLController.js'
 import { checkEditPermission, dtdlCacheKey, setCacheWithDefaultParams } from '../helpers.js'
 
 const rateLimiter = container.resolve(RateLimiter)
-interface FolderNode {
-  /** Unique ID for this folder − full path like 'Ontology/Asset/Equipment' */
-  id: string
-
-  /** The folder's own name − last path segment like 'Equipment' */
-  name: string
-
-  /** Sub-folders */
-  children: FolderNode[]
-}
-type FolderTree = FolderNode[]
 
 @injectable()
 @Route('/ontology')
