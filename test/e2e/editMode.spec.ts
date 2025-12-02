@@ -172,13 +172,11 @@ test.describe('Test edit ontology', () => {
 
     await page.waitForTimeout(500)
 
-    const navigationAfterContentNull = await getStyledComponent(
-      page,
-      '#navigation-panel h3:first-of-type',
-      '::after',
-      'content'
-    )
-    expect(navigationAfterContentNull).toBe('none')
+    await expect
+      .poll(async () => {
+        return getStyledComponent(page, '#navigation-panel h3:first-of-type', '::after', 'content')
+      })
+      .toBe('none')
   })
 
   test('delete interface + relationship', async ({ browser }) => {
@@ -249,8 +247,18 @@ test.describe('Test edit ontology', () => {
 // edit and focus away from textarea to trigger update
 const testNavPanelEdit = async (page: Page, textToEdit: RegExp, newValue: string, successRoute: string) => {
   const textArea = page.locator('.nav-panel-editable').getByText(textToEdit)
+  await textArea.click()
   await textArea.fill(newValue)
-  await waitForSuccessResponse(page, () => page.mouse.click(0, 0), successRoute)
+  await page.waitForTimeout(100)
+
+  await waitForSuccessResponse(
+    page,
+    async () => {
+      // Focus on the search input to trigger blur on the textarea reliably across browsers
+      await page.focus('#search')
+    },
+    successRoute
+  )
   await page.waitForTimeout(500)
 }
 
@@ -291,14 +299,19 @@ const openEditRepo = async (page: Page) => {
   await page.fill('#public-github-input', 'digicatapult/dtdl-test-fixtures')
   await waitForSuccessResponse(page, () => page.press('#public-github-input', 'Enter'), '/branches')
 
+  // Add a small wait for Webkit rendering
+  await page.waitForTimeout(1000)
+
   // click test/dtdl branch
   const branchName = page.locator('.github-list li').filter({ hasText: /^main$/ })
   await expect(branchName).toBeVisible()
+  await branchName.scrollIntoViewIfNeeded()
   await waitForSuccessResponse(page, () => branchName.click(), '/contents')
 
   // click edit
   const dirName = page.locator('.github-list li').filter({ hasText: /edit$/ })
   await expect(dirName).toBeVisible()
+  await dirName.scrollIntoViewIfNeeded()
   await waitForSuccessResponse(page, () => dirName.click(), '/contents')
 
   // get dtdl from github
