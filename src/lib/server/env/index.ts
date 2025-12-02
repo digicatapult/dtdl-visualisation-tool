@@ -22,7 +22,6 @@ export const envConfig = {
   DB_PORT: envalid.port({ default: 5432 }),
   COOKIE_SESSION_KEYS: strArrayValidator({ devDefault: ['secret'] }),
   GH_APP_NAME: envalid.str(),
-  GH_APP_ID: envalid.str(),
   GH_APP_PRIVATE_KEY: envalid.str(),
   GH_CLIENT_ID: envalid.str(),
   GH_CLIENT_SECRET: envalid.str(),

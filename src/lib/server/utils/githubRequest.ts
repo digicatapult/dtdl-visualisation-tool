@@ -130,7 +130,7 @@ export class GithubRequest {
     const appOctokit = new Octokit({
       authStrategy: createAppAuth,
       auth: {
-        appId: env.get('GH_APP_ID'),
+        appId: env.get('GH_CLIENT_ID'),
         privateKey,
       },
     })
