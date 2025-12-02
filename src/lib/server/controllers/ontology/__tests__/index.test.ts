@@ -481,7 +481,7 @@ describe('OntologyController', async () => {
     it('should return rendered addNode template with folder tree', async () => {
       const req = mockReq({})
       const res = await controller.addNewNode(simpleDtdlId, defaultParams, req)
-      expect(res).to.exist
+      expect(res).to.not.equal(undefined)
       const result = await toHTMLString(res!)
 
       expect(result).to.include('addNode')
