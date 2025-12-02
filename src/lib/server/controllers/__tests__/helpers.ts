@@ -11,6 +11,7 @@ import { posthogIdCookie } from '../../models/cookieNames.js'
 import { ListItem } from '../../models/github.js'
 import { DtdlId, type UUID } from '../../models/strings.js'
 import { allInterfaceFilter } from '../../utils/dtdl/extract.js'
+import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { FuseSearch } from '../../utils/fuseSearch.js'
 import { LRUCache } from '../../utils/lruCache.js'
 import {
@@ -234,7 +235,7 @@ export const templateMock = {
   }: {
     dtdlModelId: string
     displayNameIdMap: Record<string, string>
-    folderTree: any[]
+    folderTree: DtdlPath[]
     swapOutOfBand?: boolean
   }) => `addNode_${dtdlModelId}_${Object.keys(displayNameIdMap).length}_${folderTree.length}_${swapOutOfBand}_addNode`,
 } as unknown as MermaidTemplates

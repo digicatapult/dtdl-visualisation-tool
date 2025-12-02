@@ -528,7 +528,7 @@ describe('OntologyController', async () => {
 
       const parsedEntity = JSON.parse(entityJson)
       expect(parsedEntity).to.deep.include({
-        '@id': 'dtmi:digitaltwins:ngsi_ld:cim:energy:NewTestNode;1',
+        '@id': 'dtmi:NewTestNode;1',
         '@type': 'Interface',
         '@context': 'dtmi:dtdl:context;4',
         displayName: 'NewTestNode',
@@ -573,7 +573,7 @@ describe('OntologyController', async () => {
       const [, entityJson] = addEntityToModelStub.firstCall.args
       const parsedEntity = JSON.parse(entityJson)
       expect(parsedEntity.displayName).to.equal('TestNodeWithSpaces')
-      expect(parsedEntity['@id']).to.equal('dtmi:digitaltwins:ngsi_ld:cim:energy:TestNodeWithSpaces;1')
+      expect(parsedEntity['@id']).to.equal('dtmi:TestNodeWithSpaces;1')
     })
 
     it('should handle optional fields correctly', async () => {

@@ -376,7 +376,8 @@ export class OntologyController extends HTMLController {
       throw new InternalError(`Display name '${displayName}' already exists.`)
     }
 
-    const newId = `dtmi:digitaltwins:ngsi_ld:cim:energy:${displayName};1`
+    const commonPrefix = this.extractCommonDtmiPrefix(baseModel)
+    const newId = `${commonPrefix}:${displayName};1`
     const newNode = {
       '@id': newId,
       '@type': 'Interface',
@@ -439,6 +440,55 @@ export class OntologyController extends HTMLController {
         // Recurse; if no children or only files, children become []
         entries: node.entries ? this.filterDirectoriesOnly(node.entries) : [],
       }))
+  }
+
+  private extractCommonDtmiPrefix(model: DtdlObjectModel): string {
+    const interfaceIds = Object.entries(model)
+      .filter(([, node]) => node.EntityKind === 'Interface')
+      .map(([id]) => id)
+
+    if (interfaceIds.length === 0) {
+      // Fallback to simple valid DTMI if no interfaces exist
+      return 'dtmi:user'
+    }
+
+    // Find common prefix by comparing all interface IDs
+    let commonPrefix = interfaceIds[0]
+
+    for (let i = 1; i < interfaceIds.length; i++) {
+      const currentId = interfaceIds[i]
+      let j = 0
+
+      // Find common characters from the start
+      while (j < commonPrefix.length && j < currentId.length && commonPrefix[j] === currentId[j]) {
+        j++
+      }
+
+      commonPrefix = commonPrefix.substring(0, j)
+    }
+
+    // Ensure we end before a colon or semicolon
+    // Remove any partial segment at the end
+    const lastColonIndex = commonPrefix.lastIndexOf(':')
+    const lastSemicolonIndex = commonPrefix.lastIndexOf(';')
+    const lastValidSeparator = Math.max(lastColonIndex, lastSemicolonIndex)
+
+    if (lastValidSeparator > 0) {
+      commonPrefix = commonPrefix.substring(0, lastValidSeparator + 1)
+    } else if (commonPrefix.startsWith('dtmi:')) {
+      // At minimum keep 'dtmi:'
+      commonPrefix = 'dtmi:'
+    } else {
+      // Fallback if no valid DTMI structure found
+      commonPrefix = 'dtmi:user:'
+    }
+
+    // Remove trailing colon
+    if (commonPrefix.endsWith(':')) {
+      commonPrefix = commonPrefix.slice(0, -1)
+    }
+
+    return commonPrefix
   }
 
   private setReplaceUrl(
