@@ -328,20 +328,14 @@ export class OntologyController extends HTMLController {
       description: z.string().max(1024),
       comment: z.string().max(1024),
       extends: z.string(),
-      editMode: z.boolean(),
       folderPath: z.string(),
-      navigationPanelExpanded: z.string(),
-      sessionId: z.string(),
     })
     const {
       displayName: rawDisplayName,
       description,
       comment,
       extends: extendsId,
-      editMode,
       folderPath,
-      navigationPanelExpanded,
-      sessionId,
     } = newNodeSchema.parse(body)
 
     // Convert to PascalCase and trim
@@ -419,7 +413,6 @@ export class OntologyController extends HTMLController {
         entries: node.entries ? this.filterDirectoriesOnly(node.entries) : [],
       }))
   }
-
 
   private setReplaceUrl(
     current: { path: string; query: URLSearchParams },

@@ -973,7 +973,6 @@ export default class MermaidTemplates {
           const isHighlighted = 'id' in path ? path.id === highlightedEntityId : false
           const isSelected = selectedPath === currentPath
           const highlightClass = isHighlighted ? 'folder-tree-leaf-highlighted' : ''
-          const selectedClass = isSelected ? 'folder-tree-selected' : ''
           const isExpanded = highlightedEntitySet.has(path)
 
           if (path.type !== 'directory') {
