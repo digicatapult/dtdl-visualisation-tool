@@ -92,14 +92,14 @@ export const EditableText = ({
   multiline?: boolean
   maxLength?: number
 }): JSX.Element => {
-  if (!text) return <p>'{escapeHtml(keyName)}' key missing in original file</p>
-  if (!edit) return <p>{escapeHtml(text)}</p>
+  const value = text ?? ''
+  if (!edit) return <p>{escapeHtml(value)}</p>
 
   return (
     <form
       hx-put={`entity/${definedIn}/${putRoute}`}
       // trigger when textarea loses focus and value has changed
-      hx-trigger={`blur[this.querySelector('textarea').value !== '${text}'] from:find textarea`}
+      hx-trigger={`blur[this.querySelector('textarea').value !== '${value}'] from:find textarea`}
       hx-vals={JSON.stringify(additionalBody)}
       hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
       hx-swap="outerHTML transition:true"
@@ -113,7 +113,7 @@ export const EditableText = ({
         onkeyup="globalThis.validateDtdlValue(this)"
         {...(maxLength ? { maxlength: maxLength } : {})}
       >
-        {escapeHtml(text)}
+        {escapeHtml(value)}
       </textarea>
     </form>
   )
@@ -131,7 +131,7 @@ export const EditableSelect = ({
   edit: boolean
   definedIn: DtdlId
   putRoute: string
-  text: string
+    text?: string
   additionalBody?: Record<string, string>
   options: readonly string[] | Array<{ value: string; label: string }>
   disabled?: boolean
@@ -143,15 +143,14 @@ export const EditableSelect = ({
       : (options as Array<{ value: string; label: string }>)
 
   // Find the display label for the current value
-  const displayLabel = normalizedOptions.find((o) => o.value === text)?.label ?? text
+  const displayLabel = text ? (normalizedOptions.find((o) => o.value === text)?.label ?? text) : ''
 
-  if (!text) return <p>Missing value</p>
   if (!edit || disabled) return <p>{escapeHtml(displayLabel)}</p>
 
   return (
     <form
       hx-put={`entity/${definedIn}/${putRoute}`}
-      hx-trigger={`change[this.querySelector('select').value !== '${text}'] from:find select`}
+      hx-trigger={`change[this.querySelector('select').value !== '${text ?? ''}'] from:find select`}
       hx-vals={JSON.stringify(additionalBody)}
       hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
       hx-swap="outerHTML transition:true"
@@ -159,6 +158,11 @@ export const EditableSelect = ({
       hx-indicator="#spinner"
     >
       <select name="value" class="nav-panel-editable">
+        {!text && (
+          <option value="" disabled selected>
+            Select...
+          </option>
+        )}
         {normalizedOptions.map((option) => (
           <option value={option.value} {...(option.value === text && { selected: true })}>
             {escapeHtml(option.label)}

@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { DtdlInterface, dtdlInterfaceBase, NullableDtdlSource } from '../../../db/types.js'
 import { DataError } from '../../errors.js'
+import { logger } from '../../logger.js'
 import { DtdlSchema } from '../../models/strings.js'
 
 const invalidChars = /["\\]/
@@ -229,6 +230,7 @@ const updateCommandRequestResponseValue = (
   keyToUpdate: 'displayName' | 'description' | 'comment' | 'schema',
   maxLength = MAX_VALUE_LENGTH
 ) => {
+  logger.info({ value, commandName, requestOrResponse, keyToUpdate }, 'updateCommandRequestResponseValue called')
   if (typeof value === 'string' && invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
 
   if (typeof value === 'string' && value.length > maxLength)
@@ -251,7 +253,7 @@ const updateCommandRequestResponseValue = (
   const command = validFile.contents[commandIndex]
 
   const objecSchema = z.object({}).loose()
-  const requestResponseProperty = objecSchema.parse(command[requestOrResponse])
+  const requestResponseProperty = objecSchema.parse(command[requestOrResponse] ?? {})
 
   const updatedRequestResponse = { ...requestResponseProperty }
 

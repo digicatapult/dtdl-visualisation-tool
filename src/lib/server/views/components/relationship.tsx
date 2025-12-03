@@ -85,19 +85,15 @@ export const RelationshipDetails = ({
       <p>
         <b>Target:</b>
       </p>
-      {relationship.target ? (
-        <EditableSelect
-          edit={edit && !isInherited}
-          definedIn={relationshipDefinedIn}
-          putRoute="relationshipTarget"
-          text={relationship.target}
-          options={interfaceOptions}
-          disabled={isInherited}
-          additionalBody={!isInherited ? { relationshipName: name } : undefined}
-        />
-      ) : (
-        <p>'target' key missing in original file</p>
-      )}
+      <EditableSelect
+        edit={edit && !isInherited}
+        definedIn={relationshipDefinedIn}
+        putRoute="relationshipTarget"
+        text={relationship.target}
+        options={interfaceOptions}
+        disabled={isInherited}
+        additionalBody={!isInherited ? { relationshipName: name } : undefined}
+      />
       <br />
     </div>
   )

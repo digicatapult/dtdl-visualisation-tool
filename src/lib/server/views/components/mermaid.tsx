@@ -291,31 +291,27 @@ export default class MermaidTemplates {
               <p>
                 <b>Target:</b>
               </p>
-              {entity.target ? (
-                (() => {
-                  // Build options list for all interfaces in the model
-                  const interfaceOptions = Object.values(model)
-                    .filter(isInterface)
-                    .map((iface) => ({
-                      value: iface.Id,
-                      label: `${getDisplayName(iface)} (${iface.Id})`,
-                    }))
-                    .sort((a, b) => a.label.localeCompare(b.label))
+              {(() => {
+                // Build options list for all interfaces in the model
+                const interfaceOptions = Object.values(model)
+                  .filter(isInterface)
+                  .map((iface) => ({
+                    value: iface.Id,
+                    label: `${getDisplayName(iface)} (${iface.Id})`,
+                  }))
+                  .sort((a, b) => a.label.localeCompare(b.label))
 
-                  return (
-                    <EditableSelect
-                      edit={edit}
-                      definedIn={definedIn}
-                      putRoute="relationshipTarget"
-                      text={entity.target}
-                      options={interfaceOptions}
-                      additionalBody={{ relationshipName }}
-                    />
-                  )
-                })()
-              ) : (
-                <p>'target' key missing in original file</p>
-              )}
+                return (
+                  <EditableSelect
+                    edit={edit}
+                    definedIn={definedIn}
+                    putRoute="relationshipTarget"
+                    text={entity.target}
+                    options={interfaceOptions}
+                    additionalBody={{ relationshipName }}
+                  />
+                )
+              })()}
             </>
           )}
         </section>
@@ -413,7 +409,10 @@ export default class MermaidTemplates {
                       edit={edit}
                       definedIn={telemetry.DefinedIn}
                       putRoute="telemetrySchema"
-                      text={model[telemetry.schema].displayName?.en ?? 'Complex schema'}
+                      text={
+                        model[telemetry.schema]?.displayName?.en ??
+                        (typeof telemetry.schema === 'string' ? telemetry.schema : 'Complex schema')
+                      }
                       additionalBody={{ telemetryName: name }}
                       options={DTDL_VALID_SCHEMAS}
                     />
@@ -543,8 +542,9 @@ export default class MermaidTemplates {
                         putRoute="commandRequestSchema"
                         text={
                           requestEntity?.schema
-                            ? (model[requestEntity.schema].displayName?.en ?? 'Complex schema')
-                            : 'schema key missing in original file'
+                            ? (model[requestEntity.schema]?.displayName?.en ??
+                              (typeof requestEntity.schema === 'string' ? requestEntity.schema : 'Complex schema'))
+                            : undefined
                         }
                         additionalBody={{ commandName: name }}
                         options={DTDL_VALID_SCHEMAS}
@@ -591,8 +591,9 @@ export default class MermaidTemplates {
                         putRoute="commandResponseSchema"
                         text={
                           responseEntity?.schema
-                            ? (model[responseEntity.schema].displayName?.en ?? 'Complex schema')
-                            : 'schema key missing in original file'
+                            ? (model[responseEntity.schema]?.displayName?.en ??
+                              (typeof responseEntity.schema === 'string' ? responseEntity.schema : 'Complex schema'))
+                            : undefined
                         }
                         additionalBody={{ commandName: name }}
                         options={DTDL_VALID_SCHEMAS}
