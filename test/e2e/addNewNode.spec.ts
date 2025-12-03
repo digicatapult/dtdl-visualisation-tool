@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, Page, test } from '@playwright/test'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { waitForSuccessResponse, waitForUpdateLayout } from './helpers/waitForHelpers.js'
@@ -192,8 +192,7 @@ test.describe('Add New Node', () => {
     // Submit and expect either success with modified name or error handling
     await page.locator('#create-new-node-button').click()
 
-    // Wait a moment for the response
-    await page.waitForTimeout(1000)
+    // await page.waitForTimeout(1000) // unnecessary timeout
 
     // Check if we got an error message or if the system handled it gracefully
     const hasError = await page
@@ -270,7 +269,7 @@ test.describe('Add New Node', () => {
   })
 })
 
-const openEditRepo = async (page) => {
+const openEditRepo = async (page: Page) => {
   await page.setViewportSize({ width: 1920, height: 1080 })
   await page.goto('./open')
   await expect(page.locator('#main-view').getByTitle('Upload New Ontology')).toBeVisible()

@@ -23,14 +23,18 @@ import { PropertyDetails } from './property.js'
 import { RelationshipDetails } from './relationship.js'
 
 const env = container.resolve(Env)
-
-const commonUpdateAttrs = {
+const commonRerenderAttrs = {
   'hx-target': '#mermaid-output',
-  'hx-get': 'update-layout',
   'hx-swap': 'outerHTML  transition:true',
   'hx-include': '#sessionId, #search-panel, input[name="navigationPanelTab"], #navigationPanelExpanded',
   'hx-indicator': '#spinner',
   'hx-disabled-elt': 'select',
+} as const
+type CommonRerenderAttrs = typeof commonRerenderAttrs
+
+const commonUpdateAttrs: CommonRerenderAttrs & { 'hx-get': string } = {
+  ...commonRerenderAttrs,
+  'hx-get': 'update-layout',
 }
 
 function maybeNumberToAttr(value: number | undefined, defaultValue: number) {
@@ -253,14 +257,7 @@ export default class MermaidTemplates {
           </label>
         </div>
 
-        <form
-          id="create-node-form"
-          hx-post={`/ontology/${dtdlModelId}/new-node`}
-          hx-target="#navigation-panel"
-          hx-swap="outerHTML"
-          hx-include="#sessionId, #navigationPanelExpanded"
-          hx-vals='{"editMode": true}'
-        >
+        <form {...commonRerenderAttrs} id="create-node-form" hx-post={`/ontology/${dtdlModelId}/new-node`}>
           <div id="navigation-panel-content">
             <section>
               <h3>Basic Information</h3>
@@ -304,7 +301,7 @@ export default class MermaidTemplates {
                 <option value="">None</option>
 
                 {Object.entries(displayNameIdMap).map(([label, value]) => (
-                  <option value={value}>{escapeHtml(label)}</option>
+                  <option value={escapeHtml(value)}>{escapeHtml(label)}</option>
                 ))}
               </select>
               <small>DTDL allows only single inheritance. Select one node to extend, or choose 'None'.</small>

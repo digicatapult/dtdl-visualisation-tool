@@ -1,9 +1,8 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import express from 'express'
 import { randomUUID } from 'node:crypto'
-import { Get, Middlewares, Path, Post, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
+import { Body, Get, Middlewares, Path, Post, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { container, inject, injectable } from 'tsyringe'
-import z from 'zod'
 import { ModelDb } from '../../../db/modelDb.js'
 import { InternalError } from '../../errors.js'
 import { Logger, type ILogger } from '../../logger.js'
@@ -34,7 +33,7 @@ import SessionStore, { Session } from '../../utils/sessions.js'
 import { ErrorPage } from '../../views/components/errors.js'
 import MermaidTemplates from '../../views/components/mermaid.js'
 import { HTML, HTMLController } from '../HTMLController.js'
-import { checkEditPermission, dtdlCacheKey, setCacheWithDefaultParams } from '../helpers.js'
+import { checkEditPermission, dtdlCacheKey } from '../helpers.js'
 
 const rateLimiter = container.resolve(RateLimiter)
 
@@ -301,27 +300,14 @@ export class OntologyController extends HTMLController {
   }
 
   @SuccessResponse(200)
+  @Middlewares(checkEditPermission)
   @Get('{dtdlModelId}/add-new-node')
-  public async addNewNode(
-    @Path() dtdlModelId: UUID,
-    @Queries() params: UpdateParams,
-    @Request() req: express.Request
-  ): Promise<HTML | void> {
-    const session = this.sessionStore.get(params.sessionId)
-    const newSession: Session = {
-      diagramType: 'flowchart',
-      layout: 'elk' as const,
-      search: undefined,
-      expandedIds: [...session.expandedIds],
-      highlightNodeId: undefined,
-    }
-    this.sessionStore.set(params.sessionId, { ...session, ...newSession })
+  public async addNewNode(@Path() dtdlModelId: UUID, @Queries() params: UpdateParams): Promise<HTML | void> {
+    this.sessionStore.update(params.sessionId, { highlightNodeId: undefined, search: undefined })
 
     const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
     const displayNameIdMap = this.getDisplayNameIdMap(baseModel)
     const filteredFolderPaths = this.filterDirectoriesOnly(fileTree)
-
-    await this.updateLayout(req, dtdlModelId, params) // this doesn't do anything
 
     return this.html(
       this.templates.addNode({
@@ -347,28 +333,24 @@ export class OntologyController extends HTMLController {
   @SuccessResponse(201)
   @Middlewares(checkEditPermission)
   @Post('{dtdlModelId}/new-node')
-  public async createNewNode(@Path() dtdlModelId: UUID, @Request() req: express.Request): Promise<HTML> {
-    // Parse and validate input
-    const body = req.body
-    const newNodeSchema = z.object({
-      displayName: z.string().min(1).max(64),
-      description: z.string().max(1024),
-      comment: z.string().max(1024),
-      extends: z.string(),
-      folderPath: z.string(),
-    })
-    const {
-      displayName: rawDisplayName,
-      description,
-      comment,
-      extends: extendsId,
-      folderPath,
-    } = newNodeSchema.parse(body)
+  public async createNewNode(
+    @Path() dtdlModelId: UUID,
+    @Body()
+    body: {
+      displayName: string
+      description?: string
+      comment?: string
+      extends?: string
+      folderPath: string
+    } & UpdateParams,
+    @Request() req: express.Request
+  ): Promise<HTML> {
+    const { displayName: rawDisplayName, description, comment, extends: extendsId, folderPath, ...updateParams } = body
 
     // Convert to PascalCase and trim
     const displayName = this.toPascalCase(rawDisplayName.trim())
 
-    // Check for duplicate display names and throw is duplicate found
+    // Check for duplicate display names and throw if duplicate found
     const { model: baseModel } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
     const displayNameIdMap = this.getDisplayNameIdMap(baseModel)
 
@@ -384,7 +366,7 @@ export class OntologyController extends HTMLController {
       '@context': 'dtmi:dtdl:context;4',
       displayName: displayName,
       description: description ? description : undefined,
-      comment: comment ?? undefined,
+      comment: comment ? comment : undefined,
       extends: extendsId ? [extendsId] : [],
       contents: [],
     }
@@ -393,27 +375,9 @@ export class OntologyController extends HTMLController {
     const fileName = folderPath ? `${folderPath}/${displayName}.json` : `${displayName}.json`
     await this.modelDb.addEntityToModel(dtdlModelId, stringJson, fileName)
 
-    // Get updated model and fileTree and update cache
-    const { model: updatedBaseModel, fileTree: updatedFileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
-    const output = await this.generator.run(baseModel, 'flowchart', 'elk')
-    setCacheWithDefaultParams(this.cache, dtdlModelId, output)
-    // Return updated navigation panel in edit mode
-    return this.html(
-      this.templates.navigationPanel({
-        swapOutOfBand: false,
-        entityId: newId,
-        model: updatedBaseModel,
-        expanded: true,
-        edit: true,
-        tab: 'details',
-        fileTree: updatedFileTree,
-      }),
-      this.templates.mermaidTarget({
-        generatedOutput: output.renderToString(),
-        target: 'mermaid-output',
-        swapOutOfBand: true,
-      })
-    )
+    this.cache.clear()
+    this.sessionStore.update(updateParams.sessionId, { highlightNodeId: newId })
+    return this.updateLayout(req, dtdlModelId, { ...updateParams, highlightNodeId: newId })
   }
 
   private getDisplayNameIdMap(model: DtdlObjectModel): Record<string, string> {
