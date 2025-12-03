@@ -27,7 +27,7 @@ import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { FuseSearch } from '../../utils/fuseSearch.js'
 import { authRedirectURL, GithubRequest } from '../../utils/githubRequest.js'
 import { SvgGenerator } from '../../utils/mermaid/generator.js'
-import { dtdlIdReinstateSemicolon } from '../../utils/mermaid/helpers.js'
+import { dtdlIdReinstateSemicolon, dtdlIdReplaceSemicolon } from '../../utils/mermaid/helpers.js'
 import { SvgMutator } from '../../utils/mermaid/svgMutator.js'
 import { ensurePostHogId, PostHogService } from '../../utils/postHog/postHogService.js'
 import { RateLimiter } from '../../utils/rateLimit.js'
@@ -381,8 +381,8 @@ export class OntologyController extends HTMLController {
     await this.modelDb.addEntityToModel(dtdlModelId, stringJson, fileName)
 
     this.cache.clear()
-    this.sessionStore.update(updateParams.sessionId, { highlightNodeId: newId })
-    return this.updateLayout(req, dtdlModelId, { ...updateParams, highlightNodeId: newId })
+    this.sessionStore.update(updateParams.sessionId, { highlightNodeId: dtdlIdReplaceSemicolon(newId) })
+    return this.updateLayout(req, dtdlModelId, updateParams)
   }
 
   private getDisplayNameIdMap(model: DtdlObjectModel): Record<string, string> {
