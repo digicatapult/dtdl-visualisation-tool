@@ -511,15 +511,16 @@ describe('OntologyController', async () => {
 
     it('should create new node with valid input', async () => {
       const req = mockReq({})
-      req.body = {
+      const body = {
         displayName: 'New Test Node',
         description: 'Test description',
         comment: 'Test comment',
         extends: 'dtmi:com:example;1',
         folderPath: 'test/folder',
+        ...defaultParams,
       }
 
-      const result = await controller.createNewNode(simpleDtdlId, req).then(toHTMLString)
+      const result = await controller.createNewNode(simpleDtdlId, body, req).then(toHTMLString)
 
       expect(addEntityToModelStub.calledOnce).to.equal(true)
       const [modelId, entityJson, filePath] = addEntityToModelStub.firstCall.args
