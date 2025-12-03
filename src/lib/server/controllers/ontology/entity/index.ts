@@ -56,7 +56,7 @@ import {
 } from '../../../utils/dtdl/entityUpdate.js'
 import { getDisplayName, isInterface, isNamedEntity } from '../../../utils/dtdl/extract.js'
 import SessionStore from '../../../utils/sessions.js'
-import { AddContentButton, AddContentForm } from '../../../views/components/addContent.js'
+import { AddContentForm } from '../../../views/components/addContent.js'
 import MermaidTemplates from '../../../views/components/mermaid.js'
 import { checkEditPermission } from '../../helpers.js'
 import { HTML, HTMLController } from '../../HTMLController.js'
@@ -554,22 +554,16 @@ export class EntityController extends HTMLController {
 
   @SuccessResponse(200)
   @Produces('text/html')
-  @Get('{entityId}/addContentForm')
-  public async getAddContentForm(
+  @Get('{entityId}/toggleAddContent')
+  public async toggleAddContent(
     @Path() entityId: DtdlId,
-    @Query() contentType: 'Property' | 'Relationship' | 'Telemetry' | 'Command'
+    @Query() contentType: 'Property' | 'Relationship' | 'Telemetry' | 'Command',
+    @Query() isOpen: boolean
   ): Promise<HTML> {
-    return this.html(AddContentForm({ contentType, entityId }))
-  }
-
-  @SuccessResponse(200)
-  @Produces('text/html')
-  @Get('{entityId}/addContentButton')
-  public async getAddContentButton(
-    @Path() entityId: DtdlId,
-    @Query() contentType: 'Property' | 'Relationship' | 'Telemetry' | 'Command'
-  ): Promise<HTML> {
-    return this.html(AddContentButton({ contentType, entityId }))
+    if (isOpen) {
+      return this.html(AddContentForm({ contentType, entityId }))
+    }
+    return this.html('')
   }
 
   putEntityValue = async (

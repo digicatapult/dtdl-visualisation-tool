@@ -3,6 +3,33 @@
 import { escapeHtml } from '@kitajs/html'
 import { DtdlId } from '../../models/strings.js'
 
+export const AddContentButtonContent = ({
+  contentType,
+  entityId,
+}: {
+  contentType: 'Property' | 'Relationship' | 'Telemetry' | 'Command'
+  entityId: DtdlId
+}): JSX.Element => {
+  const safeEntityId = entityId.replace(/[^a-zA-Z0-9-_]/g, '-')
+  const formContainerId = `add-${contentType.toLowerCase()}-${safeEntityId}-form-container`
+  const btnId = `add-${contentType.toLowerCase()}-${safeEntityId}-btn`
+
+  return (
+    <button
+      id={btnId}
+      class="add-content-button"
+      hx-get={`entity/${entityId}/toggleAddContent?contentType=${contentType}`}
+      hx-target={`#${formContainerId}`}
+      hx-swap="innerHTML transition:true"
+      title={`Add new ${contentType}`}
+      onclick="this.classList.toggle('open')"
+      hx-vals={`js:{isOpen: document.getElementById('${btnId}').classList.contains('open')}`}
+    >
+      +
+    </button>
+  )
+}
+
 export const AddContentButton = ({
   contentType,
   entityId,
@@ -10,17 +37,17 @@ export const AddContentButton = ({
   contentType: 'Property' | 'Relationship' | 'Telemetry' | 'Command'
   entityId: DtdlId
 }): JSX.Element => {
-  const targetId = `add-${contentType.toLowerCase()}-form`
+  const safeEntityId = entityId.replace(/[^a-zA-Z0-9-_]/g, '-')
+  const containerId = `add-${contentType.toLowerCase()}-${safeEntityId}-container`
+  const btnContainerId = `add-${contentType.toLowerCase()}-${safeEntityId}-btn-container`
+  const formContainerId = `add-${contentType.toLowerCase()}-${safeEntityId}-form-container`
   return (
-    <button
-      class="add-content-button"
-      hx-get={`entity/${entityId}/addContentForm?contentType=${contentType}`}
-      hx-target={`#${targetId}`}
-      hx-swap="outerHTML"
-      title={`Add new ${contentType}`}
-    >
-      +
-    </button>
+    <div id={containerId} class="add-content-container">
+      <div id={btnContainerId}>
+        <AddContentButtonContent contentType={contentType} entityId={entityId} />
+      </div>
+      <div id={formContainerId}></div>
+    </div>
   )
 }
 
@@ -31,51 +58,39 @@ export const AddContentForm = ({
   contentType: 'Property' | 'Relationship' | 'Telemetry' | 'Command'
   entityId: DtdlId
 }): JSX.Element => {
-  const targetId = `add-${contentType.toLowerCase()}-form`
+  const safeEntityId = entityId.replace(/[^a-zA-Z0-9-_]/g, '-')
+  const btnId = `add-${contentType.toLowerCase()}-${safeEntityId}-btn`
+  const formContainerId = `add-${contentType.toLowerCase()}-${safeEntityId}-form-container`
   return (
-    <div id={targetId} class="add-content-form">
-      <form
-        hx-post={`entity/${entityId}/content`}
-        hx-ext="json-enc"
-        hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
-        hx-swap="outerHTML transition:true"
-        hx-target="#mermaid-output"
-        hx-indicator="#spinner"
-      >
-        <input type="hidden" name="contentType" value={escapeHtml(contentType)} />
-        <input
-          type="text"
-          name="contentName"
-          placeholder={`Enter ${contentType} name`}
-          class="add-content-input"
-          pattern="^[A-Za-z](?:[A-Za-z0-9_]*[A-Za-z0-9])?$"
-          title="Must start with a letter, contain only letters, numbers, and underscores, and cannot end with an underscore"
-          required
-          autofocus
-        />
-        <button type="submit" class="add-content-submit" title="Add">
-          ✓
-        </button>
-        <button
-          type="button"
-          class="add-content-cancel"
-          title="Cancel"
-          hx-get={`entity/${entityId}/addContentButton?contentType=${contentType}`}
-          hx-target={`#${targetId}`}
-          hx-swap="outerHTML"
-        >
-          ✕
-        </button>
-      </form>
-    </div>
+    <form
+      hx-post={`entity/${entityId}/content`}
+      hx-ext="json-enc"
+      hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
+      hx-swap="outerHTML"
+      hx-target="#mermaid-output"
+      hx-indicator="#spinner"
+      data-content-type={escapeHtml(contentType)}
+      data-entity-id={escapeHtml(entityId)}
+      class="add-content-form"
+    >
+      <input type="hidden" name="contentType" value={escapeHtml(contentType)} />
+      <input
+        type="text"
+        name="contentName"
+        placeholder={`Enter ${contentType} name`}
+        class="add-content-input"
+        pattern="^[A-Za-z](?:[A-Za-z0-9_]*[A-Za-z0-9])?$"
+        title="Must start with a letter, contain only letters, numbers, and underscores, and cannot end with an underscore"
+        required
+        autofocus
+        hx-trigger="keyup[key=='Escape']"
+        hx-get={`entity/${entityId}/toggleAddContent?contentType=${contentType}`}
+        hx-vals="js:{isOpen: false}"
+        hx-target={`#${formContainerId}`}
+        hx-swap="innerHTML"
+        hx-on--after-request={`document.getElementById('${btnId}').classList.remove('open')`}
+        onblur={`if (event.relatedTarget && event.relatedTarget.id === '${btnId}') return; if(this.value.trim() === '') { document.getElementById('${btnId}').click() } else if(this.validity.valid) { htmx.trigger(this.form, 'submit') }`}
+      />
+    </form>
   )
-}
-
-export const AddContentFormPlaceholder = ({
-  contentType,
-}: {
-  contentType: 'Property' | 'Relationship' | 'Telemetry' | 'Command'
-}): JSX.Element => {
-  const targetId = `add-${contentType.toLowerCase()}-form`
-  return <div id={targetId} class="add-content-form-placeholder"></div>
 }

@@ -19,7 +19,7 @@ import {
 } from '../../utils/dtdl/extract.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { AccordionSection, EditableSelect, EditableText, Page } from '../common.js'
-import { AddContentButton, AddContentFormPlaceholder } from './addContent.js'
+import { AddContentButton } from './addContent.js'
 import { PropertyDetails } from './property.js'
 import { RelationshipDetails } from './relationship.js'
 
@@ -338,13 +338,10 @@ export default class MermaidTemplates {
         <AccordionSection
           heading={'Properties'}
           collapsed={false}
-          action={
-            edit && isInterface(entity) ? (
-              <>
-                <AddContentButton contentType="Property" entityId={entity.Id} />
-                <AddContentFormPlaceholder contentType="Property" />
-              </>
-            ) : undefined
+          Action={
+            edit && isInterface(entity)
+              ? () => <AddContentButton contentType="Property" entityId={entity.Id} />
+              : undefined
           }
         >
           {isInterface(entity) && Object.keys(entity.properties).length > 0
@@ -360,13 +357,10 @@ export default class MermaidTemplates {
         <AccordionSection
           heading={'Relationships'}
           collapsed={false}
-          action={
-            edit && isInterface(entity) ? (
-              <>
-                <AddContentButton contentType="Relationship" entityId={entity.Id} />
-                <AddContentFormPlaceholder contentType="Relationship" />
-              </>
-            ) : undefined
+          Action={
+            edit && isInterface(entity)
+              ? () => <AddContentButton contentType="Relationship" entityId={entity.Id} />
+              : undefined
           }
         >
           {isInterface(entity) && Object.keys(entity.relationships).length > 0
@@ -389,13 +383,10 @@ export default class MermaidTemplates {
         <AccordionSection
           heading={'Telemetries'}
           collapsed={false}
-          action={
-            edit && isInterface(entity) ? (
-              <>
-                <AddContentButton contentType="Telemetry" entityId={entity.Id} />
-                <AddContentFormPlaceholder contentType="Telemetry" />
-              </>
-            ) : undefined
+          Action={
+            edit && isInterface(entity)
+              ? () => <AddContentButton contentType="Telemetry" entityId={entity.Id} />
+              : undefined
           }
         >
           {isInterface(entity) && Object.keys(entity.telemetries).length > 0
@@ -457,13 +448,10 @@ export default class MermaidTemplates {
         <AccordionSection
           heading={'Commands'}
           collapsed={false}
-          action={
-            edit && isInterface(entity) ? (
-              <>
-                <AddContentButton contentType="Command" entityId={entity.Id} />
-                <AddContentFormPlaceholder contentType="Command" />
-              </>
-            ) : undefined
+          Action={
+            edit && isInterface(entity)
+              ? () => <AddContentButton contentType="Command" entityId={entity.Id} />
+              : undefined
           }
         >
           {isInterface(entity) && Object.keys(entity.commands).length > 0

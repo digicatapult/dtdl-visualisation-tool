@@ -1,3 +1,5 @@
+/// <reference types="@kitajs/html/htmx.d.ts" />
+
 import { escapeHtml, type PropsWithChildren } from '@kitajs/html'
 import { DtdlId } from '../models/strings.js'
 
@@ -43,24 +45,33 @@ export const Page = (props: PropsWithChildren<{ title: string }>): JSX.Element =
 )
 
 export const AccordionSection = (
-  props: PropsWithChildren<{ heading: string; collapsed: boolean; action?: JSX.Element }>
-): JSX.Element => (
-  <section class="accordion-parent">
-    <h3>
-      <button
-        class="accordion-button"
-        {...(!props.collapsed && { 'aria-expanded': '' })}
-        onclick="globalThis.toggleAccordion(event)"
-      >
-        {escapeHtml(props.heading)}
-      </button>
-      {props.action && <div class="accordion-action">{props.action}</div>}
-    </h3>
-    <div class="accordion-content" {...(props.collapsed && { 'aria-hidden': '' })}>
-      <div>{props.children}</div>
-    </div>
-  </section>
-)
+  props: PropsWithChildren<{ heading: string; collapsed: boolean; Action?: () => JSX.Element }>
+): JSX.Element => {
+  const { heading, collapsed, Action, children } = props
+  return (
+    <section class="accordion-parent">
+      <h3>
+        <button
+          class="accordion-button"
+          {...(!collapsed && { 'aria-expanded': '' })}
+          onclick="globalThis.toggleAccordion(event)"
+        >
+          {escapeHtml(heading)}
+        </button>
+        {Action ? (
+          <div class="accordion-action">
+            <Action />
+          </div>
+        ) : (
+          <></>
+        )}
+      </h3>
+      <div class="accordion-content" {...(collapsed && { 'aria-hidden': '' })}>
+        <div>{children}</div>
+      </div>
+    </section>
+  )
+}
 
 export const EditableText = ({
   edit,
