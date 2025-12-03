@@ -479,8 +479,7 @@ describe('OntologyController', async () => {
 
   describe('addNewNode', () => {
     it('should return rendered addNode template with folder tree', async () => {
-      const req = mockReq({})
-      const res = await controller.addNewNode(simpleDtdlId, defaultParams, req)
+      const res = await controller.addNewNode(simpleDtdlId, defaultParams)
       expect(res).to.not.equal(undefined)
       const result = await toHTMLString(res!)
 
@@ -489,10 +488,9 @@ describe('OntologyController', async () => {
     })
 
     it('should update session to reset state for new node creation', async () => {
-      const req = mockReq({})
       const initialCallCount = sessionSetStub.callCount
 
-      await controller.addNewNode(simpleDtdlId, defaultParams, req)
+      await controller.addNewNode(simpleDtdlId, defaultParams)
 
       expect(sessionSetStub.callCount).to.equal(initialCallCount + 2)
       const firstCallArgs = sessionSetStub.getCall(initialCallCount).args[1]
@@ -546,15 +544,16 @@ describe('OntologyController', async () => {
 
     it('should create node in root folder when no folderPath provided', async () => {
       const req = mockReq({})
-      req.body = {
+      const body = {
         displayName: 'Root Node',
         description: '',
         comment: '',
         extends: '',
         folderPath: '',
+        ...defaultParams,
       }
 
-      await controller.createNewNode(simpleDtdlId, req)
+      await controller.createNewNode(simpleDtdlId, body, req)
 
       const [, , filePath] = addEntityToModelStub.firstCall.args
       expect(filePath).to.equal('RootNode.json')
@@ -562,15 +561,16 @@ describe('OntologyController', async () => {
 
     it('should convert displayName to PascalCase', async () => {
       const req = mockReq({})
-      req.body = {
+      const body = {
         displayName: 'test node with spaces',
         description: '',
         comment: '',
         extends: '',
         folderPath: '',
+        ...defaultParams,
       }
 
-      await controller.createNewNode(simpleDtdlId, req)
+      await controller.createNewNode(simpleDtdlId, body, req)
 
       const [, entityJson] = addEntityToModelStub.firstCall.args
       const parsedEntity = JSON.parse(entityJson)
@@ -580,15 +580,16 @@ describe('OntologyController', async () => {
 
     it('should handle optional fields correctly', async () => {
       const req = mockReq({})
-      req.body = {
+      const body = {
         displayName: 'Minimal Node',
         description: '',
         comment: '',
         extends: '',
         folderPath: '',
+        ...defaultParams,
       }
 
-      await controller.createNewNode(simpleDtdlId, req)
+      await controller.createNewNode(simpleDtdlId, body, req)
 
       const [, entityJson] = addEntityToModelStub.firstCall.args
       const parsedEntity = JSON.parse(entityJson)
@@ -599,15 +600,16 @@ describe('OntologyController', async () => {
 
     it('should throw InternalError when displayName already exists', async () => {
       const req = mockReq({})
-      req.body = {
+      const body = {
         displayName: 'test node',
         description: '',
         comment: '',
         extends: '',
         folderPath: '',
+        ...defaultParams,
       }
 
-      await expect(controller.createNewNode(simpleDtdlId, req)).to.be.rejectedWith(
+      await expect(controller.createNewNode(simpleDtdlId, body, req)).to.be.rejectedWith(
         InternalError,
         "Display name 'TestNode' already exists."
       )
@@ -617,15 +619,16 @@ describe('OntologyController', async () => {
 
     it('should throw validation error for invalid input', async () => {
       const req = mockReq({})
-      req.body = {
+      const body = {
         displayName: '',
         description: '',
         comment: '',
         extends: '',
         folderPath: '',
+        ...defaultParams,
       }
 
-      await expect(controller.createNewNode(simpleDtdlId, req)).to.be.rejected
+      await expect(controller.createNewNode(simpleDtdlId, body, req)).to.be.rejected
 
       expect(addEntityToModelStub.called).to.equal(false)
     })
