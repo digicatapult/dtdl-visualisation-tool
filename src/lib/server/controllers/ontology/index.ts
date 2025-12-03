@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto'
 import { Body, Get, Middlewares, Path, Post, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { container, inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../../db/modelDb.js'
+import { NullableDtdlSource } from '../../../db/types.js'
 import { InternalError } from '../../errors.js'
 import { Logger, type ILogger } from '../../logger.js'
 import {
@@ -369,10 +370,11 @@ export class OntologyController extends HTMLController {
       comment: comment ? comment : undefined,
       extends: extendsId ? [extendsId] : [],
       contents: [],
-    }
+    } as NullableDtdlSource
 
     const stringJson = JSON.stringify(newNode, null, 2)
     const fileName = folderPath ? `${folderPath}/${displayName}.json` : `${displayName}.json`
+    await this.modelDb.parseWithUpdatedFiles(dtdlModelId, [{ id: newId, source: newNode }])
     await this.modelDb.addEntityToModel(dtdlModelId, stringJson, fileName)
 
     this.cache.clear()
