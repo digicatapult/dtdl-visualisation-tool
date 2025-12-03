@@ -991,7 +991,7 @@ export default class MermaidTemplates {
                 class={this.buildFolderButtonClasses(path, hasSubdirs, isHighlighted, isSelected)}
                 {...{ [isExpanded ? 'aria-expanded' : 'aria-hidden']: '' }}
                 onclick={`globalThis.handleFolderSelection(event, '${escapeHtml(currentPath)}'); globalThis.toggleAccordion(event);`}
-                data-folder-path={currentPath}
+                data-folder-path={escapeHtml(currentPath)}
               >
                 {escapeHtml(path.name)}
               </button>

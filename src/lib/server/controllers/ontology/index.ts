@@ -21,6 +21,7 @@ import { ViewAndEditPermission } from '../../models/github.js'
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../models/renderedDiagram/index.js'
 import { type UUID } from '../../models/strings.js'
 import { Cache, type ICache } from '../../utils/cache.js'
+import { getDisplayName, isInterface } from '../../utils/dtdl/extract.js'
 import { filterModelByDisplayName, getRelatedIdsById } from '../../utils/dtdl/filter.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { FuseSearch } from '../../utils/fuseSearch.js'
@@ -354,13 +355,15 @@ export class OntologyController extends HTMLController {
     // Check for duplicate display names and throw if duplicate found
     const { model: baseModel } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
     const displayNameIdMap = this.getDisplayNameIdMap(baseModel)
-
-    if (displayNameIdMap[displayName]) {
-      throw new InternalError(`Display name '${displayName}' already exists.`)
-    }
-
     const commonPrefix = this.extractCommonDtmiPrefix(baseModel)
     const newId = `${commonPrefix}:${displayName};1`
+
+    if (Object.values(displayNameIdMap).includes(newId)) {
+      throw new InternalError(
+        `Please update the display name '${displayName}' as its ID already exists in the ontology. You can change it again after creation.`
+      )
+    }
+
     const newNode = {
       '@id': newId,
       '@type': 'Interface',
@@ -385,9 +388,9 @@ export class OntologyController extends HTMLController {
   private getDisplayNameIdMap(model: DtdlObjectModel): Record<string, string> {
     return Object.fromEntries(
       Object.entries(model)
-        .filter(([, node]) => node.EntityKind === 'Interface')
+        .filter(([, node]) => isInterface(node))
         .map(([id, node]) => {
-          const displayName = typeof node.displayName === 'object' ? node.displayName.en : node.displayName
+          const displayName = getDisplayName(node)
           return [displayName, id]
         })
         .filter(([displayName]) => displayName)
