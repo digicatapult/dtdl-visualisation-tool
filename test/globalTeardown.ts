@@ -2,9 +2,9 @@ import { postgresContainer, visualisationUIContainer, visualisationUIContainer2 
 import { network } from './testcontainers/testContainersSetup'
 
 async function globalTeardown() {
-  await visualisationUIContainer.stop()
-  await visualisationUIContainer2.stop()
-  await postgresContainer.stop()
+  if (visualisationUIContainer) await visualisationUIContainer.stop()
+  if (visualisationUIContainer2) await visualisationUIContainer2.stop()
+  if (postgresContainer) await postgresContainer.stop()
 
   await network.stop()
 }
