@@ -52,10 +52,7 @@ test.describe('Add New Node', () => {
     // Verify we're back in view mode and can see the new node
     await expect(page.locator('#navigation-panel')).toBeVisible()
 
-    // Search for the newly created node
-    await waitForUpdateLayout(page, () => page.locator('#search').fill(displayName))
-
-    // Verify the node appears in search results and in the diagram
+    // Verify the node appears in the diagram (it should be automatically selected after creation)
     await expect(page.locator('#mermaid-output')).toContainText(displayName)
 
     // Click on the node to select it and verify details
@@ -106,10 +103,7 @@ test.describe('Add New Node', () => {
       // Submit the form
       await waitForSuccessResponse(page, () => page.locator('#create-new-node-button').click(), '/new-node')
 
-      // Search for the node
-      await waitForUpdateLayout(page, () => page.locator('#search').fill(displayName))
-
-      // Verify the node was created
+      // Verify the node was created (it should be automatically selected after creation)
       await expect(page.locator('#mermaid-output')).toContainText(displayName)
 
       // Switch to tree view to verify folder placement
@@ -168,8 +162,7 @@ test.describe('Add New Node', () => {
     // Now submission should work
     await waitForSuccessResponse(page, () => page.locator('#create-new-node-button').click(), '/new-node')
 
-    // Verify the node was created
-    await waitForUpdateLayout(page, () => page.locator('#search').fill('ValidName'))
+    // Verify the node was created (it should be automatically selected after creation)
     await expect(page.locator('#mermaid-output')).toContainText('ValidName')
   })
 
