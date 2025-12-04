@@ -351,6 +351,9 @@ export class OntologyController extends HTMLController {
 
     // Convert to PascalCase and trim
     const displayName = this.toPascalCase(rawDisplayName.trim())
+    if (displayName.length < 1) {
+      throw new InternalError('Display name must be at least 1 character long.')
+    }
 
     // Check for duplicate display names and throw if duplicate found
     const { model: baseModel } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
@@ -381,7 +384,10 @@ export class OntologyController extends HTMLController {
     await this.modelDb.addEntityToModel(dtdlModelId, stringJson, fileName)
 
     this.cache.clear()
-    this.sessionStore.update(updateParams.sessionId, { highlightNodeId: dtdlIdReplaceSemicolon(newId) })
+    this.sessionStore.update(updateParams.sessionId, {
+      highlightNodeId: dtdlIdReplaceSemicolon(newId),
+      search: undefined,
+    })
     return this.updateLayout(req, dtdlModelId, updateParams)
   }
 

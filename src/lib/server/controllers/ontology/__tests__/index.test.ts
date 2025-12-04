@@ -1,6 +1,7 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import sinon, { SinonStub } from 'sinon'
+import { ModelDb } from '../../../../db/modelDb.js'
 import { InternalError } from '../../../errors.js'
 import { UpdateParams } from '../../../models/controllerTypes.js'
 import { modelHistoryCookie } from '../../../models/cookieNames.js'
@@ -21,6 +22,7 @@ import {
   mockReqWithCookie,
   mockSession,
   sessionSetStub,
+  sessionUpdateStub,
   simpleDtdlId,
   simpleMockModelDb,
   templateMock,
@@ -487,19 +489,17 @@ describe('OntologyController', async () => {
       expect(result).to.include(simpleDtdlId)
     })
 
-    it('should update session to reset state for new node creation', async () => {
-      const initialCallCount = sessionSetStub.callCount
+    it('should update session to clear highlightNodeId and search', async () => {
+      const initialCallCount = sessionUpdateStub.callCount
 
       await controller.addNewNode(simpleDtdlId, defaultParams)
 
-      expect(sessionSetStub.callCount).to.equal(initialCallCount + 2)
-      const firstCallArgs = sessionSetStub.getCall(initialCallCount).args[1]
-      expect(firstCallArgs).to.deep.equal({
-        diagramType: 'flowchart',
-        layout: 'elk',
-        search: undefined,
-        expandedIds: [],
+      expect(sessionUpdateStub.callCount).to.equal(initialCallCount + 1)
+      const [sessionId, updates] = sessionUpdateStub.lastCall.args
+      expect(sessionId).to.equal(validSessionId)
+      expect(updates).to.deep.equal({
         highlightNodeId: undefined,
+        search: undefined,
       })
     })
   })
@@ -539,8 +539,9 @@ describe('OntologyController', async () => {
         contents: [],
       })
 
-      expect(result).to.include('navigationPanel')
       expect(result).to.include('mermaidTarget')
+      expect(result).to.include('searchPanel')
+      expect(result).to.include('navigationPanel')
     })
 
     it('should create node in root folder when no folderPath provided', async () => {
@@ -595,14 +596,80 @@ describe('OntologyController', async () => {
       const [, entityJson] = addEntityToModelStub.firstCall.args
       const parsedEntity = JSON.parse(entityJson)
       expect(parsedEntity.description).to.be.equal(undefined)
-      expect(parsedEntity.comment).to.equal('')
+      expect(parsedEntity.comment).to.equal(undefined)
       expect(parsedEntity.extends).to.deep.equal([])
     })
 
-    it('should throw InternalError when displayName already exists', async () => {
+    it('should throw InternalError when generated ID already exists', async () => {
       const req = mockReq({})
+
+      const customMockDb = {
+        ...simpleMockModelDb,
+        getDtdlModelAndTree: () =>
+          Promise.resolve({
+            model: {
+              'dtmi:com:Example1;1': {
+                Id: 'dtmi:com:Example1;1',
+                displayName: { en: 'Example1' },
+                EntityKind: 'Interface' as const,
+                extends: [],
+                SupplementalTypes: [],
+                SupplementalProperties: {},
+                UndefinedTypes: [],
+                UndefinedProperties: {},
+                description: {},
+                languageMajorVersion: 2,
+                ClassId: 'dtmi:dtdl:class:Interface;2',
+                contents: {},
+                commands: {},
+                components: {},
+                properties: {},
+                relationships: {},
+                telemetries: {},
+                extendedBy: [],
+                schemas: [],
+              },
+              // Add a second entity so common prefix calculation works correctly
+              'dtmi:com:Other;1': {
+                Id: 'dtmi:com:Other;1',
+                displayName: { en: 'Other' },
+                EntityKind: 'Interface' as const,
+                extends: [],
+                SupplementalTypes: [],
+                SupplementalProperties: {},
+                UndefinedTypes: [],
+                UndefinedProperties: {},
+                description: {},
+                languageMajorVersion: 2,
+                ClassId: 'dtmi:dtdl:class:Interface;2',
+                contents: {},
+                commands: {},
+                components: {},
+                properties: {},
+                relationships: {},
+                telemetries: {},
+                extendedBy: [],
+                schemas: [],
+              },
+            },
+            fileTree: [],
+          }),
+      } as unknown as ModelDb
+
+      const customController = new OntologyController(
+        customMockDb,
+        mockGenerator,
+        mockMutator,
+        templateMock,
+        mockPostHog,
+        mockLogger,
+        mockCache,
+        mockSession,
+        mockGithubRequest
+      )
+
       const body = {
-        displayName: 'test node',
+        displayName: 'example 1',
         description: '',
         comment: '',
         extends: '',
@@ -610,15 +677,19 @@ describe('OntologyController', async () => {
         ...defaultParams,
       }
 
-      await expect(controller.createNewNode(simpleDtdlId, body, req)).to.be.rejectedWith(
-        InternalError,
-        "Display name 'TestNode' already exists."
-      )
+      try {
+        await customController.createNewNode(simpleDtdlId, body, req)
+        expect.fail('Expected InternalError to be thrown')
+      } catch (error) {
+        if (!(error instanceof InternalError)) {
+          throw error // Re-throw if it's not the expected error type
+        }
+        expect(error.message).to.include("Please update the display name 'Example1'")
+      }
 
       expect(addEntityToModelStub.called).to.equal(false)
     })
-
-    it('should throw validation error for invalid input', async () => {
+    it('should throw error for empty displayName', async () => {
       const req = mockReq({})
       const body = {
         displayName: '',
