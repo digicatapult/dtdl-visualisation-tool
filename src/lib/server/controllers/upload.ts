@@ -1,5 +1,5 @@
+import { Get, Middlewares, Post, Produces, Query, Request, Route, SuccessResponse, UploadedFile } from '@tsoa/runtime'
 import express from 'express'
-import { Get, Middlewares, Post, Produces, Query, Request, Route, SuccessResponse, UploadedFile } from 'tsoa'
 import { container, inject, injectable } from 'tsyringe'
 
 import { UploadError } from '../errors.js'

@@ -1,4 +1,4 @@
-import { Get, Produces, Queries, Query, Route, SuccessResponse } from 'tsoa'
+import { Get, Produces, Queries, Query, Route, SuccessResponse } from '@tsoa/runtime'
 import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../db/modelDb.js'
 import { Logger, type ILogger } from '../logger.js'

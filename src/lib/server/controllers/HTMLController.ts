@@ -1,5 +1,5 @@
+import { Controller } from '@tsoa/runtime'
 import { Readable } from 'node:stream'
-import { Controller } from 'tsoa'
 import { concatStreams } from '../utils/streams.js'
 
 export type HTML = Readable

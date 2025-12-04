@@ -1,5 +1,17 @@
+import {
+  Body,
+  Delete,
+  Get,
+  Middlewares,
+  Path,
+  Produces,
+  Put,
+  Queries,
+  Request,
+  Route,
+  SuccessResponse,
+} from '@tsoa/runtime'
 import express from 'express'
-import { Body, Delete, Get, Middlewares, Path, Produces, Put, Queries, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../../../db/modelDb.js'
 import { DeletableEntities, type DeleteContentParams, type UpdateParams } from '../../../models/controllerTypes.js'

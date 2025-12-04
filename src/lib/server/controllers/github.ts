@@ -1,6 +1,6 @@
+import { Get, Middlewares, Produces, Query, Request, Route, SuccessResponse } from '@tsoa/runtime'
 import express from 'express'
 import { dirname } from 'node:path'
-import { Get, Middlewares, Produces, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { container, inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../db/modelDb.js'
 import { GithubNotFound, GithubReqError } from '../errors.js'
