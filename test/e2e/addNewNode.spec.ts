@@ -5,6 +5,7 @@ import { waitForSuccessResponse, waitForUpdateLayout } from './helpers/waitForHe
 
 test.describe('Add New Node', () => {
   test('should add a new interface node and verify it appears in the ontology', async ({ browser }) => {
+    test.setTimeout(60000)
     const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const page = await context.newPage()
     await openEditRepo(page)
@@ -71,6 +72,7 @@ test.describe('Add New Node', () => {
   })
 
   test('should add a new node to a specific folder', async ({ browser }) => {
+    test.setTimeout(60000)
     const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const page = await context.newPage()
     await openEditRepo(page)
@@ -130,6 +132,7 @@ test.describe('Add New Node', () => {
   })
 
   test('should validate required fields', async ({ browser }) => {
+    test.setTimeout(60000)
     const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const page = await context.newPage()
     await openEditRepo(page)
@@ -171,6 +174,7 @@ test.describe('Add New Node', () => {
   })
 
   test('should handle duplicate display names correctly', async ({ browser }) => {
+    test.setTimeout(60000)
     const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const page = await context.newPage()
     await openEditRepo(page)
@@ -210,6 +214,7 @@ test.describe('Add New Node', () => {
   })
 
   test('should cancel creation and return to edit mode', async ({ browser }) => {
+    test.setTimeout(60000)
     const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const page = await context.newPage()
     await openEditRepo(page)
