@@ -49,7 +49,7 @@ export default class OpenOntologyTemplates {
             <dialog id="github-modal">
               <this.githubModalContent type="edit" />
               <form method="dialog">
-                <button class="modal-button" />
+                <button class="modal-button" autofocus />
               </form>
             </dialog>
           )}
@@ -101,7 +101,7 @@ export default class OpenOntologyTemplates {
             hx-swap="outerHTML"
             class="authorise-link"
           >
-            {`Show ${otherType}able`}
+            {escapeHtml(`Show ${otherType}able`)}
           </a>
         </div>
         <div id="public-github-input-wrapper" style={showEditable ? 'visibility: hidden;' : undefined}>
