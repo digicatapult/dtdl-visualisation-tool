@@ -4,7 +4,6 @@ import { join } from 'node:path'
 import { waitForSuccessResponse } from './helpers/waitForHelpers'
 
 const ghAppName = process.env.GH_APP_NAME
-const testUser = process.env.GH_TEST_USER
 
 test.describe('Private GitHub repos', () => {
   test('authorise all private repos via GitHub App install', async ({ browser }) => {
