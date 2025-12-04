@@ -3,7 +3,7 @@ import { describe, test } from 'mocha'
 import { expect } from 'chai'
 import Sinon from 'sinon'
 import { container } from 'tsyringe'
-import { mockLogger } from '../../controllers/__tests__/helpers.js'
+import { mockCache, mockLogger } from '../../controllers/__tests__/helpers.js'
 import { Env } from '../../env/index.js'
 import { GithubReqError } from '../../errors.js'
 import { ICache } from '../cache.js'
@@ -12,6 +12,10 @@ import { GithubRequest } from '../githubRequest.js'
 const env = container.resolve(Env)
 
 describe('githubRequest', function () {
+  beforeEach(function () {
+    mockCache.clear()
+  })
+
   test('getZip errors with upload limit', async function () {
     const mockCache = {
       get: Sinon.stub(),
@@ -30,7 +34,7 @@ describe('githubRequest', function () {
   })
 
   test('getInstallationRepos filters repos without push permissions', async function () {
-    const githubRequest = new GithubRequest(mockLogger)
+    const githubRequest = new GithubRequest(mockLogger, mockCache)
     const repos = [
       { name: 'repo1', permissions: { push: true } },
       { name: 'repo2', permissions: { push: false } },
@@ -48,7 +52,7 @@ describe('githubRequest', function () {
   })
 
   test('getRepoPermissions returns edit when user and app has correct write permissions', async function () {
-    const githubRequest = new GithubRequest(mockLogger)
+    const githubRequest = new GithubRequest(mockLogger, mockCache)
     const stub = Sinon.stub(githubRequest, 'requestWrapper')
 
     stub.onCall(0).resolves({
@@ -67,7 +71,7 @@ describe('githubRequest', function () {
   })
 
   test('getRepoPermissions returns view when app lacks permissions but user has pull access', async function () {
-    const githubRequest = new GithubRequest(mockLogger)
+    const githubRequest = new GithubRequest(mockLogger, mockCache)
     const stub = Sinon.stub(githubRequest, 'requestWrapper')
 
     stub.onCall(0).resolves({
@@ -82,7 +86,7 @@ describe('githubRequest', function () {
   })
 
   test(`getRepoPermissions returns unauthorised when user can't pull repo`, async function () {
-    const githubRequest = new GithubRequest(mockLogger)
+    const githubRequest = new GithubRequest(mockLogger, mockCache)
     const stub = Sinon.stub(githubRequest, 'requestWrapper')
 
     stub.onCall(0).resolves({
@@ -96,12 +100,27 @@ describe('githubRequest', function () {
   })
 
   test(`getRepoPermissions returns unauthorised when user can't access repo`, async function () {
-    const githubRequest = new GithubRequest(mockLogger)
+    const githubRequest = new GithubRequest(mockLogger, mockCache)
     const stub = Sinon.stub(githubRequest, 'requestWrapper')
 
     stub.onCall(0).resolves(null)
 
     const result = await githubRequest.getRepoPermissions('token', 'owner', 'repo')
     expect(result).to.equal('unauthorised')
+  })
+
+  test('getRepoPermissions caches the result', async function () {
+    const githubRequest = new GithubRequest(mockLogger, mockCache)
+    const stub = Sinon.stub(githubRequest, 'requestWrapper')
+
+    stub.onCall(0).resolves(null)
+
+    const result1 = await githubRequest.getRepoPermissions('token', 'owner', 'repo')
+    expect(result1).to.equal('unauthorised')
+    expect(stub.callCount).to.equal(1)
+
+    const result2 = await githubRequest.getRepoPermissions('token', 'owner', 'repo')
+    expect(result2).to.equal('unauthorised')
+    expect(stub.callCount).to.equal(1)
   })
 })

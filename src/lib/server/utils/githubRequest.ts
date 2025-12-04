@@ -134,6 +134,19 @@ export class GithubRequest {
     const cached = this.cache.get(cacheKey, z.enum(viewAndEditPermissions))
     if (cached) return cached
 
+    const permission = await this.resolveRepoPermissions(token, owner, repo)
+
+    // Cache permissions for 1 minute to balance performance and freshness
+    this.cache.set(cacheKey, permission, 60 * 1000)
+
+    return permission
+  }
+
+  private resolveRepoPermissions = async (
+    token: string,
+    owner: string,
+    repo: string
+  ): Promise<ViewAndEditPermission> => {
     const userOctokit = new Octokit({ auth: token })
 
     const userResponse = await this.requestWrapper(async () =>
