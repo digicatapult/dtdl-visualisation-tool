@@ -195,7 +195,6 @@ export class GithubController extends HTMLController {
           repo,
           page: `${page + 1}`,
         }),
-        ...(page === 1 && { backLink: safeUrl(`/github/repos`, { page: '1' }) }),
       }),
       this.templates.selectFolder({
         swapOutOfBand: true,

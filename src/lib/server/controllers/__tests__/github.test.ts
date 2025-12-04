@@ -295,7 +295,7 @@ describe('GithubController', async () => {
     it('should return branch names in list', async () => {
       const onClickLink = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=.&ref=${mockBranch}`
       const nextPageLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=${page + 1}`
-      const backLink = `/github/repos?page=1`
+      const backLink = undefined
       const result = await controller.branches(mockOwner, mockRepo, page, mockReqWithCookie(cookie))
 
       if (!result) {
@@ -472,7 +472,7 @@ describe('GithubController', async () => {
     it('valid owner/repo - should return branch names in list', async () => {
       const onClickLink = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=.&ref=${mockBranch}`
       const nextPageLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=${2}`
-      const backLink = `/github/repos?page=1`
+      const backLink = undefined
       const result = await controller.navigate(`${mockOwner}/${mockRepo}`, mockReqWithCookie(cookie))
 
       if (!result) throw new Error('Expected HTML response')
@@ -491,7 +491,7 @@ describe('GithubController', async () => {
 
       const onClickLink = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=.&ref=${mockBranch}`
       const nextPageLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=${2}`
-      const backLink = `/github/repos?page=1`
+      const backLink = undefined
       const result = await controller.navigate(`${mockOwner}/${mockRepo}/invalidBranch`, mockReqWithCookie(cookie))
 
       if (!result) throw new Error('Expected HTML response')
