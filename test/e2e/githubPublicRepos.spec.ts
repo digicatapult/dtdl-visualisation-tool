@@ -17,10 +17,11 @@ test.describe('Public GitHub URL input validation', () => {
       () => page.locator('#main-view').getByTitle('Upload New Ontology').click(),
       '/menu'
     )
-    await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/repos')
+    await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/github/picker')
 
-    // click first of test users repos
-    await expect(page.locator('.github-list li').first()).toBeVisible()
+    const showViewable = page.locator('#github-modal').getByText('viewable')
+    await waitForSuccessResponse(page, () => showViewable.click(), '/modal')
+
     const testPaths = [
       {
         paths: [

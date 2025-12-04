@@ -1,6 +1,6 @@
 #github-modal {
   height: 50%;
-  width: 60ch;
+  width: 70ch;
   padding: 2rem;
 }
 
@@ -58,6 +58,12 @@ a.authorise-link:hover {
   height: 20px;
   margin-left: 8px; /* Space between input and image */
   align-self: center;
+}
+
+.github-list li {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .github-list li:nth-child(odd) {

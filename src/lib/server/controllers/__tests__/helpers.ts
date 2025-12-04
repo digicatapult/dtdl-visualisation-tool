@@ -374,7 +374,7 @@ export const mockReq = (headers: Record<string, string>, cookies: Record<string,
   } as unknown as express.Request
 }
 
-export const mockReqWithCookie = (cookie: Record<string, unknown>) => {
+export const mockReqWithCookie = (cookie: Record<string, unknown>, headers?: Record<string, string>) => {
   return {
     res: {
       cookie: sinon.spy(),
@@ -383,7 +383,7 @@ export const mockReqWithCookie = (cookie: Record<string, unknown>) => {
       sendStatus: sinon.spy(),
     },
     signedCookies: { [posthogIdCookie]: 'test-posthog-id', ...cookie },
-    header: () => '',
+    header: (key: string) => headers?.[key],
   } as unknown as express.Request
 }
 

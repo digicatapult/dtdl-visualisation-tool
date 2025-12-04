@@ -34,6 +34,9 @@ const __dirname = path.dirname(__filename)
 
 const env = container.resolve(Env)
 
+const mockInstallationId = 123
+const mockInstallationAccountLogin = 'installationAccountLogin'
+const mockInstallationAccountName = 'installationAccountName'
 const mockOwner = 'owner'
 const mockRepo = 'repo'
 const mockFullName = `${mockOwner}/${mockRepo}`
@@ -53,6 +56,24 @@ const token: OAuthToken = {
   token_type: '',
   scope: '',
 }
+
+const installations = [
+  {
+    id: mockInstallationId,
+    account: {
+      login: mockInstallationAccountLogin,
+    },
+  },
+  {
+    id: mockInstallationId,
+    account: {
+      name: mockInstallationAccountName,
+    },
+  },
+  {
+    id: mockInstallationId,
+  },
+]
 
 const repos = [
   {
@@ -98,8 +119,9 @@ const cookie = { [octokitTokenCookie]: 'someToken' }
 const getContentsStub = sinon.stub()
 
 export const mockGithubRequest = {
+  getInstallations: () => Promise.resolve(installations),
   getRepos: () => Promise.resolve(repos),
-  getPushableRepos: () => Promise.resolve(repos),
+  getInstallationRepos: () => Promise.resolve(repos),
   getBranches: () => Promise.resolve(branches),
   getContents: getContentsStub,
   getAccessToken: () => Promise.resolve(token),
@@ -137,7 +159,7 @@ describe('ensureOctokitToken middleware', () => {
     const setHeaderStub = sinon.stub()
     const endStub = sinon.stub()
 
-    const req = mockReqWithCookie({})
+    const req = mockReqWithCookie({}, { 'hx-request': 'true' })
     const res = {
       status: statusStub,
       setHeader: setHeaderStub,
@@ -202,12 +224,34 @@ describe('GithubController', async () => {
       expect(setHeaderSpy.calledWith('Refresh', `0; url=${returnUrl}`)).to.equal(true)
     })
   })
+  describe('/installations', () => {
+    const page = 1
+    it('should return installation names in list', async () => {
+      const onClickLink = `/github/repos?installationId=${mockInstallationId}&page=1`
+      const nextPageLink = `/github/installations?page=${page + 1}`
+      const backLink = undefined
+      const result = await controller.installations(page, mockReqWithCookie(cookie))
+
+      if (!result) {
+        throw new Error('Expected HTML response')
+      }
+
+      const html = await toHTMLString(result)
+
+      expect(html).to.equal(
+        [
+          `githubPathLabel_Your installations:_githubPathLabel`,
+          `githubListItems_${mockInstallationAccountLogin}_${onClickLink}_${mockInstallationAccountName}_${onClickLink}_Installation ${mockInstallationId}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`,
+        ].join('')
+      )
+    })
+  })
 
   describe('/repos', () => {
     const page = 1
-    it('should return repo full names in list', async () => {
+    it('should return user repo full names in list', async () => {
       const onClickLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=1`
-      const nextPageLink = `/github/repos?page=${page + 1}&type=view`
+      const nextPageLink = `/github/repos?page=${page + 1}`
       const backLink = undefined
       const result = await controller.repos(page, mockReqWithCookie(cookie))
 
@@ -219,7 +263,27 @@ describe('GithubController', async () => {
 
       expect(html).to.equal(
         [
-          `githubPathLabel_Your repos:_githubPathLabel`,
+          `githubPathLabel_Repositories:_githubPathLabel`,
+          `githubListItems_${mockFullName}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`,
+        ].join('')
+      )
+    })
+
+    it('should return installation repo full names in list', async () => {
+      const onClickLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=1`
+      const nextPageLink = `/github/repos?installationId=${mockInstallationId}&page=${page + 1}`
+      const backLink = `/github/installations?page=1`
+      const result = await controller.repos(page, mockReqWithCookie(cookie), mockInstallationId.toString())
+
+      if (!result) {
+        throw new Error('Expected HTML response')
+      }
+
+      const html = await toHTMLString(result)
+
+      expect(html).to.equal(
+        [
+          `githubPathLabel_Repositories:_githubPathLabel`,
           `githubListItems_${mockFullName}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`,
         ].join('')
       )

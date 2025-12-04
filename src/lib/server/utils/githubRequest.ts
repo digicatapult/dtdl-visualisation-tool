@@ -25,6 +25,20 @@ export const authRedirectURL = (returnUrl: string): string => {
 export class GithubRequest {
   constructor(@inject(Logger) private logger: ILogger) {}
 
+  getInstallations = async (token: string | undefined, page: number) => {
+    if (!token) throw new GithubReqError('Missing GitHub token')
+    const octokit = new Octokit({ auth: token })
+
+    const response = await this.requestWrapper(async () =>
+      octokit.request('GET /user/installations', {
+        per_page: perPage,
+        page,
+      })
+    )
+
+    return response.data.installations
+  }
+
   getRepos = async (token: string | undefined, page: number) => {
     if (!token) throw new GithubReqError('Missing GitHub token')
 
@@ -38,35 +52,17 @@ export class GithubRequest {
     return response.data
   }
 
-  getPushableRepos = async (token: string | undefined, page: number) => {
+  getInstallationRepos = async (token: string | undefined, installationId: number, page: number) => {
     if (!token) throw new GithubReqError('Missing GitHub token')
-
     const octokit = new Octokit({ auth: token })
     const response = await this.requestWrapper(async () =>
-      octokit.request('GET /user/installations', {
-        per_page: perPage,
-        page,
-      })
-    )
-    const installations = response.data
-    if (installations.total_count === 0) {
-      return []
-    }
-
-    const installation = installations.installations.find((inst) => inst.client_id === env.get('GH_CLIENT_ID'))
-
-    if (!installation) {
-      return []
-    }
-
-    const reposResponse = await this.requestWrapper(async () =>
       octokit.request('GET /user/installations/{installation_id}/repositories', {
-        installation_id: installation.id,
+        installation_id: installationId,
         per_page: perPage,
         page,
       })
     )
-    return reposResponse.data.repositories.filter((repo) => repo.permissions?.push)
+    return response.data.repositories.filter((r) => r.permissions?.push)
   }
 
   getBranches = async (token: string | undefined, owner: string, repo: string, page: number) => {
@@ -127,6 +123,22 @@ export class GithubRequest {
   }
 
   getRepoPermissions = async (token: string, owner: string, repo: string): Promise<ViewAndEditPermission> => {
+    const userOctokit = new Octokit({ auth: token })
+
+    const userResponse = await this.requestWrapper(async () =>
+      userOctokit.request('GET /repos/{owner}/{repo}', {
+        owner,
+        repo,
+      })
+    ).catch((error) => {
+      if (error instanceof GithubNotFound) return null
+      throw error
+    })
+
+    if (!userResponse?.data.permissions?.pull) {
+      return 'unauthorised'
+    }
+
     const appOctokit = new Octokit({
       authStrategy: createAppAuth,
       auth: {
@@ -135,7 +147,7 @@ export class GithubRequest {
       },
     })
 
-    const response = await this.requestWrapper(async () =>
+    const installationRes = await this.requestWrapper(async () =>
       appOctokit.request('GET /repos/{owner}/{repo}/installation', {
         owner,
         repo,
@@ -145,28 +157,14 @@ export class GithubRequest {
       throw err
     })
 
-    if (response?.data.permissions.contents === 'write' && response.data.permissions.pull_requests === 'write') {
+    if (
+      installationRes?.data.permissions.contents === 'write' &&
+      installationRes.data.permissions.pull_requests === 'write'
+    ) {
       return 'edit'
     }
 
-    return this.getUserPermissions(token, owner, repo)
-  }
-
-  getUserPermissions = async (token: string, owner: string, repo: string): Promise<ViewAndEditPermission> => {
-    const octokit = new Octokit({ auth: token })
-
-    const response = await this.requestWrapper(async () =>
-      octokit.request('GET /repos/{owner}/{repo}', {
-        owner,
-        repo,
-      })
-    ).catch((error) => {
-      if (error instanceof GithubNotFound) return null
-      throw error
-    })
-
-    if (response?.data.permissions?.pull) return 'view'
-    return 'unauthorised'
+    return 'view'
   }
 
   getAuthenticatedUser = async (token: string) => {

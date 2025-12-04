@@ -23,7 +23,11 @@ const rateLimiter = container.resolve(RateLimiter)
 export function ensureOctokitToken(req: express.Request, res: express.Response, next: express.NextFunction): void {
   if (!req.signedCookies[octokitTokenCookie]) {
     res.status(302)
-    res.setHeader('HX-Redirect', authRedirectURL(`/github/picker`))
+    if (req.header('hx-request')) {
+      res.setHeader('HX-Redirect', authRedirectURL(`/github/picker`))
+    } else {
+      res.setHeader('Location', authRedirectURL(`/github/picker`))
+    }
     res.end()
     return
   }
@@ -96,18 +100,51 @@ export class GithubController extends HTMLController {
   @SuccessResponse(200, '')
   @Produces('text/html')
   @Middlewares(ensurePostHogId, ensureOctokitToken)
+  @Get('/installations')
+  public async installations(@Query() page: number, @Request() req: express.Request): Promise<HTML | void> {
+    const octokitToken = req.signedCookies[octokitTokenCookie]
+    const response = await this.githubRequest.getInstallations(octokitToken, page)
+
+    const installations: ListItem[] = response.map(({ id, account }) => ({
+      text:
+        (account && 'login' in account && account.login) ||
+        (account && 'name' in account && account.name) ||
+        `Installation ${id}`,
+      link: safeUrl(`/github/repos`, { installationId: id.toString(), page: '1' }),
+    }))
+
+    return this.html(
+      this.templates.githubPathLabel({
+        path: 'Your installations:',
+        swapOutOfBand: true,
+      }),
+      this.templates.githubListItems({
+        list: installations,
+        nextPageLink: safeUrl(`/github/installations`, { page: `${page + 1}` }),
+      })
+    )
+  }
+
+  @SuccessResponse(200, '')
+  @Produces('text/html')
+  @Middlewares(ensurePostHogId, ensureOctokitToken)
   @Get('/repos')
   public async repos(
     @Query() page: number,
     @Request() req: express.Request,
-    @Query() type: 'view' | 'edit' = 'view'
+    @Query() installationId?: string
   ): Promise<HTML | void> {
     const octokitToken = req.signedCookies[octokitTokenCookie]
+    const response = installationId
+      ? await this.githubRequest.getInstallationRepos(octokitToken, Number(installationId), page)
+      : await this.githubRequest.getRepos(octokitToken, page)
 
-    const response =
-      type === 'edit'
-        ? await this.githubRequest.getPushableRepos(octokitToken, page)
-        : await this.githubRequest.getRepos(octokitToken, page)
+    const nextPageLink = safeUrl(`/github/repos`, {
+      ...(installationId && { installationId }),
+      page: `${page + 1}`,
+    })
+
+    const backLink = page === 1 && installationId ? safeUrl(`/github/installations`, { page: '1' }) : undefined
 
     const repos: ListItem[] = response.map(({ full_name, owner: { login: owner }, name }) => ({
       text: full_name,
@@ -116,12 +153,13 @@ export class GithubController extends HTMLController {
 
     return this.html(
       this.templates.githubPathLabel({
-        path: 'Your repos:',
+        path: 'Repositories:',
         swapOutOfBand: true,
       }),
       this.templates.githubListItems({
         list: repos,
-        nextPageLink: safeUrl(`/github/repos`, { page: `${page + 1}`, type }),
+        nextPageLink,
+        backLink,
       })
     )
   }

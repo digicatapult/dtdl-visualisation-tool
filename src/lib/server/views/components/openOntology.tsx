@@ -86,11 +86,11 @@ export default class OpenOntologyTemplates {
   }
 
   public githubModalContent = ({ type }: { type?: 'view' | 'edit' }) => {
-    const showEditableRepos = type === 'edit'
-    const populateListLink = showEditableRepos
-      ? safeUrl(`/github/repos`, { page: '1', type: 'edit' })
-      : safeUrl(`/github/repos`, { page: '1', type: 'view' })
-    const otherType = showEditableRepos ? 'view' : 'edit'
+    const showEditable = type === 'edit'
+    const populateListLink = showEditable
+      ? safeUrl(`/github/installations`, { page: '1' })
+      : safeUrl(`/github/repos`, { page: '1' })
+    const otherType = showEditable ? 'view' : 'edit'
     return (
       <div id="github-modal-content">
         <div id="github-modal-title-wrapper">
@@ -101,10 +101,10 @@ export default class OpenOntologyTemplates {
             hx-swap="outerHTML"
             class="authorise-link"
           >
-            {showEditableRepos ? 'Viewable' : 'Editable'} repos
+            {`Show ${otherType}able`}
           </a>
         </div>
-        <div id="public-github-input-wrapper" style={showEditableRepos ? 'visibility: hidden;' : undefined}>
+        <div id="public-github-input-wrapper" style={showEditable ? 'visibility: hidden;' : undefined}>
           <input
             id="public-github-input"
             placeholder="Enter public GitHub repo e.g. 'digicatapult/dtdl-visualisation-tool'"
@@ -119,7 +119,7 @@ export default class OpenOntologyTemplates {
           />
           <img src="/public/images/arrow-enter.svg" />
         </div>
-        <this.githubPathLabel path="Your repos:" />
+        <this.githubPathLabel path="" />
 
         <div id="github-list-wrapper">
           <div id="spin" class="spinner" />
@@ -201,7 +201,7 @@ export default class OpenOntologyTemplates {
     }
 
     const includeBackLink = backLink !== undefined
-    const includeNextPageLink = nextPageLink !== undefined && list.length > 0
+    const includeNextPageLink = nextPageLink !== undefined && list.length > env.get('GH_PER_PAGE') - 1
 
     return (
       <>
