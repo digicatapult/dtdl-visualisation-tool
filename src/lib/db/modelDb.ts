@@ -77,6 +77,13 @@ export class ModelDb {
       })
     )
   }
+  async addEntityToModel(model_id: UUID, entity: string, filePath: string): Promise<void> {
+    await this.db.insert('dtdl', {
+      path: filePath,
+      source: entity,
+      model_id,
+    })
+  }
 
   async getDtdlModelAndTree(id: UUID): Promise<{ model: DtdlObjectModel; fileTree: DtdlPath[] }> {
     const files = await this.getDtdlFiles(id)
