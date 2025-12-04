@@ -1,12 +1,15 @@
 import { createAppAuth } from '@octokit/auth-app'
 import { Octokit } from '@octokit/core'
 import { RequestError } from '@octokit/request-error'
+import { createHash } from 'node:crypto'
 import { container, inject, singleton } from 'tsyringe'
+import { z } from 'zod'
 
 import { Env } from '../env/index.js'
 import { GithubNotFound, GithubReqError } from '../errors.js'
 import { Logger, type ILogger } from '../logger.js'
-import { OAuthToken, ViewAndEditPermission } from '../models/github.js'
+import { OAuthToken, ViewAndEditPermission, viewAndEditPermissions } from '../models/github.js'
+import { Cache, type ICache } from './cache.js'
 import { safeUrl } from './url.js'
 
 const env = container.resolve(Env)
@@ -23,7 +26,10 @@ export const authRedirectURL = (returnUrl: string): string => {
 
 @singleton()
 export class GithubRequest {
-  constructor(@inject(Logger) private logger: ILogger) {}
+  constructor(
+    @inject(Logger) private logger: ILogger,
+    @inject(Cache) private cache: ICache
+  ) {}
 
   getInstallations = async (token: string | undefined, page: number) => {
     if (!token) throw new GithubReqError('Missing GitHub token')
@@ -123,6 +129,11 @@ export class GithubRequest {
   }
 
   getRepoPermissions = async (token: string, owner: string, repo: string): Promise<ViewAndEditPermission> => {
+    const tokenHash = createHash('sha256').update(token).digest('hex')
+    const cacheKey = `github_permissions_${tokenHash}_${owner}_${repo}`
+    const cached = this.cache.get(cacheKey, z.enum(viewAndEditPermissions))
+    if (cached) return cached
+
     const userOctokit = new Octokit({ auth: token })
 
     const userResponse = await this.requestWrapper(async () =>
