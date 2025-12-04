@@ -384,6 +384,7 @@ export const mockReqWithCookie = (cookie: Record<string, unknown>, headers?: Rec
     },
     signedCookies: { [posthogIdCookie]: 'test-posthog-id', ...cookie },
     header: (key: string) => headers?.[key],
+    headers,
   } as unknown as express.Request
 }
 

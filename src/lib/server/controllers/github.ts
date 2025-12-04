@@ -23,7 +23,7 @@ const rateLimiter = container.resolve(RateLimiter)
 export function ensureOctokitToken(req: express.Request, res: express.Response, next: express.NextFunction): void {
   if (!req.signedCookies[octokitTokenCookie]) {
     res.status(302)
-    if (req.header('hx-request') === 'true') {
+    if (req.headers['hx-request']) {
       res.setHeader('HX-Redirect', authRedirectURL(`/github/picker`))
     } else {
       res.setHeader('Location', authRedirectURL(`/github/picker`))
