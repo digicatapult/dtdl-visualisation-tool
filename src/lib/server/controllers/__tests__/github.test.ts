@@ -157,13 +157,12 @@ describe('ensureOctokitToken middleware', () => {
     const nextSpy = sinon.spy()
     const statusStub = sinon.stub().returnsThis()
     const setHeaderStub = sinon.stub()
-    const endStub = sinon.stub()
 
-    const req = mockReqWithCookie({}, { 'hx-request': 'true' })
+    const req = mockReqWithCookie({})
     const res = {
       status: statusStub,
       setHeader: setHeaderStub,
-      end: endStub,
+      end: sinon.stub(),
     } as unknown as express.Response
 
     ensureOctokitToken(req, res, nextSpy)

@@ -23,11 +23,7 @@ const rateLimiter = container.resolve(RateLimiter)
 export function ensureOctokitToken(req: express.Request, res: express.Response, next: express.NextFunction): void {
   if (!req.signedCookies[octokitTokenCookie]) {
     res.status(302)
-    if (req.headers['hx-request']) {
-      res.setHeader('HX-Redirect', authRedirectURL(`/github/picker`))
-    } else {
-      res.setHeader('Location', authRedirectURL(`/github/picker`))
-    }
+    res.setHeader('HX-Redirect', authRedirectURL(`/github/picker`))
     res.end()
     return
   }
@@ -53,9 +49,14 @@ export class GithubController extends HTMLController {
 
   @SuccessResponse(200, '')
   @Produces('text/html')
-  @Middlewares(ensurePostHogId, ensureOctokitToken)
+  @Middlewares(ensurePostHogId)
   @Get('/picker')
   public async picker(@Request() req: express.Request): Promise<HTML | void> {
+    if (!req.signedCookies[octokitTokenCookie]) {
+      this.setStatus(302)
+      this.setHeader('Location', authRedirectURL(`/github/picker`))
+      return
+    }
     const recentFiles = await recentFilesFromCookies(this.modelDb, req.signedCookies, this.logger)
     return this.html(this.templates.OpenOntologyRoot({ recentFiles, showGithubModal: true }))
   }
