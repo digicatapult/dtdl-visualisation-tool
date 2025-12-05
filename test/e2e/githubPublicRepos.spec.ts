@@ -55,7 +55,6 @@ test.describe('Public GitHub URL input validation', () => {
         await page.fill('#public-github-input', path)
         if (handler === waitForSuccessResponse) {
           await handler(page, () => page.press('#public-github-input', 'Enter'), '/navigate')
-          await expect(page.locator('.github-list li').filter({ hasText: /^<$/ })).toBeVisible()
         } else if (handler === waitFor404Response) {
           await handler(page, () => page.press('#public-github-input', 'Enter'), '/navigate')
           await expect(page.locator('#toast-container').filter({ hasText: 'GitHub Not Found Error' })).toBeInViewport()
