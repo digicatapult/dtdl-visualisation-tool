@@ -39,7 +39,6 @@ export const PropertyDetails = ({
         definedIn={property.DefinedIn}
         putRoute="propertyDisplayName"
         text={property.displayName?.en}
-        keyName="displayName"
         additionalBody={{ propertyName: name }}
         maxLength={64}
       />
@@ -61,7 +60,6 @@ export const PropertyDetails = ({
         definedIn: property.DefinedIn,
         putRoute: 'propertyDescription',
         text: property.description?.en,
-        keyName: 'description',
         additionalBody: { propertyName: name },
         multiline: true,
         maxLength: MAX_VALUE_LENGTH,
@@ -72,7 +70,6 @@ export const PropertyDetails = ({
         definedIn: property.DefinedIn,
         putRoute: 'propertyComment',
         text: property.comment,
-        keyName: 'comment',
         additionalBody: { propertyName: name },
         multiline: true,
         maxLength: MAX_VALUE_LENGTH,
