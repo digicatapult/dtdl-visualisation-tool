@@ -1,4 +1,4 @@
-import { expect, Page, test } from '@playwright/test'
+import { expect, Locator, Page, test } from '@playwright/test'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { waitForSuccessResponse } from './helpers/waitForHelpers'
@@ -64,24 +64,6 @@ test.describe('Test add content to ontology', () => {
       'New Prop Description',
       '/propertyDescription'
     )
-  })
-
-  test('add and edit relationship', async ({ browser, baseURL }) => {
-    test.setTimeout(110000)
-    const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
-    const page = await context.newPage()
-    await openEditRepo(page)
-
-    // turn on edit mode
-    await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
-
-    // Select an interface
-    await waitForSuccessResponse(
-      page,
-      () => page.locator('#mermaid-output').getByText('displayNameEdit', { exact: true }).first().click(),
-      '/update-layout'
-    )
-
     // Add Relationship
     const relationshipName = 'newRelationship'
     const relAccordion = page
@@ -125,23 +107,6 @@ test.describe('Test add content to ontology', () => {
       'dtmi:com:base;1',
       '/relationshipTarget'
     )
-  })
-
-  test('add and edit telemetry', async ({ browser, baseURL }) => {
-    test.setTimeout(110000)
-    const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
-    const page = await context.newPage()
-    await openEditRepo(page)
-
-    // turn on edit mode
-    await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
-
-    // Select an interface
-    await waitForSuccessResponse(
-      page,
-      () => page.locator('#mermaid-output').getByText('displayNameEdit', { exact: true }).first().click(),
-      '/update-layout'
-    )
 
     // Add Telemetry
     const telemetryName = 'newTelemetry'
@@ -167,12 +132,17 @@ test.describe('Test add content to ontology', () => {
     await expect(page.locator('#navigation-panel-details').getByText(`Name: ${telemetryName}`)).toBeVisible()
 
     // Edit Telemetry
-    const displayNameForm = page
+    const telemetryDisplayNameForm = page
       .locator(`form[hx-vals*='"telemetryName":"${telemetryName}"']`)
       .filter({ has: page.locator('textarea') })
       .first()
 
-    await testNavPanelEdit(page, displayNameForm.locator('textarea'), 'New Tel Display Name', '/telemetryDisplayName')
+    await testNavPanelEdit(
+      page,
+      telemetryDisplayNameForm.locator('textarea'),
+      'New Tel Display Name',
+      '/telemetryDisplayName'
+    )
 
     // Schema
     const schemaForm = page
@@ -180,26 +150,9 @@ test.describe('Test add content to ontology', () => {
       .filter({ has: page.locator('select') })
       .first()
     await testNavPanelDropdownEdit(page, schemaForm.locator('select'), 'double', '/telemetrySchema')
-  })
-
-  test('add and edit command', async ({ browser, baseURL }) => {
-    test.setTimeout(110000)
-    const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
-    const page = await context.newPage()
-    await openEditRepo(page)
-
-    // turn on edit mode
-    await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
-
-    // Select an interface
-    await waitForSuccessResponse(
-      page,
-      () => page.locator('#mermaid-output').getByText('displayNameEdit', { exact: true }).first().click(),
-      '/update-layout'
-    )
 
     // Add Command
-    const commandName = 'newCommand'
+    const commandName = 'newCommandName'
     const cmdAccordion = page
       .locator('section.accordion-parent')
       .filter({ has: page.locator('h3 button', { hasText: /^Commands$/ }) })
@@ -237,14 +190,14 @@ test.describe('Test add content to ontology', () => {
 
 // Helpers
 
-const testNavPanelEdit = async (page: Page, locator: any, newValue: string, successRoute: string) => {
+const testNavPanelEdit = async (page: Page, locator: Locator, newValue: string, successRoute: string) => {
   await expect(locator).toBeVisible()
   await locator.fill(newValue)
   await waitForSuccessResponse(page, () => page.mouse.click(0, 0), successRoute)
   await page.waitForTimeout(500)
 }
 
-const testNavPanelDropdownEdit = async (page: Page, locator: any, newOption: string, successRoute: string) => {
+const testNavPanelDropdownEdit = async (page: Page, locator: Locator, newOption: string, successRoute: string) => {
   await expect(locator).toBeVisible()
   await waitForSuccessResponse(page, () => locator.selectOption(newOption), successRoute)
   await page.waitForTimeout(500)

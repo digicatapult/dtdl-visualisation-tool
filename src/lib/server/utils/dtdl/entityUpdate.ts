@@ -257,6 +257,10 @@ const updateCommandRequestResponseValue = (
 
   const updatedRequestResponse = { ...requestResponseProperty }
 
+  if (!updatedRequestResponse.name) {
+    updatedRequestResponse.name = requestOrResponse
+  }
+
   updatedRequestResponse[keyToUpdate] = value
   const updatedCommand = {
     ...command,
