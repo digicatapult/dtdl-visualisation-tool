@@ -26,9 +26,6 @@ jobs:
 
   e2e-tests-npm:
     uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
-    concurrency:
-      group: e2e-tests-npm
-      cancel-in-progress: true
     with:
       docker_compose_file: ''
       pre_test_command: 'npm ci && npx playwright install-deps && npx playwright install'
@@ -54,6 +51,8 @@ jobs:
     permissions:
       packages: write
       contents: write
+      security-events: write
+      actions: read
     secrets:
       DOCKERHUB_TOKEN: ${{ secrets.SQNC_DOCKERHUB_TOKEN }}
       DOCKERHUB_USERNAME: ${{ secrets.SQNC_DOCKERHUB_USERNAME }}
