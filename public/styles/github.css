@@ -2,6 +2,7 @@
   height: 50%;
   width: 70ch;
   padding: 2rem;
+  min-height: 40ch;
 }
 
 .github-list {
@@ -46,6 +47,10 @@ a.authorise-link:hover {
   display: grid;
   width: 100%;
   grid-template-columns: 1fr auto;
+}
+
+.invisible {
+  visibility: hidden;
 }
 
 #public-github-input {

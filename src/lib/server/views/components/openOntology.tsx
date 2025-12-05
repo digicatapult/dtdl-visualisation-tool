@@ -47,7 +47,7 @@ export default class OpenOntologyTemplates {
           <this.recentFiles recentFiles={recentFiles} />
           {showGithubModal && (
             <dialog id="github-modal">
-              <this.githubModalContent type="edit" />
+              <this.githubModalContent viewMode="edit" />
               <form method="dialog">
                 <button class="modal-button" autofocus />
               </form>
@@ -85,8 +85,8 @@ export default class OpenOntologyTemplates {
     )
   }
 
-  public githubModalContent = ({ type }: { type?: 'view' | 'edit' }) => {
-    const showEditable = type === 'edit'
+  public githubModalContent = ({ viewMode }: { viewMode: 'view' | 'edit' }) => {
+    const showEditable = viewMode === 'edit'
     const populateListLink = showEditable
       ? safeUrl(`/github/installations`, { page: '1' })
       : safeUrl(`/github/repos`, { page: '1' })
@@ -94,9 +94,9 @@ export default class OpenOntologyTemplates {
     return (
       <div id="github-modal-content">
         <div id="github-modal-title-wrapper">
-          <b>Select a repository to {type}</b>
+          <b>Select a repository to {viewMode}</b>
           <a
-            hx-get={`/github/modal?type=${otherType}`}
+            hx-get={`/github/modal?viewMode=${otherType}`}
             hx-target="#github-modal-content"
             hx-swap="outerHTML"
             class="authorise-link"
@@ -104,7 +104,7 @@ export default class OpenOntologyTemplates {
             {escapeHtml(`Show ${otherType}able`)}
           </a>
         </div>
-        <div id="public-github-input-wrapper" style={showEditable ? 'visibility: hidden;' : undefined}>
+        <div id="public-github-input-wrapper" class={showEditable ? 'invisible' : ''}>
           <input
             id="public-github-input"
             placeholder="Enter public GitHub repo e.g. 'digicatapult/dtdl-visualisation-tool'"
@@ -201,7 +201,7 @@ export default class OpenOntologyTemplates {
     }
 
     const includeBackLink = backLink !== undefined
-    const includeNextPageLink = nextPageLink !== undefined && list.length > env.get('GH_PER_PAGE') - 1
+    const includeNextPageLink = nextPageLink !== undefined && list.length > 0
 
     return (
       <>

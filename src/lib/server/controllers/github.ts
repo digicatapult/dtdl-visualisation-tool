@@ -65,8 +65,8 @@ export class GithubController extends HTMLController {
   @Produces('text/html')
   @Middlewares(ensurePostHogId, ensureOctokitToken)
   @Get('/modal')
-  public async modal(@Query() type: 'view' | 'edit' = 'view'): Promise<HTML | void> {
-    return this.html(this.templates.githubModalContent({ type }))
+  public async modal(@Query() viewMode: 'view' | 'edit'): Promise<HTML | void> {
+    return this.html(this.templates.githubModalContent({ viewMode }))
   }
 
   // Called by GitHub after external OAuth login
