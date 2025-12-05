@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { waitForSuccessResponse } from './helpers/waitForHelpers'
 
 test.describe('Test add content to ontology', () => {
-  test('add and edit property', async ({ browser, baseURL }) => {
+  test('add and edit property', async ({ browser }) => {
     test.setTimeout(110000)
     const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const page = await context.newPage()

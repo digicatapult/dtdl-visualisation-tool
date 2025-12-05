@@ -253,7 +253,6 @@ export default class MermaidTemplates {
               ...(relationshipName ? { relationshipName } : {}),
             },
             text: entity?.displayName?.en,
-            keyName: 'displayName',
             maxLength: 64,
           })}
           <p>
@@ -267,7 +266,6 @@ export default class MermaidTemplates {
               ...(relationshipName ? { relationshipName } : {}),
             },
             text: entity.description?.en,
-            keyName: 'description',
             multiline: true,
             maxLength: MAX_VALUE_LENGTH,
           })}
@@ -282,7 +280,6 @@ export default class MermaidTemplates {
               ...(relationshipName ? { relationshipName } : {}),
             },
             text: entity.comment,
-            keyName: 'comment',
             multiline: true,
             maxLength: MAX_VALUE_LENGTH,
           })}
@@ -400,7 +397,6 @@ export default class MermaidTemplates {
                       definedIn={telemetry.DefinedIn}
                       putRoute="telemetryDisplayName"
                       text={telemetry.displayName?.en}
-                      keyName="displayName"
                       additionalBody={{ telemetryName: name }}
                       maxLength={64}
                     />
@@ -422,7 +418,6 @@ export default class MermaidTemplates {
                       definedIn={telemetry.DefinedIn}
                       putRoute="telemetryDescription"
                       text={telemetry.description?.en}
-                      keyName="description"
                       additionalBody={{ telemetryName: name }}
                       multiline={true}
                       maxLength={MAX_VALUE_LENGTH}
@@ -433,7 +428,6 @@ export default class MermaidTemplates {
                       definedIn: telemetry.DefinedIn,
                       putRoute: 'telemetryComment',
                       text: telemetry.comment,
-                      keyName: 'comment',
                       additionalBody: { telemetryName: name },
                       multiline: true,
                       maxLength: MAX_VALUE_LENGTH,
@@ -476,7 +470,6 @@ export default class MermaidTemplates {
                       text: command.displayName.en,
                       additionalBody: { commandName: name },
                       maxLength: 64,
-                      keyName: 'displayName',
                     })}
 
                     <b>Description:</b>
@@ -488,7 +481,6 @@ export default class MermaidTemplates {
                       additionalBody: { commandName: name },
                       multiline: true,
                       maxLength: MAX_VALUE_LENGTH,
-                      keyName: 'description',
                     })}
                     <b>Comment:</b>
                     {EditableText({
@@ -499,7 +491,6 @@ export default class MermaidTemplates {
                       additionalBody: { commandName: name },
                       multiline: true,
                       maxLength: MAX_VALUE_LENGTH,
-                      keyName: 'comment',
                     })}
                     <AccordionSection heading={'Request'} collapsed={false}>
                       <b>Request displayName:</b>
@@ -511,7 +502,6 @@ export default class MermaidTemplates {
                         additionalBody: { commandName: name },
                         multiline: true,
                         maxLength: MAX_VALUE_LENGTH,
-                        keyName: 'requestDisplayName',
                       })}
                       <b>Request comment:</b>
                       {EditableText({
@@ -522,7 +512,6 @@ export default class MermaidTemplates {
                         additionalBody: { commandName: name },
                         multiline: true,
                         maxLength: MAX_VALUE_LENGTH,
-                        keyName: 'requestComment',
                       })}
                       <b>Request description:</b>
                       {EditableText({
@@ -533,7 +522,6 @@ export default class MermaidTemplates {
                         additionalBody: { commandName: name },
                         multiline: true,
                         maxLength: MAX_VALUE_LENGTH,
-                        keyName: 'requestDescription',
                       })}
                       <b>Schema:</b>
                       <EditableSelect
@@ -560,7 +548,6 @@ export default class MermaidTemplates {
                         additionalBody: { commandName: name },
                         multiline: true,
                         maxLength: MAX_VALUE_LENGTH,
-                        keyName: 'responseDisplayName',
                       })}
                       <b>Response comment:</b>
                       {EditableText({
@@ -571,7 +558,6 @@ export default class MermaidTemplates {
                         additionalBody: { commandName: name },
                         multiline: true,
                         maxLength: MAX_VALUE_LENGTH,
-                        keyName: 'responseComment',
                       })}
                       <b>Response description:</b>
                       {EditableText({
@@ -582,7 +568,6 @@ export default class MermaidTemplates {
                         additionalBody: { commandName: name },
                         multiline: true,
                         maxLength: MAX_VALUE_LENGTH,
-                        keyName: 'responseDescription',
                       })}
                       <b>Schema:</b>
                       <EditableSelect
@@ -1115,7 +1100,7 @@ export default class MermaidTemplates {
               hx-target="#navigation-panel"
               hx-trigger="checked"
               hx-swap="outerHTML"
-              hx-vals="js:{ editMode: event.detail.checked }"
+              hx-vals="js:{ editMode: event.detail.checked, t: Date.now() }"
             >
               <input
                 id="edit-toggle-checkbox"

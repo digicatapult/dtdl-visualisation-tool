@@ -78,7 +78,6 @@ export const EditableText = ({
   definedIn,
   putRoute,
   text,
-  keyName,
   additionalBody,
   multiline,
   maxLength,
@@ -87,7 +86,6 @@ export const EditableText = ({
   definedIn: DtdlId
   putRoute: string
   text?: string
-  keyName: string
   additionalBody?: Record<string, string>
   multiline?: boolean
   maxLength?: number
@@ -131,7 +129,7 @@ export const EditableSelect = ({
   edit: boolean
   definedIn: DtdlId
   putRoute: string
-    text?: string
+  text?: string
   additionalBody?: Record<string, string>
   options: readonly string[] | Array<{ value: string; label: string }>
   disabled?: boolean
