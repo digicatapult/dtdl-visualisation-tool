@@ -74,7 +74,7 @@
     "pino-http": "^11.0.0",
     "posthog-node": "^5.14.1",
     "puppeteer": "^24.31.0",
-    "react": "^19.2.0",
+    "react": "^19.2.1",
     "reflect-metadata": "^0.2.2",
     "svg-pan-zoom": "^3.6.2",
     "tsoa": "^6.6.0",
