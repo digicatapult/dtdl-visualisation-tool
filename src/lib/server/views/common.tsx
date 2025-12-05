@@ -1,13 +1,16 @@
+import express from 'express'
 import { escapeHtml, type PropsWithChildren } from '@kitajs/html'
 import { DtdlId } from '../models/strings.js'
+import { PostHogScript } from './components/posthog.js'
 
 export const parseError = (): JSX.Element => <p>Ontology Undefined</p>
 
-export const Page = (props: PropsWithChildren<{ title: string }>): JSX.Element => (
+export const Page = (props: PropsWithChildren<{ title: string; req?: express.Request }>): JSX.Element => (
   <>
     {'<!DOCTYPE html>'}
     <html lang="en">
       <head>
+        <PostHogScript req={props.req} />
         <script src="/lib/htmx.org/htmx.min.js"></script>
         <script src="/lib/htmx-ext-json-enc/json-enc.js"></script>
         <script src="/lib/htmx-ext-response-targets/response-targets.js"></script>
@@ -21,6 +24,7 @@ export const Page = (props: PropsWithChildren<{ title: string }>): JSX.Element =
         <script src="/public/scripts/events.js" type="module"></script>
         <script src="/public/scripts/a11y.js" type="module"></script>
         <script src="/public/scripts/mpa.js"></script>
+        <script src="/public/scripts/posthog.js"></script>
         <link rel="icon" type="image/ico" sizes="48x48" href="/public/images/favicon.ico" />
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700&display=swap" />
         <link rel="stylesheet" type="text/css" href="/public/styles/main.css" />

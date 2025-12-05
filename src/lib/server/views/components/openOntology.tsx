@@ -1,6 +1,7 @@
 /// <reference types="@kitajs/html/htmx.d.ts" />
 
 import { escapeHtml } from '@kitajs/html'
+import express from 'express'
 import { container, singleton } from 'tsyringe'
 import version from '../../../../version.js'
 import { Env } from '../../env/index.js'
@@ -11,30 +12,32 @@ import { Page } from '../common.js'
 
 type SelectFolderProps =
   | {
-      link: string
-      swapOutOfBand?: boolean
-      stage: 'folder'
-    }
+    link: string
+    swapOutOfBand?: boolean
+    stage: 'folder'
+  }
   | {
-      swapOutOfBand?: boolean
-      stage: 'repo' | 'branch'
-    }
+    swapOutOfBand?: boolean
+    stage: 'repo' | 'branch'
+  }
 
 const env = container.resolve(Env)
 
 @singleton()
 export default class OpenOntologyTemplates {
-  constructor() {}
+  constructor() { }
 
   public OpenOntologyRoot = ({
     recentFiles,
     showGithubModal,
+    req,
   }: {
     recentFiles: RecentFile[]
     showGithubModal?: boolean
+    req?: express.Request
   }) => {
     return (
-      <Page title="UKDTC">
+      <Page title="UKDTC" req={req}>
         <section id="upload-toolbar">
           <a href="/">
             <h2>UKDTC</h2>
