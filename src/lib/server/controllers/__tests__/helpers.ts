@@ -228,7 +228,7 @@ export const templateMock = {
   deleteDialog: () => `deleteDialog_deleteDialog`,
 } as unknown as MermaidTemplates
 export const openOntologyMock = {
-  OpenOntologyRoot: ({ populateListLink }: { populateListLink?: string }) => `root_${populateListLink}_root`,
+  OpenOntologyRoot: () => `root_root`,
   mainView: (): JSX.Element => `mainView_SomethingHere_mainView`,
   getMenu: ({ showContent }: { showContent: boolean }) => `uploadMethod_${showContent}_uploadMethod`,
   uploadZip: () => `uploadZip_Zip_uploadZip`,
@@ -374,7 +374,7 @@ export const mockReq = (headers: Record<string, string>, cookies: Record<string,
   } as unknown as express.Request
 }
 
-export const mockReqWithCookie = (cookie: Record<string, unknown>) => {
+export const mockReqWithCookie = (cookie: Record<string, unknown>, headers?: Record<string, string>) => {
   return {
     res: {
       cookie: sinon.spy(),
@@ -383,7 +383,8 @@ export const mockReqWithCookie = (cookie: Record<string, unknown>) => {
       sendStatus: sinon.spy(),
     },
     signedCookies: { [posthogIdCookie]: 'test-posthog-id', ...cookie },
-    header: () => '',
+    header: (key: string) => headers?.[key],
+    headers,
   } as unknown as express.Request
 }
 

@@ -19,9 +19,13 @@ test.describe('Upload ontology from GitHub via OAuth', () => {
       () => page.locator('#main-view').getByTitle('Upload New Ontology').click(),
       '/menu'
     )
-    await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/repos')
+    await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/github/picker')
 
     // click test repo
+    const installation = page.locator('.github-list li').filter({ hasText: /digicatapult$/ })
+    await expect(installation).toBeVisible()
+    await waitForSuccessResponse(page, () => installation.click(), '/repos')
+
     await expect(page.locator('.github-list li').first()).toBeVisible()
     await waitForSuccessResponse(
       page,
@@ -65,9 +69,12 @@ test.describe('Upload ontology from GitHub via OAuth', () => {
     )
     await expect(page.locator('#main-view').getByText('GitHub')).toBeVisible()
 
-    await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/repos')
+    await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/github/picker')
 
     // enter a public repo
+    const showViewable = page.locator('#github-modal').getByText('viewable')
+    await waitForSuccessResponse(page, () => showViewable.click(), '/modal')
+
     await expect(page.locator('.github-list li').first()).toBeVisible()
     await page.fill('#public-github-input', 'digicatapult/dtdl-visualisation-tool')
     await waitForSuccessResponse(page, () => page.press('#public-github-input', 'Enter'), '/navigate')

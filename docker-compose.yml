@@ -34,6 +34,7 @@ services:
       - GH_APP_NAME=${GH_APP_NAME}
       - GH_CLIENT_ID=${GH_CLIENT_ID}
       - GH_CLIENT_SECRET=${GH_CLIENT_SECRET}
+      - GH_APP_PRIVATE_KEY=${GH_APP_PRIVATE_KEY}
       - COOKIE_SESSION_KEYS=${COOKIE_SESSION_KEYS}
       - EDIT_ONTOLOGY=true
       - PUPPETEER_ARGS=--no-sandbox,--disable-setuid-sandbox

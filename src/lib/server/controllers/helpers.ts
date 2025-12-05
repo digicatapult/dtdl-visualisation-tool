@@ -101,7 +101,7 @@ export const checkEditPermission = async (
   const modelDb: ModelDb = container.resolve(ModelDb)
   const githubRequest: GithubRequest = container.resolve(GithubRequest)
 
-  const ontologyId: UUID = req.params['ontologyId'] || req.params['dtdlModelId']
+  const ontologyId: UUID = req.body?.ontologyId || req.params['ontologyId'] || req.params['dtdlModelId']
 
   const { owner, repo } = await modelDb.getModelById(ontologyId)
   if (!owner || !repo) {
