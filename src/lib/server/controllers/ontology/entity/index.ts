@@ -1,5 +1,19 @@
 import express from 'express'
-import { Body, Delete, Get, Middlewares, Path, Produces, Put, Queries, Request, Route, SuccessResponse } from 'tsoa'
+import {
+  Body,
+  Delete,
+  Get,
+  Middlewares,
+  Path,
+  Post,
+  Produces,
+  Put,
+  Queries,
+  Query,
+  Request,
+  Route,
+  SuccessResponse,
+} from 'tsoa'
 import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../../../db/modelDb.js'
 import { DeletableEntities, type DeleteContentParams, type UpdateParams } from '../../../models/controllerTypes.js'
@@ -9,6 +23,7 @@ import { Cache, type ICache } from '../../../utils/cache.js'
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { DtdlInterface, NullableDtdlSource } from '../../../../db/types.js'
 import {
+  addContent,
   deleteContent,
   deleteInterface,
   updateCommandComment,
@@ -41,6 +56,7 @@ import {
 } from '../../../utils/dtdl/entityUpdate.js'
 import { getDisplayName, isInterface, isNamedEntity } from '../../../utils/dtdl/extract.js'
 import SessionStore from '../../../utils/sessions.js'
+import { AddContentForm } from '../../../views/components/addContent.js'
 import MermaidTemplates from '../../../views/components/mermaid.js'
 import { checkEditPermission } from '../../helpers.js'
 import { HTML, HTMLController } from '../../HTMLController.js'
@@ -517,6 +533,37 @@ export class EntityController extends HTMLController {
     this.sessionStore.update(updateParams.sessionId, { highlightNodeId: '' })
 
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+
+  @SuccessResponse(200)
+  @Produces('text/html')
+  @Post('{entityId}/content')
+  public async postContent(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Body()
+    body: { contentName: string; contentType: 'Property' | 'Relationship' | 'Telemetry' | 'Command' } & UpdateParams
+  ): Promise<HTML> {
+    const { contentName, contentType, ...updateParams } = body
+
+    await this.putEntityValue(ontologyId, entityId, addContent(contentName, contentType))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+
+  @SuccessResponse(200)
+  @Produces('text/html')
+  @Get('{entityId}/toggleAddContent')
+  public async toggleAddContent(
+    @Path() entityId: DtdlId,
+    @Query() contentType: 'Property' | 'Relationship' | 'Telemetry' | 'Command',
+    @Query() isOpen: boolean
+  ): Promise<HTML> {
+    if (isOpen) {
+      return this.html(AddContentForm({ contentType, entityId }))
+    }
+    return this.html('')
   }
 
   putEntityValue = async (

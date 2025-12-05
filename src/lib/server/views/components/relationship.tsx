@@ -52,7 +52,6 @@ export const RelationshipDetails = ({
         definedIn={relationshipDefinedIn}
         putRoute="relationshipDisplayName"
         text={relationship.displayName?.en}
-        keyName="displayName"
         additionalBody={{ relationshipName: name }}
         maxLength={64}
       />
@@ -64,7 +63,6 @@ export const RelationshipDetails = ({
         definedIn={relationshipDefinedIn}
         putRoute="relationshipDescription"
         text={relationship.description?.en}
-        keyName="description"
         additionalBody={{ relationshipName: name }}
         multiline={true}
         maxLength={MAX_VALUE_LENGTH}
@@ -77,7 +75,6 @@ export const RelationshipDetails = ({
         definedIn={relationshipDefinedIn}
         putRoute="relationshipComment"
         text={relationship.comment}
-        keyName="comment"
         additionalBody={{ relationshipName: name }}
         multiline={true}
         maxLength={MAX_VALUE_LENGTH}
@@ -85,19 +82,15 @@ export const RelationshipDetails = ({
       <p>
         <b>Target:</b>
       </p>
-      {relationship.target ? (
-        <EditableSelect
-          edit={edit && !isInherited}
-          definedIn={relationshipDefinedIn}
-          putRoute="relationshipTarget"
-          text={relationship.target}
-          options={interfaceOptions}
-          disabled={isInherited}
-          additionalBody={!isInherited ? { relationshipName: name } : undefined}
-        />
-      ) : (
-        <p>'target' key missing in original file</p>
-      )}
+      <EditableSelect
+        edit={edit && !isInherited}
+        definedIn={relationshipDefinedIn}
+        putRoute="relationshipTarget"
+        text={relationship.target}
+        options={interfaceOptions}
+        disabled={isInherited}
+        additionalBody={!isInherited ? { relationshipName: name } : undefined}
+      />
       <br />
     </div>
   )

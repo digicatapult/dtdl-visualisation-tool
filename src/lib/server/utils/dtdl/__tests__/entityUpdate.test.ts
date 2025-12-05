@@ -10,6 +10,7 @@ import {
 } from '../../../controllers/__tests__/helpers'
 import { DataError } from '../../../errors'
 import {
+  addContent,
   deleteContent,
   MAX_DISPLAY_NAME_LENGTH,
   MAX_VALUE_LENGTH,
@@ -267,6 +268,134 @@ describe('entity updates', function () {
     test('throws Zod error if relationship does not exist for target update', async () => {
       expect(() => {
         updateRelationshipTarget('dtmi:com:target;1', 'nonExistentRelationship')(baseFile({}))
+      })
+    })
+  })
+
+  describe('addContent', function () {
+    describe('happy path', function () {
+      test('adds a new Property with default schema', () => {
+        const result = addContent('newProperty', 'Property')(baseFile({}))
+        const contents = result.contents as Array<{ name: string; '@type': string; schema?: string }>
+        const newProperty = contents.find((c) => c.name === 'newProperty')
+        void expect(newProperty).to.not.be.undefined
+        void expect(newProperty?.['@type']).to.equal('Property')
+        void expect(newProperty?.schema).to.equal('string')
+      })
+
+      test('adds a new Relationship without schema', () => {
+        const result = addContent('newRelationship', 'Relationship')(baseFile({}))
+        const contents = result.contents as Array<{ name: string; '@type': string; schema?: string }>
+        const newRelationship = contents.find((c) => c.name === 'newRelationship')
+        void expect(newRelationship).to.not.be.undefined
+        void expect(newRelationship?.['@type']).to.equal('Relationship')
+        void expect(newRelationship?.schema).to.be.undefined
+      })
+
+      test('adds a new Telemetry with default schema', () => {
+        const result = addContent('newTelemetry', 'Telemetry')(baseFile({}))
+        const contents = result.contents as Array<{ name: string; '@type': string; schema?: string }>
+        const newTelemetry = contents.find((c) => c.name === 'newTelemetry')
+        void expect(newTelemetry).to.not.be.undefined
+        void expect(newTelemetry?.['@type']).to.equal('Telemetry')
+        void expect(newTelemetry?.schema).to.equal('string')
+      })
+
+      test('adds a new Command without schema', () => {
+        const result = addContent('newCommand', 'Command')(baseFile({}))
+        const contents = result.contents as Array<{ name: string; '@type': string; schema?: string }>
+        const newCommand = contents.find((c) => c.name === 'newCommand')
+        void expect(newCommand).to.not.be.undefined
+        void expect(newCommand?.['@type']).to.equal('Command')
+        void expect(newCommand?.schema).to.be.undefined
+      })
+    })
+
+    describe('validation errors', function () {
+      test('throws error for empty content name', () => {
+        expect(() => {
+          addContent('', 'Property')(baseFile({}))
+        }).to.throw(DataError, 'Content name cannot be empty')
+      })
+
+      test('throws error for whitespace-only content name', () => {
+        expect(() => {
+          addContent('   ', 'Property')(baseFile({}))
+        }).to.throw(DataError, 'Content name cannot be empty')
+      })
+
+      test('throws error for content name with invalid characters', () => {
+        expect(() => {
+          addContent('invalid"name', 'Property')(baseFile({}))
+        }).to.throw(DataError, 'Invalid JSON')
+      })
+
+      test('throws error for content name too long', () => {
+        const longName = 'a'.repeat(MAX_VALUE_LENGTH + 1)
+        expect(() => {
+          addContent(longName, 'Property')(baseFile({}))
+        }).to.throw(DataError, `Content name has max length of ${MAX_VALUE_LENGTH} characters`)
+      })
+
+      test('throws error for duplicate content name', () => {
+        expect(() => {
+          addContent(propertyName, 'Property')(baseFile({}))
+        }).to.throw(DataError, `Content with name '${propertyName}' already exists`)
+      })
+
+      test('throws error when adding content with same name as relationship', () => {
+        expect(() => {
+          addContent(relationshipName, 'Property')(baseFile({}))
+        }).to.throw(DataError, `Content with name '${relationshipName}' already exists`)
+      })
+
+      test('throws error when adding content with same name as telemetry', () => {
+        expect(() => {
+          addContent(telemetryName, 'Command')(baseFile({}))
+        }).to.throw(DataError, `Content with name '${telemetryName}' already exists`)
+      })
+
+      test('throws error for content name with forward slash', () => {
+        expect(() => {
+          addContent('tcp/ip', 'Property')(baseFile({}))
+        }).to.throw(
+          DataError,
+          `Content name 'tcp/ip' is invalid. Must start with a letter, contain only letters, numbers, and underscores, and cannot end with an underscore.`
+        )
+      })
+
+      test('throws error for content name starting with number', () => {
+        expect(() => {
+          addContent('123property', 'Property')(baseFile({}))
+        }).to.throw(
+          DataError,
+          `Content name '123property' is invalid. Must start with a letter, contain only letters, numbers, and underscores, and cannot end with an underscore.`
+        )
+      })
+
+      test('throws error for content name ending with underscore', () => {
+        expect(() => {
+          addContent('property_', 'Property')(baseFile({}))
+        }).to.throw(
+          DataError,
+          `Content name 'property_' is invalid. Must start with a letter, contain only letters, numbers, and underscores, and cannot end with an underscore.`
+        )
+      })
+
+      test('throws error for content name with hyphen', () => {
+        expect(() => {
+          addContent('my-property', 'Property')(baseFile({}))
+        }).to.throw(
+          DataError,
+          `Content name 'my-property' is invalid. Must start with a letter, contain only letters, numbers, and underscores, and cannot end with an underscore.`
+        )
+      })
+
+      test('allows valid content name with underscores', () => {
+        const result = addContent('my_valid_property_123', 'Property')(baseFile({}))
+        const contents = result.contents as Array<{ name: string }>
+        const newProperty = contents.find((c) => c.name === 'my_valid_property_123')
+        void expect(newProperty).to.not.be.undefined
       })
     })
   })
