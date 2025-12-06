@@ -295,6 +295,7 @@ export class GithubController extends HTMLController {
       'github',
       owner,
       repo,
+      ref,
       files
     )
 

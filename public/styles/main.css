@@ -862,7 +862,7 @@ label[for='diagram-type-select'] {
   place-content: center;
 }
 
-#share-link-modal input[type='radio'] {
+.circle-radio {
   appearance: none;
   width: 20px;
   height: 20px;
@@ -875,7 +875,7 @@ label[for='diagram-type-select'] {
   background-color: white;
   outline: none;
 }
-#share-link-modal input[type="radio"]::before {
+.circle-radio::before {
   content: "";
   width: 20px;
   height: 20px;
@@ -886,10 +886,10 @@ label[for='diagram-type-select'] {
   transition: transform 0.2s ease-in-out;
   border-width:2px;
 }
-#share-link-modal input[type="radio"]:checked::before {
+.circle-radio:checked::before {
   transform: scale(1);
 }
-#share-link-modal input[type='radio']:checked {
+.circle-radio:checked {
   border-color: #555
 }
 
@@ -1163,6 +1163,16 @@ label[for='diagram-type-select'] {
 
 #toast-container img.temp-error {
   filter: hue-rotate(60deg) brightness(2) contrast(2);
+}
+
+#toast-container img.warning {
+  width: 54px;
+  height: 50px;
+}
+
+#toast-container img.tick {
+  width: 54px;
+  height: 50px;
 }
 
 #toast-container h1 {

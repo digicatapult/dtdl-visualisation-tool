@@ -12,6 +12,7 @@ const insertModel = z.object({
   source: z.enum(fileSource),
   owner: z.string().nullable(),
   repo: z.string().nullable(),
+  base_branch: z.string().nullable(),
 })
 
 export const dtdlInterfaceBase = z.looseObject({ '@id': z.string(), '@type': z.literal('Interface') })

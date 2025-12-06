@@ -224,6 +224,141 @@ export class GithubRequest {
     return response.data as ArrayBuffer
   }
 
+  getBranch = async (token: string, owner: string, repo: string, branch: string) => {
+    if (!token) throw new GithubReqError('Missing GitHub token')
+
+    const octokit = new Octokit({ auth: token })
+    try {
+      const response = await this.requestWrapper(async () =>
+        octokit.request(`GET /repos/{owner}/{repo}/git/ref/heads/{branch}`, {
+          owner,
+          repo,
+          branch,
+        })
+      )
+      return response.data
+    } catch (error) {
+      if (error instanceof GithubNotFound) {
+        return null
+      }
+      throw error
+    }
+  }
+
+  createBranch = async (token: string, owner: string, repo: string, branch: string, sha: string) => {
+    if (!token) throw new GithubReqError('Missing GitHub token')
+
+    const octokit = new Octokit({ auth: token })
+    const response = await this.requestWrapper(async () =>
+      octokit.request('POST /repos/{owner}/{repo}/git/refs', {
+        owner,
+        repo,
+        ref: `refs/heads/${branch}`,
+        sha,
+      })
+    )
+    return response.data
+  }
+
+  createBlob = async (token: string, owner: string, repo: string, content: string) => {
+    if (!token) throw new GithubReqError('Missing GitHub token')
+
+    const octokit = new Octokit({ auth: token })
+    const response = await this.requestWrapper(async () =>
+      octokit.request('POST /repos/{owner}/{repo}/git/blobs', {
+        owner,
+        repo,
+        content: Buffer.from(content).toString('base64'),
+        encoding: 'base64',
+      })
+    )
+    return response.data
+  }
+
+  createTree = async (
+    token: string,
+    owner: string,
+    repo: string,
+    baseTree: string,
+    tree: Array<{ path: string; mode: '100644'; type: 'blob'; sha: string }>
+  ) => {
+    if (!token) throw new GithubReqError('Missing GitHub token')
+
+    const octokit = new Octokit({ auth: token })
+    const response = await this.requestWrapper(async () =>
+      octokit.request('POST /repos/{owner}/{repo}/git/trees', {
+        owner,
+        repo,
+        base_tree: baseTree,
+        tree,
+      })
+    )
+    return response.data
+  }
+
+  createCommit = async (
+    token: string,
+    owner: string,
+    repo: string,
+    message: string,
+    tree: string,
+    parents: string[]
+  ) => {
+    if (!token) throw new GithubReqError('Missing GitHub token')
+
+    const octokit = new Octokit({ auth: token })
+    const response = await this.requestWrapper(async () =>
+      octokit.request('POST /repos/{owner}/{repo}/git/commits', {
+        owner,
+        repo,
+        message,
+        tree,
+        parents,
+      })
+    )
+    return response.data
+  }
+
+  updateRef = async (token: string, owner: string, repo: string, ref: string, sha: string) => {
+    if (!token) throw new GithubReqError('Missing GitHub token')
+
+    const octokit = new Octokit({ auth: token })
+    const response = await this.requestWrapper(async () =>
+      octokit.request('PATCH /repos/{owner}/{repo}/git/refs/{ref}', {
+        owner,
+        repo,
+        ref,
+        sha,
+      })
+    )
+    return response.data
+  }
+
+  createPullRequest = async (
+    token: string,
+    owner: string,
+    repo: string,
+    title: string,
+    head: string,
+    base: string,
+    body: string
+  ) => {
+    if (!token) throw new GithubReqError('Missing GitHub token')
+
+    const octokit = new Octokit({ auth: token })
+    const response = await this.requestWrapper(async () =>
+      octokit.request('POST /repos/{owner}/{repo}/pulls', {
+        owner,
+        repo,
+        title,
+        head,
+        base,
+        body,
+      })
+    )
+    return response.data
+  }
+
   public async requestWrapper<T>(request: () => Promise<T>): Promise<T> {
     try {
       return await request()

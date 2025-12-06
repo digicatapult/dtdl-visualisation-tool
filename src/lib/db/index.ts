@@ -81,7 +81,7 @@ export default class Database {
     let query = this.db[model]()
 
     const preparedExpression = this.client.raw(jsonbExpression, bindings)
-    query = query.whereRaw(`${jsonbProcess}(??, '??')`, [column, preparedExpression])
+    query = query.whereRaw(`${jsonbProcess}(??::jsonb, '??')`, [column, preparedExpression])
 
     query = reduceWhere(query, where)
 
