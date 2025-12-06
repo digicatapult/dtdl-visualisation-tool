@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -72,8 +72,8 @@
     "pg": "^8.16.3",
     "pino": "^10.1.0",
     "pino-http": "^11.0.0",
-    "posthog-node": "^5.15.0",
-    "puppeteer": "^24.31.0",
+    "posthog-node": "^5.17.0",
+    "puppeteer": "^24.32.0",
     "react": "^19.2.1",
     "reflect-metadata": "^0.2.2",
     "svg-pan-zoom": "^3.6.2",
@@ -113,7 +113,7 @@
     "otpauth": "^9.4.1",
     "pino-colada": "^2.2.2",
     "playwright-ctrf-json-reporter": "^0.0.27",
-    "prettier": "^3.7.3",
+    "prettier": "^3.7.4",
     "prettier-plugin-organize-imports": "^4.3.0",
     "rimraf": "^6.1.2",
     "sinon": "^21.0.0",
