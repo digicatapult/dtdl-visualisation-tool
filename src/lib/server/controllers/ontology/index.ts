@@ -21,6 +21,7 @@ import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../
 import { type UUID } from '../../models/strings.js'
 import { Cache, type ICache } from '../../utils/cache.js'
 import { filterModelByDisplayName, getRelatedIdsById } from '../../utils/dtdl/filter.js'
+import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { FuseSearch } from '../../utils/fuseSearch.js'
 import { authRedirectURL, GithubRequest } from '../../utils/githubRequest.js'
 import { SvgGenerator } from '../../utils/mermaid/generator.js'
@@ -310,6 +311,16 @@ export class OntologyController extends HTMLController {
     }
   }
 
+  private filterDirectoriesOnly(tree: DtdlPath[]): DtdlPath[] {
+    return tree
+      .filter((node) => node.type === 'directory')
+      .map((node) => ({
+        ...node,
+        // Recurse; if no children or only files, children become []
+        entries: node.entries ? this.filterDirectoriesOnly(node.entries) : [],
+      }))
+  }
+
   private setReplaceUrl(
     current: { path: string; query: URLSearchParams },
     params: { [key in UrlQueryKeys]?: string }
@@ -519,6 +530,6 @@ export class OntologyController extends HTMLController {
       throw new InternalError('owner or repo not found in database for GitHub source')
     }
 
-    return await this.githubRequest.getRepoPermissions(octokitToken, owner, repo)
+    return this.githubRequest.getRepoPermissions(octokitToken, owner, repo)
   }
 }

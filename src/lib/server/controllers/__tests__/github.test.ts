@@ -1,6 +1,7 @@
 import * as chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
-import { describe, it } from 'mocha'
+import express from 'express'
+import { afterEach, describe, it } from 'mocha'
 import sinon from 'sinon'
 import { container } from 'tsyringe'
 
@@ -13,7 +14,7 @@ import { OAuthToken } from '../../models/github.js'
 import Parser from '../../utils/dtdl/parser.js'
 import { GithubRequest } from '../../utils/githubRequest.js'
 import { simpleMockDtdlObjectModel } from '../../utils/mermaid/__tests__/fixtures.js'
-import { GithubController } from '../github.js'
+import { ensureOctokitToken, GithubController } from '../github.js'
 import {
   mockCache,
   mockGenerator,
@@ -33,6 +34,9 @@ const __dirname = path.dirname(__filename)
 
 const env = container.resolve(Env)
 
+const mockInstallationId = 123
+const mockInstallationAccountLogin = 'installationAccountLogin'
+const mockInstallationAccountName = 'installationAccountName'
 const mockOwner = 'owner'
 const mockRepo = 'repo'
 const mockFullName = `${mockOwner}/${mockRepo}`
@@ -52,6 +56,24 @@ const token: OAuthToken = {
   token_type: '',
   scope: '',
 }
+
+const installations = [
+  {
+    id: mockInstallationId,
+    account: {
+      login: mockInstallationAccountLogin,
+    },
+  },
+  {
+    id: mockInstallationId,
+    account: {
+      name: mockInstallationAccountName,
+    },
+  },
+  {
+    id: mockInstallationId,
+  },
+]
 
 const repos = [
   {
@@ -97,7 +119,9 @@ const cookie = { [octokitTokenCookie]: 'someToken' }
 const getContentsStub = sinon.stub()
 
 export const mockGithubRequest = {
+  getInstallations: () => Promise.resolve(installations),
   getRepos: () => Promise.resolve(repos),
+  getInstallationRepos: () => Promise.resolve(repos),
   getBranches: () => Promise.resolve(branches),
   getContents: getContentsStub,
   getAccessToken: () => Promise.resolve(token),
@@ -119,6 +143,39 @@ export const mockParser = {
   unzipJsonFiles: unzipJsonFilesStub,
 } as unknown as Parser
 
+describe('ensureOctokitToken middleware', () => {
+  it('should call next when octokit token is present', () => {
+    const nextSpy = sinon.spy()
+    const req = mockReqWithCookie(cookie)
+
+    ensureOctokitToken(req, req.res as express.Response, nextSpy)
+
+    expect(nextSpy.called).to.equal(true)
+  })
+
+  it('should set redirect headers when octokit token is missing', () => {
+    const nextSpy = sinon.spy()
+    const statusStub = sinon.stub().returnsThis()
+    const setHeaderStub = sinon.stub()
+
+    const req = mockReqWithCookie({})
+    const res = {
+      status: statusStub,
+      setHeader: setHeaderStub,
+      end: sinon.stub(),
+    } as unknown as express.Response
+
+    ensureOctokitToken(req, res, nextSpy)
+
+    const expectedRedirect = `https://github.com/login/oauth/authorize?client_id=${env.get('GH_CLIENT_ID')}&redirect_uri=${encodeURIComponent(`${env.get('GH_REDIRECT_ORIGIN')}/github/callback?returnUrl=/github/picker`)}`
+
+    expect(statusStub.firstCall.args[0]).to.equal(302)
+    expect(setHeaderStub.firstCall.args[0]).to.equal('HX-Redirect')
+    expect(setHeaderStub.firstCall.args[1]).to.equal(expectedRedirect)
+    expect(nextSpy.called).to.equal(false)
+  })
+})
+
 describe('GithubController', async () => {
   const controller = new GithubController(
     simpleMockModelDb,
@@ -130,21 +187,6 @@ describe('GithubController', async () => {
     mockLogger,
     mockCache
   )
-
-  const assertRedirectOnNoToken = async <T>(controllerFn: () => Promise<T>, hxRedirect: boolean = true) => {
-    const setHeaderSpy = sinon.spy(controller, 'setHeader')
-    const setStatusSpy = sinon.spy(controller, 'setStatus')
-
-    await controllerFn()
-
-    const redirect = encodeURIComponent(`${env.get('GH_REDIRECT_ORIGIN')}/github/callback?returnUrl=/github/picker`)
-
-    expect(setHeaderSpy.firstCall.args[0]).to.equal(hxRedirect ? 'HX-Redirect' : 'Location')
-    expect(setHeaderSpy.firstCall.args[1]).to.equal(
-      `https://github.com/login/oauth/authorize?client_id=${env.get('GH_CLIENT_ID')}&redirect_uri=${redirect}`
-    )
-    expect(setStatusSpy.calledWith(302)).to.equal(true)
-  }
 
   afterEach(() => {
     sinon.restore()
@@ -159,11 +201,7 @@ describe('GithubController', async () => {
       }
       const html = await toHTMLString(result)
 
-      expect(html).to.equal(`root_/github/repos?page=1_root`)
-    })
-
-    it('should redirect if octokit token NOT present in cookies', async () => {
-      await assertRedirectOnNoToken(() => controller.picker(mockReqWithCookie({})), false)
+      expect(html).to.equal(`root_root`)
     })
   })
 
@@ -185,10 +223,32 @@ describe('GithubController', async () => {
       expect(setHeaderSpy.calledWith('Refresh', `0; url=${returnUrl}`)).to.equal(true)
     })
   })
+  describe('/installations', () => {
+    const page = 1
+    it('should return installation names in list', async () => {
+      const onClickLink = `/github/repos?installationId=${mockInstallationId}&page=1`
+      const nextPageLink = `/github/installations?page=${page + 1}`
+      const backLink = undefined
+      const result = await controller.installations(page, mockReqWithCookie(cookie))
+
+      if (!result) {
+        throw new Error('Expected HTML response')
+      }
+
+      const html = await toHTMLString(result)
+
+      expect(html).to.equal(
+        [
+          `githubPathLabel_Your installations:_githubPathLabel`,
+          `githubListItems_${mockInstallationAccountLogin}_${onClickLink}_${mockInstallationAccountName}_${onClickLink}_Installation ${mockInstallationId}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`,
+        ].join('')
+      )
+    })
+  })
 
   describe('/repos', () => {
     const page = 1
-    it('should return repo full names in list', async () => {
+    it('should return user repo full names in list', async () => {
       const onClickLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=1`
       const nextPageLink = `/github/repos?page=${page + 1}`
       const backLink = undefined
@@ -202,14 +262,30 @@ describe('GithubController', async () => {
 
       expect(html).to.equal(
         [
-          `githubPathLabel_Repos:_githubPathLabel`,
+          `githubPathLabel_Repositories:_githubPathLabel`,
           `githubListItems_${mockFullName}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`,
         ].join('')
       )
     })
 
-    it('should redirect if octokit token NOT present in cookies', async () => {
-      await assertRedirectOnNoToken(() => controller.repos(page, mockReqWithCookie({})))
+    it('should return installation repo full names in list', async () => {
+      const onClickLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=1`
+      const nextPageLink = `/github/repos?installationId=${mockInstallationId}&page=${page + 1}`
+      const backLink = `/github/installations?page=1`
+      const result = await controller.repos(page, mockReqWithCookie(cookie), mockInstallationId.toString())
+
+      if (!result) {
+        throw new Error('Expected HTML response')
+      }
+
+      const html = await toHTMLString(result)
+
+      expect(html).to.equal(
+        [
+          `githubPathLabel_Repositories:_githubPathLabel`,
+          `githubListItems_${mockFullName}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`,
+        ].join('')
+      )
     })
   })
 
@@ -218,7 +294,7 @@ describe('GithubController', async () => {
     it('should return branch names in list', async () => {
       const onClickLink = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=.&ref=${mockBranch}`
       const nextPageLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=${page + 1}`
-      const backLink = `/github/repos?page=1`
+      const backLink = undefined
       const result = await controller.branches(mockOwner, mockRepo, page, mockReqWithCookie(cookie))
 
       if (!result) {
@@ -234,10 +310,6 @@ describe('GithubController', async () => {
           `selectFolder_undefined_true_branch_selectFolder`,
         ].join('')
       )
-    })
-
-    it('should redirect if octokit token NOT present in cookies', async () => {
-      await assertRedirectOnNoToken(() => controller.branches(mockOwner, mockRepo, page, mockReqWithCookie({})))
     })
   })
 
@@ -286,12 +358,6 @@ describe('GithubController', async () => {
           `githubListItems_📄 ${mockFileName}_${onClickLinkFile}_${nextPageLink}_${backLink}_githubListItems`,
           `selectFolder_${selectFolderLink}_true_folder_selectFolder`,
         ].join('')
-      )
-    })
-
-    it('should redirect if octokit token NOT present in cookies', async () => {
-      await assertRedirectOnNoToken(() =>
-        controller.contents(mockOwner, mockRepo, mockDirPath, mockBranch, mockReqWithCookie({}))
       )
     })
   })
@@ -405,7 +471,7 @@ describe('GithubController', async () => {
     it('valid owner/repo - should return branch names in list', async () => {
       const onClickLink = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=.&ref=${mockBranch}`
       const nextPageLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=${2}`
-      const backLink = `/github/repos?page=1`
+      const backLink = undefined
       const result = await controller.navigate(`${mockOwner}/${mockRepo}`, mockReqWithCookie(cookie))
 
       if (!result) throw new Error('Expected HTML response')
@@ -424,7 +490,7 @@ describe('GithubController', async () => {
 
       const onClickLink = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=.&ref=${mockBranch}`
       const nextPageLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=${2}`
-      const backLink = `/github/repos?page=1`
+      const backLink = undefined
       const result = await controller.navigate(`${mockOwner}/${mockRepo}/invalidBranch`, mockReqWithCookie(cookie))
 
       if (!result) throw new Error('Expected HTML response')
@@ -440,10 +506,6 @@ describe('GithubController', async () => {
 
     it('should throw error if path missing owner/repo', async () => {
       await expect(controller.navigate('', mockReqWithCookie(cookie))).to.be.rejectedWith(GithubReqError, `Invalid URL`)
-    })
-
-    it('should redirect if octokit token NOT present in cookies', async () => {
-      await assertRedirectOnNoToken(() => controller.navigate(`${mockOwner}/${mockRepo}`, mockReqWithCookie({})))
     })
 
     it('should throw error if unknown error thrown in navigation attempt', async () => {

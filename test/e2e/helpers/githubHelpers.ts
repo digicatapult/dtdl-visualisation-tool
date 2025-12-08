@@ -16,7 +16,9 @@ export async function openGithubOntology(
     '/menu'
   )
   await expect(page.locator('#main-view').getByText('GitHub')).toBeVisible()
-  await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/repos')
+  await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/github/picker')
+  const showViewable = page.locator('#github-modal').getByText('viewable')
+  await waitForSuccessResponse(page, () => showViewable.click(), '/modal')
   await page.fill('#public-github-input', repoURL)
   await page.focus('#public-github-input')
   await waitForSuccessResponse(page, () => page.press('#public-github-input', 'Enter'), '/navigate')
