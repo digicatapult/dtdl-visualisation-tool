@@ -1,6 +1,7 @@
-import { expect, Page, test } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { openEditRepo } from './helpers/openEditRepo.js'
 import { waitForSuccessResponse, waitForUpdateLayout } from './helpers/waitForHelpers.js'
 
 test.describe('Add New Node', () => {
@@ -148,7 +149,7 @@ test.describe('Add New Node', () => {
     await page.locator('#create-new-node-button').click()
 
     const hasError = await page
-      .locator('.error, .warning, [class*="error"]')
+      .locator('dialog[open]')
       .isVisible()
       .catch(() => false)
 
@@ -206,33 +207,3 @@ test.describe('Add New Node', () => {
     await expect(page.locator('#create-node-form')).toBeVisible()
   })
 })
-
-const openEditRepo = async (page: Page) => {
-  await page.setViewportSize({ width: 1920, height: 1080 })
-  await page.goto('./open')
-  await expect(page.locator('#main-view').getByTitle('Upload New Ontology')).toBeVisible()
-
-  await waitForSuccessResponse(
-    page,
-    () => page.locator('#main-view').getByTitle('Upload New Ontology').click(),
-    '/menu'
-  )
-  await expect(page.locator('#main-view').getByText('GitHub')).toBeVisible()
-
-  await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/github/picker')
-
-  await expect(page.locator('#public-github-input')).toBeVisible()
-  await page.fill('#public-github-input', 'digicatapult/dtdl-test-fixtures')
-  await waitForSuccessResponse(page, () => page.press('#public-github-input', 'Enter'), '/branches')
-
-  const branchName = page.locator('.github-list li').filter({ hasText: /^main$/ })
-  await expect(branchName).toBeVisible()
-  await waitForSuccessResponse(page, () => branchName.click(), '/contents')
-
-  const dirName = page.locator('.github-list li').filter({ hasText: /edit$/ })
-  await expect(dirName).toBeVisible()
-  await waitForSuccessResponse(page, () => dirName.click(), '/contents')
-
-  await waitForSuccessResponse(page, () => page.click('#select-folder'), '/ontology')
-  await expect(page.locator('#mermaid-output').getByText('displayNameEdit', { exact: true })).toBeVisible()
-}
