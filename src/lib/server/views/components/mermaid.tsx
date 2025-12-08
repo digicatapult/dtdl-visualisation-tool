@@ -257,7 +257,7 @@ export default class MermaidTemplates {
           </label>
         </div>
 
-        <form {...commonRerenderAttrs} id="create-node-form" hx-post={`/ontology/${dtdlModelId}/new-node`}>
+        <form {...commonRerenderAttrs} id="create-node-form" hx-post={`/ontology/${dtdlModelId}/entity/new-node`}>
           <div id="navigation-panel-content">
             <section>
               <h3>Basic Information</h3>
@@ -1329,7 +1329,7 @@ export default class MermaidTemplates {
           <button
             {...commonUpdateAttrs}
             id="add-node-button"
-            hx-get="add-new-node"
+            hx-get={`entity/add-new-node`}
             hx-target="#navigation-panel"
             hx-swap="outerHTML"
           ></button>
