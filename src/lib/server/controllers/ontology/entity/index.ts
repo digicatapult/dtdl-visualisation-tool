@@ -55,6 +55,7 @@ import {
   updateTelemetrySchema,
 } from '../../../utils/dtdl/entityUpdate.js'
 import { getDisplayName, isInterface, isNamedEntity } from '../../../utils/dtdl/extract.js'
+import { DtdlPath } from '../../../utils/dtdl/parser.js'
 import SessionStore from '../../../utils/sessions.js'
 import MermaidTemplates from '../../../views/components/mermaid.js'
 import { checkEditPermission } from '../../helpers.js'
@@ -671,7 +672,7 @@ export class EntityController extends HTMLController {
     return str.replace(/(?:^\w|[A-Z]|\b\w)/g, (word) => word.toUpperCase()).replace(/\s+/g, '')
   }
 
-  private filterDirectoriesOnly(tree: any[]): any[] {
+  private filterDirectoriesOnly(tree: DtdlPath[]): DtdlPath[] {
     return tree
       .filter((node) => node.type === 'directory')
       .map((node) => ({
