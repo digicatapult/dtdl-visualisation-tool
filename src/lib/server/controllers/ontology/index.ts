@@ -1,7 +1,7 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
+import { Get, Middlewares, Path, Produces, Queries, Query, Request, Route, SuccessResponse } from '@tsoa/runtime'
 import express from 'express'
 import { randomUUID } from 'node:crypto'
-import { Get, Middlewares, Path, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { container, inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../../db/modelDb.js'
 import { InternalError } from '../../errors.js'

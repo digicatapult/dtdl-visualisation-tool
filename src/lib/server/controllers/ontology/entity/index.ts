@@ -1,4 +1,3 @@
-import express from 'express'
 import {
   Body,
   Delete,
@@ -12,7 +11,8 @@ import {
   Request,
   Route,
   SuccessResponse,
-} from 'tsoa'
+} from '@tsoa/runtime'
+import express from 'express'
 import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../../../db/modelDb.js'
 import { InternalError } from '../../../errors.js'
