@@ -93,7 +93,7 @@ export class PostHogService {
       }
 
       this.postHogClient = new PostHog(key, { host })
-      this.logger.info('PostHogService initialized')
+      this.logger.debug('PostHogService initialized')
     } else {
       this.logger.debug('PostHog tracking is disabled')
     }

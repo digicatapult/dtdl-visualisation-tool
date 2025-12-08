@@ -1,10 +1,11 @@
 import { expect } from 'chai'
 import type { Request } from 'express'
 import { describe, it } from 'mocha'
+import { pino } from 'pino'
 import { PostHog } from 'posthog-node'
 import sinon from 'sinon'
 import { Env } from '../../../env/index.js'
-import { logger, type ILogger } from '../../../logger.js'
+import { type ILogger } from '../../../logger.js'
 import { GithubRequest } from '../../../utils/githubRequest.js'
 import { PostHogService } from '../postHogService.js'
 
@@ -18,7 +19,7 @@ describe('PostHogService', () => {
 
   beforeEach(() => {
     mockEnv = sinon.createStubInstance(Env)
-    mockLogger = logger.child({ test: 'postHogService' })
+    mockLogger = pino({ level: 'silent' })
     mockGithubRequest = sinon.createStubInstance(GithubRequest)
 
     // Manually stub getAuthenticatedUser since it's an async method

@@ -14,8 +14,9 @@ export class RateLimiter {
       windowMs: this.env.get('RATE_LIMIT_WINDOW_MS'),
       limit: this.env.get('STRICT_RATE_LIMIT'),
       skip: (req: Request) => this.env.get('IP_ALLOW_LIST').includes(req.ip!),
-      handler: (req: Request) => {
-        throw new TooManyRequestsError(`${req.ip} blocked - please try again later.`)
+      handler: (req: Request, res: Response) => {
+        const error = new TooManyRequestsError(`${req.ip} blocked - please try again later.`)
+        res.status(error.code).send(error.message)
       },
     })
 
@@ -23,8 +24,9 @@ export class RateLimiter {
       windowMs: this.env.get('RATE_LIMIT_WINDOW_MS'),
       limit: this.env.get('GLOBAL_RATE_LIMIT'),
       skip: (req: Request) => this.env.get('IP_ALLOW_LIST').includes(req.ip!),
-      handler: (req: Request) => {
-        throw new TooManyRequestsError(`${req.ip} blocked - please try again later.`)
+      handler: (req: Request, res: Response) => {
+        const error = new TooManyRequestsError(`${req.ip} blocked - please try again later.`)
+        res.status(error.code).send(error.message)
       },
     })
   }
