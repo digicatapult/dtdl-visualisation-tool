@@ -14,7 +14,7 @@ test.describe('Add New Node', () => {
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page.locator('#edit-toggle').getByText('Edit')).toBeVisible()
 
-    await waitForSuccessResponse(page, () => page.locator('#add-node-button').click(), '/add-new-node')
+    await waitForSuccessResponse(page, () => page.locator('#add-node-button').click(), '/entity/add-new-node')
 
     await expect(page.locator('#create-node-form')).toBeVisible()
     await expect(page.locator('h2:text("New Node")')).toBeVisible()
@@ -40,7 +40,7 @@ test.describe('Add New Node', () => {
     await page.locator('button[data-folder-path=""]').click()
     await expect(page.locator('button[data-folder-path=""]')).toHaveClass(/folder-tree-selected/)
 
-    await waitForSuccessResponse(page, () => page.locator('#create-new-node-button').click(), '/new-node')
+    await waitForSuccessResponse(page, () => page.locator('#create-new-node-button').click(), '/entity/new-node')
 
     await expect(page.locator('#navigation-panel')).toBeVisible()
 
@@ -65,7 +65,7 @@ test.describe('Add New Node', () => {
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page.locator('#edit-toggle').getByText('Edit')).toBeVisible()
 
-    await waitForSuccessResponse(page, () => page.locator('#add-node-button').click(), '/add-new-node')
+    await waitForSuccessResponse(page, () => page.locator('#add-node-button').click(), '/entity/add-new-node')
 
     const displayName = 'FolderTestInterface'
     await page.locator('input[name="displayName"]').fill(displayName)
@@ -81,7 +81,7 @@ test.describe('Add New Node', () => {
 
       await firstFolder.getAttribute('data-folder-path')
 
-      await waitForSuccessResponse(page, () => page.locator('#create-new-node-button').click(), '/new-node')
+      await waitForSuccessResponse(page, () => page.locator('#create-new-node-button').click(), '/entity/new-node')
 
       await expect(page.locator('#mermaid-output')).toContainText(displayName)
 
@@ -92,7 +92,7 @@ test.describe('Add New Node', () => {
     } else {
       await page.locator('button[data-folder-path=""]').click()
 
-      await waitForSuccessResponse(page, () => page.locator('#create-new-node-button').click(), '/new-node')
+      await waitForSuccessResponse(page, () => page.locator('#create-new-node-button').click(), '/entity/new-node')
 
       await waitForUpdateLayout(page, () => page.locator('#search').fill(displayName))
       await expect(page.locator('#mermaid-output')).toContainText(displayName)
@@ -108,7 +108,7 @@ test.describe('Add New Node', () => {
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page.locator('#edit-toggle').getByText('Edit')).toBeVisible()
 
-    await waitForSuccessResponse(page, () => page.locator('#add-node-button').click(), '/add-new-node')
+    await waitForSuccessResponse(page, () => page.locator('#add-node-button').click(), '/entity/add-new-node')
 
     await page.locator('#create-new-node-button').click()
 
@@ -125,7 +125,7 @@ test.describe('Add New Node', () => {
 
     await page.locator('button[data-folder-path=""]').click()
 
-    await waitForSuccessResponse(page, () => page.locator('#create-new-node-button').click(), '/new-node')
+    await waitForSuccessResponse(page, () => page.locator('#create-new-node-button').click(), '/entity/new-node')
 
     await expect(page.locator('#mermaid-output')).toContainText('ValidName')
   })
@@ -139,7 +139,7 @@ test.describe('Add New Node', () => {
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page.locator('#edit-toggle').getByText('Edit')).toBeVisible()
 
-    await waitForSuccessResponse(page, () => page.locator('#add-node-button').click(), '/add-new-node')
+    await waitForSuccessResponse(page, () => page.locator('#add-node-button').click(), '/entity/add-new-node')
 
     const duplicateName = 'Equipment'
 
@@ -169,7 +169,7 @@ test.describe('Add New Node', () => {
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page.locator('#edit-toggle').getByText('Edit')).toBeVisible()
 
-    await waitForSuccessResponse(page, () => page.locator('#add-node-button').click(), '/add-new-node')
+    await waitForSuccessResponse(page, () => page.locator('#add-node-button').click(), '/entity/add-new-node')
 
     await expect(page.locator('#create-node-form')).toBeVisible()
 
@@ -203,7 +203,7 @@ test.describe('Add New Node', () => {
     await expect(addNodeButton).toBeVisible()
     await expect(addNodeButton).toBeEnabled()
 
-    await waitForSuccessResponse(page, () => addNodeButton.click(), '/add-new-node')
+    await waitForSuccessResponse(page, () => addNodeButton.click(), '/entity/add-new-node')
     await expect(page.locator('#create-node-form')).toBeVisible()
   })
 })

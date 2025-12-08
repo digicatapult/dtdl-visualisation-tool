@@ -1,15 +1,12 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import sinon, { SinonStub } from 'sinon'
-import { ModelDb } from '../../../../db/modelDb.js'
-import { InternalError } from '../../../errors.js'
 import { UpdateParams } from '../../../models/controllerTypes.js'
 import { modelHistoryCookie } from '../../../models/cookieNames.js'
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../../models/renderedDiagram/index.js'
 import { generatedSVGFixture } from '../../../utils/mermaid/__tests__/fixtures.js'
 import { mockGithubRequest } from '../../__tests__/github.test.js'
 import {
-  addEntityToModelStub,
   complexDtdlId,
   complexMockModelDb,
   generatorRunStub,
@@ -22,7 +19,6 @@ import {
   mockReqWithCookie,
   mockSession,
   sessionSetStub,
-  sessionUpdateStub,
   simpleDtdlId,
   simpleMockModelDb,
   templateMock,
@@ -476,233 +472,6 @@ describe('OntologyController', async () => {
       const result = await controller.editModel(req, simpleDtdlId, validSessionId, true).then(toHTMLString)
 
       expect(result).to.equal(mockHtmlOutput)
-    })
-  })
-
-  describe('addNewNode', () => {
-    it('should return rendered addNode template with folder tree', async () => {
-      const res = await controller.addNewNode(simpleDtdlId, defaultParams)
-      expect(res).to.not.equal(undefined)
-      const result = await toHTMLString(res!)
-
-      expect(result).to.include('addNode')
-      expect(result).to.include(simpleDtdlId)
-    })
-
-    it('should update session to clear highlightNodeId and search', async () => {
-      const initialCallCount = sessionUpdateStub.callCount
-
-      await controller.addNewNode(simpleDtdlId, defaultParams)
-
-      expect(sessionUpdateStub.callCount).to.equal(initialCallCount + 1)
-      const [sessionId, updates] = sessionUpdateStub.lastCall.args
-      expect(sessionId).to.equal(validSessionId)
-      expect(updates).to.deep.equal({
-        highlightNodeId: undefined,
-        search: undefined,
-      })
-    })
-  })
-
-  describe('createNewNode', () => {
-    beforeEach(() => {
-      addEntityToModelStub.reset()
-    })
-
-    it('should create new node with valid input', async () => {
-      const req = mockReq({})
-      const body = {
-        displayName: 'New Test Node',
-        description: 'Test description',
-        comment: 'Test comment',
-        extends: 'dtmi:com:example;1',
-        folderPath: 'test/folder',
-        ...defaultParams,
-      }
-
-      const result = await controller.createNewNode(simpleDtdlId, body, req).then(toHTMLString)
-
-      expect(addEntityToModelStub.calledOnce).to.equal(true)
-      const [modelId, entityJson, filePath] = addEntityToModelStub.firstCall.args
-      expect(modelId).to.equal(simpleDtdlId)
-      expect(filePath).to.equal('test/folder/NewTestNode.json')
-
-      const parsedEntity = JSON.parse(entityJson)
-      expect(parsedEntity).to.deep.include({
-        '@id': 'dtmi:NewTestNode;1',
-        '@type': 'Interface',
-        '@context': 'dtmi:dtdl:context;4',
-        displayName: 'NewTestNode',
-        description: 'Test description',
-        comment: 'Test comment',
-        extends: ['dtmi:com:example;1'],
-        contents: [],
-      })
-
-      expect(result).to.include('mermaidTarget')
-      expect(result).to.include('searchPanel')
-      expect(result).to.include('navigationPanel')
-    })
-
-    it('should create node in root folder when no folderPath provided', async () => {
-      const req = mockReq({})
-      const body = {
-        displayName: 'Root Node',
-        description: '',
-        comment: '',
-        extends: '',
-        folderPath: '',
-        ...defaultParams,
-      }
-
-      await controller.createNewNode(simpleDtdlId, body, req)
-
-      const [, , filePath] = addEntityToModelStub.firstCall.args
-      expect(filePath).to.equal('RootNode.json')
-    })
-
-    it('should convert displayName to PascalCase', async () => {
-      const req = mockReq({})
-      const body = {
-        displayName: 'test node with spaces',
-        description: '',
-        comment: '',
-        extends: '',
-        folderPath: '',
-        ...defaultParams,
-      }
-
-      await controller.createNewNode(simpleDtdlId, body, req)
-
-      const [, entityJson] = addEntityToModelStub.firstCall.args
-      const parsedEntity = JSON.parse(entityJson)
-      expect(parsedEntity.displayName).to.equal('TestNodeWithSpaces')
-      expect(parsedEntity['@id']).to.equal('dtmi:TestNodeWithSpaces;1')
-    })
-
-    it('should handle optional fields correctly', async () => {
-      const req = mockReq({})
-      const body = {
-        displayName: 'Minimal Node',
-        description: '',
-        comment: '',
-        extends: '',
-        folderPath: '',
-        ...defaultParams,
-      }
-
-      await controller.createNewNode(simpleDtdlId, body, req)
-
-      const [, entityJson] = addEntityToModelStub.firstCall.args
-      const parsedEntity = JSON.parse(entityJson)
-      expect(parsedEntity.description).to.be.equal(undefined)
-      expect(parsedEntity.comment).to.equal(undefined)
-      expect(parsedEntity.extends).to.deep.equal([])
-    })
-
-    it('should throw InternalError when generated ID already exists', async () => {
-      const req = mockReq({})
-
-      const customMockDb = {
-        ...simpleMockModelDb,
-        getDtdlModelAndTree: () =>
-          Promise.resolve({
-            model: {
-              'dtmi:com:Example1;1': {
-                Id: 'dtmi:com:Example1;1',
-                displayName: { en: 'Example1' },
-                EntityKind: 'Interface' as const,
-                extends: [],
-                SupplementalTypes: [],
-                SupplementalProperties: {},
-                UndefinedTypes: [],
-                UndefinedProperties: {},
-                description: {},
-                languageMajorVersion: 2,
-                ClassId: 'dtmi:dtdl:class:Interface;2',
-                contents: {},
-                commands: {},
-                components: {},
-                properties: {},
-                relationships: {},
-                telemetries: {},
-                extendedBy: [],
-                schemas: [],
-              },
-              // Add a second entity so common prefix calculation works correctly
-              'dtmi:com:Other;1': {
-                Id: 'dtmi:com:Other;1',
-                displayName: { en: 'Other' },
-                EntityKind: 'Interface' as const,
-                extends: [],
-                SupplementalTypes: [],
-                SupplementalProperties: {},
-                UndefinedTypes: [],
-                UndefinedProperties: {},
-                description: {},
-                languageMajorVersion: 2,
-                ClassId: 'dtmi:dtdl:class:Interface;2',
-                contents: {},
-                commands: {},
-                components: {},
-                properties: {},
-                relationships: {},
-                telemetries: {},
-                extendedBy: [],
-                schemas: [],
-              },
-            },
-            fileTree: [],
-          }),
-      } as unknown as ModelDb
-
-      const customController = new OntologyController(
-        customMockDb,
-        mockGenerator,
-        mockMutator,
-        templateMock,
-        mockPostHog,
-        mockLogger,
-        mockCache,
-        mockSession,
-        mockGithubRequest
-      )
-
-      const body = {
-        displayName: 'example 1',
-        description: '',
-        comment: '',
-        extends: '',
-        folderPath: '',
-        ...defaultParams,
-      }
-
-      try {
-        await customController.createNewNode(simpleDtdlId, body, req)
-        expect.fail('Expected InternalError to be thrown')
-      } catch (error) {
-        if (!(error instanceof InternalError)) {
-          throw error // Re-throw if it's not the expected error type
-        }
-        expect(error.message).to.include("Please update the display name 'Example1'")
-      }
-
-      expect(addEntityToModelStub.called).to.equal(false)
-    })
-    it('should throw error for empty displayName', async () => {
-      const req = mockReq({})
-      const body = {
-        displayName: '',
-        description: '',
-        comment: '',
-        extends: '',
-        folderPath: '',
-        ...defaultParams,
-      }
-
-      await expect(controller.createNewNode(simpleDtdlId, body, req)).to.be.rejected
-
-      expect(addEntityToModelStub.called).to.equal(false)
     })
   })
 })
