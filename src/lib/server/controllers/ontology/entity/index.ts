@@ -119,11 +119,10 @@ export class EntityController extends HTMLController {
 
     // Check for duplicate display names and throw if duplicate found
     const { model: baseModel } = await this.modelDb.getDtdlModelAndTree(ontologyId)
-    const displayNameIdMap = this.getDisplayNameIdMap(baseModel)
     const commonPrefix = this.extractCommonDtmiPrefix(baseModel)
     const newId = `${commonPrefix}:${displayName};1`
 
-    if (Object.values(displayNameIdMap).includes(newId)) {
+    if (newId in baseModel) {
       throw new InternalError(
         `Please update the display name '${displayName}' as its ID already exists in the ontology. You can change it again after creation.`
       )
