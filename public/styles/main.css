@@ -841,7 +841,6 @@ label[for='diagram-type-select'] {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   max-width: 420px;
   width: 100%;
-  gap: 1.2rem;
 }
 
 #share-link-modal form {
@@ -1173,6 +1172,7 @@ label[for='diagram-type-select'] {
 #toast-container img.tick {
   width: 54px;
   height: 50px;
+  background-color: #009c84;
 }
 
 #toast-container h1 {

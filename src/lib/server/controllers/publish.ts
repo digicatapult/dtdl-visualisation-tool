@@ -34,7 +34,7 @@ export class PublishController extends HTMLController {
   public async publish(
     @Request() req: express.Request,
     @FormField() ontologyId: string,
-    @FormField() commitMessage: string,
+    @FormField() prTitle: string,
     @FormField() description: string,
     @FormField() branchName: string
   ): Promise<HTML> {
@@ -60,8 +60,6 @@ export class PublishController extends HTMLController {
       throw new InternalError(`Branch with name ${branchName} already exists`)
     }
 
-    await this.githubRequest.createBranch(octokitToken, owner, repo, branchName, baseBranchData.object.sha)
-
     const blobs = await Promise.all(
       files.map(async (file) => {
         const formattedSource = await prettier.format(file.source, { parser: 'json' })
@@ -77,14 +75,17 @@ export class PublishController extends HTMLController {
 
     const tree = await this.githubRequest.createTree(octokitToken, owner, repo, baseBranchData.object.sha, blobs)
 
-    const commit = await this.githubRequest.createCommit(octokitToken, owner, repo, commitMessage, tree.sha, [
-      baseBranchData.object.sha,
-    ])
+    const commit = await this.githubRequest.createCommit(
+      octokitToken,
+      owner,
+      repo,
+      'Update ontology files from DTDL visualisation tool',
+      tree.sha,
+      [baseBranchData.object.sha]
+    )
 
+    await this.githubRequest.createBranch(octokitToken, owner, repo, branchName, baseBranchData.object.sha)
     await this.githubRequest.updateRef(octokitToken, owner, repo, `heads/${branchName}`, commit.sha)
-
-    const prTitle = commitMessage
-    const prBody = description
 
     const pr = await this.githubRequest.createPullRequest(
       octokitToken,
@@ -93,10 +94,10 @@ export class PublishController extends HTMLController {
       prTitle,
       branchName,
       base_branch,
-      prBody
+      description
     )
 
-    const toast = successToast('Success', 'Published successfully', pr.html_url, 'View Pull Request')
+    const toast = successToast('Published successfully', pr.html_url, 'View Pull Request')
     return this.html(toast.response)
   }
 }

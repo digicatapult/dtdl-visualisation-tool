@@ -884,11 +884,11 @@ export default class MermaidTemplates {
         >
           <div class="modal-content">
             <h3>Publish Changes</h3>
-            <label for="commitMessage">Commit message</label>
+            <label for="prTitle">Pull Request title</label>
             <input
               type="text"
-              id="commitMessage"
-              name="commitMessage"
+              id="prTitle"
+              name="prTitle"
               value="Update ontology files from DTDL visualisation tool"
               required
             />

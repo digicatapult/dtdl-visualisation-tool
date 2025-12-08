@@ -15,7 +15,15 @@ const insertModel = z.object({
   base_branch: z.string().nullable(),
 })
 
-export const dtdlInterfaceBase = z.looseObject({ '@id': z.string(), '@type': z.literal('Interface') })
+export const bla = z.looseObject({ '@id': z.string(), '@type': z.literal('Interface') })
+
+function returnDataInSameOrderAsPassed<Schema extends z.ZodObject<z.ZodRawShape>>(
+  schema: Schema
+): z.ZodType<z.infer<Schema>> {
+  return z.custom<z.infer<Schema>>((value) => schema.safeParse(value).success)
+}
+export const dtdlInterfaceBase = returnDataInSameOrderAsPassed(bla)
+
 export type DtdlInterface = z.infer<typeof dtdlInterfaceBase>
 export const dtdlSource = z.union([dtdlInterfaceBase, z.array(dtdlInterfaceBase)])
 export type DtdlSource = z.infer<typeof dtdlSource>

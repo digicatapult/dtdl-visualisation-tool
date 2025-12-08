@@ -66,7 +66,6 @@ export class ModelDb {
 
   async getDtdlFiles(model_id: UUID): Promise<DtdlFile[]> {
     const files = await this.db.get('dtdl', { model_id })
-
     return Promise.all(
       files.map(async (file) => {
         const errorRows = await this.db.get('dtdl_error', { dtdl_id: file.id })
