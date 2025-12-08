@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto'
 
 export function successToast(title: string, link?: string, linkText?: string) {
   const dialogId = randomUUID()
+  const showLink = link !== undefined
   return {
     dialogId,
     response: (
@@ -12,10 +13,10 @@ export function successToast(title: string, link?: string, linkText?: string) {
           <div class="toast-content">
             <h1>{escapeHtml(title)}</h1>
             <div class="toast-detail">
-              {link && (
+              {showLink && (
                 <p>
                   <a href={link} class="authorise-link" target="_blank">
-                    {linkText} ↗
+                    {escapeHtml(linkText)} ↗
                   </a>
                 </p>
               )}
