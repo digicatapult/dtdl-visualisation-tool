@@ -8,7 +8,7 @@ export function successToast(title: string, link?: string, linkText?: string) {
     response: (
       <>
         <dialog open id={dialogId}>
-          <img src="/public/images/tick-circle.svg" class="tick" />
+          <img src="/public/images/tick-green.svg" class="tick" />
           <div class="toast-content">
             <h1>{escapeHtml(title)}</h1>
             {link && (
