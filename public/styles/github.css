@@ -130,8 +130,7 @@ a.authorise-link:hover {
 
 #publish-dialog .modal-content {
   padding: 2rem;
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 1rem;
 }
 
@@ -165,6 +164,8 @@ a.authorise-link:hover {
   background-color: var(--active-button-color);
   color: white;
   margin: 0;
+  justify-self: start;
+  padding: 0.5rem 2rem;
 }
 
 #publish-dialog .close-button {

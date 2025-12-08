@@ -1,6 +1,6 @@
 import * as chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
-import { afterEach, describe, it } from 'mocha'
+import { beforeEach, describe, it } from 'mocha'
 import sinon from 'sinon'
 
 import { ModelDb } from '../../../db/modelDb.js'
@@ -63,11 +63,20 @@ const mockTemplates = {
   publishDialog: publishDialogStub,
 } as unknown as MermaidTemplates
 
-describe('PublishController', () => {
-  const controller = new PublishController(mockModelDb, mockGithubRequest, mockTemplates)
+const controller = new PublishController(mockModelDb, mockGithubRequest, mockTemplates)
 
-  afterEach(() => {
-    sinon.reset()
+describe('PublishController', () => {
+  beforeEach(() => {
+    sinon.restore()
+    getBranchStub.reset()
+    createBranchStub.reset()
+    createBlobStub.reset()
+    createTreeStub.reset()
+    createCommitStub.reset()
+    updateRefStub.reset()
+    createPullRequestStub.reset()
+    getModelByIdStub.reset()
+    getDtdlFilesStub.reset()
   })
 
   describe('/dialog', () => {

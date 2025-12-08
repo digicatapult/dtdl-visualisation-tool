@@ -1112,6 +1112,7 @@ export default class MermaidTemplates {
             ontologyId,
           })}
           hx-on--after-request="document.getElementById('publish-dialog').close()"
+          hx-indicator="#spin"
         >
           <div class="modal-content">
             <h3>Publish Changes</h3>
@@ -1140,6 +1141,7 @@ export default class MermaidTemplates {
             <button type="submit" class="rounded-button">
               Publish Changes
             </button>
+            <div id="spin" class="spinner" />
           </div>
           <form method="dialog">
             <button class="modal-button" />

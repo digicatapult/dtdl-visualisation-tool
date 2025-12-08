@@ -1203,7 +1203,7 @@ label[for='diagram-type-select'] {
   overflow-y: auto;
 }
 
-#toast-container details {
+.toast-detail {
   margin-top: 0.5rem;
   font-size: 0.8rem;
 }

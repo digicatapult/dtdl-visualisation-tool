@@ -1,6 +1,6 @@
+import { FormField, Get, Middlewares, Post, Produces, Query, Request, Route, SuccessResponse } from '@tsoa/runtime'
 import express from 'express'
 import * as prettier from 'prettier'
-import { FormField, Get, Middlewares, Post, Produces, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../db/modelDb.js'
 import { InternalError } from '../errors.js'

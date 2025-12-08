@@ -11,13 +11,15 @@ export function successToast(title: string, link?: string, linkText?: string) {
           <img src="/public/images/tick-green.svg" class="tick" />
           <div class="toast-content">
             <h1>{escapeHtml(title)}</h1>
-            {link && (
-              <p>
-                <a href={link} class="authorise-link" target="_blank">
-                  {linkText} ↗
-                </a>
-              </p>
-            )}
+            <div class="toast-detail">
+              {link && (
+                <p>
+                  <a href={link} class="authorise-link" target="_blank">
+                    {linkText} ↗
+                  </a>
+                </p>
+              )}
+            </div>
           </div>
           <form method="dialog">
             <button class="modal-button" />
