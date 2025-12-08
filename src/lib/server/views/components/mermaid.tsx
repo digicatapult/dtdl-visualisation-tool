@@ -52,6 +52,7 @@ export default class MermaidTemplates {
     svgWidth,
     svgHeight,
     canEdit,
+    editDisabledReason,
   }: {
     search?: string
     sessionId: UUID
@@ -59,6 +60,7 @@ export default class MermaidTemplates {
     svgWidth?: number
     svgHeight?: number
     canEdit: boolean
+    editDisabledReason?: 'errors' | 'permissions'
   }) => (
     <Page title={'UKDTC'}>
       <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
@@ -76,7 +78,7 @@ export default class MermaidTemplates {
       <this.Legend showContent={false} />
       <this.navPanelPlaceholder expanded={false} edit={canEdit} />
       <this.svgControls svgRawHeight={svgHeight} svgRawWidth={svgWidth} />
-      <this.editToggle canEdit={canEdit} />
+      <this.editToggle canEdit={canEdit} editDisabledReason={editDisabledReason} />
       <this.deleteDialog />
     </Page>
   )
@@ -1291,17 +1293,20 @@ export default class MermaidTemplates {
     )
   }
 
-  public editToggle = ({ canEdit }: { canEdit: boolean }) => {
+  public editToggle = ({ canEdit, editDisabledReason }: { canEdit: boolean; editDisabledReason?: 'errors' | 'permissions' }) => {
     if (!env.get('EDIT_ONTOLOGY')) return <></>
+    
+    const getTooltip = () => {
+      if (canEdit) return 'Click to edit ontology'
+      if (editDisabledReason === 'errors') return 'You need to fix errors in ontology to be able to edit'
+      return 'Only Ontologies from github that you have write permissions on, can be edited'
+    }
+    
     return (
       <div id="edit-controls">
         <div
           id="edit-toggle"
-          title={
-            canEdit
-              ? 'Click to edit ontology'
-              : 'Only Ontologies from github that you have write permissions on, can be edited'
-          }
+          title={getTooltip()}
           class={canEdit ? '' : 'disabled'}
         >
           <span class="view-text">View</span>

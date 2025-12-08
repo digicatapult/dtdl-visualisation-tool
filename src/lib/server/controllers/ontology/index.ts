@@ -33,7 +33,7 @@ import SessionStore, { Session } from '../../utils/sessions.js'
 import { ErrorPage } from '../../views/components/errors.js'
 import MermaidTemplates from '../../views/components/mermaid.js'
 import { HTML, HTMLController } from '../HTMLController.js'
-import { checkEditPermission, dtdlCacheKey } from '../helpers.js'
+import { checkEditPermission, dtdlCacheKey, hasFileTreeErrors } from '../helpers.js'
 
 const rateLimiter = container.resolve(RateLimiter)
 
@@ -125,12 +125,19 @@ export class OntologyController extends HTMLController {
       return this.html(ErrorPage(output.renderToString(), this.getStatus()))
     }
 
+    // Check if fileTree has errors
+    const { fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
+    const hasErrors = hasFileTreeErrors(fileTree)
+    const canEdit = permission === 'edit' && !hasErrors
+    const editDisabledReason = hasErrors ? 'errors' : permission !== 'edit' ? 'permissions' : undefined
+
     return this.html(
       this.templates.MermaidRoot({
         search: params.search,
         sessionId,
         diagramType: params.diagramType,
-        canEdit: permission === 'edit',
+        canEdit,
+        editDisabledReason,
       })
     )
   }
