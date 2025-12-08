@@ -12,20 +12,20 @@ import { Page } from '../common.js'
 
 type SelectFolderProps =
   | {
-    link: string
-    swapOutOfBand?: boolean
-    stage: 'folder'
-  }
+      link: string
+      swapOutOfBand?: boolean
+      stage: 'folder'
+    }
   | {
-    swapOutOfBand?: boolean
-    stage: 'repo' | 'branch'
-  }
+      swapOutOfBand?: boolean
+      stage: 'repo' | 'branch'
+    }
 
 const env = container.resolve(Env)
 
 @singleton()
 export default class OpenOntologyTemplates {
-  constructor() { }
+  constructor() {}
 
   public OpenOntologyRoot = ({
     recentFiles,

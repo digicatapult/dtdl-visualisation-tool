@@ -1,5 +1,5 @@
-import express from 'express'
 import { escapeHtml, type PropsWithChildren } from '@kitajs/html'
+import express from 'express'
 import { DtdlId } from '../models/strings.js'
 import { PostHogScript } from './components/posthog.js'
 

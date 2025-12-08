@@ -1,10 +1,11 @@
 import { expect } from 'chai'
-import { describe, it, afterEach } from 'mocha'
+import { afterEach, describe, it } from 'mocha'
+import React from 'react'
 import sinon from 'sinon'
 import { container } from 'tsyringe'
 import { Env } from '../../../env/index.js'
-import { PostHogScript } from '../posthog.js'
 import { Page } from '../../common.js'
+import { PostHogScript } from '../posthog.js'
 
 describe('PostHogScript', () => {
   afterEach(() => {
@@ -66,7 +67,7 @@ describe('PostHogScript', () => {
       },
     }
 
-    const result = PostHogScript({ req: mockReq as any })
+    const result = PostHogScript({ req: mockReq as unknown as React.ComponentProps<typeof PostHogScript>['req'] })
     expect(result).to.contain("bootstrap:{distinctID:'test-distinct-id-123'}")
   })
 
@@ -81,7 +82,7 @@ describe('PostHogScript', () => {
       signedCookies: {},
     }
 
-    const result = PostHogScript({ req: mockReq as any })
+    const result = PostHogScript({ req: mockReq as unknown as React.ComponentProps<typeof PostHogScript>['req'] })
     expect(result).to.not.contain('bootstrap')
   })
 })
