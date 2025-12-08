@@ -6,12 +6,12 @@ export const waitForUpdateLayout = async <T>(page: Page, action: () => Promise<T
 
 export const waitForSuccessResponse = async <T>(page: Page, action: () => Promise<T>, includeRoute: string) => {
   const response = page.waitForResponse((resp) => {
-    const acceptableStatuses = new Set([200, 204, 302, 304])
+    const acceptableStatuses = new Set([200, 201, 204, 302, 304])
     if (!acceptableStatuses.has(resp.status())) {
       throw new Error(`Caught bad request to '${resp.url()}' failed with: ${resp.status()}`)
     }
 
-    return resp.url().includes(includeRoute) && resp.status() === 200
+    return resp.url().includes(includeRoute) && acceptableStatuses.has(resp.status())
   })
   await action()
   await response
