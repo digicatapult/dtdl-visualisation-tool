@@ -22,7 +22,7 @@ test.describe('Private GitHub repos', () => {
 
     await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/github/picker')
 
-    const link = page.locator('.authorise-link')
+    const link = page.locator('#github-modal').getByText('authorise')
     await expect(link).toBeVisible()
 
     // go to newly opened tab
@@ -46,6 +46,10 @@ test.describe('Private GitHub repos', () => {
       )
       await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/github/picker')
     }
+
+    const installation = page.locator('.github-list li').filter({ hasText: /digicatapult-nidt-user-1$/ })
+    await expect(installation).toBeVisible()
+    await waitForSuccessResponse(page, () => installation.click(), '/repos')
     await expect(page.locator('.github-list').getByText('private_with_')).toBeVisible()
   })
 })

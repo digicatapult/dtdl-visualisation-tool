@@ -6,6 +6,7 @@ import version from '../../../../version.js'
 import { Env } from '../../env/index.js'
 import { ListItem } from '../../models/github.js'
 import { RecentFile } from '../../models/openTypes.js'
+import { safeUrl } from '../../utils/url.js'
 import { Page } from '../common.js'
 
 type SelectFolderProps =
@@ -26,13 +27,12 @@ export default class OpenOntologyTemplates {
   constructor() {}
 
   public OpenOntologyRoot = ({
-    populateListLink,
     recentFiles,
+    showGithubModal,
   }: {
-    populateListLink?: string
     recentFiles: RecentFile[]
+    showGithubModal?: boolean
   }) => {
-    const showGithubModal = populateListLink !== undefined
     return (
       <Page title="UKDTC">
         <section id="upload-toolbar">
@@ -45,7 +45,14 @@ export default class OpenOntologyTemplates {
           <h1>Open Ontology</h1>
           <this.getMenu showContent={false} />
           <this.recentFiles recentFiles={recentFiles} />
-          {showGithubModal && <this.githubModal populateListLink={populateListLink} />}
+          {showGithubModal && (
+            <dialog id="github-modal">
+              <this.githubModalContent viewMode="edit" />
+              <form method="dialog">
+                <button class="modal-button" autofocus />
+              </form>
+            </dialog>
+          )}
           <div id="spinner-wrapper">
             <div id="spinner" class="spinner" />
           </div>
@@ -78,52 +85,70 @@ export default class OpenOntologyTemplates {
     )
   }
 
-  public githubModal = ({ populateListLink }: { populateListLink: string }) => {
+  public githubModalContent = ({ viewMode }: { viewMode: 'view' | 'edit' }) => {
+    const showEditable = viewMode === 'edit'
+    const populateListLink = showEditable
+      ? safeUrl(`/github/installations`, { page: '1' })
+      : safeUrl(`/github/repos`, { page: '1' })
+    const otherType = showEditable ? 'view' : 'edit'
     return (
-      <dialog id="github-modal">
-        <div id="modal-wrapper">
-          <div id="public-github-input-wrapper">
-            <input
-              id="public-github-input"
-              placeholder="Enter public GitHub repo {org}/{repo} e.g. 'digicatapult/dtdl-visualisation-tool'"
-              hx-get="/github/navigate"
-              hx-indicator="#spin"
-              hx-trigger="keyup[event.key=='Enter'], input changed delay:500ms"
-              name="url"
-              hx-target=".github-list"
-              hx-validate={true}
-              oninput="globalThis.validatePublicRepoInput(this)"
-              hx-on-htmx-before-request="if (this.validity.valid === false) event.preventDefault()"
-            />
-            <img src="/public/images/arrow-enter.svg" />
-          </div>
+      <div id="github-modal-content">
+        <div id="github-modal-title-wrapper">
+          <b>Select a repository to {viewMode}</b>
           <a
+            hx-get={`/github/modal?viewMode=${otherType}`}
+            hx-target="#github-modal-content"
+            hx-swap="outerHTML"
             class="authorise-link"
-            href={`https://github.com/apps/${env.get('GH_APP_NAME')}`}
-            target="_blank"
-            aria-label="Authorise private repos (opens in a new tab)"
           >
-            Authorise private repos ↗
+            {escapeHtml(`Show ${otherType}able`)}
           </a>
-          <this.githubPathLabel path="Repos:" />
-          <div id="github-list-wrapper">
-            <div id="spin" class="spinner" />
-            <ul class="github-list" hx-indicator="#spin" hx-get={populateListLink} hx-trigger="load"></ul>
-          </div>
-          <this.selectFolder stage="repo" />
         </div>
-        <form method="dialog">
-          <button class="modal-button" />
-        </form>
-      </dialog>
+        <div id="public-github-input-wrapper" class={showEditable ? 'invisible' : ''}>
+          <input
+            id="public-github-input"
+            placeholder="Enter public GitHub repo e.g. 'digicatapult/dtdl-visualisation-tool'"
+            hx-get="/github/navigate"
+            hx-indicator="#spin"
+            hx-trigger="keyup[event.key=='Enter'], input changed delay:500ms"
+            name="url"
+            hx-target=".github-list"
+            hx-validate={true}
+            oninput="globalThis.validatePublicRepoInput(this)"
+            hx-on-htmx-before-request="if (this.validity.valid === false) event.preventDefault()"
+          />
+          <img src="/public/images/arrow-enter.svg" />
+        </div>
+        <this.githubPathLabel path="" />
+
+        <div id="github-list-wrapper">
+          <div id="spin" class="spinner" />
+          <ul
+            class="github-list"
+            hx-indicator="#spin"
+            hx-get={populateListLink}
+            hx-trigger="load"
+            hx-on-htmx-after-settle="this.scrollTop = 0"
+          ></ul>
+        </div>
+        <a
+          class="authorise-link"
+          href={`https://github.com/apps/${env.get('GH_APP_NAME')}`}
+          target="_blank"
+          aria-label="Authorise repos (opens in a new tab)"
+        >
+          Repo missing? Authorise on GitHub ↗
+        </a>
+        <this.selectFolder stage="repo" />
+      </div>
     )
   }
 
-  public githubPathLabel = ({ path }: { path: string }) => {
+  public githubPathLabel = ({ path, swapOutOfBand }: { path: string; swapOutOfBand?: boolean }) => {
     return (
-      <h4 id="github-path-label" hx-swap-oob="true" hx-swap="outerHTML">
+      <b id="github-path-label" hx-swap-oob={swapOutOfBand ? 'true' : undefined} hx-swap="outerHTML">
         {escapeHtml(path)}
-      </h4>
+      </b>
     )
   }
 

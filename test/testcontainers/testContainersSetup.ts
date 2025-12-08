@@ -96,6 +96,7 @@ export async function startVisualisationContainer(
       GH_CLIENT_ID: process.env.GH_CLIENT_ID || '',
       GH_CLIENT_SECRET: process.env.GH_CLIENT_SECRET || '',
       GH_APP_NAME: process.env.GH_APP_NAME || '',
+      GH_APP_PRIVATE_KEY: process.env.GH_APP_PRIVATE_KEY || '',
       COOKIE_SESSION_KEYS: cookieSessionKeys,
       EDIT_ONTOLOGY: 'true',
       MAX_DTDL_OBJECT_SIZE: maxOntologySize ? maxOntologySize.toString() : '1000',

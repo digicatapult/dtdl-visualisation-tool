@@ -675,6 +675,6 @@ export class OntologyController extends HTMLController {
       throw new InternalError('owner or repo not found in database for GitHub source')
     }
 
-    return await this.githubRequest.getRepoPermissions(octokitToken, owner, repo)
+    return this.githubRequest.getRepoPermissions(octokitToken, owner, repo)
   }
 }

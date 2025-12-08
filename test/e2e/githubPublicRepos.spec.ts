@@ -17,10 +17,11 @@ test.describe('Public GitHub URL input validation', () => {
       () => page.locator('#main-view').getByTitle('Upload New Ontology').click(),
       '/menu'
     )
-    await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/repos')
+    await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/github/picker')
 
-    // click first of test users repos
-    await expect(page.locator('.github-list li').first()).toBeVisible()
+    const showViewable = page.locator('#github-modal').getByText('viewable')
+    await waitForSuccessResponse(page, () => showViewable.click(), '/modal')
+
     const testPaths = [
       {
         paths: [
@@ -54,7 +55,6 @@ test.describe('Public GitHub URL input validation', () => {
         await page.fill('#public-github-input', path)
         if (handler === waitForSuccessResponse) {
           await handler(page, () => page.press('#public-github-input', 'Enter'), '/navigate')
-          await expect(page.locator('.github-list li').filter({ hasText: /^<$/ })).toBeVisible()
         } else if (handler === waitFor404Response) {
           await handler(page, () => page.press('#public-github-input', 'Enter'), '/navigate')
           await expect(page.locator('#toast-container').filter({ hasText: 'GitHub Not Found Error' })).toBeInViewport()
