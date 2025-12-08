@@ -23,14 +23,18 @@ import { PropertyDetails } from './property.js'
 import { RelationshipDetails } from './relationship.js'
 
 const env = container.resolve(Env)
-
-const commonUpdateAttrs = {
+const commonRerenderAttrs = {
   'hx-target': '#mermaid-output',
-  'hx-get': 'update-layout',
   'hx-swap': 'outerHTML  transition:true',
   'hx-include': '#sessionId, #search-panel, input[name="navigationPanelTab"], #navigationPanelExpanded',
   'hx-indicator': '#spinner',
   'hx-disabled-elt': 'select',
+} as const
+type CommonRerenderAttrs = typeof commonRerenderAttrs
+
+const commonUpdateAttrs: CommonRerenderAttrs & { 'hx-get': string } = {
+  ...commonRerenderAttrs,
+  'hx-get': 'update-layout',
 }
 
 function maybeNumberToAttr(value: number | undefined, defaultValue: number) {
@@ -112,9 +116,11 @@ export default class MermaidTemplates {
   public mermaidTarget = ({
     generatedOutput,
     target,
+    swapOutOfBand,
   }: {
     generatedOutput?: JSX.Element
     target: string
+    swapOutOfBand?: boolean
   }): JSX.Element => {
     const attributes = generatedOutput
       ? { 'hx-on::after-settle': `globalThis.setMermaidListeners()`, 'pending-listeners': '' }
@@ -125,7 +131,7 @@ export default class MermaidTemplates {
     const output = generatedOutput ?? ''
     const content = target === 'mermaid-output' ? output : this.mermaidMessage(output, target)
     return (
-      <div id="mermaid-output" class="mermaid" {...attributes}>
+      <div id="mermaid-output" class="mermaid" hx-swap-oob={swapOutOfBand ? 'true' : undefined} {...attributes}>
         {content}
       </div>
     )
@@ -204,6 +210,146 @@ export default class MermaidTemplates {
     )
   }
 
+  public addNode = ({
+    dtdlModelId,
+    swapOutOfBand,
+    displayNameIdMap,
+    folderTree,
+    entityId,
+  }: {
+    dtdlModelId: string
+    swapOutOfBand?: boolean
+    displayNameIdMap: Record<string, string>
+    folderTree: DtdlPath[]
+    entityId?: DtdlId
+  }): JSX.Element => {
+    const reducer = (set: Set<DtdlPath> | null, path: DtdlPath): Set<DtdlPath> | null => {
+      if (set) {
+        return set
+      }
+
+      if (path.type === 'file' || path.type === 'directory' || (path.type === 'fileEntry' && path.id !== entityId)) {
+        const entries = path.entries.reduce(reducer, null)
+        if (entries === null) {
+          return null
+        }
+        entries.add(path)
+        return entries
+      }
+
+      if (path.id === entityId) {
+        return new Set([path])
+      }
+
+      return null
+    }
+    const defaultExpandSet = folderTree.reduce(reducer, null) || new Set<DtdlPath>()
+
+    return (
+      <aside id="navigation-panel" hx-swap-oob={swapOutOfBand ? 'true' : undefined} aria-expanded="" class="edit">
+        <input id="navigationPanelExpanded" name="navigationPanelExpanded" type="hidden" value="true" />
+        <button id="navigation-panel-button" onclick="globalThis.toggleNavPanel(event)"></button>
+
+        <div id="navigation-panel-controls">
+          <label>
+            <h2>New Node</h2>
+            <input type="radio" name="navigationPanelTab" value="details" checked />
+          </label>
+        </div>
+
+        <form {...commonRerenderAttrs} id="create-node-form" hx-post={`/ontology/${dtdlModelId}/entity/new-node`}>
+          <div id="navigation-panel-content">
+            <section>
+              <h3>Basic Information</h3>
+
+              <p>
+                <b>Display Name:</b>
+              </p>
+              <input
+                type="text"
+                name="displayName"
+                placeholder="Enter display name"
+                maxlength={64}
+                class="nav-panel-editable"
+                required
+              />
+
+              <p>
+                <b>Description:</b>
+              </p>
+              <textarea
+                name="description"
+                placeholder="Enter description"
+                maxlength={MAX_VALUE_LENGTH}
+                class="nav-panel-editable multiline"
+              />
+
+              <p>
+                <b>Comment:</b>
+              </p>
+              <textarea
+                name="comment"
+                placeholder="Enter comment"
+                maxlength={MAX_VALUE_LENGTH}
+                class="nav-panel-editable multiline"
+              />
+
+              <p>
+                <b>Extends:</b>
+              </p>
+              <select name="extends" class="nav-panel-editable">
+                <option value="">None</option>
+
+                {Object.entries(displayNameIdMap).map(([label, value]) => (
+                  <option value={escapeHtml(value)}>{escapeHtml(label)}</option>
+                ))}
+              </select>
+              <small>DTDL allows only single inheritance. Select one node to extend, or choose 'None'.</small>
+              <p>
+                <b>Select Folder*:</b>
+              </p>
+              <input type="hidden" name="folderPath" id="selectedFolderPath" required value="" />
+              <div id="selectedFolder">
+                <div class="accordion-parent">
+                  <button
+                    type="button"
+                    class={`folder-tree-button tree-icon no-arrow directory folder-tree-selected`.trim()}
+                    onclick="globalThis.handleFolderSelection(event, '');"
+                    data-folder-path=""
+                  >
+                    Root
+                  </button>
+                </div>
+                {this.folderTreeLevel({
+                  highlightedEntitySet: defaultExpandSet,
+                  fileTree: folderTree,
+                  pathPrefix: '',
+                  selectedPath: null,
+                })}
+              </div>
+              <small>Click a folder or root to select where to save the new node.</small>
+
+              <button type="submit" class="rounded-button" id="create-new-node-button">
+                Create Node
+              </button>
+              <button
+                type="button"
+                id="cancel-button"
+                class="rounded-button"
+                hx-get={`/ontology/${dtdlModelId}/edit-model`}
+                hx-target="#navigation-panel"
+                hx-swap="outerHTML"
+                hx-include="#sessionId, #navigationPanelExpanded"
+                hx-vals='{"editMode": true}'
+              >
+                Cancel
+              </button>
+            </section>
+          </div>
+        </form>
+      </aside>
+    )
+  }
   navigationPanelDetails = ({
     entityId,
     model,
@@ -782,6 +928,91 @@ export default class MermaidTemplates {
     )
   }
 
+  // Check if a directory contains subdirectories
+  private hasSubdirectories = (entries: DtdlPath[]): boolean => {
+    return entries.some((entry) => entry.type === 'directory')
+  }
+
+  // Build folder tree button classes
+  private buildFolderButtonClasses = (
+    path: DtdlPath,
+    hasSubdirs: boolean,
+    isHighlighted: boolean,
+    isSelected: boolean
+  ): string => {
+    const classes = [
+      'folder-tree-button',
+      'tree-icon',
+      hasSubdirs ? '' : 'no-arrow',
+      this.navigationPanelNodeClass(path),
+      isHighlighted ? 'folder-tree-leaf-highlighted' : '',
+      isSelected ? 'folder-tree-selected' : '',
+    ]
+    return classes.filter(Boolean).join(' ')
+  }
+
+  folderTreeLevel = ({
+    highlightedEntityId,
+    highlightedEntitySet,
+    fileTree,
+    pathPrefix = '',
+    selectedPath = null,
+  }: {
+    highlightedEntityId?: DtdlId
+    highlightedEntitySet: Set<DtdlPath>
+    fileTree: DtdlPath[]
+    pathPrefix?: string
+    selectedPath?: string | null
+  }): JSX.Element => {
+    return (
+      <>
+        {fileTree.map((path) => {
+          const currentPath = pathPrefix ? `${pathPrefix}/${path.name}` : path.name
+          const isHighlighted = 'id' in path ? path.id === highlightedEntityId : false
+          const isSelected = selectedPath === currentPath
+          const highlightClass = isHighlighted ? 'folder-tree-leaf-highlighted' : ''
+          const isExpanded = highlightedEntitySet.has(path)
+
+          if (path.type !== 'directory') {
+            return (
+              <div class={` ${this.navigationPanelNodeClass(path)} ${highlightClass}`.trim()}>
+                {escapeHtml(path.name)}
+              </div>
+            )
+          }
+
+          // Check if this directory contains subdirectories to show/hide arrow
+          const hasSubdirs = this.hasSubdirectories(path.entries)
+
+          return (
+            <div class="accordion-parent">
+              <button
+                type="button"
+                class={this.buildFolderButtonClasses(path, hasSubdirs, isHighlighted, isSelected)}
+                {...{ [isExpanded ? 'aria-expanded' : 'aria-hidden']: '' }}
+                onclick={`globalThis.handleFolderSelection(event, '${escapeHtml(currentPath)}'); globalThis.toggleAccordion(event);`}
+                data-folder-path={escapeHtml(currentPath)}
+              >
+                {escapeHtml(path.name)}
+              </button>
+              <div class="accordion-content" {...{ [isExpanded ? 'aria-expanded' : 'aria-hidden']: '' }}>
+                <div>
+                  <this.folderTreeLevel
+                    highlightedEntityId={highlightedEntityId}
+                    highlightedEntitySet={highlightedEntitySet}
+                    fileTree={path.entries}
+                    pathPrefix={currentPath}
+                    selectedPath={selectedPath}
+                  />
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </>
+    )
+  }
+
   navigationPanelNodeClass = (
     path: DtdlPath
   ): 'directory' | 'file' | 'interface' | 'relationship' | 'property' | 'telemetry' | 'command' => {
@@ -1095,7 +1326,13 @@ export default class MermaidTemplates {
           <span class="edit-text">Edit</span>
         </div>
         <div id="edit-buttons">
-          <button id="add-node-button"></button>
+          <button
+            {...commonUpdateAttrs}
+            id="add-node-button"
+            hx-get={`entity/add-new-node`}
+            hx-target="#navigation-panel"
+            hx-swap="outerHTML"
+          ></button>
         </div>
       </div>
     )
