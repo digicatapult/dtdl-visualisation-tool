@@ -20,8 +20,17 @@ export interface UpdateOntologyViewEvent extends PostHogEventProperties {
   ontologyId: string
   diagramType: 'flowchart' | 'classDiagram'
   hasSearch: boolean
+  searchTerm?: string
   expandedCount: number
   highlightNodeId?: string
+}
+
+export interface ErrorEvent extends PostHogEventProperties {
+  message: string
+  stack?: string
+  code?: number | string
+  path?: string
+  method?: string
 }
 
 export interface NodeSelectedEvent extends PostHogEventProperties {
@@ -250,6 +259,17 @@ export class PostHogService {
   async trackModeToggle(octokitToken: string | undefined, posthogId: string, event: ModeToggleEvent): Promise<void> {
     const distinctId = await this.getDistinctId(octokitToken, posthogId)
     return this.captureEvent(distinctId, 'modeToggle', event)
+  }
+
+  /**
+   * Track error event
+   * @param octokitToken - Optional GitHub OAuth token from cookies
+   * @param posthogId - Persistent anonymous ID from POSTHOG_ID cookie
+   * @param event - Event properties including message, stack, code, path, method
+   */
+  async trackError(octokitToken: string | undefined, posthogId: string, event: ErrorEvent): Promise<void> {
+    const distinctId = await this.getDistinctId(octokitToken, posthogId)
+    return this.captureEvent(distinctId, 'error', event)
   }
 
   /**

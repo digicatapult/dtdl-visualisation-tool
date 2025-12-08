@@ -100,6 +100,9 @@ export async function startVisualisationContainer(
       COOKIE_SESSION_KEYS: cookieSessionKeys,
       EDIT_ONTOLOGY: 'true',
       MAX_DTDL_OBJECT_SIZE: maxOntologySize ? maxOntologySize.toString() : '1000',
+      POSTHOG_ENABLED: process.env.POSTHOG_ENABLED || 'false',
+      NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY || '',
+      NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST || '',
     })
     .withAddedCapabilities('SYS_ADMIN')
     .withCommand(['sh', '-c', 'npx knex migrate:latest --env production; dtdl-visualiser parse -p /sample/energygrid'])
