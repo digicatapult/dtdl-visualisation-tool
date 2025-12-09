@@ -23,9 +23,9 @@ test.describe('Add New Node', () => {
     const description = 'A test interface created by automated test'
     const comment = 'This is a comment for the test interface'
 
-    await page.locator('input[name="displayName"]').fill(displayName)
-    await page.locator('textarea[name="description"]').fill(description)
-    await page.locator('textarea[name="comment"]').fill(comment)
+    await page.locator('#create-node-form input[name="displayName"]').fill(displayName)
+    await page.locator('#create-node-form textarea[name="description"]').fill(description)
+    await page.locator('#create-node-form textarea[name="comment"]').fill(comment)
 
     const extendsSelect = page.locator('select[name="extends"]')
     const hasExtendsOptions = (await extendsSelect.locator('option:not([value=""])').count()) > 0

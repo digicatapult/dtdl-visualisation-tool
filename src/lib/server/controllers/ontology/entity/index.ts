@@ -14,9 +14,11 @@ import {
   SuccessResponse,
 } from '@tsoa/runtime'
 import express from 'express'
+import * as prettier from 'prettier'
 import { inject, injectable } from 'tsyringe'
+
 import { ModelDb } from '../../../../db/modelDb.js'
-import { InternalError } from '../../../errors.js'
+import { DataError } from '../../../errors.js'
 import { DeletableEntities, type DeleteContentParams, type UpdateParams } from '../../../models/controllerTypes.js'
 import { DtdlSchema, type DtdlId, type UUID } from '../../../models/strings.js'
 import { Cache, type ICache } from '../../../utils/cache.js'
@@ -118,7 +120,7 @@ export class EntityController extends HTMLController {
     // Convert to PascalCase and trim
     const displayName = this.toPascalCase(rawDisplayName.trim())
     if (displayName.length < 1) {
-      throw new InternalError('Display name must be at least 1 character long.')
+      throw new DataError('Display name must be at least 1 character long.')
     }
 
     // Check for duplicate display names and throw if duplicate found
@@ -127,12 +129,12 @@ export class EntityController extends HTMLController {
     const newId = `${commonPrefix}:${displayName};1`
 
     if (newId in baseModel) {
-      throw new InternalError(
+      throw new DataError(
         `Please update the display name '${displayName}' as its ID already exists in the ontology. You can change it again after creation.`
       )
     }
 
-    const newNode = {
+    const newNode: NullableDtdlSource = {
       '@id': newId,
       '@type': 'Interface',
       '@context': 'dtmi:dtdl:context;4',
@@ -141,12 +143,12 @@ export class EntityController extends HTMLController {
       comment: comment ? comment : undefined,
       extends: extendsId ? [extendsId] : [],
       contents: [],
-    } as NullableDtdlSource
+    }
 
-    const stringJson = JSON.stringify(newNode, null, 2)
+    const formattedSource = await prettier.format(JSON.stringify(newNode), { parser: 'json' })
     const fileName = folderPath ? `${folderPath}/${displayName}.json` : `${displayName}.json`
     await this.modelDb.parseWithUpdatedFiles(ontologyId, [{ id: newId, source: newNode }])
-    await this.modelDb.addEntityToModel(ontologyId, stringJson, fileName)
+    await this.modelDb.addEntityToModel(ontologyId, formattedSource, fileName)
 
     this.cache.clear()
     this.sessionStore.update(updateParams.sessionId, {

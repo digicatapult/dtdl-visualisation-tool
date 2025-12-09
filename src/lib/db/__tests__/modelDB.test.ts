@@ -101,6 +101,7 @@ describe('modelDB', function () {
         'default' as FileSourceKeys,
         'owner',
         'repo',
+        'baseBranch',
         [{ ...mockFile, errors: [errorFixture] }]
       )
       expect(newModelId).to.equal('1')

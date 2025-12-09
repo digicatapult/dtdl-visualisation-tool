@@ -1,6 +1,7 @@
 import { describe, test } from 'mocha'
 
 import { expect } from 'chai'
+import { DtdlInterface } from '../../../../db/types'
 import {
   dtdlFileFixture,
   propertyName,
@@ -14,6 +15,7 @@ import {
   deleteContent,
   MAX_DISPLAY_NAME_LENGTH,
   MAX_VALUE_LENGTH,
+  updateCommandRequestDisplayName,
   updateComment,
   updateDescription,
   updateDisplayName,
@@ -397,6 +399,36 @@ describe('entity updates', function () {
         const newProperty = contents.find((c) => c.name === 'my_valid_property_123')
         void expect(newProperty).to.not.be.undefined
       })
+    })
+  })
+  describe('key order retention', function () {
+    test('updateContentsValue preserves key order', () => {
+      const input = { z_first: 1, ...baseFile({}), a_last: 2 }
+      const result = updatePropertyDisplayName('new', propertyName)(input as DtdlInterface)
+      expect(Object.keys(result)[0]).to.equal('z_first')
+      expect(Object.keys(result).pop()).to.equal('a_last')
+    })
+
+    test('updateCommandRequestResponseValue preserves key order', () => {
+      const commandName = 'myCmd'
+      const input = {
+        z_first: 1,
+        '@id': 'dtmi:com:example;1',
+        '@type': 'Interface',
+        displayName: 'Example',
+        contents: [{ '@type': 'Command', name: commandName, request: { name: 'req' } }],
+        a_last: 2,
+      }
+      const result = updateCommandRequestDisplayName('new', commandName)(input as DtdlInterface)
+      expect(Object.keys(result)[0]).to.equal('z_first')
+      expect(Object.keys(result).pop()).to.equal('a_last')
+    })
+
+    test('deleteContent preserves key order', () => {
+      const input = { z_first: 1, ...baseFile({}), a_last: 2 }
+      const result = deleteContent(propertyName)(input as DtdlInterface)
+      expect(Object.keys(result)[0]).to.equal('z_first')
+      expect(Object.keys(result).pop()).to.equal('a_last')
     })
   })
 })
