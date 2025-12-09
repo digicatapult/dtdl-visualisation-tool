@@ -156,3 +156,80 @@
 }
 
 
+#selectedFolder .folder-tree-button {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  width: 100%;
+  text-align: start;
+  cursor: pointer;
+  position: relative;
+  padding-left: 2.25em;
+}
+
+#selectedFolder .folder-tree-button:hover {
+  background-color: var(--border-color);
+}
+
+#selectedFolder .folder-tree-button::before {
+  display: inline-block;
+  content: '⌃';
+  transform: rotate(90deg);
+  transition: transform var(--transition-duration);
+  position: absolute;
+  left: 0;
+}
+
+#selectedFolder .folder-tree-button.tree-icon::after {
+  left: 1em;
+}
+
+#selectedFolder .folder-tree-button[aria-expanded]::before {
+  transform: rotate(180deg);
+}
+
+#selectedFolder .tree-icon::after {
+  display: inline-block;
+  content: '';
+  width: 0.8em;
+  height: 0.8em;
+  background-size: cover;
+  position: absolute;
+  inset: 0;
+  margin-block: auto;
+}
+
+#selectedFolder .directory::after {
+  background-image: url('../images/directory.svg');
+}
+
+#selectedFolder .accordion-content > div > .accordion-parent {
+  padding-left: 0.5rem;
+  border-left: 1px solid var(--border-color);
+  margin-left: 0.25em;
+}
+
+#selectedFolder .folder-tree-button.no-arrow::before {
+  display: none;
+}
+
+#selectedFolder .folder-tree-selected {
+  background-color: var(--highlighted-color) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 3px;
+}
+
+/* Form validation status */
+.selection-status {
+  background-color: #fee;
+  color: #c00;
+  padding: 0.5rem;
+  border: 1px solid #fcc;
+  border-radius: 3px;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.selection-status.hidden {
+  display: none;
+}

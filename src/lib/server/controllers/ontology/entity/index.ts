@@ -1,4 +1,3 @@
-import express from 'express'
 import {
   Body,
   Delete,
@@ -9,16 +8,18 @@ import {
   Produces,
   Put,
   Queries,
-  Query,
   Request,
   Route,
   SuccessResponse,
-} from 'tsoa'
+} from '@tsoa/runtime'
+import express from 'express'
 import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../../../db/modelDb.js'
+import { InternalError } from '../../../errors.js'
 import { DeletableEntities, type DeleteContentParams, type UpdateParams } from '../../../models/controllerTypes.js'
 import { DtdlSchema, type DtdlId, type UUID } from '../../../models/strings.js'
 import { Cache, type ICache } from '../../../utils/cache.js'
+import { dtdlIdReplaceSemicolon } from '../../../utils/mermaid/helpers.js'
 
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { DtdlInterface, NullableDtdlSource } from '../../../../db/types.js'
@@ -55,6 +56,7 @@ import {
   updateTelemetrySchema,
 } from '../../../utils/dtdl/entityUpdate.js'
 import { getDisplayName, isInterface, isNamedEntity } from '../../../utils/dtdl/extract.js'
+import { DtdlPath } from '../../../utils/dtdl/parser.js'
 import SessionStore from '../../../utils/sessions.js'
 import { AddContentForm } from '../../../views/components/addContent.js'
 import MermaidTemplates from '../../../views/components/mermaid.js'
@@ -75,6 +77,82 @@ export class EntityController extends HTMLController {
     @inject(Cache) private cache: ICache
   ) {
     super()
+  }
+
+  @SuccessResponse(200)
+  @Get('/add-new-node')
+  public async addNewNode(@Path() ontologyId: UUID, @Queries() params: UpdateParams): Promise<HTML | void> {
+    this.sessionStore.update(params.sessionId, { highlightNodeId: undefined, search: undefined })
+
+    const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(ontologyId)
+    const displayNameIdMap = this.getDisplayNameIdMap(baseModel)
+    const filteredFolderPaths = this.filterDirectoriesOnly(fileTree)
+
+    return this.html(
+      this.templates.addNode({
+        dtdlModelId: ontologyId,
+        displayNameIdMap,
+        folderTree: filteredFolderPaths,
+        swapOutOfBand: true, // ensures right panel updates
+      })
+    )
+  }
+
+  @SuccessResponse(201)
+  @Post('/new-node')
+  public async createNewNode(
+    @Path() ontologyId: UUID,
+    @Body()
+    body: {
+      displayName: string
+      description?: string
+      comment?: string
+      extends?: string
+      folderPath: string
+    } & UpdateParams,
+    @Request() req: express.Request
+  ): Promise<HTML> {
+    const { displayName: rawDisplayName, description, comment, extends: extendsId, folderPath, ...updateParams } = body
+
+    // Convert to PascalCase and trim
+    const displayName = this.toPascalCase(rawDisplayName.trim())
+    if (displayName.length < 1) {
+      throw new InternalError('Display name must be at least 1 character long.')
+    }
+
+    // Check for duplicate display names and throw if duplicate found
+    const { model: baseModel } = await this.modelDb.getDtdlModelAndTree(ontologyId)
+    const commonPrefix = this.extractCommonDtmiPrefix(baseModel)
+    const newId = `${commonPrefix}:${displayName};1`
+
+    if (newId in baseModel) {
+      throw new InternalError(
+        `Please update the display name '${displayName}' as its ID already exists in the ontology. You can change it again after creation.`
+      )
+    }
+
+    const newNode = {
+      '@id': newId,
+      '@type': 'Interface',
+      '@context': 'dtmi:dtdl:context;4',
+      displayName: displayName,
+      description: description ? description : undefined,
+      comment: comment ? comment : undefined,
+      extends: extendsId ? [extendsId] : [],
+      contents: [],
+    } as NullableDtdlSource
+
+    const stringJson = JSON.stringify(newNode, null, 2)
+    const fileName = folderPath ? `${folderPath}/${displayName}.json` : `${displayName}.json`
+    await this.modelDb.parseWithUpdatedFiles(ontologyId, [{ id: newId, source: newNode }])
+    await this.modelDb.addEntityToModel(ontologyId, stringJson, fileName)
+
+    this.cache.clear()
+    this.sessionStore.update(updateParams.sessionId, {
+      highlightNodeId: dtdlIdReplaceSemicolon(newId),
+      search: undefined,
+    })
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
   }
 
   @SuccessResponse(200)
@@ -609,5 +687,80 @@ export class EntityController extends HTMLController {
     const entity = model[entityId]
     if (!isInterface(entity)) return []
     return entity.extendedBy.flatMap((e) => [e, ...this.getExtendedBy(model, e, visited)])
+  }
+
+  private getDisplayNameIdMap(model: DtdlObjectModel): Record<string, string> {
+    return Object.fromEntries(
+      Object.entries(model)
+        .filter(([, node]) => isInterface(node))
+        .map(([id, node]) => {
+          const displayName = getDisplayName(node)
+          return [displayName, id]
+        })
+        .filter(([displayName]) => displayName)
+    )
+  }
+
+  private toPascalCase(str: string): string {
+    return str.replace(/(?:^\w|[A-Z]|\b\w)/g, (word) => word.toUpperCase()).replace(/\s+/g, '')
+  }
+
+  private filterDirectoriesOnly(tree: DtdlPath[]): DtdlPath[] {
+    return tree
+      .filter((node) => node.type === 'directory')
+      .map((node) => ({
+        ...node,
+        // Recurse; if no children or only files, children become []
+        entries: node.entries ? this.filterDirectoriesOnly(node.entries) : [],
+      }))
+  }
+
+  private extractCommonDtmiPrefix(model: DtdlObjectModel): string {
+    const interfaceIds = Object.entries(model)
+      .filter(([, node]) => node.EntityKind === 'Interface')
+      .map(([id]) => id)
+
+    if (interfaceIds.length === 0) {
+      // Fallback to simple valid DTMI if no interfaces exist
+      return 'dtmi:user'
+    }
+
+    // Find common prefix by comparing all interface IDs
+    let commonPrefix = interfaceIds[0]
+
+    for (let i = 1; i < interfaceIds.length; i++) {
+      const currentId = interfaceIds[i]
+      let j = 0
+
+      // Find common characters from the start
+      while (j < commonPrefix.length && j < currentId.length && commonPrefix[j] === currentId[j]) {
+        j++
+      }
+
+      commonPrefix = commonPrefix.substring(0, j)
+    }
+
+    // Ensure we end before a colon or semicolon
+    // Remove any partial segment at the end
+    const lastColonIndex = commonPrefix.lastIndexOf(':')
+    const lastSemicolonIndex = commonPrefix.lastIndexOf(';')
+    const lastValidSeparator = Math.max(lastColonIndex, lastSemicolonIndex)
+
+    if (lastValidSeparator > 0) {
+      commonPrefix = commonPrefix.substring(0, lastValidSeparator + 1)
+    } else if (commonPrefix.startsWith('dtmi:')) {
+      // At minimum keep 'dtmi:'
+      commonPrefix = 'dtmi:'
+    } else {
+      // Fallback if no valid DTMI structure found
+      commonPrefix = 'dtmi:user:'
+    }
+
+    // Remove trailing colon
+    if (commonPrefix.endsWith(':')) {
+      commonPrefix = commonPrefix.slice(0, -1)
+    }
+
+    return commonPrefix
   }
 }
