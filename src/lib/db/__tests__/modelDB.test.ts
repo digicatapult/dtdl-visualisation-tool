@@ -20,6 +20,19 @@ const { expect } = chai
 
 const defaultFixture = { id: 1, source: 'default' }
 const githubFixture = { id: 2, source: 'github' }
+const validGithubFixture = {
+  id: '2',
+  source: 'github',
+  owner: 'owner',
+  repo: 'repo',
+  base_branch: 'main',
+  commit_hash: 'sha',
+}
+const invalidGithubFixture = {
+  id: '3',
+  source: 'github',
+  owner: null,
+}
 const fileSource: DtdlSource = { '@id': 'someId', '@type': 'Interface' }
 const mockFile: DtdlFile = { path: 'path', source: JSON.stringify(fileSource) }
 const mockDtdlRow = { id: 1, path: 'path', source: fileSource }
@@ -35,6 +48,8 @@ const dbTransactionMock = {
 const mockDb = {
   get: sinon.stub().callsFake((_, { id, source, model_id, dtdl_id }) => {
     if (id === '1') return Promise.resolve([defaultFixture])
+    if (id === '2') return Promise.resolve([validGithubFixture])
+    if (id === '3') return Promise.resolve([invalidGithubFixture])
     if (source === 'default') return Promise.resolve([defaultFixture])
     if (model_id === '1') return Promise.resolve([{ id: '1', path: 'path', source: fileSource }])
     if (dtdl_id === '1') return Promise.resolve([{ id: '1', error: errorFixture }])
@@ -84,6 +99,26 @@ describe('modelDB', function () {
     })
   })
 
+  describe('getGithubModelById', () => {
+    it('should return github model when valid', async () => {
+      expect(await model.getGithubModelById('2')).to.deep.equal(validGithubFixture)
+    })
+
+    it('should throw when model is not a github model', async () => {
+      await expect(model.getGithubModelById('1')).to.be.rejectedWith(
+        InternalError,
+        'Model 1 is not a valid GitHub model'
+      )
+    })
+
+    it('should throw when github model is missing required fields', async () => {
+      await expect(model.getGithubModelById('3')).to.be.rejectedWith(
+        InternalError,
+        'Model 3 is not a valid GitHub model'
+      )
+    })
+  })
+
   describe('getDefaultModel', () => {
     it('should return the default model in the db', async () => {
       expect(await model.getDefaultModel()).to.deep.equal(defaultFixture)
@@ -102,6 +137,7 @@ describe('modelDB', function () {
         'owner',
         'repo',
         'baseBranch',
+        'commitHash',
         [{ ...mockFile, errors: [errorFixture] }]
       )
       expect(newModelId).to.equal('1')

@@ -31,12 +31,12 @@ const cookie = { [octokitTokenCookie]: mockToken }
 
 const mockFiles = [{ path: 'file1.json', source: '{}' }]
 
-const getModelByIdStub = sinon.stub()
 const getDtdlFilesStub = sinon.stub()
+const getGithubModelByIdStub = sinon.stub()
 
 const mockModelDb = {
-  getModelById: getModelByIdStub,
   getDtdlFiles: getDtdlFilesStub,
+  getGithubModelById: getGithubModelByIdStub,
 } as unknown as ModelDb
 
 const getBranchStub = sinon.stub()
@@ -75,13 +75,13 @@ describe('PublishController', () => {
     createCommitStub.reset()
     createPullRequestStub.reset()
     updateBranchStub.reset()
-    getModelByIdStub.reset()
+    getGithubModelByIdStub.reset()
     getDtdlFilesStub.reset()
   })
 
   describe('/dialog', () => {
     it('should return publish dialog', async () => {
-      const result = await controller.dialog(mockOntologyId)
+      const result = await controller.dialog(mockReqWithCookie({}), mockOntologyId)
       const html = await toHTMLString(result)
       expect(html).to.equal('publishDialog_html')
     })
@@ -106,7 +106,7 @@ describe('PublishController', () => {
     it('should throw error if ontology is missing GitHub metadata', async () => {
       const req = mockReqWithCookie(cookie)
 
-      getModelByIdStub.resolves({
+      getGithubModelByIdStub.resolves({
         owner: null,
         repo: null,
         base_branch: null,
@@ -122,12 +122,12 @@ describe('PublishController', () => {
           'newBranch',
           mockBranchName
         )
-      ).to.be.rejectedWith(DataError, 'Ontology is not from GitHub or missing base branch information')
+      ).to.be.rejectedWith(DataError, 'not a valid GitHub model')
     })
 
     it('should throw error if base branch not found', async () => {
       const req = mockReqWithCookie(cookie)
-      getModelByIdStub.resolves({
+      getGithubModelByIdStub.resolves({
         owner: mockOwner,
         repo: mockRepo,
         base_branch: mockBaseBranch,
@@ -150,7 +150,7 @@ describe('PublishController', () => {
 
     it('should throw error if branch already exists', async () => {
       const req = mockReqWithCookie(cookie)
-      getModelByIdStub.resolves({
+      getGithubModelByIdStub.resolves({
         owner: mockOwner,
         repo: mockRepo,
         base_branch: mockBaseBranch,
@@ -177,7 +177,7 @@ describe('PublishController', () => {
 
     it('should publish successfully', async () => {
       const req = mockReqWithCookie(cookie)
-      getModelByIdStub.resolves({
+      getGithubModelByIdStub.resolves({
         owner: mockOwner,
         repo: mockRepo,
         base_branch: mockBaseBranch,
@@ -233,7 +233,7 @@ describe('PublishController', () => {
 
     it('should publish to current branch successfully', async () => {
       const req = mockReqWithCookie(cookie)
-      getModelByIdStub.resolves({
+      getGithubModelByIdStub.resolves({
         owner: mockOwner,
         repo: mockRepo,
         base_branch: mockBaseBranch,

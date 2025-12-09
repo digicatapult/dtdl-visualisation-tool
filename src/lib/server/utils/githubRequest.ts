@@ -360,6 +360,20 @@ export class GithubRequest {
     return response.data
   }
 
+  getCommit = async (token: string, owner: string, repo: string, ref: string) => {
+    if (!token) throw new GithubReqError('Missing GitHub token')
+
+    const octokit = new Octokit({ auth: token })
+    const response = await this.requestWrapper(async () =>
+      octokit.request('GET /repos/{owner}/{repo}/commits/{ref}', {
+        owner,
+        repo,
+        ref,
+      })
+    )
+    return response.data
+  }
+
   public async requestWrapper<T>(request: () => Promise<T>): Promise<T> {
     try {
       return await request()

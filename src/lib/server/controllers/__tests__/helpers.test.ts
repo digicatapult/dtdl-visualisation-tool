@@ -98,6 +98,7 @@ describe('checkEditPermission', () => {
   let setHeaderStub: SinonStub
   let endStub: SinonStub
   let getModelByIdStub: SinonStub
+  let getGithubModelByIdStub: SinonStub
   let getRepoPermissionsStub: SinonStub
   let containerResolveStub: SinonStub
 
@@ -122,12 +123,14 @@ describe('checkEditPermission', () => {
     } as unknown as express.Request
 
     getModelByIdStub = sinon.stub()
+    getGithubModelByIdStub = sinon.stub()
     getRepoPermissionsStub = sinon.stub()
 
     // Mock the container.resolve calls
     containerResolveStub = sinon.stub(container, 'resolve')
     containerResolveStub.withArgs(ModelDb).returns({
       getModelById: getModelByIdStub,
+      getGithubModelById: getGithubModelByIdStub,
     })
     containerResolveStub.withArgs(GithubRequest).returns({
       getRepoPermissions: getRepoPermissionsStub,
@@ -145,7 +148,7 @@ describe('checkEditPermission', () => {
       const testRepo = 'test-repo'
 
       mockRequest.signedCookies[octokitTokenCookie] = testToken
-      getModelByIdStub.resolves({
+      getGithubModelByIdStub.resolves({
         id: githubDtdlId,
         owner: testOwner,
         repo: testRepo,
@@ -155,7 +158,7 @@ describe('checkEditPermission', () => {
       // Should not throw and should call next()
       await checkEditPermission(mockRequest, mockResponse, mockNext)
 
-      sinon.assert.calledOnceWithExactly(getModelByIdStub, githubDtdlId)
+      sinon.assert.calledOnceWithExactly(getGithubModelByIdStub, githubDtdlId)
       sinon.assert.calledOnceWithExactly(getRepoPermissionsStub, testToken, testOwner, testRepo)
       sinon.assert.calledOnce(mockNext)
     })
@@ -166,7 +169,7 @@ describe('checkEditPermission', () => {
       // Need a token to get past the initial check
       mockRequest.signedCookies[octokitTokenCookie] = 'test-token'
 
-      getModelByIdStub.resolves({
+      getGithubModelByIdStub.resolves({
         id: githubDtdlId,
         owner: null,
         repo: 'test-repo',
@@ -185,7 +188,7 @@ describe('checkEditPermission', () => {
       // Need a token to get past the initial check
       mockRequest.signedCookies[octokitTokenCookie] = 'test-token'
 
-      getModelByIdStub.resolves({
+      getGithubModelByIdStub.resolves({
         id: githubDtdlId,
         owner: 'test-owner',
         repo: null,
@@ -203,7 +206,7 @@ describe('checkEditPermission', () => {
       // Need a token to get past the initial check
       mockRequest.signedCookies[octokitTokenCookie] = 'test-token'
 
-      getModelByIdStub.resolves({
+      getGithubModelByIdStub.resolves({
         id: githubDtdlId,
         repo: 'test-repo',
         // owner is undefined
@@ -218,7 +221,7 @@ describe('checkEditPermission', () => {
       // Need a token to get past the initial check
       mockRequest.signedCookies[octokitTokenCookie] = 'test-token'
 
-      getModelByIdStub.resolves({
+      getGithubModelByIdStub.resolves({
         id: githubDtdlId,
         owner: 'test-owner',
         // repo is undefined
@@ -235,7 +238,7 @@ describe('checkEditPermission', () => {
       const testRepo = 'test-repo'
 
       mockRequest.signedCookies[octokitTokenCookie] = testToken
-      getModelByIdStub.resolves({
+      getGithubModelByIdStub.resolves({
         id: githubDtdlId,
         owner: testOwner,
         repo: testRepo,
@@ -256,7 +259,7 @@ describe('checkEditPermission', () => {
       const testRepo = 'test-repo'
 
       mockRequest.signedCookies[octokitTokenCookie] = testToken
-      getModelByIdStub.resolves({
+      getGithubModelByIdStub.resolves({
         id: githubDtdlId,
         owner: testOwner,
         repo: testRepo,
@@ -268,12 +271,12 @@ describe('checkEditPermission', () => {
         .and.eventually.have.property('message', 'User is unauthorised to make this request')
     })
 
-    it('should propagate errors from getModelById', async () => {
+    it('should propagate errors from getGithubModelById', async () => {
       // Need a token to get past the initial check
       mockRequest.signedCookies[octokitTokenCookie] = 'test-token'
 
       const testError = new Error('Database connection failed')
-      getModelByIdStub.rejects(testError)
+      getGithubModelByIdStub.rejects(testError)
 
       await expect(checkEditPermission(mockRequest, mockResponse, mockNext)).to.be.rejectedWith(testError)
 
@@ -288,7 +291,7 @@ describe('checkEditPermission', () => {
       const testError = new Error('GitHub API failed')
 
       mockRequest.signedCookies[octokitTokenCookie] = testToken
-      getModelByIdStub.resolves({
+      getGithubModelByIdStub.resolves({
         id: githubDtdlId,
         owner: testOwner,
         repo: testRepo,
@@ -307,7 +310,7 @@ describe('checkEditPermission', () => {
       const testRepo = 'test-repo'
 
       // No token in signed cookies
-      getModelByIdStub.resolves({
+      getGithubModelByIdStub.resolves({
         id: githubDtdlId,
         owner: testOwner,
         repo: testRepo,

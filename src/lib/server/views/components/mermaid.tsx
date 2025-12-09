@@ -4,6 +4,7 @@ import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
 import { randomUUID } from 'crypto'
 import { container, singleton } from 'tsyringe'
+import { isGithubModel, ModelRow } from '../../../db/types.js'
 import { Env } from '../../env/index.js'
 import { DeletableEntities } from '../../models/controllerTypes.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
@@ -53,6 +54,7 @@ export default class MermaidTemplates {
     svgHeight,
     canEdit,
     ontologyId,
+    model,
   }: {
     search?: string
     sessionId: UUID
@@ -61,6 +63,7 @@ export default class MermaidTemplates {
     svgHeight?: number
     canEdit: boolean
     ontologyId: UUID
+    model: ModelRow
   }) => (
     <Page title={'UKDTC'}>
       <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
@@ -69,6 +72,7 @@ export default class MermaidTemplates {
         <this.uploadForm />
         <this.shareOntology />
         <this.publishForm canPublish={canEdit} ontologyId={ontologyId} />
+        <this.GithubLink model={model} />
       </section>
 
       <div id="mermaid-wrapper">
@@ -1099,7 +1103,11 @@ export default class MermaidTemplates {
     )
   }
 
-  public publishDialog = ({ ontologyId, baseBranch }: { ontologyId?: UUID; baseBranch?: string } = {}) => {
+  public publishDialog = ({
+    ontologyId,
+    baseBranch,
+    isOutOfSync,
+  }: { ontologyId?: UUID; baseBranch?: string; isOutOfSync?: boolean } = {}) => {
     const defaultBranchName = `ontology-update-${Date.now()}`
 
     return (
@@ -1116,6 +1124,12 @@ export default class MermaidTemplates {
         >
           <div class="modal-content">
             <h3>Publish Changes</h3>
+            {isOutOfSync && (
+              <div id="publish-warning">
+                <img src="/public/images/warning.svg" />
+                <p>Caution - your ontology is out-of-date with the base branch on GitHub</p>
+              </div>
+            )}
             <label for="commitMessage">Commit message</label>
             <input type="text" id="commitMessage" name="commitMessage" value="Update DTDL" required />
             <div class="radio-group">
@@ -1430,6 +1444,33 @@ export default class MermaidTemplates {
             hx-swap="outerHTML"
           ></button>
         </div>
+      </div>
+    )
+  }
+
+  public GithubLink = ({ model, swapOutOfBand }: { model: ModelRow; swapOutOfBand?: boolean }) => {
+    if (!isGithubModel(model)) return <></>
+
+    const { owner, repo, is_out_of_sync, commit_hash, base_branch } = model
+    return (
+      <div id="github-link" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
+        <a
+          href={`https://github.com/${owner}/${repo}/tree/${commit_hash}`}
+          target="_blank"
+          class="new-tab-link"
+          title="View on GitHub"
+        >
+          {`View GitHub commit ↗`}
+        </a>
+
+        <a
+          href={`https://github.com/${owner}/${repo}/tree/${base_branch}`}
+          target="_blank"
+          class="new-tab-link"
+          title="View base branch"
+        >
+          {escapeHtml(`View Github branch ${is_out_of_sync ? '(out of sync)' : ''} ↗`)}
+        </a>
       </div>
     )
   }

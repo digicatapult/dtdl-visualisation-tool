@@ -53,6 +53,10 @@ const mockModelTable = {
     parsed: simpleMockDtdlObjectModel,
     owner: 'user1',
     repo: 'repo1',
+    source: 'github',
+    base_branch: 'main',
+    commit_hash: 'commitHash',
+    isOutOfSync: false,
   },
 }
 

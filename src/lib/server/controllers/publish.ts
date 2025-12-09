@@ -9,8 +9,9 @@ import { GithubRequest } from '../utils/githubRequest.js'
 import MermaidTemplates from '../views/components/mermaid.js'
 import { successToast, Toast } from '../views/components/toast.js'
 import { HTML, HTMLController } from './HTMLController.js'
-import { checkEditPermission } from './helpers.js'
+import { checkEditPermission, checkRemoteBranch } from './helpers.js'
 @injectable()
+@Middlewares(checkEditPermission)
 @Route('/publish')
 export class PublishController extends HTMLController {
   constructor(
@@ -23,9 +24,9 @@ export class PublishController extends HTMLController {
 
   @Get('/dialog')
   @Produces('text/html')
-  public async dialog(@Query() ontologyId: string): Promise<HTML> {
-    const { base_branch: baseBranch } = await this.modelDb.getModelById(ontologyId)
-    return this.html(this.templates.publishDialog({ ontologyId, baseBranch: baseBranch || undefined }))
+  public async dialog(@Request() req: express.Request, @Query() ontologyId: string): Promise<HTML> {
+    const { base_branch: baseBranch, is_out_of_sync: isOutOfSync } = await checkRemoteBranch(ontologyId, req)
+    return this.html(this.templates.publishDialog({ ontologyId, baseBranch, isOutOfSync }))
   }
 
   @SuccessResponse(200)
@@ -45,10 +46,7 @@ export class PublishController extends HTMLController {
       throw new GithubReqError('Missing GitHub token')
     }
 
-    const { owner, repo, base_branch: baseBranch } = await this.modelDb.getModelById(ontologyId)
-    if (!owner || !repo || !baseBranch) {
-      throw new DataError('Ontology is not from GitHub or missing base branch information')
-    }
+    const { owner, repo, base_branch: baseBranch } = await this.modelDb.getGithubModelById(ontologyId)
 
     const files = await this.modelDb.getDtdlFiles(ontologyId)
 
@@ -104,6 +102,8 @@ export class PublishController extends HTMLController {
       toast = successToast('Published successfully', pr.html_url, 'View Pull Request')
     } else {
       await this.githubRequest.updateBranch(octokitToken, owner, repo, baseBranch, commit.sha)
+      await this.modelDb.updateModel(ontologyId, { is_out_of_sync: false, commit_hash: commit.sha })
+
       toast = successToast(
         `Published successfully`,
         `https://github.com/${owner}/${repo}/tree/${baseBranch}`,

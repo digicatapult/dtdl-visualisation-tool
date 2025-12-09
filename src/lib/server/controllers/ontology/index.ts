@@ -33,7 +33,7 @@ import SessionStore, { Session } from '../../utils/sessions.js'
 import { ErrorPage } from '../../views/components/errors.js'
 import MermaidTemplates from '../../views/components/mermaid.js'
 import { HTML, HTMLController } from '../HTMLController.js'
-import { checkEditPermission, dtdlCacheKey } from '../helpers.js'
+import { checkEditPermission, checkRemoteBranch, dtdlCacheKey } from '../helpers.js'
 
 const rateLimiter = container.resolve(RateLimiter)
 
@@ -101,7 +101,8 @@ export class OntologyController extends HTMLController {
       this.cookieOpts
     )
 
-    const { source, owner, repo } = await this.modelDb.getModelById(dtdlModelId)
+    const model = await this.modelDb.getModelById(dtdlModelId)
+    const { source, owner, repo } = model
     let permission: ViewAndEditPermission = 'view'
     const octokitToken = req.signedCookies[octokitTokenCookie]
 
@@ -132,6 +133,7 @@ export class OntologyController extends HTMLController {
         diagramType: params.diagramType,
         canEdit: permission === 'edit',
         ontologyId: dtdlModelId,
+        model,
       })
     )
   }
@@ -278,6 +280,7 @@ export class OntologyController extends HTMLController {
 
     // get the base dtdl model that we will derive the graph from
     const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
+    const githubModelRow = await checkRemoteBranch(dtdlModelId, req)
 
     this.sessionStore.update(sessionId, { editMode })
 
@@ -296,6 +299,10 @@ export class OntologyController extends HTMLController {
         edit: editMode,
         tab: 'details',
         fileTree,
+      }),
+      this.templates.GithubLink({
+        model: githubModelRow,
+        swapOutOfBand: true,
       })
     )
   }
