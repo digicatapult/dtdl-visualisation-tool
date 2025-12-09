@@ -1,7 +1,7 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
+import { Get, Middlewares, Path, Produces, Queries, Query, Request, Route, SuccessResponse } from '@tsoa/runtime'
 import express from 'express'
 import { randomUUID } from 'node:crypto'
-import { Get, Middlewares, Path, Produces, Queries, Query, Request, Route, SuccessResponse } from 'tsoa'
 import { container, inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../../db/modelDb.js'
 import { InternalError } from '../../errors.js'
@@ -21,6 +21,7 @@ import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../
 import { type UUID } from '../../models/strings.js'
 import { Cache, type ICache } from '../../utils/cache.js'
 import { filterModelByDisplayName, getRelatedIdsById } from '../../utils/dtdl/filter.js'
+import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { FuseSearch } from '../../utils/fuseSearch.js'
 import { authRedirectURL, GithubRequest } from '../../utils/githubRequest.js'
 import { SvgGenerator } from '../../utils/mermaid/generator.js'
@@ -310,6 +311,16 @@ export class OntologyController extends HTMLController {
       path: url.pathname,
       query: url.searchParams,
     }
+  }
+
+  private filterDirectoriesOnly(tree: DtdlPath[]): DtdlPath[] {
+    return tree
+      .filter((node) => node.type === 'directory')
+      .map((node) => ({
+        ...node,
+        // Recurse; if no children or only files, children become []
+        entries: node.entries ? this.filterDirectoriesOnly(node.entries) : [],
+      }))
   }
 
   private setReplaceUrl(

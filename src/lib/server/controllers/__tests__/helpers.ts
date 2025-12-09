@@ -11,6 +11,7 @@ import { posthogIdCookie } from '../../models/cookieNames.js'
 import { ListItem } from '../../models/github.js'
 import { DtdlId, type UUID } from '../../models/strings.js'
 import { allInterfaceFilter } from '../../utils/dtdl/extract.js'
+import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { FuseSearch } from '../../utils/fuseSearch.js'
 import { LRUCache } from '../../utils/lruCache.js'
 import {
@@ -226,6 +227,17 @@ export const templateMock = {
   svgControls: ({ generatedOutput }: { generatedOutput?: JSX.Element }): JSX.Element =>
     `svgControls_${generatedOutput}_svgControls`,
   deleteDialog: () => `deleteDialog_deleteDialog`,
+  addNode: ({
+    dtdlModelId,
+    displayNameIdMap,
+    folderTree,
+    swapOutOfBand,
+  }: {
+    dtdlModelId: string
+    displayNameIdMap: Record<string, string>
+    folderTree: DtdlPath[]
+    swapOutOfBand?: boolean
+  }) => `addNode_${dtdlModelId}_${Object.keys(displayNameIdMap).length}_${folderTree.length}_${swapOutOfBand}_addNode`,
 } as unknown as MermaidTemplates
 export const openOntologyMock = {
   OpenOntologyRoot: () => `root_root`,
@@ -266,6 +278,7 @@ export const mockDb = {
 
 export const updateDtdlSourceStub = sinon.stub().resolves()
 export const deleteOrUpdateDtdlSourceStub = sinon.stub().resolves()
+export const addEntityToModelStub = sinon.stub().resolves()
 export const simpleMockModelDb = {
   getModelById: (id: UUID) => {
     if (id === 'badId') throw new InternalError(`Failed to find model: ${id}`)
@@ -294,7 +307,19 @@ export const simpleMockModelDb = {
   getDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
   insertModel: () => Promise.resolve(1),
   deleteDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
-  getDtdlModelAndTree: () => Promise.resolve({ model: mockDtdlObjectModel, fileTree: [] }),
+  getDtdlModelAndTree: () =>
+    Promise.resolve({
+      model: {
+        ...mockDtdlObjectModel,
+        'dtmi:test:TestNode;1': {
+          Id: 'dtmi:test:TestNode;1',
+          displayName: 'TestNode',
+          EntityKind: 'Interface',
+        },
+      },
+      fileTree: [],
+    }),
+  addEntityToModel: addEntityToModelStub,
   getCollection: (dtdlModel: DtdlObjectModel) =>
     Object.entries(dtdlModel)
       .filter(allInterfaceFilter)

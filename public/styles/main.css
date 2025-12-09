@@ -443,12 +443,31 @@ label[for='diagram-type-select'] {
   justify-self: center;
   border: none;
 }
+#cancel-button {
+  background-color: var(--delete-color);
+  transition: background-color 0.3s;
+  color: white;
+  justify-self: center;
+  border: none;
+  width: 100%;
+  padding: 10px 0px;
+  margin: 0px 10px;
+}
+#create-new-node-button {
+  background-color: var(--active-button-color);
+  transition: background-color 0.3s;
+  color: white;
+  justify-self: center;
+  border: none;
+  width: 100%;
+  padding: 30px 0px;
+  margin: 10px 10px;
+}
 
 #delete-button:enabled {
   background-color: var(--delete-color);
   transition: background-color 0.3s;
 }
-
 
 #navigation-panel.edit section h3::after {
   content: url('../images/pencil.svg');
@@ -639,8 +658,6 @@ label[for='diagram-type-select'] {
   height: 16px;
   vertical-align: middle;
 }
-
-
 
 #svg-controls {
   display: grid;
@@ -875,8 +892,8 @@ label[for='diagram-type-select'] {
   background-color: white;
   outline: none;
 }
-#share-link-modal input[type="radio"]::before {
-  content: "";
+#share-link-modal input[type='radio']::before {
+  content: '';
   width: 20px;
   height: 20px;
   background-image: url('../images/tick-circle.svg');
@@ -884,13 +901,13 @@ label[for='diagram-type-select'] {
   background-repeat: no-repeat;
   transform: scale(0);
   transition: transform 0.2s ease-in-out;
-  border-width:2px;
+  border-width: 2px;
 }
-#share-link-modal input[type="radio"]:checked::before {
+#share-link-modal input[type='radio']:checked::before {
   transform: scale(1);
 }
 #share-link-modal input[type='radio']:checked {
-  border-color: #555
+  border-color: #555;
 }
 
 #share-link-modal input[type='text'] {
@@ -906,15 +923,15 @@ label[for='diagram-type-select'] {
 
 #copy-link-button {
   margin-top: 1rem;
-  padding: 0.75rem 1.5rem; 
-  background-color: var(--active-button-color); 
-  border: none; 
-  border-radius: 10px; 
+  padding: 0.75rem 1.5rem;
+  background-color: var(--active-button-color);
+  border: none;
+  border-radius: 10px;
   font-size: 1rem;
   color: #ffffff;
   &:hover {
-      background-color: hsl(from var(--active-button-color) h s 40%);;
-    }
+    background-color: hsl(from var(--active-button-color) h s 40%);
+  }
 }
 
 #copy-button-wrapper {
@@ -925,7 +942,7 @@ label[for='diagram-type-select'] {
 
 .tooltip {
   position: absolute;
-  top:-10px;
+  top: -10px;
   background: #333;
   color: white;
   padding: 4px 8px;
@@ -956,8 +973,8 @@ label[for='diagram-type-select'] {
   width: 20px;
   height: 20px;
   margin-left: 1ch;
-  transition: 
-    transform var(--transition-duration) ease, 
+  transition:
+    transform var(--transition-duration) ease,
     background-image var(--transition-duration) ease;
 }
 
