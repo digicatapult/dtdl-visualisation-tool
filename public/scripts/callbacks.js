@@ -48,6 +48,12 @@ globalThis.toggleEditSwitch = (event) => {
   document.getElementById('edit-buttons').classList.toggle('edit', isChecked)
 }
 
+globalThis.togglePrFields = (required) => {
+  document.querySelectorAll('.pr-fields').forEach((el) => {
+    el.required = required
+  })
+}
+
 globalThis.getOwnerRepoFromInput = () => {
   // Not passing in event as not all triggers produce HX-Events
   const input = document.getElementById('public-github-input').value.trim()
@@ -68,6 +74,12 @@ globalThis.validatePublicRepoInput = (e) => {
 globalThis.validateDtdlValue = (e) => {
   const invalidChars = /["\\]/
   e.setCustomValidity(invalidChars.test(e.value) ? 'Invalid characters: " and \\' : '')
+  e.reportValidity()
+}
+
+globalThis.validateBranchName = (e) => {
+  const validChars = /^[A-Za-z0-9_\/-]+$/
+  e.setCustomValidity(!validChars.test(e.value) ? 'Only letters, numbers, /, _, and - are allowed' : '')
   e.reportValidity()
 }
 

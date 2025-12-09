@@ -19,6 +19,7 @@ const mockOwner = 'owner'
 const mockRepo = 'repo'
 const mockBaseBranch = 'main'
 const mockBranchName = 'feat/new-branch'
+const mockCommitMessage = 'Commit message'
 const mockPrTitle = 'pr title'
 const mockDescription = 'Description of changes'
 const mockToken = 'token'
@@ -90,7 +91,15 @@ describe('PublishController', () => {
     it('should throw error if missing GitHub token', async () => {
       const req = mockReqWithCookie({})
       await expect(
-        controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, 'newBranch', mockBranchName)
+        controller.publish(
+          req,
+          mockOntologyId,
+          mockCommitMessage,
+          mockPrTitle,
+          mockDescription,
+          'newBranch',
+          mockBranchName
+        )
       ).to.be.rejectedWith(GithubReqError, 'Missing GitHub token')
     })
 
@@ -104,7 +113,15 @@ describe('PublishController', () => {
       })
 
       await expect(
-        controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, 'newBranch', mockBranchName)
+        controller.publish(
+          req,
+          mockOntologyId,
+          mockCommitMessage,
+          mockPrTitle,
+          mockDescription,
+          'newBranch',
+          mockBranchName
+        )
       ).to.be.rejectedWith(DataError, 'Ontology is not from GitHub or missing base branch information')
     })
 
@@ -119,7 +136,15 @@ describe('PublishController', () => {
       getBranchStub.resolves(null)
 
       await expect(
-        controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, 'newBranch', mockBranchName)
+        controller.publish(
+          req,
+          mockOntologyId,
+          mockCommitMessage,
+          mockPrTitle,
+          mockDescription,
+          'newBranch',
+          mockBranchName
+        )
       ).to.be.rejectedWith(DataError, `Base branch ${mockBaseBranch} not found`)
     })
 
@@ -138,7 +163,15 @@ describe('PublishController', () => {
         .resolves({ object: { sha: 'existingSha' } })
 
       await expect(
-        controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, 'newBranch', mockBranchName)
+        controller.publish(
+          req,
+          mockOntologyId,
+          mockCommitMessage,
+          mockPrTitle,
+          mockDescription,
+          'newBranch',
+          mockBranchName
+        )
       ).to.be.rejectedWith(DataError, `Branch with name ${mockBranchName} already exists`)
     })
 
@@ -164,6 +197,7 @@ describe('PublishController', () => {
       const result = await controller.publish(
         req,
         mockOntologyId,
+        mockCommitMessage,
         mockPrTitle,
         mockDescription,
         'newBranch',
@@ -211,7 +245,14 @@ describe('PublishController', () => {
       createCommitStub.resolves({ sha: mockCommitSha })
       updateBranchStub.resolves()
 
-      const result = await controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, 'currentBranch')
+      const result = await controller.publish(
+        req,
+        mockOntologyId,
+        mockCommitMessage,
+        mockPrTitle,
+        mockDescription,
+        'currentBranch'
+      )
 
       const html = await toHTMLString(result)
       expect(html).to.contain(`Published successfully to '${mockBaseBranch}'`)

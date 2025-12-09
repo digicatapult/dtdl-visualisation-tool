@@ -1,7 +1,12 @@
 import { escapeHtml } from '@kitajs/html'
 import { randomUUID } from 'node:crypto'
 
-export function successToast(title: string, link?: string, linkText?: string) {
+export interface Toast {
+  dialogId: string
+  response: JSX.Element
+}
+
+export function successToast(title: string, link?: string, linkText?: string): Toast {
   const dialogId = randomUUID()
   const showLink = link !== undefined
   return {

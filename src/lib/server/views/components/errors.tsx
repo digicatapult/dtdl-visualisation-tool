@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto'
 import { escapeHtml } from '@kitajs/html'
 import { ErrorCategory, HttpError, InternalError } from '../../errors.js'
 import { Page } from '../common.js'
+import { Toast } from './toast.js'
 
 const categoryToClass = (category: ErrorCategory): 'internal-error' | 'data-error' | 'temp-error' => {
   switch (category) {
@@ -17,7 +18,7 @@ const categoryToClass = (category: ErrorCategory): 'internal-error' | 'data-erro
   }
 }
 
-export function errorToast(error: unknown) {
+export function errorToast(error: unknown): Toast {
   const httpError = error instanceof HttpError ? error : new InternalError(error)
   const dialogId = randomUUID()
   const modellingErrorDetail = () => {

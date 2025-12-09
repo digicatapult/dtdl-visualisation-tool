@@ -7,11 +7,9 @@ import { DataError, GithubReqError } from '../errors.js'
 import { octokitTokenCookie } from '../models/cookieNames.js'
 import { GithubRequest } from '../utils/githubRequest.js'
 import MermaidTemplates from '../views/components/mermaid.js'
-import { successToast } from '../views/components/toast.js'
+import { successToast, Toast } from '../views/components/toast.js'
 import { HTML, HTMLController } from './HTMLController.js'
 import { checkEditPermission } from './helpers.js'
-
-const DEFAULT_COMMIT_MESSAGE = 'Update ontology files from DTDL visualisation tool'
 @injectable()
 @Route('/publish')
 export class PublishController extends HTMLController {
@@ -36,6 +34,7 @@ export class PublishController extends HTMLController {
   public async publish(
     @Request() req: express.Request,
     @FormField() ontologyId: string,
+    @FormField() commitMessage: string,
     @FormField() prTitle: string,
     @FormField() description: string,
     @FormField() publishType: 'newBranch' | 'currentBranch',
@@ -83,10 +82,11 @@ export class PublishController extends HTMLController {
 
     const tree = await this.githubRequest.createTree(octokitToken, owner, repo, baseBranchData.object.sha, blobs)
 
-    const commit = await this.githubRequest.createCommit(octokitToken, owner, repo, DEFAULT_COMMIT_MESSAGE, tree.sha, [
+    const commit = await this.githubRequest.createCommit(octokitToken, owner, repo, commitMessage, tree.sha, [
       baseBranchData.object.sha,
     ])
 
+    let toast: Toast
     if (publishType === 'newBranch') {
       // branchName is checked above
       await this.githubRequest.createBranch(octokitToken, owner, repo, branchName!, commit.sha)
@@ -101,16 +101,16 @@ export class PublishController extends HTMLController {
         description
       )
 
-      const toast = successToast('Published successfully', pr.html_url, 'View Pull Request')
-      return this.html(toast.response)
+      toast = successToast('Published successfully', pr.html_url, 'View Pull Request')
     } else {
       await this.githubRequest.updateBranch(octokitToken, owner, repo, baseBranch, commit.sha)
-      const toast = successToast(
+      toast = successToast(
         `Published successfully`,
         `https://github.com/${owner}/${repo}/tree/${baseBranch}`,
         'View branch'
       )
-      return this.html(toast.response)
     }
+    this.setHeader('HX-Trigger-After-Settle', JSON.stringify({ toastEvent: { dialogId: toast.dialogId } }))
+    return this.html(toast.response)
   }
 }
