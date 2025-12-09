@@ -26,7 +26,8 @@ export class PublishController extends HTMLController {
   @Get('/dialog')
   @Produces('text/html')
   public async dialog(@Query() ontologyId: string): Promise<HTML> {
-    return this.html(this.templates.publishDialog({ ontologyId }))
+    const { base_branch: baseBranch } = await this.modelDb.getModelById(ontologyId)
+    return this.html(this.templates.publishDialog({ ontologyId, baseBranch: baseBranch || undefined }))
   }
 
   @SuccessResponse(200)
@@ -37,7 +38,8 @@ export class PublishController extends HTMLController {
     @FormField() ontologyId: string,
     @FormField() prTitle: string,
     @FormField() description: string,
-    @FormField() branchName: string
+    @FormField() publishType: 'newBranch' | 'currentBranch',
+    @FormField() branchName?: string
   ): Promise<HTML> {
     const octokitToken = req.signedCookies[octokitTokenCookie]
     if (!octokitToken) {
@@ -56,9 +58,14 @@ export class PublishController extends HTMLController {
       throw new DataError(`Base branch ${baseBranch} not found`)
     }
 
-    const existingRemoteBranch = await this.githubRequest.getBranch(octokitToken, owner, repo, branchName)
-    if (existingRemoteBranch) {
-      throw new DataError(`Branch with name ${branchName} already exists`)
+    if (publishType === 'newBranch') {
+      if (!branchName) {
+        throw new DataError('Branch name is required for new branch')
+      }
+      const existingRemoteBranch = await this.githubRequest.getBranch(octokitToken, owner, repo, branchName)
+      if (existingRemoteBranch) {
+        throw new DataError(`Branch with name ${branchName} already exists`)
+      }
     }
 
     const blobs = await Promise.all(
@@ -80,19 +87,30 @@ export class PublishController extends HTMLController {
       baseBranchData.object.sha,
     ])
 
-    await this.githubRequest.createBranch(octokitToken, owner, repo, branchName, commit.sha)
+    if (publishType === 'newBranch') {
+      // branchName is checked above
+      await this.githubRequest.createBranch(octokitToken, owner, repo, branchName!, commit.sha)
 
-    const pr = await this.githubRequest.createPullRequest(
-      octokitToken,
-      owner,
-      repo,
-      prTitle,
-      branchName,
-      baseBranch,
-      description
-    )
+      const pr = await this.githubRequest.createPullRequest(
+        octokitToken,
+        owner,
+        repo,
+        prTitle,
+        branchName!,
+        baseBranch,
+        description
+      )
 
-    const toast = successToast('Published successfully', pr.html_url, 'View Pull Request')
-    return this.html(toast.response)
+      const toast = successToast('Published successfully', pr.html_url, 'View Pull Request')
+      return this.html(toast.response)
+    } else {
+      await this.githubRequest.updateBranch(octokitToken, owner, repo, baseBranch, commit.sha)
+      const toast = successToast(
+        `Published successfully`,
+        `https://github.com/${owner}/${repo}/tree/${baseBranch}`,
+        'View branch'
+      )
+      return this.html(toast.response)
+    }
   }
 }

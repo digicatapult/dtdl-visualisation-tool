@@ -6,7 +6,7 @@ import { container, inject, singleton } from 'tsyringe'
 import { z } from 'zod'
 
 import { Env } from '../env/index.js'
-import { GithubNotFound, GithubReqError } from '../errors.js'
+import { GithubNotFound, GithubReqError, GithubStateError } from '../errors.js'
 import { Logger, type ILogger } from '../logger.js'
 import { OAuthToken, ViewAndEditPermission, viewAndEditPermissions } from '../models/github.js'
 import { Cache, type ICache } from './cache.js'
@@ -245,6 +245,22 @@ export class GithubRequest {
     }
   }
 
+  updateBranch = async (token: string, owner: string, repo: string, branch: string, sha: string) => {
+    if (!token) throw new GithubReqError('Missing GitHub token')
+
+    const octokit = new Octokit({ auth: token })
+    const response = await this.requestWrapper(async () =>
+      octokit.request('PATCH /repos/{owner}/{repo}/git/refs/{ref}', {
+        owner,
+        repo,
+        ref: `heads/${branch}`,
+        sha,
+        force: false,
+      })
+    )
+    return response.data
+  }
+
   createBranch = async (token: string, owner: string, repo: string, branch: string, sha: string) => {
     if (!token) throw new GithubReqError('Missing GitHub token')
 
@@ -350,8 +366,13 @@ export class GithubRequest {
     } catch (err) {
       this.logger.debug(err, 'GitHub API request failed')
 
-      if (err instanceof RequestError && err.status === 404) {
-        throw new GithubNotFound(`'${err.response?.url}' not found`)
+      if (err instanceof RequestError) {
+        if (err.status === 404) {
+          throw new GithubNotFound(`'${err.response?.url}' not found`)
+        }
+        if (err.status === 409 || err.status === 422) {
+          throw new GithubStateError('GitHub repository state conflict. Please refresh and try again.')
+        }
       }
 
       throw new GithubReqError('GitHub API request failed')

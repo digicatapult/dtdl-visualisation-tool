@@ -1099,7 +1099,7 @@ export default class MermaidTemplates {
     )
   }
 
-  public publishDialog = ({ ontologyId }: { ontologyId?: UUID } = {}) => {
+  public publishDialog = ({ ontologyId, baseBranch }: { ontologyId?: UUID; baseBranch?: string } = {}) => {
     const defaultBranchName = `ontology-update-${Date.now()}`
 
     return (
@@ -1131,12 +1131,29 @@ export default class MermaidTemplates {
             </textarea>
             <div class="radio-group">
               <label>
-                <input class="circle-radio" type="radio" name="publishType" value="newBranch" checked />
+                <input
+                  class="circle-radio"
+                  type="radio"
+                  name="publishType"
+                  value="newBranch"
+                  checked
+                  onchange="document.getElementById('branchNameInput').disabled = false; document.getElementById('branchNameInput').required = true;"
+                />
                 Create a new branch for this commit and start a pull request
+              </label>
+              <label>
+                <input
+                  class="circle-radio"
+                  type="radio"
+                  name="publishType"
+                  value="currentBranch"
+                  onchange="document.getElementById('branchNameInput').disabled = true; document.getElementById('branchNameInput').required = false;"
+                />
+                Commit directly to <i>{escapeHtml(baseBranch ?? '')}</i> branch
               </label>
             </div>
 
-            <input type="text" name="branchName" value={defaultBranchName} required />
+            <input type="text" id="branchNameInput" name="branchName" value={defaultBranchName} required />
             <button type="submit" class="rounded-button">
               Publish Changes
             </button>

@@ -44,6 +44,7 @@ const createBlobStub = sinon.stub()
 const createTreeStub = sinon.stub()
 const createCommitStub = sinon.stub()
 const createPullRequestStub = sinon.stub()
+const updateBranchStub = sinon.stub()
 
 const mockGithubRequest = {
   getBranch: getBranchStub,
@@ -52,6 +53,7 @@ const mockGithubRequest = {
   createTree: createTreeStub,
   createCommit: createCommitStub,
   createPullRequest: createPullRequestStub,
+  updateBranch: updateBranchStub,
 } as unknown as GithubRequest
 
 const publishDialogStub = sinon.stub().returns('publishDialog_html')
@@ -71,6 +73,7 @@ describe('PublishController', () => {
     createTreeStub.reset()
     createCommitStub.reset()
     createPullRequestStub.reset()
+    updateBranchStub.reset()
     getModelByIdStub.reset()
     getDtdlFilesStub.reset()
   })
@@ -87,7 +90,7 @@ describe('PublishController', () => {
     it('should throw error if missing GitHub token', async () => {
       const req = mockReqWithCookie({})
       await expect(
-        controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, mockBranchName)
+        controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, 'newBranch', mockBranchName)
       ).to.be.rejectedWith(GithubReqError, 'Missing GitHub token')
     })
 
@@ -101,7 +104,7 @@ describe('PublishController', () => {
       })
 
       await expect(
-        controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, mockBranchName)
+        controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, 'newBranch', mockBranchName)
       ).to.be.rejectedWith(DataError, 'Ontology is not from GitHub or missing base branch information')
     })
 
@@ -116,7 +119,7 @@ describe('PublishController', () => {
       getBranchStub.resolves(null)
 
       await expect(
-        controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, mockBranchName)
+        controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, 'newBranch', mockBranchName)
       ).to.be.rejectedWith(DataError, `Base branch ${mockBaseBranch} not found`)
     })
 
@@ -135,7 +138,7 @@ describe('PublishController', () => {
         .resolves({ object: { sha: 'existingSha' } })
 
       await expect(
-        controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, mockBranchName)
+        controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, 'newBranch', mockBranchName)
       ).to.be.rejectedWith(DataError, `Branch with name ${mockBranchName} already exists`)
     })
 
@@ -158,7 +161,14 @@ describe('PublishController', () => {
       createBranchStub.resolves()
       createPullRequestStub.resolves({ html_url: mockPrUrl })
 
-      const result = await controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, mockBranchName)
+      const result = await controller.publish(
+        req,
+        mockOntologyId,
+        mockPrTitle,
+        mockDescription,
+        'newBranch',
+        mockBranchName
+      )
 
       const html = await toHTMLString(result)
       expect(html).to.contain('Published successfully')
@@ -184,6 +194,34 @@ describe('PublishController', () => {
         mockBranchName,
         mockBaseBranch,
         mockDescription,
+      ])
+    })
+
+    it('should publish to current branch successfully', async () => {
+      const req = mockReqWithCookie(cookie)
+      getModelByIdStub.resolves({
+        owner: mockOwner,
+        repo: mockRepo,
+        base_branch: mockBaseBranch,
+      })
+      getDtdlFilesStub.resolves(mockFiles)
+      getBranchStub.resolves({ object: { sha: 'baseSha' } })
+      createBlobStub.resolves({ sha: 'blobSha' })
+      createTreeStub.resolves({ sha: mockTreeSha })
+      createCommitStub.resolves({ sha: mockCommitSha })
+      updateBranchStub.resolves()
+
+      const result = await controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, 'currentBranch')
+
+      const html = await toHTMLString(result)
+      expect(html).to.contain(`Published successfully to '${mockBaseBranch}'`)
+
+      expect(updateBranchStub.firstCall.args).to.deep.equal([
+        mockToken,
+        mockOwner,
+        mockRepo,
+        mockBaseBranch,
+        mockCommitSha,
       ])
     })
   })
