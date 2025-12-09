@@ -169,7 +169,7 @@ a.authorise-link:hover {
 #publish-dialog button[type="submit"] {
   background-color: var(--active-button-color);
   color: white;
-  margin: 0;
+  margin: 1rem 0 0 0;
   justify-self: start;
   padding: 0.5rem 2rem;
 }
