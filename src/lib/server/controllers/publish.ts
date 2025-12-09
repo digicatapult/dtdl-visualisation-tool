@@ -3,7 +3,7 @@ import express from 'express'
 import * as prettier from 'prettier'
 import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../db/modelDb.js'
-import { InternalError } from '../errors.js'
+import { DataError, GithubReqError } from '../errors.js'
 import { octokitTokenCookie } from '../models/cookieNames.js'
 import { GithubRequest } from '../utils/githubRequest.js'
 import MermaidTemplates from '../views/components/mermaid.js'
@@ -40,24 +40,24 @@ export class PublishController extends HTMLController {
   ): Promise<HTML> {
     const octokitToken = req.signedCookies[octokitTokenCookie]
     if (!octokitToken) {
-      throw new InternalError('Missing GitHub token')
+      throw new GithubReqError('Missing GitHub token')
     }
 
     const { owner, repo, base_branch } = await this.modelDb.getModelById(ontologyId)
     if (!owner || !repo || !base_branch) {
-      throw new InternalError('Ontology is not from GitHub or missing base branch information')
+      throw new DataError('Ontology is not from GitHub or missing base branch information')
     }
 
     const files = await this.modelDb.getDtdlFiles(ontologyId)
 
     const baseBranchData = await this.githubRequest.getBranch(octokitToken, owner, repo, base_branch)
     if (!baseBranchData) {
-      throw new InternalError(`Base branch ${base_branch} not found`)
+      throw new DataError(`Base branch ${base_branch} not found`)
     }
 
     const existingRemoteBranch = await this.githubRequest.getBranch(octokitToken, owner, repo, branchName)
     if (existingRemoteBranch) {
-      throw new InternalError(`Branch with name ${branchName} already exists`)
+      throw new DataError(`Branch with name ${branchName} already exists`)
     }
 
     const blobs = await Promise.all(

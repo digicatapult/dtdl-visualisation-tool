@@ -1129,7 +1129,6 @@ export default class MermaidTemplates {
             <textarea id="description" name="description" rows="4" required>
               This PR was automatically created by the DTDL visualisation tool.
             </textarea>
-
             <div class="radio-group">
               <label>
                 <input class="circle-radio" type="radio" name="publishType" value="newBranch" checked />
@@ -1143,9 +1142,9 @@ export default class MermaidTemplates {
             </button>
             <div id="spin" class="spinner" />
           </div>
-          <form method="dialog">
-            <button class="modal-button" />
-          </form>
+        </form>
+        <form method="dialog">
+          <button class="modal-button" />
         </form>
       </dialog>
     )

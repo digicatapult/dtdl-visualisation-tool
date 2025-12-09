@@ -274,14 +274,14 @@ describe('entity updates', function () {
   })
 
   describe('key order retention', function () {
-    test('updateContentsValue retains key order', () => {
+    test('updateContentsValue preserves key order', () => {
       const input = { z_first: 1, ...baseFile({}), a_last: 2 }
       const result = updatePropertyDisplayName('new', propertyName)(input as DtdlInterface)
       expect(Object.keys(result)[0]).to.equal('z_first')
       expect(Object.keys(result).pop()).to.equal('a_last')
     })
 
-    test('updateCommandRequestResponseValue retains key order', () => {
+    test('updateCommandRequestResponseValue preserves key order', () => {
       const commandName = 'myCmd'
       const input = {
         z_first: 1,
@@ -296,7 +296,7 @@ describe('entity updates', function () {
       expect(Object.keys(result).pop()).to.equal('a_last')
     })
 
-    test('deleteContent retains key order', () => {
+    test('deleteContent preserves key order', () => {
       const input = { z_first: 1, ...baseFile({}), a_last: 2 }
       const result = deleteContent(propertyName)(input as DtdlInterface)
       expect(Object.keys(result)[0]).to.equal('z_first')

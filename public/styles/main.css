@@ -906,7 +906,7 @@ label[for='diagram-type-select'] {
   transform: scale(1);
 }
 .circle-radio:checked {
-  border-color: #555
+  border-color: #555;
 }
 
 #share-link-modal input[type='text'] {

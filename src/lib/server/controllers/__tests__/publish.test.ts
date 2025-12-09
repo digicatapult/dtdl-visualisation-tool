@@ -4,7 +4,7 @@ import { beforeEach, describe, it } from 'mocha'
 import sinon from 'sinon'
 
 import { ModelDb } from '../../../db/modelDb.js'
-import { InternalError } from '../../errors.js'
+import { DataError, GithubReqError } from '../../errors.js'
 import { octokitTokenCookie } from '../../models/cookieNames.js'
 import { GithubRequest } from '../../utils/githubRequest.js'
 import MermaidTemplates from '../../views/components/mermaid.js'
@@ -92,7 +92,7 @@ describe('PublishController', () => {
       const req = mockReqWithCookie({})
       await expect(
         controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, mockBranchName)
-      ).to.be.rejectedWith(InternalError, 'Missing GitHub token')
+      ).to.be.rejectedWith(GithubReqError, 'Missing GitHub token')
     })
 
     it('should throw error if ontology is missing GitHub metadata', async () => {
@@ -106,7 +106,7 @@ describe('PublishController', () => {
 
       await expect(
         controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, mockBranchName)
-      ).to.be.rejectedWith(InternalError, 'Ontology is not from GitHub or missing base branch information')
+      ).to.be.rejectedWith(DataError, 'Ontology is not from GitHub or missing base branch information')
     })
 
     it('should throw error if base branch not found', async () => {
@@ -121,7 +121,7 @@ describe('PublishController', () => {
 
       await expect(
         controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, mockBranchName)
-      ).to.be.rejectedWith(InternalError, `Base branch ${mockBaseBranch} not found`)
+      ).to.be.rejectedWith(DataError, `Base branch ${mockBaseBranch} not found`)
     })
 
     it('should throw error if branch already exists', async () => {
@@ -140,7 +140,7 @@ describe('PublishController', () => {
 
       await expect(
         controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, mockBranchName)
-      ).to.be.rejectedWith(InternalError, `Branch with name ${mockBranchName} already exists`)
+      ).to.be.rejectedWith(DataError, `Branch with name ${mockBranchName} already exists`)
     })
 
     it('should publish successfully', async () => {

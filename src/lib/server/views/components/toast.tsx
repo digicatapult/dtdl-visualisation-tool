@@ -15,8 +15,8 @@ export function successToast(title: string, link?: string, linkText?: string) {
             <div class="toast-detail">
               {showLink && (
                 <p>
-                  <a href={link} class="authorise-link" target="_blank">
-                    {escapeHtml(linkText)} ↗
+                  <a href={link} class="authorise-link" target="_blank" rel="noopener">
+                    {escapeHtml(linkText ?? '')} ↗
                   </a>
                 </p>
               )}

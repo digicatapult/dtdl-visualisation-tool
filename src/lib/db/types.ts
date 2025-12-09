@@ -5,7 +5,9 @@ import { fileSource } from '../server/models/openTypes.js'
 
 export const DEFAULT_DB_STRING_LENGTH = 255
 export const tablesList = ['model', 'dtdl', 'dtdl_error'] as const
-export const retainKeyOrder = <Schema extends z.ZodObject<z.ZodRawShape>>(
+
+// preserve key order to minimise diff churn in DTDL
+export const preserveKeyOrder = <Schema extends z.ZodObject<z.ZodRawShape>>(
   schema: Schema
 ): z.ZodType<z.infer<Schema>> => {
   return z.custom<z.infer<Schema>>((value) => schema.safeParse(value).success)
@@ -21,7 +23,7 @@ const insertModel = z.object({
 })
 
 export const dtdlInterfaceBase = z.looseObject({ '@id': z.string(), '@type': z.literal('Interface') })
-export const dtdlInterfaceSchema = retainKeyOrder(dtdlInterfaceBase)
+export const dtdlInterfaceSchema = preserveKeyOrder(dtdlInterfaceBase)
 
 export type DtdlInterface = z.infer<typeof dtdlInterfaceSchema>
 export const dtdlSource = z.union([dtdlInterfaceSchema, z.array(dtdlInterfaceSchema)])
