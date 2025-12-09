@@ -8,6 +8,7 @@ import {
   Produces,
   Put,
   Queries,
+  Query,
   Request,
   Route,
   SuccessResponse,
