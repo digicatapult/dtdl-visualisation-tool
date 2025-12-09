@@ -1,6 +1,5 @@
 import { expect } from 'chai'
 import { afterEach, describe, it } from 'mocha'
-import React from 'react'
 import sinon from 'sinon'
 import { container } from 'tsyringe'
 import { Env } from '../../../env/index.js'
@@ -67,8 +66,9 @@ describe('PostHogScript', () => {
       },
     }
 
-    const result = PostHogScript({ req: mockReq as unknown as React.ComponentProps<typeof PostHogScript>['req'] })
-    expect(result).to.contain("bootstrap:{distinctID:'test-distinct-id-123'}")
+    type PostHogScriptProps = Parameters<typeof PostHogScript>[0]
+    const result = PostHogScript({ req: mockReq as unknown as PostHogScriptProps['req'] })
+    expect(result).to.contain('bootstrap:{distinctID:"test-distinct-id-123"}')
   })
 
   it('should not include bootstrap when posthog_id cookie is missing', () => {
@@ -82,7 +82,8 @@ describe('PostHogScript', () => {
       signedCookies: {},
     }
 
-    const result = PostHogScript({ req: mockReq as unknown as React.ComponentProps<typeof PostHogScript>['req'] })
+    type PostHogScriptProps = Parameters<typeof PostHogScript>[0]
+    const result = PostHogScript({ req: mockReq as unknown as PostHogScriptProps['req'] })
     expect(result).to.not.contain('bootstrap')
   })
 })

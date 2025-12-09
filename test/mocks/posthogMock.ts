@@ -9,6 +9,7 @@ import express, { Express, Request, Response } from 'express'
 import { Server } from 'http'
 
 import { logger as pinoLogger } from '../../src/lib/server/logger.js'
+import { POSTHOG_MOCK_PORT } from '../constants.js'
 
 const logger = pinoLogger.child({ component: 'posthog-mock' })
 
@@ -129,8 +130,6 @@ const createMockServer = (): Express => {
 
   return app
 }
-
-import { POSTHOG_MOCK_PORT } from '../constants.js'
 
 export const startMockPostHogServer = (port = POSTHOG_MOCK_PORT): Promise<Server> => {
   return new Promise((resolve, reject) => {

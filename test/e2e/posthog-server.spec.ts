@@ -67,7 +67,9 @@ test.describe('PostHog Server-Side Events', () => {
       )
 
       expect(searchEvent).toBeDefined()
-      expect(searchEvent.properties.searchTerm).toBe('Terminal')
+      if (searchEvent) {
+        expect(searchEvent.properties.searchTerm).toBe('Terminal')
+      }
     }
   })
 

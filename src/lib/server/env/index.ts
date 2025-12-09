@@ -4,9 +4,9 @@ import { singleton } from 'tsyringe'
 import { optionalStrValidator, strArrayValidator } from './validators.js'
 
 // Load environment variables
-// For tests: load test.env first, then .env
+// For tests: load test.env first, then .env overrides any conflicting values
 // For production: just load .env
-// Note: dotenv.config() doesn't overwrite existing values by default
+// Note: The second dotenv.config() uses override: true to allow .env to override test.env
 if (process.env.NODE_ENV === 'test') {
   dotenv.config({ path: 'test/test.env' })
   dotenv.config({ override: true })
