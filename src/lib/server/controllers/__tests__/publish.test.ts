@@ -22,7 +22,6 @@ const mockBranchName = 'feat/new-branch'
 const mockPrTitle = 'pr title'
 const mockDescription = 'Description of changes'
 const mockToken = 'token'
-const mockSha = 'sha'
 const mockTreeSha = 'treeSha'
 const mockCommitSha = 'commitSha'
 const mockPrUrl = 'http://github.com/pr'
@@ -131,7 +130,7 @@ describe('PublishController', () => {
       getDtdlFilesStub.resolves(mockFiles)
       getBranchStub
         .onFirstCall()
-        .resolves({ object: { sha: mockSha } })
+        .resolves({ object: { sha: 'baseSha' } })
         .onSecondCall()
         .resolves({ object: { sha: 'existingSha' } })
 
@@ -150,7 +149,7 @@ describe('PublishController', () => {
       getDtdlFilesStub.resolves(mockFiles)
       getBranchStub
         .onFirstCall()
-        .resolves({ object: { sha: mockSha } }) // base branch
+        .resolves({ object: { sha: 'baseSha' } })
         .onSecondCall()
         .resolves(null) // new branch does not exist
       createBlobStub.resolves({ sha: 'blobSha' })
@@ -165,7 +164,13 @@ describe('PublishController', () => {
       expect(html).to.contain('Published successfully')
       expect(html).to.contain(mockPrUrl)
 
-      expect(createBranchStub.firstCall.args).to.deep.equal([mockToken, mockOwner, mockRepo, mockBranchName, mockSha])
+      expect(createBranchStub.firstCall.args).to.deep.equal([
+        mockToken,
+        mockOwner,
+        mockRepo,
+        mockBranchName,
+        mockCommitSha,
+      ])
 
       expect(createBlobStub.callCount).to.equal(mockFiles.length)
       expect(createTreeStub.callCount).to.equal(1)
