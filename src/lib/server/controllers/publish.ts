@@ -11,6 +11,7 @@ import { successToast } from '../views/components/toast.js'
 import { HTML, HTMLController } from './HTMLController.js'
 import { checkEditPermission } from './helpers.js'
 
+const DEFAULT_COMMIT_MESSAGE = 'Update ontology files from DTDL visualisation tool'
 @injectable()
 @Route('/publish')
 export class PublishController extends HTMLController {
@@ -43,16 +44,16 @@ export class PublishController extends HTMLController {
       throw new GithubReqError('Missing GitHub token')
     }
 
-    const { owner, repo, base_branch } = await this.modelDb.getModelById(ontologyId)
-    if (!owner || !repo || !base_branch) {
+    const { owner, repo, base_branch: baseBranch } = await this.modelDb.getModelById(ontologyId)
+    if (!owner || !repo || !baseBranch) {
       throw new DataError('Ontology is not from GitHub or missing base branch information')
     }
 
     const files = await this.modelDb.getDtdlFiles(ontologyId)
 
-    const baseBranchData = await this.githubRequest.getBranch(octokitToken, owner, repo, base_branch)
+    const baseBranchData = await this.githubRequest.getBranch(octokitToken, owner, repo, baseBranch)
     if (!baseBranchData) {
-      throw new DataError(`Base branch ${base_branch} not found`)
+      throw new DataError(`Base branch ${baseBranch} not found`)
     }
 
     const existingRemoteBranch = await this.githubRequest.getBranch(octokitToken, owner, repo, branchName)
@@ -75,17 +76,11 @@ export class PublishController extends HTMLController {
 
     const tree = await this.githubRequest.createTree(octokitToken, owner, repo, baseBranchData.object.sha, blobs)
 
-    const commit = await this.githubRequest.createCommit(
-      octokitToken,
-      owner,
-      repo,
-      'Update ontology files from DTDL visualisation tool',
-      tree.sha,
-      [baseBranchData.object.sha]
-    )
+    const commit = await this.githubRequest.createCommit(octokitToken, owner, repo, DEFAULT_COMMIT_MESSAGE, tree.sha, [
+      baseBranchData.object.sha,
+    ])
 
-    await this.githubRequest.createBranch(octokitToken, owner, repo, branchName, baseBranchData.object.sha)
-    await this.githubRequest.updateRef(octokitToken, owner, repo, `heads/${branchName}`, commit.sha)
+    await this.githubRequest.createBranch(octokitToken, owner, repo, branchName, commit.sha)
 
     const pr = await this.githubRequest.createPullRequest(
       octokitToken,
@@ -93,7 +88,7 @@ export class PublishController extends HTMLController {
       repo,
       prTitle,
       branchName,
-      base_branch,
+      baseBranch,
       description
     )
 

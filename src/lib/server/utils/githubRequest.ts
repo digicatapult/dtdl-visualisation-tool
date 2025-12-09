@@ -319,21 +319,6 @@ export class GithubRequest {
     return response.data
   }
 
-  updateRef = async (token: string, owner: string, repo: string, ref: string, sha: string) => {
-    if (!token) throw new GithubReqError('Missing GitHub token')
-
-    const octokit = new Octokit({ auth: token })
-    const response = await this.requestWrapper(async () =>
-      octokit.request('PATCH /repos/{owner}/{repo}/git/refs/{ref}', {
-        owner,
-        repo,
-        ref,
-        sha,
-      })
-    )
-    return response.data
-  }
-
   createPullRequest = async (
     token: string,
     owner: string,

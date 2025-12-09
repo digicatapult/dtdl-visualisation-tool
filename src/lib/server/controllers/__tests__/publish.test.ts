@@ -44,7 +44,6 @@ const createBranchStub = sinon.stub()
 const createBlobStub = sinon.stub()
 const createTreeStub = sinon.stub()
 const createCommitStub = sinon.stub()
-const updateRefStub = sinon.stub()
 const createPullRequestStub = sinon.stub()
 
 const mockGithubRequest = {
@@ -53,7 +52,6 @@ const mockGithubRequest = {
   createBlob: createBlobStub,
   createTree: createTreeStub,
   createCommit: createCommitStub,
-  updateRef: updateRefStub,
   createPullRequest: createPullRequestStub,
 } as unknown as GithubRequest
 
@@ -73,7 +71,6 @@ describe('PublishController', () => {
     createBlobStub.reset()
     createTreeStub.reset()
     createCommitStub.reset()
-    updateRefStub.reset()
     createPullRequestStub.reset()
     getModelByIdStub.reset()
     getDtdlFilesStub.reset()
@@ -160,7 +157,6 @@ describe('PublishController', () => {
       createTreeStub.resolves({ sha: mockTreeSha })
       createCommitStub.resolves({ sha: mockCommitSha })
       createBranchStub.resolves()
-      updateRefStub.resolves()
       createPullRequestStub.resolves({ html_url: mockPrUrl })
 
       const result = await controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, mockBranchName)
@@ -174,7 +170,6 @@ describe('PublishController', () => {
       expect(createBlobStub.callCount).to.equal(mockFiles.length)
       expect(createTreeStub.callCount).to.equal(1)
       expect(createCommitStub.callCount).to.equal(1)
-      expect(updateRefStub.callCount).to.equal(1)
 
       expect(createPullRequestStub.firstCall.args).to.deep.equal([
         mockToken,
