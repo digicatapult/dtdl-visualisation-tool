@@ -88,7 +88,7 @@ describe('PublishController', () => {
     it('should throw error if missing GitHub token', async () => {
       const req = mockReqWithCookie({})
       await expect(
-        controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, mockBranchName)
+        controller.publish(req, mockOntologyId, mockCommitMessage, mockPrTitle, mockDescription, mockBranchName)
       ).to.be.rejectedWith(GithubReqError, 'Missing GitHub token')
     })
 
