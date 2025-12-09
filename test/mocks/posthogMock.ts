@@ -20,7 +20,7 @@ interface CapturedEvent {
   apiKey?: string
 }
 
-let capturedEvents: CapturedEvent[] = []
+const capturedEvents: CapturedEvent[] = []
 let server: Server | null = null
 
 /**
@@ -118,7 +118,7 @@ const createMockServer = (): Express => {
 
   // Test API: clear all events
   app.post('/test/events/clear', (_req: Request, res: Response) => {
-    capturedEvents = []
+    capturedEvents.length = 0
     res.json({ cleared: true, count: 0 })
   })
 
@@ -130,7 +130,9 @@ const createMockServer = (): Express => {
   return app
 }
 
-export const startMockPostHogServer = (port = 3333): Promise<Server> => {
+import { POSTHOG_MOCK_PORT } from '../constants.js'
+
+export const startMockPostHogServer = (port = POSTHOG_MOCK_PORT): Promise<Server> => {
   return new Promise((resolve, reject) => {
     const app = createMockServer()
     server = app.listen(port, () => {
@@ -146,7 +148,7 @@ export const stopMockPostHogServer = (): Promise<void> => {
     if (server) {
       server.close(() => {
         server = null
-        capturedEvents = []
+        capturedEvents.length = 0
         resolve()
       })
     } else {
@@ -160,7 +162,7 @@ export const getCapturedEvents = (): CapturedEvent[] => {
 }
 
 export const clearCapturedEvents = (): void => {
-  capturedEvents = []
+  capturedEvents.length = 0
 }
 
 export const getEventsByName = (eventName: string): CapturedEvent[] => {

@@ -23,7 +23,7 @@ test.describe('PostHog Client-Side Integration', () => {
     await page.goto('/')
 
     // Wait for page to load
-    await page.waitForTimeout(1000)
+    await page.waitForLoadState('networkidle')
 
     // Check that PostHog script is present in the page
     const hasPosthogScript = await page.evaluate(() => {
@@ -38,7 +38,7 @@ test.describe('PostHog Client-Side Integration', () => {
 
   test('should have PostHog initialization code', async ({ page }) => {
     await page.goto('/')
-    await page.waitForTimeout(1000)
+    await page.waitForLoadState('networkidle')
 
     // Check that posthog.init was called by looking for posthog in window
     // Note: may be undefined if host.docker.internal is unreachable from browser

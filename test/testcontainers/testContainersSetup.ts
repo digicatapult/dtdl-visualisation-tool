@@ -100,7 +100,11 @@ export async function startVisualisationContainer(
       COOKIE_SESSION_KEYS: cookieSessionKeys,
       EDIT_ONTOLOGY: 'true',
       MAX_DTDL_OBJECT_SIZE: maxOntologySize ? maxOntologySize.toString() : '1000',
-      // PostHog config - use mock server if POSTHOG_MOCK_PORT is set
+      // PostHog configuration for E2E tests
+      // When POSTHOG_MOCK_PORT is set (via globalSetup), the container is configured
+      // to send analytics events to our mock PostHog server at host.docker.internal
+      // instead of the real PostHog service. This allows E2E tests to verify that
+      // analytics events are being tracked correctly without sending data externally.
       POSTHOG_ENABLED: process.env.POSTHOG_MOCK_PORT ? 'true' : process.env.POSTHOG_ENABLED || 'false',
       NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY || 'phc_test_key',
       NEXT_PUBLIC_POSTHOG_HOST: process.env.POSTHOG_MOCK_PORT

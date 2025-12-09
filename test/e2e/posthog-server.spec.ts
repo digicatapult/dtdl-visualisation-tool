@@ -5,12 +5,13 @@
  * by triggering actions and checking the mock server's captured events.
  *
  * NOTE: These tests run in chromium only and verify server-side tracking
- * via the mock PostHog server running on localhost:3333.
+ * via the mock PostHog server.
  */
 
 import { expect, test } from '@playwright/test'
+import { POSTHOG_MOCK_PORT } from '../constants.js'
 
-const POSTHOG_MOCK_URL = `http://localhost:3333`
+const POSTHOG_MOCK_URL = `http://localhost:${POSTHOG_MOCK_PORT}`
 
 test.describe('PostHog Server-Side Events', () => {
   test('should have captured events from container startup and other tests', async () => {
@@ -46,7 +47,11 @@ test.describe('PostHog Server-Side Events', () => {
       await searchInput.press('Enter')
 
       // Wait for search to process and event to flush
-      await page.waitForTimeout(3000)
+      await page
+        .waitForResponse((response) => response.url().includes('/test/events') || response.url().includes('/batch'), {
+          timeout: 5000,
+        })
+        .catch(() => {}) // Event may have already been sent
 
       // Query mock server for new events
       const response = await fetch(`${POSTHOG_MOCK_URL}/test/events`)

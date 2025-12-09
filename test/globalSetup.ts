@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import { TOTP } from 'otpauth'
 import 'reflect-metadata'
 import { GenericContainer, StartedTestContainer } from 'testcontainers'
+import { POSTHOG_MOCK_PORT } from './constants.js'
 import { waitForSuccessResponse } from './e2e/helpers/waitForHelpers.js'
 import { startMockPostHogServer } from './mocks/posthogMock.js'
 import {
@@ -39,8 +40,6 @@ export let visualisationUIContainer2: StartedTestContainer
 export let postgresContainer: StartedTestContainer
 export let visualisationImage: GenericContainer
 export let posthogMockServer: Server | null = null
-
-const POSTHOG_MOCK_PORT = 3333
 
 async function globalSetup(config: FullConfig) {
   // Start PostHog mock server before containers

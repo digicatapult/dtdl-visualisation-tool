@@ -3,6 +3,9 @@
  * Handles user identification when GitHub authentication occurs
  */
 
+// PostHog initialization delay in milliseconds
+const POSTHOG_INIT_DELAY_MS = 1000
+
 /**
  * Check if PostHog is loaded and ready
  */
@@ -81,10 +84,10 @@ function setupPostHogEventTracking() {
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function () {
     // Wait for PostHog to load
-    setTimeout(setupPostHogEventTracking, 1000)
+    setTimeout(setupPostHogEventTracking, POSTHOG_INIT_DELAY_MS)
   })
 } else {
-  setTimeout(setupPostHogEventTracking, 1000)
+  setTimeout(setupPostHogEventTracking, POSTHOG_INIT_DELAY_MS)
 }
 
 // Export for use in other scripts

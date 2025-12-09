@@ -84,19 +84,23 @@ export default async (): Promise<Express> => {
     const code = err instanceof HttpError ? err.code : 500
     const toast = errorToast(err)
 
-    // Track error in PostHog
+    // Track error in PostHog asynchronously without blocking response
     const postHog = container.resolve(PostHogService)
     const octokitToken = req.signedCookies[octokitTokenCookie]
     const posthogId = req.signedCookies[posthogIdCookie]
 
     if (posthogId) {
-      postHog.trackError(octokitToken, posthogId, {
-        message: err instanceof Error ? err.message : 'Unknown error',
-        stack: err instanceof Error ? err.stack : undefined,
-        code: code,
-        path: req.path,
-        method: req.method,
-      })
+      postHog
+        .trackError(octokitToken, posthogId, {
+          message: err instanceof Error ? err.message : 'Unknown error',
+          stack: err instanceof Error ? err.stack : undefined,
+          code: code,
+          path: req.path,
+          method: req.method,
+        })
+        .catch((trackingErr) => {
+          req.log.debug({ trackingErr }, 'Failed to track error in PostHog')
+        })
     }
 
     res.setHeader('HX-Reswap', 'innerHTML')
