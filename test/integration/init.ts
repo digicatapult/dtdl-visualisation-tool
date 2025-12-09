@@ -16,7 +16,7 @@ before(async function () {
   // Disable PostHog for integration tests
   process.env.POSTHOG_ENABLED = 'false'
   delete process.env.POSTHOG_MOCK_PORT
-  
+
   postgresContainer = await bringUpDatabaseContainer()
   visualisationImage = await buildVisualisationImage()
   visualisationUIContainer = await startVisualisationContainer(
