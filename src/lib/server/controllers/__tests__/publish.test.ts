@@ -19,6 +19,7 @@ const mockOwner = 'owner'
 const mockRepo = 'repo'
 const mockBaseBranch = 'main'
 const mockBranchName = 'feat/new-branch'
+const mockCommitMessage = 'Commit message'
 const mockPrTitle = 'pr title'
 const mockDescription = 'Description of changes'
 const mockToken = 'token'
@@ -101,7 +102,7 @@ describe('PublishController', () => {
       })
 
       await expect(
-        controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, mockBranchName)
+        controller.publish(req, mockOntologyId, mockCommitMessage, mockPrTitle, mockDescription, mockBranchName)
       ).to.be.rejectedWith(DataError, 'Ontology is not from GitHub or missing base branch information')
     })
 
@@ -116,7 +117,7 @@ describe('PublishController', () => {
       getBranchStub.resolves(null)
 
       await expect(
-        controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, mockBranchName)
+        controller.publish(req, mockOntologyId, mockCommitMessage, mockPrTitle, mockDescription, mockBranchName)
       ).to.be.rejectedWith(DataError, `Base branch ${mockBaseBranch} not found`)
     })
 
@@ -135,7 +136,7 @@ describe('PublishController', () => {
         .resolves({ object: { sha: 'existingSha' } })
 
       await expect(
-        controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, mockBranchName)
+        controller.publish(req, mockOntologyId, mockCommitMessage, mockPrTitle, mockDescription, mockBranchName)
       ).to.be.rejectedWith(DataError, `Branch with name ${mockBranchName} already exists`)
     })
 
@@ -158,7 +159,14 @@ describe('PublishController', () => {
       createBranchStub.resolves()
       createPullRequestStub.resolves({ html_url: mockPrUrl })
 
-      const result = await controller.publish(req, mockOntologyId, mockPrTitle, mockDescription, mockBranchName)
+      const result = await controller.publish(
+        req,
+        mockOntologyId,
+        mockCommitMessage,
+        mockPrTitle,
+        mockDescription,
+        mockBranchName
+      )
 
       const html = await toHTMLString(result)
       expect(html).to.contain('Published successfully')

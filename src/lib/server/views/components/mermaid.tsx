@@ -1106,7 +1106,7 @@ export default class MermaidTemplates {
       <dialog id="publish-dialog">
         <form
           hx-post="/publish"
-          hx-target="#toast-container"
+          hx-target=".toast-wrapper:empty"
           hx-swap="beforeend"
           hx-vals={JSON.stringify({
             ontologyId,
@@ -1116,6 +1116,8 @@ export default class MermaidTemplates {
         >
           <div class="modal-content">
             <h3>Publish Changes</h3>
+            <label for="commitMessage">Commit message</label>
+            <input type="text" id="commitMessage" name="commitMessage" value="Update DTDL" required />
             <label for="prTitle">Pull Request title</label>
             <input
               type="text"
@@ -1124,7 +1126,6 @@ export default class MermaidTemplates {
               value="Update ontology files from DTDL visualisation tool"
               required
             />
-
             <label for="description">Extended description</label>
             <textarea id="description" name="description" rows="4" required>
               This PR was automatically created by the DTDL visualisation tool.
@@ -1136,7 +1137,13 @@ export default class MermaidTemplates {
               </label>
             </div>
 
-            <input type="text" name="branchName" value={defaultBranchName} required />
+            <input
+              type="text"
+              name="branchName"
+              value={defaultBranchName}
+              oninput="globalThis.validateBranchName(this)"
+              required
+            />
             <button type="submit" class="rounded-button">
               Publish Changes
             </button>
