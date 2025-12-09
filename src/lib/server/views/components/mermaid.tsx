@@ -52,6 +52,7 @@ export default class MermaidTemplates {
     svgWidth,
     svgHeight,
     canEdit,
+    ontologyId,
   }: {
     search?: string
     sessionId: UUID
@@ -59,6 +60,7 @@ export default class MermaidTemplates {
     svgWidth?: number
     svgHeight?: number
     canEdit: boolean
+    ontologyId: UUID
   }) => (
     <Page title={'UKDTC'}>
       <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
@@ -66,7 +68,7 @@ export default class MermaidTemplates {
         <this.searchPanel search={search} diagramType={diagramType} svgWidth={svgWidth} svgHeight={svgHeight} />
         <this.uploadForm />
         <this.shareOntology />
-        <this.publishForm canPublish={false} />
+        <this.publishForm canPublish={canEdit} ontologyId={ontologyId} />
       </section>
 
       <div id="mermaid-wrapper">
@@ -78,6 +80,7 @@ export default class MermaidTemplates {
       <this.svgControls svgRawHeight={svgHeight} svgRawWidth={svgWidth} />
       <this.editToggle canEdit={canEdit} />
       <this.deleteDialog />
+      <this.publishDialog />
     </Page>
   )
 
@@ -1096,6 +1099,64 @@ export default class MermaidTemplates {
     )
   }
 
+  public publishDialog = ({ ontologyId }: { ontologyId?: UUID } = {}) => {
+    const defaultBranchName = `ontology-update-${Date.now()}`
+
+    return (
+      <dialog id="publish-dialog">
+        <form
+          hx-post="/publish"
+          hx-target=".toast-wrapper:empty"
+          hx-swap="beforeend"
+          hx-vals={JSON.stringify({
+            ontologyId,
+          })}
+          hx-on--after-request="document.getElementById('publish-dialog').close()"
+          hx-indicator="#spin"
+        >
+          <div class="modal-content">
+            <h3>Publish Changes</h3>
+            <label for="commitMessage">Commit message</label>
+            <input type="text" id="commitMessage" name="commitMessage" value="Update DTDL" required />
+            <label for="prTitle">Pull Request title</label>
+            <input
+              type="text"
+              id="prTitle"
+              name="prTitle"
+              value="Update ontology files from DTDL visualisation tool"
+              required
+            />
+            <label for="description">Extended description</label>
+            <textarea id="description" name="description" rows="4" required>
+              This PR was automatically created by the DTDL visualisation tool.
+            </textarea>
+            <div class="radio-group">
+              <label>
+                <input class="circle-radio" type="radio" name="publishType" value="newBranch" checked />
+                Create a new branch for this commit and start a pull request
+              </label>
+            </div>
+
+            <input
+              type="text"
+              name="branchName"
+              value={defaultBranchName}
+              oninput="globalThis.validateBranchName(this)"
+              required
+            />
+            <button type="submit" class="rounded-button">
+              Publish Changes
+            </button>
+            <div id="spin" class="spinner" />
+          </div>
+        </form>
+        <form method="dialog">
+          <button class="modal-button" />
+        </form>
+      </dialog>
+    )
+  }
+
   public deleteDialog = ({
     displayName,
     entityKind,
@@ -1244,11 +1305,24 @@ export default class MermaidTemplates {
             <h3>Shareable Link</h3>
 
             <label>
-              <input type="radio" name="link-type" value="short" checked onchange="globalThis.updateShareLink()" />
+              <input
+                class="circle-radio"
+                type="radio"
+                name="link-type"
+                value="short"
+                checked
+                onchange="globalThis.updateShareLink()"
+              />
               <span>Entire ontology</span>
             </label>
             <label>
-              <input type="radio" name="link-type" value="full" onchange="globalThis.updateShareLink()" />
+              <input
+                class="circle-radio"
+                type="radio"
+                name="link-type"
+                value="full"
+                onchange="globalThis.updateShareLink()"
+              />
               <span>Current search selection of ontology</span>
             </label>
 
@@ -1273,13 +1347,17 @@ export default class MermaidTemplates {
     )
   }
 
-  private publishForm = ({ canPublish }: { canPublish: boolean }) => {
+  private publishForm = ({ canPublish, ontologyId }: { canPublish: boolean; ontologyId: UUID }) => {
     if (!env.get('EDIT_ONTOLOGY')) return <></>
     return (
-      <a
+      <button
         id="publish-ontology"
-        href={`${!canPublish ? 'javascript:void(0)' : '/publish'}`}
         class={`button ${!canPublish ? 'disabled' : ''}`}
+        disabled={!canPublish}
+        hx-get={`/publish/dialog?ontologyId=${ontologyId}`}
+        hx-target="#publish-dialog"
+        hx-swap="outerHTML"
+        hx-on--after-request="document.getElementById('publish-dialog').showModal()"
         title={
           canPublish
             ? 'Click to publish ontology'
@@ -1287,7 +1365,7 @@ export default class MermaidTemplates {
         }
       >
         Publish
-      </a>
+      </button>
     )
   }
 

@@ -1,13 +1,13 @@
-document.body.addEventListener('dtdlVisualisationError', (ev) => {
+document.body.addEventListener('toastEvent', (ev) => {
   const id = ev.detail.dialogId
   if (!id) {
     return
   }
 
   setTimeout(() => {
-    const detailsElement = document.getElementById(id)?.querySelector('details');
+    const detailsElement = document.getElementById(id)?.querySelector('details')
     if (detailsElement && detailsElement.open) {
-      return;
+      return
     }
     document.getElementById(id)?.close()
   }, 10000)
@@ -16,9 +16,8 @@ document.body.addEventListener('dtdlVisualisationError', (ev) => {
   // Child toast will otherwise remain in a translated position
   const dialog = document.getElementById(id)
   dialog.addEventListener('close', () => {
-    dialog.querySelectorAll('details[open]').forEach(detail => {
+    dialog.querySelectorAll('details[open]').forEach((detail) => {
       detail.open = false
     })
   })
-
 })

@@ -71,6 +71,12 @@ globalThis.validateDtdlValue = (e) => {
   e.reportValidity()
 }
 
+globalThis.validateBranchName = (e) => {
+  const validChars = /^[A-Za-z0-9_\/-]+$/
+  e.setCustomValidity(!validChars.test(e.value) ? 'Only letters, numbers, /, _, and - are allowed' : '')
+  e.reportValidity()
+}
+
 htmx.on('htmx:beforeSwap', (e) => {
   if (e.detail.pathInfo.requestPath === '/github/branches?page=1') {
     if (e.detail.xhr.status === 400 && e.detail.requestConfig.triggeringEvent.type !== 'keyup') {
