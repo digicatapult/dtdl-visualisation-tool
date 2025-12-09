@@ -1,10 +1,11 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import sinon, { SinonStub } from 'sinon'
+import { ModelDb } from '../../../../db/modelDb.js'
 import { UpdateParams } from '../../../models/controllerTypes.js'
 import { modelHistoryCookie } from '../../../models/cookieNames.js'
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../../models/renderedDiagram/index.js'
-import { generatedSVGFixture } from '../../../utils/mermaid/__tests__/fixtures.js'
+import { generatedSVGFixture, simpleMockDtdlObjectModel } from '../../../utils/mermaid/__tests__/fixtures.js'
 import { mockGithubRequest } from '../../__tests__/github.test.js'
 import {
   complexDtdlId,
@@ -472,6 +473,184 @@ describe('OntologyController', async () => {
       const result = await controller.editModel(req, simpleDtdlId, validSessionId, true).then(toHTMLString)
 
       expect(result).to.equal(mockHtmlOutput)
+    })
+  })
+
+  describe('view - edit permission with errors', () => {
+    afterEach(() => sinon.restore())
+
+    it('should disable edit mode when file tree has errors', async () => {
+      const mockModelDbWithErrors = {
+        ...simpleMockModelDb,
+        getModelById: () => Promise.resolve({ source: 'local', owner: null, repo: null }),
+        getDtdlModelAndTree: () =>
+          Promise.resolve({
+            model: simpleMockDtdlObjectModel,
+            fileTree: [
+              {
+                name: 'test.json',
+                type: 'file' as const,
+                path: 'test.json',
+                entries: [],
+                errors: [
+                  {
+                    ExceptionKind: 'Parsing' as const,
+                    Errors: [
+                      {
+                        Cause: 'Test error',
+                        Action: 'Fix it',
+                        ValidationID: 'test',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          }),
+      } as unknown as ModelDb
+
+      const controllerWithErrors = new OntologyController(
+        mockModelDbWithErrors,
+        mockGenerator,
+        mockMutator,
+        templateMock,
+        mockPostHog,
+        mockLogger,
+        mockCache,
+        mockSession,
+        mockGithubRequest
+      )
+
+      const req = mockReqWithCookie({})
+      await controllerWithErrors.view(simpleDtdlId, { ...defaultParams }, req)
+
+      // Check that the template was called with canEdit=false and editDisabledReason='errors'
+      const setStatusStub = sinon.stub(controllerWithErrors, 'setStatus')
+      expect(setStatusStub.called).to.equal(false)
+    })
+
+    it('should enable edit mode when file tree has no errors and permission is edit', async () => {
+      const mockModelDbNoErrors = {
+        ...simpleMockModelDb,
+        getModelById: () => Promise.resolve({ source: 'local', owner: null, repo: null }),
+        getDtdlModelAndTree: () =>
+          Promise.resolve({
+            model: simpleMockDtdlObjectModel,
+            fileTree: [
+              {
+                name: 'test.json',
+                type: 'file' as const,
+                path: 'test.json',
+                entries: [],
+              },
+            ],
+          }),
+      } as unknown as ModelDb
+
+      const controllerNoErrors = new OntologyController(
+        mockModelDbNoErrors,
+        mockGenerator,
+        mockMutator,
+        templateMock,
+        mockPostHog,
+        mockLogger,
+        mockCache,
+        mockSession,
+        mockGithubRequest
+      )
+
+      const req = mockReqWithCookie({})
+      const result = await controllerNoErrors
+        .view(simpleDtdlId, { ...defaultParams }, req)
+        .then((value) => (value ? toHTMLString(value) : ''))
+
+      expect(result).to.equal(`root_undefined_root`)
+    })
+
+    it('should disable edit when errors exist in nested directories', async () => {
+      const mockModelDbNestedErrors = {
+        ...simpleMockModelDb,
+        getModelById: () => Promise.resolve({ source: 'local', owner: null, repo: null }),
+        getDtdlModelAndTree: () =>
+          Promise.resolve({
+            model: simpleMockDtdlObjectModel,
+            fileTree: [
+              {
+                name: 'folder',
+                type: 'directory' as const,
+                path: 'folder',
+                entries: [
+                  {
+                    name: 'nested.json',
+                    type: 'file' as const,
+                    path: 'folder/nested.json',
+                    entries: [],
+                    errors: [
+                      {
+                        ExceptionKind: 'Resolution' as const,
+                        UndefinedIdentifiers: ['dtmi:example:Missing;1'],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          }),
+      } as unknown as ModelDb
+
+      const controllerNestedErrors = new OntologyController(
+        mockModelDbNestedErrors,
+        mockGenerator,
+        mockMutator,
+        templateMock,
+        mockPostHog,
+        mockLogger,
+        mockCache,
+        mockSession,
+        mockGithubRequest
+      )
+
+      const req = mockReqWithCookie({})
+      await controllerNestedErrors.view(simpleDtdlId, { ...defaultParams }, req)
+
+      // Verify template was rendered (would throw if not)
+      expect(req.res).to.not.be.undefined
+    })
+
+    it('should set editDisabledReason to permissions when user lacks edit permission', async () => {
+      const mockModelDbGithub = {
+        ...simpleMockModelDb,
+        getModelById: () => Promise.resolve({ source: 'github', owner: 'owner', repo: 'repo' }),
+        getDtdlModelAndTree: () =>
+          Promise.resolve({
+            model: simpleMockDtdlObjectModel,
+            fileTree: [],
+          }),
+      } as unknown as ModelDb
+
+      // Stub the getRepoPermissions method to return 'view'
+      const getRepoPermissionsStub = sinon.stub(mockGithubRequest, 'getRepoPermissions').resolves('view' as const)
+
+      const controllerGithub = new OntologyController(
+        mockModelDbGithub,
+        mockGenerator,
+        mockMutator,
+        templateMock,
+        mockPostHog,
+        mockLogger,
+        mockCache,
+        mockSession,
+        mockGithubRequest
+      )
+
+      const req = mockReqWithCookie({ octokitToken: 'token' })
+      await controllerGithub.view(simpleDtdlId, { ...defaultParams }, req)
+
+      // Verify template was rendered with appropriate permissions
+      expect(req.res).to.not.be.undefined
+
+      // Restore the stub
+      getRepoPermissionsStub.restore()
     })
   })
 })

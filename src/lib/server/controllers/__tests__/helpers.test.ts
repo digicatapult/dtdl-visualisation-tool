@@ -98,6 +98,7 @@ describe('checkEditPermission', () => {
   let setHeaderStub: SinonStub
   let endStub: SinonStub
   let getModelByIdStub: SinonStub
+  let getDtdlModelAndTreeStub: SinonStub
   let getRepoPermissionsStub: SinonStub
   let containerResolveStub: SinonStub
 
@@ -122,12 +123,14 @@ describe('checkEditPermission', () => {
     } as unknown as express.Request
 
     getModelByIdStub = sinon.stub()
+    getDtdlModelAndTreeStub = sinon.stub()
     getRepoPermissionsStub = sinon.stub()
 
     // Mock the container.resolve calls
     containerResolveStub = sinon.stub(container, 'resolve')
     containerResolveStub.withArgs(ModelDb).returns({
       getModelById: getModelByIdStub,
+      getDtdlModelAndTree: getDtdlModelAndTreeStub,
     })
     containerResolveStub.withArgs(GithubRequest).returns({
       getRepoPermissions: getRepoPermissionsStub,
@@ -151,13 +154,65 @@ describe('checkEditPermission', () => {
         repo: testRepo,
       })
       getRepoPermissionsStub.resolves('edit' as ViewAndEditPermission)
+      getDtdlModelAndTreeStub.resolves({
+        model: {},
+        fileTree: [], // No errors in fileTree
+      })
 
       // Should not throw and should call next()
       await checkEditPermission(mockRequest, mockResponse, mockNext)
 
       sinon.assert.calledOnceWithExactly(getModelByIdStub, githubDtdlId)
       sinon.assert.calledOnceWithExactly(getRepoPermissionsStub, testToken, testOwner, testRepo)
+      sinon.assert.calledOnceWithExactly(getDtdlModelAndTreeStub, githubDtdlId)
       sinon.assert.calledOnce(mockNext)
+    })
+
+    it('should block editing when fileTree has errors', async () => {
+      const testToken = 'valid-github-token'
+      const testOwner = 'test-owner'
+      const testRepo = 'test-repo'
+
+      mockRequest.signedCookies[octokitTokenCookie] = testToken
+      getModelByIdStub.resolves({
+        id: githubDtdlId,
+        owner: testOwner,
+        repo: testRepo,
+      })
+      getRepoPermissionsStub.resolves('edit' as ViewAndEditPermission)
+      getDtdlModelAndTreeStub.resolves({
+        model: {},
+        fileTree: [
+          {
+            name: 'test.json',
+            type: 'file' as const,
+            path: 'test.json',
+            entries: [],
+            errors: [
+              {
+                ExceptionKind: 'Parsing' as const,
+                Errors: [
+                  {
+                    Cause: 'Test error',
+                    Action: 'Fix it',
+                    ValidationID: 'test',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      })
+
+      await expect(checkEditPermission(mockRequest, mockResponse, mockNext))
+        .to.be.rejectedWith(UnauthorisedError)
+        .and.eventually.have.property(
+          'message',
+          'Cannot edit ontology with errors. Please fix all errors before editing.'
+        )
+
+      sinon.assert.calledOnceWithExactly(getDtdlModelAndTreeStub, githubDtdlId)
+      sinon.assert.notCalled(mockNext)
     })
   })
 
