@@ -311,6 +311,24 @@ describe('entity updates', function () {
         void expect(newCommand?.['@type']).to.equal('Command')
         void expect(newCommand?.schema).to.be.undefined
       })
+
+      test('adds content to an interface with no contents', () => {
+        const dtdlInterface: DtdlInterface = {
+          '@type': 'Interface',
+          '@id': 'dtmi:com:example:Interface;1',
+          displayName: 'Interface',
+          '@context': 'dtmi:dtdl:context;2',
+        }
+
+        const result = addContent('newProperty', 'Property')(dtdlInterface)
+
+        expect(result.contents).to.have.lengthOf(1)
+        expect(result.contents?.[0]).to.deep.include({
+          '@type': 'Property',
+          name: 'newProperty',
+          schema: 'string',
+        })
+      })
     })
 
     describe('validation errors', function () {

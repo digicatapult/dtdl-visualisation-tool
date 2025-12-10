@@ -307,12 +307,14 @@ export const addContent =
     }
 
     const schema = dtdlInterfaceBase.extend({
-      contents: z.array(
-        z.looseObject({
-          '@type': z.string(),
-          name: z.string(),
-        })
-      ),
+      contents: z
+        .array(
+          z.looseObject({
+            '@type': z.string(),
+            name: z.string(),
+          })
+        )
+        .default([]),
     })
 
     const validInterface: z.infer<typeof schema> = schema.loose().parse(dtdlInterface)

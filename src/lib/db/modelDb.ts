@@ -100,13 +100,7 @@ export class ModelDb {
 
     const updatesMap = new Map(updates.map((u) => [u.id, u.source]))
 
-    const seenPaths = new Set<string>()
     const filesStringified = files.reduce<DtdlFile[]>((acc, file) => {
-      if (seenPaths.has(file.path)) {
-        return acc
-      }
-      seenPaths.add(file.path)
-
       const source = updatesMap.has(file.id) ? updatesMap.get(file.id) : file.source
       if (source !== null) {
         acc.push({ path: file.path, source: JSON.stringify(source) })

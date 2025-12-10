@@ -10,9 +10,8 @@ export const AddContentButtonContent = ({
   contentType: 'Property' | 'Relationship' | 'Telemetry' | 'Command'
   entityId: DtdlId
 }): JSX.Element => {
-  const safeEntityId = entityId.replace(/[^a-zA-Z0-9-_]/g, '-')
-  const formContainerId = `add-${contentType.toLowerCase()}-${safeEntityId}-form-container`
-  const btnId = `add-${contentType.toLowerCase()}-${safeEntityId}-btn`
+  const formContainerId = `add-${contentType.toLowerCase()}-form-container`
+  const btnId = `add-${contentType.toLowerCase()}-btn`
 
   return (
     <button
@@ -37,10 +36,9 @@ export const AddContentButton = ({
   contentType: 'Property' | 'Relationship' | 'Telemetry' | 'Command'
   entityId: DtdlId
 }): JSX.Element => {
-  const safeEntityId = entityId.replace(/[^a-zA-Z0-9-_]/g, '-')
-  const containerId = `add-${contentType.toLowerCase()}-${safeEntityId}-container`
-  const btnContainerId = `add-${contentType.toLowerCase()}-${safeEntityId}-btn-container`
-  const formContainerId = `add-${contentType.toLowerCase()}-${safeEntityId}-form-container`
+  const containerId = `add-${contentType.toLowerCase()}-container`
+  const btnContainerId = `add-${contentType.toLowerCase()}-btn-container`
+  const formContainerId = `add-${contentType.toLowerCase()}-form-container`
   return (
     <div id={containerId} class="add-content-container">
       <div id={btnContainerId}>
@@ -58,9 +56,8 @@ export const AddContentForm = ({
   contentType: 'Property' | 'Relationship' | 'Telemetry' | 'Command'
   entityId: DtdlId
 }): JSX.Element => {
-  const safeEntityId = entityId.replace(/[^a-zA-Z0-9-_]/g, '-')
-  const btnId = `add-${contentType.toLowerCase()}-${safeEntityId}-btn`
-  const formContainerId = `add-${contentType.toLowerCase()}-${safeEntityId}-form-container`
+  const btnId = `add-${contentType.toLowerCase()}-btn`
+  const formContainerId = `add-${contentType.toLowerCase()}-form-container`
   return (
     <form
       hx-post={`entity/${entityId}/content`}
