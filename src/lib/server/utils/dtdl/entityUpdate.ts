@@ -317,7 +317,7 @@ export const addContent =
         .default([]),
     })
 
-    const validInterface: z.infer<typeof schema> = schema.loose().parse(dtdlInterface)
+    const validInterface: z.infer<typeof schema> = preserveKeyOrder(schema.loose()).parse(dtdlInterface)
 
     // Validate uniqueness
     const existingContent = validInterface.contents.find((c) => c.name === contentName)
