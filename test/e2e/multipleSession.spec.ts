@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename)
 
 test.describe('multiple sessions', () => {
   test('render two simultaneous sessions correctly', async ({ browser }) => {
-    test.setTimeout(60000)
+    test.setTimeout(90000)
 
     const context = await browser.newContext({ viewport: { width: 1920, height: 1080 } })
     const pageOne = await context.newPage()

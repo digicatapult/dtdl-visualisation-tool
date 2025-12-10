@@ -3,6 +3,7 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
 import { randomUUID } from 'crypto'
+import express from 'express'
 import { container, singleton } from 'tsyringe'
 import { Env } from '../../env/index.js'
 import { DeletableEntities } from '../../models/controllerTypes.js'
@@ -52,6 +53,7 @@ export default class MermaidTemplates {
     svgWidth,
     svgHeight,
     canEdit,
+    req,
     ontologyId,
   }: {
     search?: string
@@ -60,9 +62,10 @@ export default class MermaidTemplates {
     svgWidth?: number
     svgHeight?: number
     canEdit: boolean
+    req?: express.Request
     ontologyId: UUID
   }) => (
-    <Page title={'UKDTC'}>
+    <Page title={'UKDTC'} req={req}>
       <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
       <section id="toolbar">
         <this.searchPanel search={search} diagramType={diagramType} svgWidth={svgWidth} svgHeight={svgHeight} />

@@ -10,13 +10,24 @@ import { container } from 'tsyringe'
 import { Env } from './env/index.js'
 import { HttpError, SessionError, UploadError } from './errors.js'
 import { logger } from './logger.js'
+import { octokitTokenCookie, posthogIdCookie } from './models/cookieNames.js'
 import { RegisterRoutes } from './routes.js'
+import { PostHogService } from './utils/postHog/postHogService.js'
 import { RateLimiter } from './utils/rateLimit.js'
 import { errorToast } from './views/components/errors.js'
 
 export default async (): Promise<Express> => {
   const env = container.resolve(Env)
   const rateLimit = container.resolve(RateLimiter)
+
+  // Resolve PostHog service once at startup. May be unavailable in test environments
+  // where container.clearInstances() is called, so we handle resolution errors gracefully.
+  let postHog: PostHogService | null = null
+  try {
+    postHog = container.resolve(PostHogService)
+  } catch {
+    // PostHog service unavailable (e.g., dependencies not registered in tests)
+  }
 
   const app: Express = express()
 
@@ -81,6 +92,20 @@ export default async (): Promise<Express> => {
 
     const code = err instanceof HttpError ? err.code : 500
     const toast = errorToast(err)
+
+    // Track error in PostHog asynchronously without blocking response
+    const octokitToken = req.signedCookies[octokitTokenCookie]
+    const posthogId = req.signedCookies[posthogIdCookie]
+
+    if (postHog && posthogId) {
+      postHog.trackError(octokitToken, posthogId, {
+        message: err instanceof Error ? err.message : 'Unknown error',
+        stack: err instanceof Error ? err.stack : undefined,
+        code: code,
+        path: req.path,
+        method: req.method,
+      })
+    }
 
     res.setHeader('HX-Reswap', 'innerHTML')
     // really ugly workaround for https://github.com/bigskysoftware/htmx/issues/2518

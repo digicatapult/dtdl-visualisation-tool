@@ -1,10 +1,11 @@
 import { expect } from 'chai'
 import type { Request } from 'express'
 import { describe, it } from 'mocha'
+import { pino } from 'pino'
 import { PostHog } from 'posthog-node'
 import sinon from 'sinon'
 import { Env } from '../../../env/index.js'
-import { logger, type ILogger } from '../../../logger.js'
+import { type ILogger } from '../../../logger.js'
 import { GithubRequest } from '../../../utils/githubRequest.js'
 import { PostHogService } from '../postHogService.js'
 
@@ -18,7 +19,7 @@ describe('PostHogService', () => {
 
   beforeEach(() => {
     mockEnv = sinon.createStubInstance(Env)
-    mockLogger = logger.child({ test: 'postHogService' })
+    mockLogger = pino({ level: 'silent' })
     mockGithubRequest = sinon.createStubInstance(GithubRequest)
 
     // Manually stub getAuthenticatedUser since it's an async method
@@ -219,6 +220,120 @@ describe('PostHogService', () => {
           },
         })
       ).to.equal(true)
+    })
+
+    it('should track update ontology view event with searchTerm', async () => {
+      mockEnv.get.withArgs('POSTHOG_ENABLED').returns(true)
+      mockEnv.get.withArgs('NEXT_PUBLIC_POSTHOG_KEY').returns('test-key')
+      mockEnv.get.withArgs('NEXT_PUBLIC_POSTHOG_HOST').returns('https://test.posthog.com')
+
+      const service = new PostHogService(
+        mockLogger,
+        mockEnv as unknown as Env,
+        mockGithubRequest as unknown as GithubRequest
+      )
+
+      await service.trackUpdateOntologyView(undefined, 'anonymous-id-123', {
+        ontologyId: 'ontology-123',
+        diagramType: 'classDiagram',
+        hasSearch: true,
+        searchTerm: 'PowerSystem',
+        expandedCount: 5,
+      })
+
+      expect(postHogCaptureStub.calledOnce).to.equal(true)
+      expect(
+        postHogCaptureStub.calledWith({
+          distinctId: 'anonymous-id-123',
+          event: 'updateOntologyView',
+          properties: {
+            ontologyId: 'ontology-123',
+            diagramType: 'classDiagram',
+            hasSearch: true,
+            searchTerm: 'PowerSystem',
+            expandedCount: 5,
+          },
+        })
+      ).to.equal(true)
+    })
+  })
+
+  describe('trackError', () => {
+    it('should track error event with correct properties', async () => {
+      mockEnv.get.withArgs('POSTHOG_ENABLED').returns(true)
+      mockEnv.get.withArgs('NEXT_PUBLIC_POSTHOG_KEY').returns('test-key')
+      mockEnv.get.withArgs('NEXT_PUBLIC_POSTHOG_HOST').returns('https://test.posthog.com')
+
+      const service = new PostHogService(
+        mockLogger,
+        mockEnv as unknown as Env,
+        mockGithubRequest as unknown as GithubRequest
+      )
+
+      await service.trackError(undefined, 'anonymous-id-123', {
+        message: 'Something went wrong',
+        code: 500,
+        path: '/api/test',
+        method: 'POST',
+      })
+
+      expect(postHogCaptureStub.calledOnce).to.equal(true)
+      expect(
+        postHogCaptureStub.calledWith({
+          distinctId: 'anonymous-id-123',
+          event: 'error',
+          properties: {
+            message: 'Something went wrong',
+            code: 500,
+            path: '/api/test',
+            method: 'POST',
+          },
+        })
+      ).to.equal(true)
+    })
+
+    it('should track error event with stack trace', async () => {
+      mockEnv.get.withArgs('POSTHOG_ENABLED').returns(true)
+      mockEnv.get.withArgs('NEXT_PUBLIC_POSTHOG_KEY').returns('test-key')
+      mockEnv.get.withArgs('NEXT_PUBLIC_POSTHOG_HOST').returns('https://test.posthog.com')
+
+      const service = new PostHogService(
+        mockLogger,
+        mockEnv as unknown as Env,
+        mockGithubRequest as unknown as GithubRequest
+      )
+
+      await service.trackError(undefined, 'anonymous-id-123', {
+        message: 'Test error',
+        stack: 'Error: Test error\n    at Object.<anonymous>',
+        code: 400,
+        path: '/open',
+        method: 'GET',
+      })
+
+      expect(postHogCaptureStub.calledOnce).to.equal(true)
+      const captureCall = postHogCaptureStub.getCall(0).args[0]
+      expect(captureCall.event).to.equal('error')
+      expect(captureCall.properties.stack).to.contain('Test error')
+    })
+
+    it('should not track error when disabled', async () => {
+      mockEnv.get.withArgs('POSTHOG_ENABLED').returns(false)
+
+      const service = new PostHogService(
+        mockLogger,
+        mockEnv as unknown as Env,
+        mockGithubRequest as unknown as GithubRequest
+      )
+
+      await service.trackError(undefined, 'anonymous-id-123', {
+        message: 'Error',
+        code: 500,
+        path: '/test',
+        method: 'GET',
+      })
+
+      expect(postHogCaptureStub.called).to.equal(false)
     })
   })
 
