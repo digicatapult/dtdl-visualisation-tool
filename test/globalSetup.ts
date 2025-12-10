@@ -1,10 +1,13 @@
 import { chromium, FullConfig, Page } from '@playwright/test'
+import { Server } from 'node:http'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { TOTP } from 'otpauth'
 import 'reflect-metadata'
 import { GenericContainer, StartedTestContainer } from 'testcontainers'
+import { POSTHOG_MOCK_PORT } from './constants.js'
 import { waitForSuccessResponse } from './e2e/helpers/waitForHelpers.js'
+import { startMockPostHogServer } from './mocks/posthogMock.js'
 import {
   bringUpDatabaseContainer,
   buildVisualisationImage,
@@ -36,8 +39,13 @@ export let visualisationUIContainer: StartedTestContainer
 export let visualisationUIContainer2: StartedTestContainer
 export let postgresContainer: StartedTestContainer
 export let visualisationImage: GenericContainer
+export let posthogMockServer: Server | null = null
 
 async function globalSetup(config: FullConfig) {
+  // Start PostHog mock server before containers
+  posthogMockServer = await startMockPostHogServer(POSTHOG_MOCK_PORT)
+  process.env.POSTHOG_MOCK_PORT = String(POSTHOG_MOCK_PORT)
+
   postgresContainer = await bringUpDatabaseContainer()
   visualisationImage = await buildVisualisationImage()
   // Start the visualisation container on port 3000
