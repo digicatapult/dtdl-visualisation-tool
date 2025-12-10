@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { DtdlInterface, dtdlInterfaceBase, NullableDtdlSource } from '../../../db/types.js'
+import { DtdlInterface, dtdlInterfaceBase, NullableDtdlSource, preserveKeyOrder } from '../../../db/types.js'
 import { DataError } from '../../errors.js'
 import { DtdlSchema } from '../../models/strings.js'
 
@@ -199,7 +199,7 @@ const updateContentsValue = (
       )
       .refine((contents) => contents.some((c) => c['@type'] === contentType && c.name === contentName)),
   })
-  const validInterface: z.infer<typeof schema> = schema.loose().parse(dtdlInterface)
+  const validInterface: z.infer<typeof schema> = preserveKeyOrder(schema.loose()).parse(dtdlInterface)
 
   const index = validInterface.contents.findIndex((item) => item['@type'] === contentType && item.name === contentName)
   const updatedContents = validInterface.contents.toSpliced(index, 1, {
@@ -245,7 +245,7 @@ const updateCommandRequestResponseValue = (
       )
       .refine((contents) => contents.some((c) => c['@type'] === 'Command' && c.name === commandName)),
   })
-  const validFile: z.infer<typeof schema> = schema.loose().parse(file)
+  const validFile: z.infer<typeof schema> = preserveKeyOrder(schema.loose()).parse(file)
 
   const commandIndex = validFile.contents.findIndex((item) => item['@type'] === 'Command' && item.name === commandName)
   const command = validFile.contents[commandIndex]
@@ -275,7 +275,7 @@ export const deleteContent = (contentName: string) => (dtdlInterface: DtdlInterf
       .refine((contents) => contents.some((c) => c.name === contentName)),
   })
 
-  const validInterface: z.infer<typeof schema> = schema.loose().parse(dtdlInterface)
+  const validInterface: z.infer<typeof schema> = preserveKeyOrder(schema.loose()).parse(dtdlInterface)
 
   const index = validInterface.contents.findIndex((item) => item.name === contentName)
   const updatedContents = validInterface.contents.toSpliced(index, 1)

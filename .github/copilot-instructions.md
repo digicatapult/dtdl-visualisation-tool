@@ -379,7 +379,7 @@ return this.html(
 
 // Error handling
 res.setHeader('HX-Trigger-After-Settle', JSON.stringify({ 
-  dtdlVisualisationError: { dialogId: toast.dialogId } 
+  toastEvent: { dialogId: toast.dialogId } 
 }))
 ```
 

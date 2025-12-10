@@ -138,6 +138,7 @@ export default class OpenOntologyTemplates {
           class="authorise-link"
           href={`https://github.com/apps/${env.get('GH_APP_NAME')}`}
           target="_blank"
+          rel="noopener"
           aria-label="Authorise repos (opens in a new tab)"
         >
           Repo missing? Authorise on GitHub ↗

@@ -66,7 +66,7 @@ program
       const parsedDtdl = await parser.parseAll(files)
       const output = await generator.run(parsedDtdl, 'flowchart', 'elk')
 
-      const id = await modelDb.insertModel(`default`, output.renderForMinimap(), 'default', null, null, files)
+      const id = await modelDb.insertModel(`default`, output.renderForMinimap(), 'default', null, null, null, files)
       setCacheWithDefaultParams(cache, id, output)
 
       // Track default model load (fire-and-forget) - no user context in CLI

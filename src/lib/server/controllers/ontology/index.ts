@@ -132,6 +132,7 @@ export class OntologyController extends HTMLController {
         diagramType: params.diagramType,
         canEdit: permission === 'edit',
         req,
+        ontologyId: dtdlModelId,
       })
     )
   }

@@ -4,7 +4,7 @@ import chaiAsPromised from 'chai-as-promised'
 import { describe, it } from 'mocha'
 import sinon from 'sinon'
 import { ModelDb } from '../../../../../db/modelDb.js'
-import { DataError, InternalError } from '../../../../errors.js'
+import { DataError } from '../../../../errors.js'
 import { UpdateParams } from '../../../../models/controllerTypes.js'
 import { octokitTokenCookie } from '../../../../models/cookieNames.js'
 import { DtdlSchema } from '../../../../models/strings.js'
@@ -1192,7 +1192,7 @@ describe('EntityController', async () => {
       expect(parsedEntity.extends).to.deep.equal([])
     })
 
-    it('should throw InternalError when generated ID already exists', async () => {
+    it('should throw DataError when generated ID already exists', async () => {
       const mockReqObj = mockReq({})
 
       const customMockDb = {
@@ -1269,7 +1269,7 @@ describe('EntityController', async () => {
         await customController.createNewNode(simpleDtdlId, body, mockReqObj)
         expect.fail('Expected InternalError to be thrown')
       } catch (error) {
-        if (!(error instanceof InternalError)) {
+        if (!(error instanceof DataError)) {
           throw error // Re-throw if it's not the expected error type
         }
         expect(error.message).to.include("Please update the display name 'Example1'")
