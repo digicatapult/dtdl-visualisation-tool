@@ -1409,7 +1409,7 @@ export default class MermaidTemplates {
               hx-target="#navigation-panel"
               hx-trigger="checked"
               hx-swap="outerHTML"
-              hx-vals="js:{ editMode: event.detail.checked, t: Date.now() }"
+              hx-vals="js:{ editMode: event.detail.checked }"
             >
               <input
                 id="edit-toggle-checkbox"
