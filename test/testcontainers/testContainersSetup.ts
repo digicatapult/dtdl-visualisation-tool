@@ -81,40 +81,56 @@ export async function startVisualisationContainer(
   const { containerName, containerPort, hostPort, cookieSessionKeys, maxOntologySize } = env
 
   logger.info(`Starting container ${containerName} on port ${containerPort}...`)
-  const visualisationUIContainer = await visualisationImage
-    .withNetwork(network)
-    .withExposedPorts({
-      container: containerPort,
-      host: hostPort,
-    })
-    .withEnvironment({
-      DB_HOST: 'postgres-dtdl-visualisation-tool',
-      DB_NAME: 'dtdl-visualisation-tool',
-      DB_USERNAME: 'postgres',
-      DB_PASSWORD: 'postgres',
-      DB_PORT: '5432',
-      GH_CLIENT_ID: process.env.GH_CLIENT_ID || '',
-      GH_CLIENT_SECRET: process.env.GH_CLIENT_SECRET || '',
-      GH_APP_NAME: process.env.GH_APP_NAME || '',
-      GH_APP_PRIVATE_KEY: process.env.GH_APP_PRIVATE_KEY || '',
-      COOKIE_SESSION_KEYS: cookieSessionKeys,
-      EDIT_ONTOLOGY: 'true',
-      MAX_DTDL_OBJECT_SIZE: maxOntologySize ? maxOntologySize.toString() : '1000',
-      // PostHog configuration for E2E tests
-      // When POSTHOG_MOCK_PORT is set (via globalSetup), the container is configured
-      // to send analytics events to our mock PostHog server at host.docker.internal
-      // instead of the real PostHog service. This allows E2E tests to verify that
-      // analytics events are being tracked correctly without sending data externally.
-      POSTHOG_ENABLED: process.env.POSTHOG_MOCK_PORT ? 'true' : process.env.POSTHOG_ENABLED || 'false',
-      NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY || 'phc_test_key',
-      NEXT_PUBLIC_POSTHOG_HOST: process.env.POSTHOG_MOCK_PORT
-        ? `http://host.docker.internal:${process.env.POSTHOG_MOCK_PORT}`
-        : process.env.NEXT_PUBLIC_POSTHOG_HOST || '',
-    })
-    .withAddedCapabilities('SYS_ADMIN')
-    .withCommand(['sh', '-c', 'npx knex migrate:latest --env production; dtdl-visualiser parse -p /sample/energygrid'])
-    .start()
-  logger.info(`Started container ${containerName}`)
-  logger.info(`Started container on port ${visualisationUIContainer.getMappedPort(containerPort)}`)
-  return visualisationUIContainer
+  try {
+    const visualisationUIContainer = await visualisationImage
+      .withNetwork(network)
+      .withExposedPorts({
+        container: containerPort,
+        host: hostPort,
+      })
+      .withEnvironment({
+        DB_HOST: 'postgres-dtdl-visualisation-tool',
+        DB_NAME: 'dtdl-visualisation-tool',
+        DB_USERNAME: 'postgres',
+        DB_PASSWORD: 'postgres',
+        DB_PORT: '5432',
+        GH_CLIENT_ID: process.env.GH_CLIENT_ID || '',
+        GH_CLIENT_SECRET: process.env.GH_CLIENT_SECRET || '',
+        GH_APP_NAME: process.env.GH_APP_NAME || '',
+        GH_APP_PRIVATE_KEY: process.env.GH_APP_PRIVATE_KEY || '',
+        COOKIE_SESSION_KEYS: cookieSessionKeys,
+        EDIT_ONTOLOGY: 'true',
+        MAX_DTDL_OBJECT_SIZE: maxOntologySize ? maxOntologySize.toString() : '1000',
+        // PostHog configuration for E2E tests
+        // When POSTHOG_MOCK_PORT is set (via globalSetup), the container is configured
+        // to send analytics events to our mock PostHog server at host.docker.internal
+        // instead of the real PostHog service. This allows E2E tests to verify that
+        // analytics events are being tracked correctly without sending data externally.
+        POSTHOG_ENABLED: process.env.POSTHOG_MOCK_PORT ? 'true' : process.env.POSTHOG_ENABLED || 'false',
+        NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY || 'phc_test_key',
+        NEXT_PUBLIC_POSTHOG_HOST: process.env.POSTHOG_MOCK_PORT
+          ? `http://host.docker.internal:${process.env.POSTHOG_MOCK_PORT}`
+          : process.env.NEXT_PUBLIC_POSTHOG_HOST || '',
+      })
+      .withAddedCapabilities('SYS_ADMIN')
+      .withCommand(['sh', '-c', 'npx knex migrate:latest --env production; dtdl-visualiser parse -p /sample/energygrid'])
+      .start()
+    logger.info(`Started container ${containerName}`)
+    logger.info(`Started container on port ${visualisationUIContainer.getMappedPort(containerPort)}`)
+    return visualisationUIContainer
+  } catch (error) {
+    // Log container output to help debug startup failures
+    logger.error('Container failed to start, attempting to retrieve logs...')
+    try {
+      const failedContainer = await containerRuntimeClient.container.list({ all: true, limit: 1 })
+      if (failedContainer.length > 0) {
+        const logs = await failedContainer[0].logs()
+        const stream = logs.output.on('data', (chunk) => logger.error({ containerLog: chunk.toString() }))
+        await new Promise((resolve) => stream.on('end', resolve))
+      }
+    } catch (logError) {
+      logger.error({ err: logError }, 'Failed to retrieve container logs')
+    }
+    throw error
+  }
 }
