@@ -19,6 +19,7 @@ import { errorToast } from './views/components/errors.js'
 export default async (): Promise<Express> => {
   const env = container.resolve(Env)
   const rateLimit = container.resolve(RateLimiter)
+  const postHog = container.resolve(PostHogService)
 
   const app: Express = express()
 
@@ -85,22 +86,17 @@ export default async (): Promise<Express> => {
     const toast = errorToast(err)
 
     // Track error in PostHog asynchronously without blocking response
-    const postHog = container.resolve(PostHogService)
     const octokitToken = req.signedCookies[octokitTokenCookie]
     const posthogId = req.signedCookies[posthogIdCookie]
 
     if (posthogId) {
-      postHog
-        .trackError(octokitToken, posthogId, {
-          message: err instanceof Error ? err.message : 'Unknown error',
-          stack: err instanceof Error ? err.stack : undefined,
-          code: code,
-          path: req.path,
-          method: req.method,
-        })
-        .catch((trackingErr) => {
-          req.log.debug({ trackingErr }, 'Failed to track error in PostHog')
-        })
+      postHog.trackError(octokitToken, posthogId, {
+        message: err instanceof Error ? err.message : 'Unknown error',
+        stack: err instanceof Error ? err.stack : undefined,
+        code: code,
+        path: req.path,
+        method: req.method,
+      })
     }
 
     res.setHeader('HX-Reswap', 'innerHTML')

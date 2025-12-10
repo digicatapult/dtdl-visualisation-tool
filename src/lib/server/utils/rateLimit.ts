@@ -40,17 +40,13 @@ export class RateLimiter {
       const posthogId = req.signedCookies[posthogIdCookie]
 
       if (posthogId) {
-        postHog
-          .trackError(octokitToken, posthogId, {
-            message: error.message,
-            stack: error.stack,
-            code: code,
-            path: req.path,
-            method: req.method,
-          })
-          .catch((trackingErr) => {
-            req.log.debug({ trackingErr }, 'Failed to track error in PostHog')
-          })
+        postHog.trackError(octokitToken, posthogId, {
+          message: error.message,
+          stack: error.stack,
+          code: code,
+          path: req.path,
+          method: req.method,
+        })
       }
     } catch (err) {
       // PostHog not available (e.g., in tests) - continue without tracking
