@@ -67,6 +67,14 @@ test.describe('Upload ontology from local drive', () => {
     await expect(page.locator('.error-details')).toContainText('Cause')
     await expect(page.locator('.error-details')).toContainText('Action')
 
+    // Check edit mode is disabled due to errors
+    await expect(page.locator('#edit-toggle')).toHaveClass('disabled')
+    await expect(page.locator('#edit-toggle')).toHaveAttribute(
+      'title',
+      'You need to fix errors in ontology to be able to edit'
+    )
+    await expect(page.locator('#edit-toggle input[type="checkbox"]')).toBeDisabled()
+
     // Test default dtdl still loads
     await waitForUpdateLayout(page, () => page.goto('./'))
     await expect(page.locator('#mermaid-output').getByText('ConnectivityNode', { exact: true })).toBeVisible()
