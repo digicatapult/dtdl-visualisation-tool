@@ -528,7 +528,7 @@ describe('OntologyController', async () => {
         .view(simpleDtdlId, { ...defaultParams }, req)
         .then((value) => (value ? toHTMLString(value) : ''))
 
-      // Check that the template was called with canEdit=false and editDisabledReason='errors'
+      // Check that the template was called with  canEdit=false and editDisabledReason='errors'
       expect(result).to.equal(`root_undefined_false_errors_root`)
     })
 
