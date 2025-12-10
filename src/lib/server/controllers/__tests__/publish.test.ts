@@ -166,7 +166,7 @@ describe('PublishController', () => {
       ).to.be.rejectedWith(DataError, `Branch with name ${mockBranchName} already exists`)
     })
 
-    it('should publish successfully', async () => {
+    it('should publish to new branch successfully', async () => {
       const req = mockReqWithCookie(cookie)
       getGithubModelByIdStub.resolves({
         owner: mockOwner,
@@ -174,7 +174,6 @@ describe('PublishController', () => {
         base_branch: mockBaseBranch,
       })
       getDtdlFilesStub.resolves(mockFiles)
-      updateModelStub.resolves()
       getBranchStub
         .onFirstCall()
         .resolves({ object: { sha: 'baseSha' } })
@@ -236,7 +235,11 @@ describe('PublishController', () => {
       createBlobStub.resolves({ sha: 'blobSha' })
       createTreeStub.resolves({ sha: mockTreeSha })
       createCommitStub.resolves({ sha: mockCommitSha })
-      updateBranchStub.resolves()
+      updateModelStub.resolves({
+        owner: mockOwner,
+        repo: mockRepo,
+        base_branch: mockBaseBranch,
+      })
 
       const result = await controller.publish(
         req,

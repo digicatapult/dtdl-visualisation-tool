@@ -169,8 +169,9 @@ describe('modelDB', function () {
   describe('updateModel', () => {
     it('should update the model in the database', async () => {
       const updates = { name: 'New Name' }
-      await model.updateModel('1', updates)
+      const updatedModel = await model.updateModel('1', updates)
       expect((mockDb.update as sinon.SinonStub).calledWith('model', { id: '1' }, updates)).to.equal(true)
+      expect(updatedModel).to.deep.equal(mockModelRow)
     })
   })
 

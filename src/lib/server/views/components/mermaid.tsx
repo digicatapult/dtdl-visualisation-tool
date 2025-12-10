@@ -1469,7 +1469,7 @@ export default class MermaidTemplates {
           class="new-tab-link"
           title="View base branch"
         >
-          {escapeHtml(`View Github branch ${is_out_of_sync ? '(out of sync)' : ''} ↗`)}
+          {escapeHtml(`View GitHub branch ${is_out_of_sync ? '(out of sync)' : ''} ↗`)}
         </a>
       </div>
     )
