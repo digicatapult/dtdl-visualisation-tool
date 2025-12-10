@@ -21,7 +21,7 @@ test.describe('Test edit ontology', () => {
       'Only Ontologies from github that you have write permissions on, can be edited'
     )
   })
-  test('edit interface + relationship', async ({ browser, baseURL }) => {
+  test('edit interface + relationship', async ({ browser }) => {
     test.setTimeout(110000)
     const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const page = await context.newPage()
