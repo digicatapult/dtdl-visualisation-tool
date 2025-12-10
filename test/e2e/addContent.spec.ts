@@ -217,10 +217,12 @@ const openEditRepo = async (page: Page) => {
 
   await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), '/github/picker')
 
-  // open dtdl test fixture
-  await expect(page.locator('#public-github-input')).toBeVisible()
-  await page.fill('#public-github-input', 'digicatapult/dtdl-test-fixtures')
-  await waitForSuccessResponse(page, () => page.press('#public-github-input', 'Enter'), '/branches')
+  const installation = page.locator('.github-list li').filter({ hasText: /digicatapult$/ })
+  await expect(installation).toBeVisible()
+  await waitForSuccessResponse(page, () => installation.click(), '/repos')
+  expect(page.locator('.github-list').getByText('digicatapult/dtdl-test-fixtures')).toBeVisible()
+  const testFixtures = page.locator('.github-list li').filter({ hasText: /digicatapult\/dtdl-test-fixtures$/ })
+  await waitForSuccessResponse(page, () => testFixtures.click(), '/branches')
 
   // click test/dtdl branch
   const branchName = page.locator('.github-list li').filter({ hasText: /^main$/ })

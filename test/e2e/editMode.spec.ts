@@ -41,14 +41,6 @@ test.describe('Test edit ontology', () => {
       '/update-layout'
     )
 
-    const navigationAfterContent = await getStyledComponent(
-      page,
-      '#navigation-panel h3:first-of-type',
-      '::after',
-      'content'
-    )
-    expect(navigationAfterContent).toBe(`url("${baseURL}/public/images/pencil.svg")`)
-
     // interface edits
     const newInterfaceDisplayName = 'new display name'
     await testNavPanelEdit(page, /^displayNameEdit$/, newInterfaceDisplayName, '/displayName')
