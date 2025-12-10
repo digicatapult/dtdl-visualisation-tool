@@ -52,6 +52,6 @@ export interface DeleteContentParams extends UpdateParams {
   contentName: string
 }
 
-export const deletableEntities = ['Relationship', 'Interface'] as const
+export const deletableEntities = ['Relationship', 'Interface', 'Property', 'Telemetry', 'Command'] as const
 
 export type DeletableEntities = (typeof deletableEntities)[number]

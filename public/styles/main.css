@@ -1481,3 +1481,13 @@ textarea.multiline {
   border-bottom-color: #333;
   z-index: 1001;
 }
+
+.trash-icon {
+  cursor: pointer;
+  margin-left: 0.5rem;
+  font-size: 1.2em;
+}
+
+.trash-icon:hover {
+  opacity: 0.7;
+}

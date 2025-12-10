@@ -563,20 +563,38 @@ export class EntityController extends HTMLController {
   @SuccessResponse(200)
   @Produces('text/html')
   @Get('{entityId}/deleteDialog')
-  public async deleteDialog(@Path() ontologyId: UUID, @Path() entityId: DtdlId): Promise<HTML> {
+  public async deleteDialog(
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Query() contentName?: string
+  ): Promise<HTML> {
     const { model } = await this.modelDb.getDtdlModelAndTree(ontologyId)
     const entity = model[entityId]
-    const definedIn = entity.DefinedIn ?? entityId
+    let targetEntity = entity
+    let definedIn = entity.DefinedIn ?? entityId
+
+    if (contentName && isInterface(entity)) {
+      const propertyId = entity.properties[contentName]
+      const relationshipId = entity.relationships[contentName]
+      const telemetryId = entity.telemetries[contentName]
+      const commandId = entity.commands[contentName]
+
+      const contentId = propertyId ?? relationshipId ?? telemetryId ?? commandId
+      if (contentId && model[contentId]) {
+        targetEntity = model[contentId]
+        definedIn = targetEntity.DefinedIn ?? entityId
+      }
+    }
 
     const extendedBys = this.getExtendedBy(model, entityId)
 
     const query = {
-      entityKind: entity.EntityKind as DeletableEntities,
-      definedIn: entity.DefinedIn ?? entityId,
-      contentName: isNamedEntity(entity) ? entity.name : '',
-      displayName: getDisplayName(entity),
+      entityKind: targetEntity.EntityKind as DeletableEntities,
+      definedIn: definedIn,
+      contentName: contentName ?? (isNamedEntity(entity) ? entity.name : ''),
+      displayName: getDisplayName(targetEntity),
       definedInDisplayName: definedIn !== entityId ? getDisplayName(model[definedIn]) : undefined,
-      extendedBys: extendedBys.map((e) => getDisplayName(model[e])),
+      extendedBys: !contentName ? extendedBys.map((e) => getDisplayName(model[e])) : undefined,
     }
     return this.html(this.templates.deleteDialog(query))
   }

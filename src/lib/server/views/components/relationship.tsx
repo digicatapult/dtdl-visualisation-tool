@@ -45,6 +45,20 @@ export const RelationshipDetails = ({
   return (
     <div class={isInherited ? 'inherited-relationship' : ''} data-tooltip={tooltipText}>
       <p>
+        <b>Name: </b>
+        {escapeHtml(name)}
+        {edit && !isInherited && (
+          <span
+            class="trash-icon"
+            hx-get={`entity/${entityId}/deleteDialog?contentName=${name}`}
+            hx-target="#delete-dialog"
+            title="Delete Relationship"
+          >
+            🗑️
+          </span>
+        )}
+      </p>
+      <p>
         <b>Display Name:</b>
       </p>
       <EditableText

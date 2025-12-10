@@ -539,6 +539,16 @@ export default class MermaidTemplates {
                   <>
                     <b>Name: </b>
                     {escapeHtml(name)}
+                    {edit && isInterface(entity) && (
+                      <span
+                        class="trash-icon"
+                        hx-get={`entity/${entity.Id}/deleteDialog?contentName=${name}`}
+                        hx-target="#delete-dialog"
+                        title="Delete Telemetry"
+                      >
+                        🗑️
+                      </span>
+                    )}
                     <br />
                     <b>Display Name:</b>
                     <EditableText
@@ -611,6 +621,19 @@ export default class MermaidTemplates {
                 }
                 return (
                   <>
+                    <b>Name: </b>
+                    {escapeHtml(name)}
+                    {edit && isInterface(entity) && (
+                      <span
+                        class="trash-icon"
+                        hx-get={`entity/${entity.Id}/deleteDialog?contentName=${name}`}
+                        hx-target="#delete-dialog"
+                        title="Delete Command"
+                      >
+                        🗑️
+                      </span>
+                    )}
+                    <br />
                     <b>Display Name:</b>
                     {EditableText({
                       edit,
