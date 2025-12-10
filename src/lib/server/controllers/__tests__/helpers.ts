@@ -231,6 +231,7 @@ export const templateMock = {
   svgControls: ({ generatedOutput }: { generatedOutput?: JSX.Element }): JSX.Element =>
     `svgControls_${generatedOutput}_svgControls`,
   deleteDialog: () => `deleteDialog_deleteDialog`,
+  githubLink: () => `githubLink_githubLink`,
   addNode: ({
     dtdlModelId,
     displayNameIdMap,
@@ -292,6 +293,12 @@ export const simpleMockModelDb = {
       return Promise.resolve(null)
     }
   },
+  getGithubModelById: (id: UUID) =>
+    Promise.resolve({
+      id,
+      owner: 'owner',
+      repo: 'repo',
+    }),
   getDtdlSourceByInterfaceId: (_modelId: UUID, interfaceId: DtdlId) => {
     return Promise.resolve(
       mockDtdlTable.find((dtdl) => {
@@ -310,6 +317,7 @@ export const simpleMockModelDb = {
   deleteOrUpdateDtdlSource: deleteOrUpdateDtdlSourceStub,
   getDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
   insertModel: () => Promise.resolve(1),
+  updateModel: () => Promise.resolve(),
   deleteDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
   getDtdlModelAndTree: () =>
     Promise.resolve({

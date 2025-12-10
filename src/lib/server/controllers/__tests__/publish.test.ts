@@ -33,10 +33,12 @@ const mockFiles = [{ path: 'file1.json', source: '{}' }]
 
 const getDtdlFilesStub = sinon.stub()
 const getGithubModelByIdStub = sinon.stub()
+const updateModelStub = sinon.stub()
 
 const mockModelDb = {
   getDtdlFiles: getDtdlFilesStub,
   getGithubModelById: getGithubModelByIdStub,
+  updateModel: updateModelStub,
 } as unknown as ModelDb
 
 const getBranchStub = sinon.stub()
@@ -46,6 +48,7 @@ const createTreeStub = sinon.stub()
 const createCommitStub = sinon.stub()
 const createPullRequestStub = sinon.stub()
 const updateBranchStub = sinon.stub()
+const getCommitStub = sinon.stub()
 
 const mockGithubRequest = {
   getBranch: getBranchStub,
@@ -55,12 +58,15 @@ const mockGithubRequest = {
   createCommit: createCommitStub,
   createPullRequest: createPullRequestStub,
   updateBranch: updateBranchStub,
+  getCommit: getCommitStub,
 } as unknown as GithubRequest
 
 const publishDialogStub = sinon.stub().returns('publishDialog_html')
+const githubLinkStub = sinon.stub().returns('githubLink_html')
 
 const mockTemplates = {
   publishDialog: publishDialogStub,
+  githubLink: githubLinkStub,
 } as unknown as MermaidTemplates
 
 const controller = new PublishController(mockModelDb, mockGithubRequest, mockTemplates)
@@ -81,6 +87,13 @@ describe('PublishController', () => {
 
   describe('/dialog', () => {
     it('should return publish dialog', async () => {
+      getGithubModelByIdStub.resolves({
+        owner: mockOwner,
+        repo: mockRepo,
+        base_branch: mockBaseBranch,
+      })
+      getCommitStub.resolves({ sha: 'commitSha' })
+      updateModelStub.resolves({ base_branch: mockBaseBranch, is_out_of_sync: false })
       const result = await controller.dialog(mockReqWithCookie({}), mockOntologyId)
       const html = await toHTMLString(result)
       expect(html).to.equal('publishDialog_html')
@@ -101,28 +114,6 @@ describe('PublishController', () => {
           mockBranchName
         )
       ).to.be.rejectedWith(GithubReqError, 'Missing GitHub token')
-    })
-
-    it('should throw error if ontology is missing GitHub metadata', async () => {
-      const req = mockReqWithCookie(cookie)
-
-      getGithubModelByIdStub.resolves({
-        owner: null,
-        repo: null,
-        base_branch: null,
-      })
-
-      await expect(
-        controller.publish(
-          req,
-          mockOntologyId,
-          mockCommitMessage,
-          mockPrTitle,
-          mockDescription,
-          'newBranch',
-          mockBranchName
-        )
-      ).to.be.rejectedWith(DataError, 'not a valid GitHub model')
     })
 
     it('should throw error if base branch not found', async () => {
@@ -183,6 +174,7 @@ describe('PublishController', () => {
         base_branch: mockBaseBranch,
       })
       getDtdlFilesStub.resolves(mockFiles)
+      updateModelStub.resolves()
       getBranchStub
         .onFirstCall()
         .resolves({ object: { sha: 'baseSha' } })
@@ -239,6 +231,7 @@ describe('PublishController', () => {
         base_branch: mockBaseBranch,
       })
       getDtdlFilesStub.resolves(mockFiles)
+      updateModelStub.resolves()
       getBranchStub.resolves({ object: { sha: 'baseSha' } })
       createBlobStub.resolves({ sha: 'blobSha' })
       createTreeStub.resolves({ sha: mockTreeSha })
@@ -251,11 +244,13 @@ describe('PublishController', () => {
         mockCommitMessage,
         mockPrTitle,
         mockDescription,
-        'currentBranch'
+        'currentBranch',
+        mockBranchName
       )
 
       const html = await toHTMLString(result)
-      expect(html).to.contain(`Published successfully to '${mockBaseBranch}'`)
+      expect(html).to.contain(`Published successfully`)
+      expect(html).to.contain(`View branch`)
 
       expect(updateBranchStub.firstCall.args).to.deep.equal([
         mockToken,

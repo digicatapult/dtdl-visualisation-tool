@@ -280,7 +280,7 @@ export class OntologyController extends HTMLController {
 
     // get the base dtdl model that we will derive the graph from
     const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
-    const githubModelRow = await checkRemoteBranch(dtdlModelId, req)
+    const githubModelRow = await checkRemoteBranch(dtdlModelId, req, this.modelDb, this.githubRequest)
 
     this.sessionStore.update(sessionId, { editMode })
 
@@ -300,7 +300,7 @@ export class OntologyController extends HTMLController {
         tab: 'details',
         fileTree,
       }),
-      this.templates.GithubLink({
+      this.templates.githubLink({
         model: githubModelRow,
         swapOutOfBand: true,
       })

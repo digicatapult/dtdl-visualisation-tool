@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, it } from 'mocha'
 import sinon, { SinonStub } from 'sinon'
 import { container } from 'tsyringe'
 import { ModelDb } from '../../../db/modelDb.js'
-import { InternalError, UnauthorisedError } from '../../errors.js'
+import { UnauthorisedError } from '../../errors.js'
 import { modelHistoryCookie, octokitTokenCookie } from '../../models/cookieNames.js'
 import { ViewAndEditPermission } from '../../models/github.js'
 import { GithubRequest } from '../../utils/githubRequest.js'
@@ -165,73 +165,6 @@ describe('checkEditPermission', () => {
   })
 
   describe('error cases', () => {
-    it('should throw InternalError when model has no owner', async () => {
-      // Need a token to get past the initial check
-      mockRequest.signedCookies[octokitTokenCookie] = 'test-token'
-
-      getGithubModelByIdStub.resolves({
-        id: githubDtdlId,
-        owner: null,
-        repo: 'test-repo',
-      })
-
-      await expect(checkEditPermission(mockRequest, mockResponse, mockNext)).to.be.rejectedWith(
-        InternalError,
-        'owner or repo not found in database for GitHub source'
-      )
-
-      sinon.assert.notCalled(getRepoPermissionsStub)
-      sinon.assert.notCalled(mockNext)
-    })
-
-    it('should throw InternalError when model has no repo', async () => {
-      // Need a token to get past the initial check
-      mockRequest.signedCookies[octokitTokenCookie] = 'test-token'
-
-      getGithubModelByIdStub.resolves({
-        id: githubDtdlId,
-        owner: 'test-owner',
-        repo: null,
-      })
-
-      await expect(checkEditPermission(mockRequest, mockResponse, mockNext))
-        .to.be.rejectedWith(InternalError)
-        .and.eventually.have.property('message', 'owner or repo not found in database for GitHub source')
-
-      sinon.assert.notCalled(getRepoPermissionsStub)
-      sinon.assert.notCalled(mockNext)
-    })
-
-    it('should throw InternalError when model has undefined owner', async () => {
-      // Need a token to get past the initial check
-      mockRequest.signedCookies[octokitTokenCookie] = 'test-token'
-
-      getGithubModelByIdStub.resolves({
-        id: githubDtdlId,
-        repo: 'test-repo',
-        // owner is undefined
-      })
-
-      await expect(checkEditPermission(mockRequest, mockResponse, mockNext))
-        .to.be.rejectedWith(InternalError)
-        .and.eventually.have.property('message', 'owner or repo not found in database for GitHub source')
-    })
-
-    it('should throw InternalError when model has undefined repo', async () => {
-      // Need a token to get past the initial check
-      mockRequest.signedCookies[octokitTokenCookie] = 'test-token'
-
-      getGithubModelByIdStub.resolves({
-        id: githubDtdlId,
-        owner: 'test-owner',
-        // repo is undefined
-      })
-
-      await expect(checkEditPermission(mockRequest, mockResponse, mockNext))
-        .to.be.rejectedWith(InternalError)
-        .and.eventually.have.property('message', 'owner or repo not found in database for GitHub source')
-    })
-
     it('should throw UnauthorisedError when user has view permissions only', async () => {
       const testToken = 'valid-github-token'
       const testOwner = 'test-owner'

@@ -72,7 +72,7 @@ export default class MermaidTemplates {
         <this.uploadForm />
         <this.shareOntology />
         <this.publishForm canPublish={canEdit} ontologyId={ontologyId} />
-        <this.GithubLink model={model} />
+        <this.githubLink model={model} />
       </section>
 
       <div id="mermaid-wrapper">
@@ -1448,7 +1448,7 @@ export default class MermaidTemplates {
     )
   }
 
-  public GithubLink = ({ model, swapOutOfBand }: { model: ModelRow; swapOutOfBand?: boolean }) => {
+  public githubLink = ({ model, swapOutOfBand }: { model: ModelRow; swapOutOfBand?: boolean }) => {
     if (!isGithubModel(model)) return <></>
 
     const { owner, repo, is_out_of_sync, commit_hash, base_branch } = model

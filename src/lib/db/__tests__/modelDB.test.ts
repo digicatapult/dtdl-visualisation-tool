@@ -36,6 +36,16 @@ const invalidGithubFixture = {
 const fileSource: DtdlSource = { '@id': 'someId', '@type': 'Interface' }
 const mockFile: DtdlFile = { path: 'path', source: JSON.stringify(fileSource) }
 const mockDtdlRow = { id: 1, path: 'path', source: fileSource }
+const mockModelRow = {
+  id: '1',
+  name: 'Model',
+  source: 'github',
+  owner: 'owner',
+  repo: 'repo',
+  base_branch: 'main',
+  commit_hash: 'sha',
+  is_out_of_sync: false,
+}
 
 const errorFixture: ModelingException = { ExceptionKind: 'Resolution', UndefinedIdentifiers: [''] }
 
@@ -59,7 +69,10 @@ const mockDb = {
     if (id === '1') return Promise.resolve([mockDtdlRow])
     return Promise.resolve([])
   }),
-  update: sinon.stub().resolves([mockDtdlRow]),
+  update: sinon.stub().callsFake((table) => {
+    if (table === 'dtdl') return Promise.resolve([mockDtdlRow])
+    if (table === 'model') return Promise.resolve([mockModelRow])
+  }),
   insert: sinon.stub().resolves([{ id: '3' as UUID }]),
   delete: sinon.stub().resolves(),
   withTransaction: sinon.stub().callsFake(async <T>(handler: (db: Database) => Promise<T>): Promise<T> => {
@@ -150,6 +163,14 @@ describe('modelDB', function () {
         'dtdl_error',
         { error: errorFixture, dtdl_id: '1' },
       ])
+    })
+  })
+
+  describe('updateModel', () => {
+    it('should update the model in the database', async () => {
+      const updates = { name: 'New Name' }
+      await model.updateModel('1', updates)
+      expect((mockDb.update as sinon.SinonStub).calledWith('model', { id: '1' }, updates)).to.equal(true)
     })
   })
 

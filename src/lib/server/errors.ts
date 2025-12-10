@@ -92,12 +92,6 @@ export class GithubNotFound extends HttpError {
   }
 }
 
-export class GithubStateError extends HttpError {
-  constructor(userMessage: string) {
-    super('User', 409, 'GitHub State Error', userMessage, userMessage)
-  }
-}
-
 export class TooManyRequestsError extends HttpError {
   constructor(userMessage: string) {
     super('User', 429, 'Too Many Requests', userMessage, userMessage)

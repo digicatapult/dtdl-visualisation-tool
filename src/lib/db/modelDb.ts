@@ -75,8 +75,13 @@ export class ModelDb {
     })
   }
 
-  async updateModel(id: UUID, updates: Partial<ModelRow>): Promise<void> {
-    await this.db.update('model', { id }, updates)
+  async updateModel(id: UUID, updates: Partial<ModelRow>): Promise<GithubModelRow> {
+    const [model] = await this.db.update('model', { id }, updates)
+    if (!model) throw new InternalError(`Failed to find model: ${id}`)
+    if (!isGithubModel(model)) {
+      throw new InternalError(`Model ${id} is not a valid GitHub model`)
+    }
+    return model
   }
 
   async getDtdlFiles(model_id: UUID): Promise<DtdlFile[]> {

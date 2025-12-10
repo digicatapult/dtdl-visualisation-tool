@@ -7,7 +7,7 @@ import { DataError, GithubReqError } from '../errors.js'
 import { octokitTokenCookie } from '../models/cookieNames.js'
 import { GithubRequest } from '../utils/githubRequest.js'
 import MermaidTemplates from '../views/components/mermaid.js'
-import { successToast, Toast } from '../views/components/toast.js'
+import { successToast } from '../views/components/toast.js'
 import { HTML, HTMLController } from './HTMLController.js'
 import { checkEditPermission, checkRemoteBranch } from './helpers.js'
 @injectable()
@@ -25,7 +25,12 @@ export class PublishController extends HTMLController {
   @Get('/dialog')
   @Produces('text/html')
   public async dialog(@Request() req: express.Request, @Query() ontologyId: string): Promise<HTML> {
-    const { base_branch: baseBranch, is_out_of_sync: isOutOfSync } = await checkRemoteBranch(ontologyId, req)
+    const { base_branch: baseBranch, is_out_of_sync: isOutOfSync } = await checkRemoteBranch(
+      ontologyId,
+      req,
+      this.modelDb,
+      this.githubRequest
+    )
     return this.html(this.templates.publishDialog({ ontologyId, baseBranch, isOutOfSync }))
   }
 
@@ -39,7 +44,7 @@ export class PublishController extends HTMLController {
     @FormField() prTitle: string,
     @FormField() description: string,
     @FormField() publishType: 'newBranch' | 'currentBranch',
-    @FormField() branchName?: string
+    @FormField() branchName: string
   ): Promise<HTML> {
     const octokitToken = req.signedCookies[octokitTokenCookie]
     if (!octokitToken) {
@@ -56,9 +61,6 @@ export class PublishController extends HTMLController {
     }
 
     if (publishType === 'newBranch') {
-      if (!branchName) {
-        throw new DataError('Branch name is required for new branch')
-      }
       const existingRemoteBranch = await this.githubRequest.getBranch(octokitToken, owner, repo, branchName)
       if (existingRemoteBranch) {
         throw new DataError(`Branch with name ${branchName} already exists`)
@@ -84,9 +86,7 @@ export class PublishController extends HTMLController {
       baseBranchData.object.sha,
     ])
 
-    let toast: Toast
     if (publishType === 'newBranch') {
-      // branchName is checked above
       await this.githubRequest.createBranch(octokitToken, owner, repo, branchName!, commit.sha)
 
       const pr = await this.githubRequest.createPullRequest(
@@ -99,18 +99,29 @@ export class PublishController extends HTMLController {
         description
       )
 
-      toast = successToast('Published successfully', pr.html_url, 'View Pull Request')
+      const toast = successToast('Published successfully', pr.html_url, 'View Pull Request')
+      this.setHeader('HX-Trigger-After-Settle', JSON.stringify({ toastEvent: { dialogId: toast.dialogId } }))
+      return this.html(toast.response)
     } else {
       await this.githubRequest.updateBranch(octokitToken, owner, repo, baseBranch, commit.sha)
-      await this.modelDb.updateModel(ontologyId, { is_out_of_sync: false, commit_hash: commit.sha })
+      const updatedModel = await this.modelDb.updateModel(ontologyId, {
+        is_out_of_sync: false,
+        commit_hash: commit.sha,
+      })
 
-      toast = successToast(
+      const toast = successToast(
         `Published successfully`,
         `https://github.com/${owner}/${repo}/tree/${baseBranch}`,
         'View branch'
       )
+      this.setHeader('HX-Trigger-After-Settle', JSON.stringify({ toastEvent: { dialogId: toast.dialogId } }))
+      return this.html(
+        toast.response,
+        this.templates.githubLink({
+          model: updatedModel,
+          swapOutOfBand: true,
+        })
+      )
     }
-    this.setHeader('HX-Trigger-After-Settle', JSON.stringify({ toastEvent: { dialogId: toast.dialogId } }))
-    return this.html(toast.response)
   }
 }
