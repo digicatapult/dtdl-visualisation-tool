@@ -535,7 +535,7 @@ describe('OntologyController', async () => {
     it('should enable edit mode when file tree has no errors and permission is edit', async () => {
       const mockModelDbNoErrors = {
         ...simpleMockModelDb,
-        getModelById: () => Promise.resolve({ source: 'local', owner: null, repo: null }),
+        getModelById: () => Promise.resolve({ source: 'github', owner: 'test-owner', repo: 'test-repo' }),
         getDtdlModelAndTree: () =>
           Promise.resolve({
             model: simpleMockDtdlObjectModel,
@@ -550,6 +550,8 @@ describe('OntologyController', async () => {
           }),
       } as unknown as ModelDb
 
+      const getRepoPermissionsStub = sinon.stub(mockGithubRequest, 'getRepoPermissions').resolves('edit' as const)
+
       const controllerNoErrors = new OntologyController(
         mockModelDbNoErrors,
         mockGenerator,
@@ -562,12 +564,15 @@ describe('OntologyController', async () => {
         mockGithubRequest
       )
 
-      const req = mockReqWithCookie({})
+      const req = mockReqWithCookie({ OCTOKIT_TOKEN: 'token' })
       const result = await controllerNoErrors
         .view(simpleDtdlId, { ...defaultParams }, req)
         .then((value) => (value ? toHTMLString(value) : ''))
 
-      expect(result).to.equal(`root_undefined_false_permissions_root`)
+      // GitHub source with 'edit' permission and no errors, so canEdit=true with editDisabledReason=undefined (not included)
+      expect(result).to.equal(`root_undefined_true_root`)
+
+      getRepoPermissionsStub.restore()
     })
 
     it('should disable edit when errors exist in nested directories', async () => {

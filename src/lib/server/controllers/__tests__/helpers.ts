@@ -226,10 +226,14 @@ export const templateMock = {
     canEdit?: boolean
     editDisabledReason?: 'errors' | 'permissions'
   }) => {
-    let result = `root_${search}_root`
-    if (typeof canEdit !== 'undefined' && typeof editDisabledReason !== 'undefined') {
-      result = `root_${search}_${canEdit}_${editDisabledReason}_root`
+    let result = `root_${search}`
+    if (typeof canEdit !== 'undefined') {
+      result += `_${canEdit}`
     }
+    if (typeof editDisabledReason !== 'undefined') {
+      result += `_${editDisabledReason}`
+    }
+    result += `_root`
     return result
   },
   mermaidTarget: ({ generatedOutput, target }: { generatedOutput?: JSX.Element; target: string }): JSX.Element =>
