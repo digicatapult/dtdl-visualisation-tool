@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { DtdlInterface, dtdlInterfaceBase, NullableDtdlSource, preserveKeyOrder } from '../../../db/types.js'
 import { DataError } from '../../errors.js'
+import { logger } from '../../logger.js'
 import { DtdlSchema } from '../../models/strings.js'
 
 const invalidChars = /["\\]/
@@ -229,6 +230,7 @@ const updateCommandRequestResponseValue = (
   keyToUpdate: 'displayName' | 'description' | 'comment' | 'schema',
   maxLength = MAX_VALUE_LENGTH
 ) => {
+  logger.info({ value, commandName, requestOrResponse, keyToUpdate }, 'updateCommandRequestResponseValue called')
   if (typeof value === 'string' && invalidChars.test(value)) throw new DataError(`Invalid JSON: '${value}'`)
 
   if (typeof value === 'string' && value.length > maxLength)
@@ -251,9 +253,13 @@ const updateCommandRequestResponseValue = (
   const command = validFile.contents[commandIndex]
 
   const objecSchema = z.object({}).loose()
-  const requestResponseProperty = objecSchema.parse(command[requestOrResponse])
+  const requestResponseProperty = objecSchema.parse(command[requestOrResponse] ?? {})
 
   const updatedRequestResponse = { ...requestResponseProperty }
+
+  if (!updatedRequestResponse.name) {
+    updatedRequestResponse.name = requestOrResponse
+  }
 
   updatedRequestResponse[keyToUpdate] = value
   const updatedCommand = {
@@ -282,3 +288,56 @@ export const deleteContent = (contentName: string) => (dtdlInterface: DtdlInterf
 
   return { ...validInterface, contents: updatedContents }
 }
+
+export const addContent =
+  (contentName: string, contentType: 'Property' | 'Relationship' | 'Telemetry' | 'Command') =>
+  (dtdlInterface: DtdlInterface) => {
+    if (!contentName.trim()) throw new DataError('Content name cannot be empty')
+    if (invalidChars.test(contentName)) throw new DataError(`Invalid JSON: '${contentName}'`)
+    if (contentName.length > MAX_VALUE_LENGTH)
+      throw new DataError(`Content name has max length of ${MAX_VALUE_LENGTH} characters`)
+
+    // DTDL naming rules: must start with letter, contain only letters, numbers, underscores
+    // and end with letter or number (not underscore)
+    const dtdlNamePattern = /^[A-Za-z](?:[A-Za-z0-9_]*[A-Za-z0-9])?$/
+    if (!dtdlNamePattern.test(contentName)) {
+      throw new DataError(
+        `Content name '${contentName}' is invalid. Must start with a letter, contain only letters, numbers, and underscores, and cannot end with an underscore.`
+      )
+    }
+
+    const schema = dtdlInterfaceBase.extend({
+      contents: z
+        .array(
+          z.looseObject({
+            '@type': z.string(),
+            name: z.string(),
+          })
+        )
+        .default([]),
+    })
+
+    const validInterface: z.infer<typeof schema> = preserveKeyOrder(schema.loose()).parse(dtdlInterface)
+    const contents = validInterface.contents ?? []
+
+    // Validate uniqueness
+    const existingContent = contents.find((c) => c.name === contentName)
+    if (existingContent) {
+      throw new DataError(`Content with name '${contentName}' already exists`)
+    }
+
+    // Create new content object based on type
+    const newContent: Record<string, unknown> = {
+      '@type': contentType,
+      name: contentName,
+    }
+
+    // Add default schema for Property and Telemetry
+    if (contentType === 'Property' || contentType === 'Telemetry') {
+      newContent.schema = 'string'
+    }
+
+    const updatedContents = [...contents, newContent]
+
+    return { ...validInterface, contents: updatedContents }
+  }

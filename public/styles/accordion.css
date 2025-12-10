@@ -33,6 +33,129 @@
   transform: rotate(180deg);
 }
 
+/* Add Content Button and Form Styles */
+.accordion-parent h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.accordion-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.add-content-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.add-content-button {
+  background: var(--color-primary, #007bff);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  
+}
+
+.add-content-button:hover {
+  background: var(--color-primary-dark, #0056b3);
+}
+
+.add-content-button:active {
+  transform: scale(0.95);
+}
+
+.add-content-button.open {
+  transform: rotate(45deg);
+  background: var(--color-danger, #dc3545);
+}
+
+.add-content-button.open:hover {
+  background: var(--color-danger-dark, #bd2130);
+}
+
+/* Cancel state (× button) */
+.add-content-button-cancel {
+  background: var(--color-danger, #dc3545);
+  font-size: 24px;
+}
+
+.add-content-button-cancel:hover {
+  background: var(--color-danger-dark, #bd2130);
+}
+
+@keyframes fade-in {
+     from { opacity: 0; }
+   }
+
+@keyframes fade-out {
+  to { opacity: 0; }
+}
+
+@keyframes slide-from-right {
+  from { transform: translateX(90px); }
+}
+
+@keyframes slide-to-right {
+  to { transform: translateX(90px); }
+} 
+
+::view-transition-old(slide-it) {
+  animation: 200ms cubic-bezier(0.4, 0, 1, 1) both fade-out,
+  200ms cubic-bezier(0.4, 0, 0.2, 1) both slide-to-right;
+}
+::view-transition-new(slide-it) {
+  animation: 200ms cubic-bezier(0, 0, 0.2, 1) 90ms both fade-in,
+  200ms cubic-bezier(0.4, 0, 0.2, 1) both slide-from-right;
+}
+
+.add-content-form {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  flex: 1;
+  view-transition-name: slide-it;
+}
+
+.add-content-input {
+  padding: 4px 8px;
+  border: 1px solid var(--color-border, #ccc);
+  border-radius: 4px;
+  font-size: 14px;
+  min-width: 150px;
+  flex: 1;
+}
+
+.add-content-input:focus {
+  outline: none;
+  border-color: var(--color-primary, #007bff);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+}
+
+.add-content-input:invalid {
+  border-color: var(--color-danger, #dc3545);
+}
+
+.add-content-input:invalid:focus {
+  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.1);
+}
+
+
 #selectedFolder .folder-tree-button {
   background: transparent;
   border: 0;

@@ -130,6 +130,7 @@ export class OntologyController extends HTMLController {
     const hasErrors = hasFileTreeErrors(fileTree)
     const canEdit = permission === 'edit' && !hasErrors
     const editDisabledReason = hasErrors ? 'errors' : permission !== 'edit' ? 'permissions' : undefined
+    this.setHeader('Cache-Control', 'no-store')
 
     return this.html(
       this.templates.MermaidRoot({
@@ -237,6 +238,8 @@ export class OntologyController extends HTMLController {
     if (current) {
       this.setReplaceUrl(current, params)
     }
+
+    this.setHeader('Cache-Control', 'no-store')
 
     // render out the final components to be replaced
     return this.html(

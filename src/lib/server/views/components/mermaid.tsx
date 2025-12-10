@@ -21,6 +21,7 @@ import {
 import { hasFileTreeErrors } from '../../utils/dtdl/fileTreeErrors.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { AccordionSection, EditableSelect, EditableText, Page } from '../common.js'
+import { AddContentButton } from './addContent.js'
 import { PropertyDetails } from './property.js'
 import { RelationshipDetails } from './relationship.js'
 
@@ -407,7 +408,6 @@ export default class MermaidTemplates {
               ...(relationshipName ? { relationshipName } : {}),
             },
             text: entity?.displayName?.en,
-            keyName: 'displayName',
             maxLength: 64,
           })}
           <p>
@@ -421,7 +421,6 @@ export default class MermaidTemplates {
               ...(relationshipName ? { relationshipName } : {}),
             },
             text: entity.description?.en,
-            keyName: 'description',
             multiline: true,
             maxLength: MAX_VALUE_LENGTH,
           })}
@@ -436,7 +435,6 @@ export default class MermaidTemplates {
               ...(relationshipName ? { relationshipName } : {}),
             },
             text: entity.comment,
-            keyName: 'comment',
             multiline: true,
             maxLength: MAX_VALUE_LENGTH,
           })}
@@ -445,31 +443,27 @@ export default class MermaidTemplates {
               <p>
                 <b>Target:</b>
               </p>
-              {entity.target ? (
-                (() => {
-                  // Build options list for all interfaces in the model
-                  const interfaceOptions = Object.values(model)
-                    .filter(isInterface)
-                    .map((iface) => ({
-                      value: iface.Id,
-                      label: `${getDisplayName(iface)} (${iface.Id})`,
-                    }))
-                    .sort((a, b) => a.label.localeCompare(b.label))
+              {(() => {
+                // Build options list for all interfaces in the model
+                const interfaceOptions = Object.values(model)
+                  .filter(isInterface)
+                  .map((iface) => ({
+                    value: iface.Id,
+                    label: `${getDisplayName(iface)} (${iface.Id})`,
+                  }))
+                  .sort((a, b) => a.label.localeCompare(b.label))
 
-                  return (
-                    <EditableSelect
-                      edit={edit}
-                      definedIn={definedIn}
-                      putRoute="relationshipTarget"
-                      text={entity.target}
-                      options={interfaceOptions}
-                      additionalBody={{ relationshipName }}
-                    />
-                  )
-                })()
-              ) : (
-                <p>'target' key missing in original file</p>
-              )}
+                return (
+                  <EditableSelect
+                    edit={edit}
+                    definedIn={definedIn}
+                    putRoute="relationshipTarget"
+                    text={entity.target}
+                    options={interfaceOptions}
+                    additionalBody={{ relationshipName }}
+                  />
+                )
+              })()}
             </>
           )}
         </section>
@@ -489,7 +483,15 @@ export default class MermaidTemplates {
               : 'None'}
           </p>
         </AccordionSection>
-        <AccordionSection heading={'Properties'} collapsed={false}>
+        <AccordionSection
+          heading={'Properties'}
+          collapsed={false}
+          Action={
+            edit && isInterface(entity)
+              ? () => <AddContentButton contentType="Property" entityId={entity.Id} />
+              : undefined
+          }
+        >
           {isInterface(entity) && Object.keys(entity.properties).length > 0
             ? Object.entries(entity.properties).map(([name, id]) => {
                 const property = model[id]
@@ -500,7 +502,15 @@ export default class MermaidTemplates {
               })
             : 'None'}
         </AccordionSection>
-        <AccordionSection heading={'Relationships'} collapsed={false}>
+        <AccordionSection
+          heading={'Relationships'}
+          collapsed={false}
+          Action={
+            edit && isInterface(entity)
+              ? () => <AddContentButton contentType="Relationship" entityId={entity.Id} />
+              : undefined
+          }
+        >
           {isInterface(entity) && Object.keys(entity.relationships).length > 0
             ? Object.entries(entity.relationships).map(([name, id]) => {
                 const relationship = model[id]
@@ -518,7 +528,15 @@ export default class MermaidTemplates {
               })
             : 'None'}
         </AccordionSection>
-        <AccordionSection heading={'Telemetries'} collapsed={false}>
+        <AccordionSection
+          heading={'Telemetries'}
+          collapsed={false}
+          Action={
+            edit && isInterface(entity)
+              ? () => <AddContentButton contentType="Telemetry" entityId={entity.Id} />
+              : undefined
+          }
+        >
           {isInterface(entity) && Object.keys(entity.telemetries).length > 0
             ? Object.entries(entity.telemetries).map(([name, id]) => {
                 const telemetry = model[id]
@@ -534,7 +552,6 @@ export default class MermaidTemplates {
                       definedIn={telemetry.DefinedIn}
                       putRoute="telemetryDisplayName"
                       text={telemetry.displayName?.en}
-                      keyName="displayName"
                       additionalBody={{ telemetryName: name }}
                       maxLength={64}
                     />
@@ -543,7 +560,10 @@ export default class MermaidTemplates {
                       edit={edit}
                       definedIn={telemetry.DefinedIn}
                       putRoute="telemetrySchema"
-                      text={model[telemetry.schema].displayName?.en ?? 'Complex schema'}
+                      text={
+                        model[telemetry.schema]?.displayName?.en ??
+                        (typeof telemetry.schema === 'string' ? telemetry.schema : 'Complex schema')
+                      }
                       additionalBody={{ telemetryName: name }}
                       options={DTDL_VALID_SCHEMAS}
                     />
@@ -553,7 +573,6 @@ export default class MermaidTemplates {
                       definedIn={telemetry.DefinedIn}
                       putRoute="telemetryDescription"
                       text={telemetry.description?.en}
-                      keyName="description"
                       additionalBody={{ telemetryName: name }}
                       multiline={true}
                       maxLength={MAX_VALUE_LENGTH}
@@ -564,7 +583,6 @@ export default class MermaidTemplates {
                       definedIn: telemetry.DefinedIn,
                       putRoute: 'telemetryComment',
                       text: telemetry.comment,
-                      keyName: 'comment',
                       additionalBody: { telemetryName: name },
                       multiline: true,
                       maxLength: MAX_VALUE_LENGTH,
@@ -575,7 +593,15 @@ export default class MermaidTemplates {
               })
             : 'None'}
         </AccordionSection>
-        <AccordionSection heading={'Commands'} collapsed={false}>
+        <AccordionSection
+          heading={'Commands'}
+          collapsed={false}
+          Action={
+            edit && isInterface(entity)
+              ? () => <AddContentButton contentType="Command" entityId={entity.Id} />
+              : undefined
+          }
+        >
           {isInterface(entity) && Object.keys(entity.commands).length > 0
             ? Object.entries(entity.commands).map(([name, id]) => {
                 const command = model[id]
@@ -599,7 +625,6 @@ export default class MermaidTemplates {
                       text: command.displayName.en,
                       additionalBody: { commandName: name },
                       maxLength: 64,
-                      keyName: 'displayName',
                     })}
 
                     <b>Description:</b>
@@ -611,7 +636,6 @@ export default class MermaidTemplates {
                       additionalBody: { commandName: name },
                       multiline: true,
                       maxLength: MAX_VALUE_LENGTH,
-                      keyName: 'description',
                     })}
                     <b>Comment:</b>
                     {EditableText({
@@ -622,7 +646,6 @@ export default class MermaidTemplates {
                       additionalBody: { commandName: name },
                       multiline: true,
                       maxLength: MAX_VALUE_LENGTH,
-                      keyName: 'comment',
                     })}
                     <AccordionSection heading={'Request'} collapsed={false}>
                       <b>Request displayName:</b>
@@ -634,7 +657,6 @@ export default class MermaidTemplates {
                         additionalBody: { commandName: name },
                         multiline: true,
                         maxLength: MAX_VALUE_LENGTH,
-                        keyName: 'requestDisplayName',
                       })}
                       <b>Request comment:</b>
                       {EditableText({
@@ -645,7 +667,6 @@ export default class MermaidTemplates {
                         additionalBody: { commandName: name },
                         multiline: true,
                         maxLength: MAX_VALUE_LENGTH,
-                        keyName: 'requestComment',
                       })}
                       <b>Request description:</b>
                       {EditableText({
@@ -656,7 +677,6 @@ export default class MermaidTemplates {
                         additionalBody: { commandName: name },
                         multiline: true,
                         maxLength: MAX_VALUE_LENGTH,
-                        keyName: 'requestDescription',
                       })}
                       <b>Schema:</b>
                       <EditableSelect
@@ -665,8 +685,9 @@ export default class MermaidTemplates {
                         putRoute="commandRequestSchema"
                         text={
                           requestEntity?.schema
-                            ? (model[requestEntity.schema].displayName?.en ?? 'Complex schema')
-                            : 'schema key missing in original file'
+                            ? (model[requestEntity.schema]?.displayName?.en ??
+                              (typeof requestEntity.schema === 'string' ? requestEntity.schema : 'Complex schema'))
+                            : undefined
                         }
                         additionalBody={{ commandName: name }}
                         options={DTDL_VALID_SCHEMAS}
@@ -682,7 +703,6 @@ export default class MermaidTemplates {
                         additionalBody: { commandName: name },
                         multiline: true,
                         maxLength: MAX_VALUE_LENGTH,
-                        keyName: 'responseDisplayName',
                       })}
                       <b>Response comment:</b>
                       {EditableText({
@@ -693,7 +713,6 @@ export default class MermaidTemplates {
                         additionalBody: { commandName: name },
                         multiline: true,
                         maxLength: MAX_VALUE_LENGTH,
-                        keyName: 'responseComment',
                       })}
                       <b>Response description:</b>
                       {EditableText({
@@ -704,7 +723,6 @@ export default class MermaidTemplates {
                         additionalBody: { commandName: name },
                         multiline: true,
                         maxLength: MAX_VALUE_LENGTH,
-                        keyName: 'responseDescription',
                       })}
                       <b>Schema:</b>
                       <EditableSelect
@@ -713,8 +731,9 @@ export default class MermaidTemplates {
                         putRoute="commandResponseSchema"
                         text={
                           responseEntity?.schema
-                            ? (model[responseEntity.schema].displayName?.en ?? 'Complex schema')
-                            : 'schema key missing in original file'
+                            ? (model[responseEntity.schema]?.displayName?.en ??
+                              (typeof responseEntity.schema === 'string' ? responseEntity.schema : 'Complex schema'))
+                            : undefined
                         }
                         additionalBody={{ commandName: name }}
                         options={DTDL_VALID_SCHEMAS}
