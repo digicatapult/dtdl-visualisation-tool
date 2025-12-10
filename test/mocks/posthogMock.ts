@@ -50,7 +50,7 @@ const createMockServer = (): Express => {
 
   // PostHog batch endpoint - receives multiple events
   app.post('/batch', (req: Request, res: Response) => {
-    logger.debug({ body: obfuscateForLog(req.body) }, 'Received /batch request')
+    logger.trace({ body: obfuscateForLog(req.body) }, 'Received /batch request')
     const batch = req.body.batch || []
     for (const event of batch) {
       capturedEvents.push({
@@ -66,7 +66,7 @@ const createMockServer = (): Express => {
 
   // PostHog capture endpoint - receives single event
   app.post('/capture', (req: Request, res: Response) => {
-    logger.debug({ body: obfuscateForLog(req.body) }, 'Received /capture request')
+    logger.trace({ body: obfuscateForLog(req.body) }, 'Received /capture request')
     const event = req.body
     capturedEvents.push({
       event: event.event,
@@ -94,7 +94,7 @@ const createMockServer = (): Express => {
 
   // PostHog e endpoint - used by JS client for events
   app.post('/e', (req: Request, res: Response) => {
-    logger.debug({ body: obfuscateForLog(req.body) }, 'Received /e request')
+    logger.trace({ body: obfuscateForLog(req.body) }, 'Received /e request')
     const event = req.body
     capturedEvents.push({
       event: event.event,
