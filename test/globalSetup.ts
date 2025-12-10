@@ -44,7 +44,6 @@ export let posthogMockServer: Server | null = null
 async function globalSetup(config: FullConfig) {
   // Start PostHog mock server before containers
   posthogMockServer = await startMockPostHogServer(POSTHOG_MOCK_PORT)
-  process.env.POSTHOG_MOCK_PORT = String(POSTHOG_MOCK_PORT)
 
   postgresContainer = await bringUpDatabaseContainer()
   visualisationImage = await buildVisualisationImage()
@@ -55,6 +54,7 @@ async function globalSetup(config: FullConfig) {
       hostPort: 3000,
       containerPort: 3000,
       cookieSessionKeys: 'secret',
+      posthogMockPort: POSTHOG_MOCK_PORT,
     },
     visualisationImage
   )
@@ -66,6 +66,7 @@ async function globalSetup(config: FullConfig) {
       containerPort: 3000,
       cookieSessionKeys: 'test',
       maxOntologySize: 25,
+      posthogMockPort: POSTHOG_MOCK_PORT,
     },
     visualisationImage
   )

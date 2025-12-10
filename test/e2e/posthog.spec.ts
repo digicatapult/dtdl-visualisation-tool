@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { POSTHOG_MOCK_PORT } from '../constants.js'
 
 /**
  * PostHog Client-Side E2E Tests
@@ -16,7 +17,7 @@ test.describe('PostHog Client-Side Integration', () => {
   })
 
   // Skip tests if using mock server (browser can't reach host.docker.internal)
-  const usingMockServer = process.env.POSTHOG_MOCK_PORT !== undefined
+  const usingMockServer = POSTHOG_MOCK_PORT !== undefined
 
   test('should have PostHog script tag in page', async ({ page }) => {
     // Navigate to the app

@@ -7,6 +7,7 @@ interface VisualisationUIConfig {
   containerPort: number
   cookieSessionKeys: string
   maxOntologySize?: number
+  posthogMockPort?: number
 }
 interface databaseConfig {
   containerName: string
@@ -78,7 +79,7 @@ export async function startVisualisationContainer(
   env: VisualisationUIConfig,
   visualisationImage: GenericContainer
 ): Promise<StartedTestContainer> {
-  const { containerName, containerPort, hostPort, cookieSessionKeys, maxOntologySize } = env
+  const { containerName, containerPort, hostPort, cookieSessionKeys, maxOntologySize, posthogMockPort } = env
 
   logger.info(`Starting container ${containerName} on port ${containerPort}...`)
 
@@ -98,17 +99,17 @@ export async function startVisualisationContainer(
     EDIT_ONTOLOGY: 'true',
     MAX_DTDL_OBJECT_SIZE: maxOntologySize ? maxOntologySize.toString() : '1000',
     // PostHog configuration for E2E tests
-    // When POSTHOG_MOCK_PORT is set (via globalSetup), the container is configured
-    // to send analytics events to our mock PostHog server at host.docker.internal
-    // instead of the real PostHog service. This allows E2E tests to verify that
-    // analytics events are being tracked correctly without sending data externally.
-    POSTHOG_ENABLED: process.env.POSTHOG_MOCK_PORT ? 'true' : process.env.POSTHOG_ENABLED || 'false',
+    // When posthogMockPort is set, the container is configured to send analytics
+    // events to our mock PostHog server at host.docker.internal instead of the
+    // real PostHog service. This allows E2E tests to verify that analytics events
+    // are being tracked correctly without sending data externally.
+    POSTHOG_ENABLED: posthogMockPort ? 'true' : process.env.POSTHOG_ENABLED || 'false',
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY || 'phc_test_key',
   }
 
   // Only set NEXT_PUBLIC_POSTHOG_HOST if it has a value
-  const posthogHost = process.env.POSTHOG_MOCK_PORT
-    ? `http://host.docker.internal:${process.env.POSTHOG_MOCK_PORT}`
+  const posthogHost = posthogMockPort
+    ? `http://host.docker.internal:${posthogMockPort}`
     : process.env.NEXT_PUBLIC_POSTHOG_HOST
 
   if (posthogHost) {
@@ -126,7 +127,7 @@ export async function startVisualisationContainer(
 
   // Only add host.docker.internal mapping when PostHog mock is running
   // This avoids DNS resolution overhead in non-PostHog tests
-  if (process.env.POSTHOG_MOCK_PORT) {
+  if (posthogMockPort) {
     containerBuilder = containerBuilder.withExtraHosts([{ host: 'host.docker.internal', ipAddress: 'host-gateway' }])
   }
 

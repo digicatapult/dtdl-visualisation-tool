@@ -19,7 +19,15 @@ import { errorToast } from './views/components/errors.js'
 export default async (): Promise<Express> => {
   const env = container.resolve(Env)
   const rateLimit = container.resolve(RateLimiter)
-  const postHog = container.resolve(PostHogService)
+
+  // Resolve PostHog service once at startup. May be unavailable in test environments
+  // where container.clearInstances() is called, so we handle resolution errors gracefully.
+  let postHog: PostHogService | null = null
+  try {
+    postHog = container.resolve(PostHogService)
+  } catch {
+    // PostHog service unavailable (e.g., dependencies not registered in tests)
+  }
 
   const app: Express = express()
 
@@ -89,7 +97,7 @@ export default async (): Promise<Express> => {
     const octokitToken = req.signedCookies[octokitTokenCookie]
     const posthogId = req.signedCookies[posthogIdCookie]
 
-    if (posthogId) {
+    if (postHog && posthogId) {
       postHog.trackError(octokitToken, posthogId, {
         message: err instanceof Error ? err.message : 'Unknown error',
         stack: err instanceof Error ? err.stack : undefined,
