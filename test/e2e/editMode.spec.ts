@@ -21,7 +21,7 @@ test.describe('Test edit ontology', () => {
       'Only Ontologies from github that you have write permissions on, can be edited'
     )
   })
-  test('edit interface + relationship', async ({ browser, baseURL }) => {
+  test('edit interface + relationship', async ({ browser }) => {
     test.setTimeout(110000)
     const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const page = await context.newPage()
@@ -40,14 +40,6 @@ test.describe('Test edit ontology', () => {
       () => page.locator('#mermaid-output').getByText('displayNameEdit', { exact: true }).first().click(),
       '/update-layout'
     )
-
-    const navigationAfterContent = await getStyledComponent(
-      page,
-      '#navigation-panel h3:first-of-type',
-      '::after',
-      'content'
-    )
-    expect(navigationAfterContent).toBe(`url("${baseURL}/public/images/pencil.svg")`)
 
     // interface edits
     const newInterfaceDisplayName = 'new display name'

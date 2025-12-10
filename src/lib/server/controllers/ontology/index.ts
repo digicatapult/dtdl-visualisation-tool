@@ -126,12 +126,15 @@ export class OntologyController extends HTMLController {
       return this.html(ErrorPage(output.renderToString(), this.getStatus()))
     }
 
+    this.setHeader('Cache-Control', 'no-store')
+
     return this.html(
       this.templates.MermaidRoot({
         search: params.search,
         sessionId,
         diagramType: params.diagramType,
         canEdit: permission === 'edit',
+        req,
         ontologyId: dtdlModelId,
         model,
       })
@@ -219,6 +222,7 @@ export class OntologyController extends HTMLController {
       ontologyId: dtdlModelId,
       diagramType: newSession.diagramType,
       hasSearch: !!newSession.search,
+      searchTerm: newSession.search,
       expandedCount: newSession.expandedIds.length,
       highlightNodeId: newSession.highlightNodeId,
     })
@@ -231,6 +235,8 @@ export class OntologyController extends HTMLController {
     if (current) {
       this.setReplaceUrl(current, params)
     }
+
+    this.setHeader('Cache-Control', 'no-store')
 
     // render out the final components to be replaced
     return this.html(

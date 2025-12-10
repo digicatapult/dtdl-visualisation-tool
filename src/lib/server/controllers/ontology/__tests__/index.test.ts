@@ -167,9 +167,10 @@ describe('OntologyController', async () => {
       })
       await controller.updateLayout(req, simpleDtdlId, defaultParams).then(toHTMLString)
 
-      expect(stub.callCount).to.equal(2)
+      expect(stub.callCount).to.equal(3)
       expect(stub.firstCall.args).to.deep.equal(['HX-Push-Url', '/some/path?param1=x&param2=y&diagramType=flowchart'])
-      expect(stub.secondCall.args).to.deep.equal(['Content-Type', 'text/html'])
+      expect(stub.secondCall.args).to.deep.equal(['Cache-Control', 'no-store'])
+      expect(stub.thirdCall.args).to.deep.equal(['Content-Type', 'text/html'])
     })
 
     it('should overwrite layout in HX-Push-Url header', async () => {
@@ -189,8 +190,9 @@ describe('OntologyController', async () => {
       const req = mockReq({})
       await controller.updateLayout(req, simpleDtdlId, defaultParams).then(toHTMLString)
 
-      expect(stub.callCount).to.equal(1)
-      expect(stub.firstCall.args).to.deep.equal(['Content-Type', 'text/html'])
+      expect(stub.callCount).to.equal(2)
+      expect(stub.firstCall.args).to.deep.equal(['Cache-Control', 'no-store'])
+      expect(stub.secondCall.args).to.deep.equal(['Content-Type', 'text/html'])
     })
 
     it('should update the stored session', async () => {

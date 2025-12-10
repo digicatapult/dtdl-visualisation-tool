@@ -156,6 +156,18 @@ Additionally end to end tests for GitHub integration require envs of two test us
 - `GH_TEST_PASSWORD_2=` the `digicatapult-nidt-user-2` account password.
 - `GH_TEST_2FA_SECRET_2=` the secret shown by clicking `setup key` for `digicatapult-nidt-user-2`
 
+## Analytics
+
+This tool integrates with PostHog for both server-side and client-side analytics tracking. Analytics are disabled by default and can be enabled by setting `POSTHOG_ENABLED=true` and providing a `NEXT_PUBLIC_POSTHOG_KEY`.
+
+**Privacy & Features:**
+*   **Anonymous by Default**: Users are tracked with a random UUID stored in a cookie.
+*   **GitHub Identity**: If a user logs in via GitHub, their analytics are securely aliased to their GitHub identity.
+*   **What is tracked**:
+    *   **Server-side**: Ontology uploads, searches, view changes (diagram type, expansion), and errors.
+    *   **Client-side**: Standard page views and interaction events.
+
+
 ## Testing
 
 This repository consists of two test types: [**e2e**, **unit**] and we are using a combination of `mocha`, `chai` and `sinon` frameworks.

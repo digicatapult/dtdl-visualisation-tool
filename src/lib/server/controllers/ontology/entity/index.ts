@@ -8,6 +8,7 @@ import {
   Produces,
   Put,
   Queries,
+  Query,
   Request,
   Route,
   SuccessResponse,
@@ -26,6 +27,7 @@ import { dtdlIdReplaceSemicolon } from '../../../utils/mermaid/helpers.js'
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { DtdlInterface, NullableDtdlSource } from '../../../../db/types.js'
 import {
+  addContent,
   deleteContent,
   deleteInterface,
   updateCommandComment,
@@ -59,6 +61,7 @@ import {
 import { getDisplayName, isInterface, isNamedEntity } from '../../../utils/dtdl/extract.js'
 import { DtdlPath } from '../../../utils/dtdl/parser.js'
 import SessionStore from '../../../utils/sessions.js'
+import { AddContentForm } from '../../../views/components/addContent.js'
 import MermaidTemplates from '../../../views/components/mermaid.js'
 import { checkEditPermission } from '../../helpers.js'
 import { HTML, HTMLController } from '../../HTMLController.js'
@@ -611,6 +614,37 @@ export class EntityController extends HTMLController {
     this.sessionStore.update(updateParams.sessionId, { highlightNodeId: '' })
 
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+
+  @SuccessResponse(200)
+  @Produces('text/html')
+  @Post('{entityId}/content')
+  public async postContent(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @Path() entityId: DtdlId,
+    @Body()
+    body: { contentName: string; contentType: 'Property' | 'Relationship' | 'Telemetry' | 'Command' } & UpdateParams
+  ): Promise<HTML> {
+    const { contentName, contentType, ...updateParams } = body
+
+    await this.putEntityValue(ontologyId, entityId, addContent(contentName, contentType))
+
+    return this.ontologyController.updateLayout(req, ontologyId, updateParams)
+  }
+
+  @SuccessResponse(200)
+  @Produces('text/html')
+  @Get('{entityId}/toggleAddContent')
+  public async toggleAddContent(
+    @Path() entityId: DtdlId,
+    @Query() contentType: 'Property' | 'Relationship' | 'Telemetry' | 'Command',
+    @Query() isOpen: boolean
+  ): Promise<HTML> {
+    if (isOpen) {
+      return this.html(AddContentForm({ contentType, entityId }))
+    }
+    return this.html('')
   }
 
   putEntityValue = async (

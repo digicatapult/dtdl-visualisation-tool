@@ -39,7 +39,6 @@ export const PropertyDetails = ({
         definedIn={property.DefinedIn}
         putRoute="propertyDisplayName"
         text={property.displayName?.en}
-        keyName="displayName"
         additionalBody={{ propertyName: name }}
         maxLength={64}
       />
@@ -48,7 +47,10 @@ export const PropertyDetails = ({
         edit={canEdit}
         definedIn={property.DefinedIn}
         putRoute="propertySchema"
-        text={model[property.schema].displayName?.en ?? 'Complex schema'}
+        text={
+          model[property.schema]?.displayName?.en ??
+          (typeof property.schema === 'string' ? property.schema : 'Complex schema')
+        }
         additionalBody={{ propertyName: name }}
         options={DTDL_VALID_SCHEMAS}
       />
@@ -58,7 +60,6 @@ export const PropertyDetails = ({
         definedIn: property.DefinedIn,
         putRoute: 'propertyDescription',
         text: property.description?.en,
-        keyName: 'description',
         additionalBody: { propertyName: name },
         multiline: true,
         maxLength: MAX_VALUE_LENGTH,
@@ -69,7 +70,6 @@ export const PropertyDetails = ({
         definedIn: property.DefinedIn,
         putRoute: 'propertyComment',
         text: property.comment,
-        keyName: 'comment',
         additionalBody: { propertyName: name },
         multiline: true,
         maxLength: MAX_VALUE_LENGTH,

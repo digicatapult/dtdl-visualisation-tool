@@ -2,7 +2,7 @@
 
 ## Overview
 
-Node.js 24 + TypeScript 5.9 application using Express 5, TSOA controllers, TSyringe DI, and server-side JSX (KitaJS) to visualize DTDL ontologies. PostgreSQL database with Knex + Zod validation. HTMX for dynamic updates.
+Node.js 24 + TypeScript 5.9 CLI application using Express 5, TSOA controllers, TSyringe DI, and server-side JSX (KitaJS) to visualize DTDL (Digital Twin Definition Language) ontologies. PostgreSQL database with Knex + Zod validation. HTMX for dynamic UI updates. PostHog analytics for server-side and client-side event tracking. GitHub OAuth for private repository access.
 
 ## Code Style
 
@@ -45,6 +45,26 @@ test/
 ├── e2e/                        # Playwright tests (*.spec.ts)
 └── integration/                # Mocha integration tests
 ```
+
+## Architecture
+
+**CLI Tool with Dual Commands:**
+- `parse`: Parses DTDL files, loads default model into database, starts HTTP server
+- `validate`: Validates DTDL files without starting server (exits with status code)
+
+**Data Flow:**
+1. CLI loads DTDL JSON files from directory
+2. `Parser` validates and parses using `@digicatapult/dtdl-parser`
+3. `ModelDb` stores in PostgreSQL (model, dtdl, dtdl_error tables)
+4. `SvgGenerator` renders Mermaid diagrams (flowchart/classDiagram)
+5. `Cache` (LRU) stores rendered SVGs to avoid re-rendering
+6. Controllers return HTML (HTMX) for dynamic updates
+
+**GitHub Integration:**
+- OAuth flow: `/github/login` → GitHub → `/github/callback`
+- Users authorize GitHub App to access repos
+- `GithubRequest` uses Octokit with user tokens
+- Private repo files fetched, validated, parsed like local files
 
 ## Common Patterns
 
@@ -161,7 +181,7 @@ export default class Templates {
 ### Testing
 
 ```typescript
-// Unit tests (Mocha + Chai + Sinon)
+// Unit tests (Mocha + Chai + Sinon) - colocated in __tests__ directories
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import sinon from 'sinon'
@@ -183,17 +203,30 @@ describe('ModelDb', () => {
   })
 })
 
-// E2E tests (Playwright) - use MCP server for AI-assisted development
+// E2E tests (Playwright + Testcontainers)
 import { expect, test } from '@playwright/test'
+import { waitForSuccessResponse } from './helpers/waitForHelpers.js'
 
-test('should complete workflow', async ({ page }) => {
-  await page.setViewportSize({ width: 1920, height: 1080 })
-  await page.goto('./')  // baseURL: http://localhost:3000
+test('search functionality', async ({ page }) => {
+  await page.goto('./?diagramType=flowchart&search=Node')
+  await page.waitForSelector("text='ConnectivityNodeContainer'")
+
+  await page.focus('#search')
+  await waitForSuccessResponse(
+    page, 
+    () => page.fill('#search', 'Container'),
+    '/update-layout'
+  )
   
-  await waitForSuccessResponse(page, () => page.locator('#button').click(), '/endpoint')
-  await expect(page.locator('#result')).toBeVisible()
+  await expect(page.locator('#mermaid-output').getByText('Container')).toBeVisible()
 })
 ```
+
+**Testcontainers Setup:**
+- `globalSetup.ts` brings up PostgreSQL and dtdl-visualiser containers before tests
+- `globalTeardown.ts` tears down containers after all tests complete
+- GitHub OAuth flow automated with test users (requires `GH_TEST_USER`, `GH_TEST_PASSWORD`, `GH_TEST_2FA_SECRET` env vars)
+- PostHog mock server started on `POSTHOG_MOCK_PORT` to intercept analytics during tests
 
 ### Running the Application for Playwright Testing
 
@@ -257,6 +290,38 @@ await browser_console_messages({ onlyErrors: true })
 - Use descriptive `element` names for better readability
 - Screenshots can be full page or viewport-only
 - Console messages help debug issues
+
+### PostHog Analytics
+
+```typescript
+// Server-side tracking (fire-and-forget, non-blocking)
+@injectable()
+export class ExampleController extends HTMLController {
+  constructor(private postHog: PostHogService) {}
+
+  async action(req: Request, res: Response): Promise<HTML> {
+    const octokitToken = req.signedCookies[octokitTokenCookie]
+    const posthogId = req.signedCookies[posthogIdCookie]
+    
+    // Track event asynchronously
+    this.postHog.trackUploadOntology(octokitToken, posthogId, {
+      ontologyId: id,
+      source: 'github',
+      fileCount: files.length,
+    }).catch((err) => this.logger.debug({ err }, 'PostHog tracking failed'))
+    
+    return this.html(<div>Success</div>)
+  }
+}
+```
+
+**Key Points:**
+- Anonymous users tracked with UUID in `posthogIdCookie` (1-year expiry)
+- GitHub users aliased to `github:username` after OAuth
+- `ensurePostHogId` middleware sets cookie on first request
+- Tracking is fire-and-forget; errors logged but don't block responses
+- Events: `uploadOntology`, `updateOntologyView`, `nodeSelected`, `modeToggle`, `error`
+- Enabled via `POSTHOG_ENABLED=true` + `NEXT_PUBLIC_POSTHOG_KEY`
 
 ### Async Patterns
 
@@ -347,6 +412,36 @@ return z.array(Zod.model.get).parse(await query)
 - ❌ **Raw SQL strings** (use Knex query builder with parameters)
 - ❌ **Missing Zod validation on database reads**
 
+## Pre-Commit Test Procedure
+
+Before committing and pushing changes, run the complete test suite:
+
+```bash
+# 1. Lint check
+npm run lint
+
+# 2. Check for unused dependencies
+npm run depcheck
+
+# 3. Unit tests
+npm run test:unit
+
+# 4. Integration tests
+npm run test:integration
+
+# 5. Rate limit tests
+npm run test:ratelimit
+
+# 6. End-to-end tests
+npm run test:playwright
+```
+
+**Critical**: All tests must pass before pushing. E2E tests require:
+- PostgreSQL running (`docker compose up -d`)
+- Database migrated (`npm run db:migrate`)
+- Application built (`npm run build`)
+- Test environment variables set (see README.md for GitHub test user credentials)
+
 ## Quick Commands
 
 ```bash
@@ -354,9 +449,12 @@ npm run build              # TSOA routes + SWC compile
 npm run dev                # Dev server with hot reload
 npm run db:migrate         # Apply migrations
 npm run test:unit          # Unit tests (Mocha)
+npm run test:integration   # Integration tests (Mocha)
+npm run test:ratelimit     # Rate limit tests (Mocha)
 npm run test:playwright    # E2E tests (Playwright)
 npm run test:e2e          # E2E tests with UI
 npm run lint               # ESLint check
+npm run depcheck           # Check unused dependencies
 ```
 
 ## Key Type Patterns
