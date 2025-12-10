@@ -123,6 +123,7 @@ export async function startVisualisationContainer(
     })
     .withEnvironment(containerEnv)
     .withAddedCapabilities('SYS_ADMIN')
+    .withExtraHosts([{ host: 'host.docker.internal', ipAddress: 'host-gateway' }])
     .withCommand(['sh', '-c', 'npx knex migrate:latest --env production; dtdl-visualiser parse -p /sample/energygrid'])
     .start()
   logger.info(`Started container ${containerName}`)
