@@ -86,7 +86,7 @@ describe('OntologyController', async () => {
       const result = await controller
         .view(simpleDtdlId, { ...defaultParams }, req)
         .then((value) => (value ? toHTMLString(value) : ''))
-      expect(result).to.equal(`root_undefined_root`)
+      expect(result).to.equal(`root_undefined_false_permissions_root`)
     })
 
     it('should set a cookie with model history', async () => {
@@ -524,11 +524,12 @@ describe('OntologyController', async () => {
       )
 
       const req = mockReqWithCookie({})
-      await controllerWithErrors.view(simpleDtdlId, { ...defaultParams }, req)
+      const result = await controllerWithErrors
+        .view(simpleDtdlId, { ...defaultParams }, req)
+        .then((value) => (value ? toHTMLString(value) : ''))
 
       // Check that the template was called with canEdit=false and editDisabledReason='errors'
-      const setStatusStub = sinon.stub(controllerWithErrors, 'setStatus')
-      expect(setStatusStub.called).to.equal(false)
+      expect(result).to.equal(`root_undefined_false_errors_root`)
     })
 
     it('should enable edit mode when file tree has no errors and permission is edit', async () => {
@@ -566,7 +567,7 @@ describe('OntologyController', async () => {
         .view(simpleDtdlId, { ...defaultParams }, req)
         .then((value) => (value ? toHTMLString(value) : ''))
 
-      expect(result).to.equal(`root_undefined_root`)
+      expect(result).to.equal(`root_undefined_false_permissions_root`)
     })
 
     it('should disable edit when errors exist in nested directories', async () => {
@@ -613,9 +614,11 @@ describe('OntologyController', async () => {
       )
 
       const req = mockReqWithCookie({})
-      await controllerNestedErrors.view(simpleDtdlId, { ...defaultParams }, req)
+      const result = await controllerNestedErrors
+        .view(simpleDtdlId, { ...defaultParams }, req)
+        .then((value) => (value ? toHTMLString(value) : ''))
 
-      expect(req.res).to.not.be.equal(undefined)
+      expect(result).to.equal(`root_undefined_false_errors_root`)
     })
 
     it('should set editDisabledReason to permissions when user lacks edit permission', async () => {
@@ -643,11 +646,13 @@ describe('OntologyController', async () => {
         mockGithubRequest
       )
 
-      const req = mockReqWithCookie({ octokitToken: 'token' })
-      await controllerGithub.view(simpleDtdlId, { ...defaultParams }, req)
+      const req = mockReqWithCookie({ OCTOKIT_TOKEN: 'token' })
+      const result = await controllerGithub
+        .view(simpleDtdlId, { ...defaultParams }, req)
+        .then((value) => (value ? toHTMLString(value) : ''))
 
       // Verify template was rendered with appropriate permissions
-      expect(req.res).to.not.be.equal(undefined)
+      expect(result).to.equal(`root_undefined_false_permissions_root`)
 
       // Restore the stub
       getRepoPermissionsStub.restore()

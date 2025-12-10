@@ -217,7 +217,21 @@ const mockDtdlTable = [
 ]
 
 export const templateMock = {
-  MermaidRoot: ({ search }: { search: string }) => `root_${search}_root`,
+  MermaidRoot: ({
+    search,
+    canEdit,
+    editDisabledReason,
+  }: {
+    search?: string
+    canEdit?: boolean
+    editDisabledReason?: 'errors' | 'permissions'
+  }) => {
+    let result = `root_${search}_root`
+    if (typeof canEdit !== 'undefined' && typeof editDisabledReason !== 'undefined') {
+      result = `root_${search}_${canEdit}_${editDisabledReason}_root`
+    }
+    return result
+  },
   mermaidTarget: ({ generatedOutput, target }: { generatedOutput?: JSX.Element; target: string }): JSX.Element =>
     `mermaidTarget_${generatedOutput}_${target}_mermaidTarget`,
   searchPanel: ({ search, swapOutOfBand }: { search?: string; swapOutOfBand?: boolean }) =>
