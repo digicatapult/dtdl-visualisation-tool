@@ -10,7 +10,7 @@ import { RecentFile } from '../models/openTypes.js'
 import { MermaidSvgRender, PlainTextRender } from '../models/renderedDiagram'
 import { UUID } from '../models/strings.js'
 import { ICache } from '../utils/cache.js'
-import { DtdlPath } from '../utils/dtdl/parser.js'
+import { hasFileTreeErrors } from '../utils/dtdl/fileTreeErrors.js'
 import { authRedirectURL, GithubRequest } from '../utils/githubRequest.js'
 
 const formatLastVisited = (timestamp: number): string => {
@@ -78,20 +78,6 @@ export const dtdlCacheKey = (dtdlModelId: UUID, queryParams?: GenerateParams): s
 export const setCacheWithDefaultParams = (cache: ICache, id: UUID, output: MermaidSvgRender | PlainTextRender) => {
   const defaultParams: GenerateParams = { layout: 'elk', diagramType: 'flowchart', expandedIds: [], search: '' }
   cache.set(dtdlCacheKey(id, defaultParams), output)
-}
-
-export const hasFileTreeErrors = (fileTree: DtdlPath[]): boolean => {
-  for (const node of fileTree) {
-    if (node.type === 'file' && node.errors && node.errors.length > 0) {
-      return true
-    }
-    if (node.type === 'directory' && node.entries) {
-      if (hasFileTreeErrors(node.entries)) {
-        return true
-      }
-    }
-  }
-  return false
 }
 
 export const checkEditPermission = async (

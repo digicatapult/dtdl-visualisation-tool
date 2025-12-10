@@ -17,6 +17,7 @@ import {
   isRelationship,
   isTelemetry,
 } from '../../utils/dtdl/extract.js'
+import { hasFileTreeErrors } from '../../utils/dtdl/fileTreeErrors.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { AccordionSection, EditableSelect, EditableText, Page } from '../common.js'
 import { PropertyDetails } from './property.js'
@@ -786,15 +787,6 @@ export default class MermaidTemplates {
       return false
     }
 
-    const containsErrors = (paths: DtdlPath[]): boolean =>
-      paths.some((path) =>
-        path.type === 'file'
-          ? path.errors !== undefined // found a file with errors
-          : path.type === 'directory'
-            ? containsErrors(path.entries)
-            : false
-      )
-
     return (
       <div id="navigation-panel-tree">
         <div>
@@ -806,7 +798,7 @@ export default class MermaidTemplates {
             hasChildErrors={hasChildErrors}
           />
         </div>
-        {containsErrors(fileTree) && (
+        {hasFileTreeErrors(fileTree) && (
           <div id="navigation-panel-tree-warning">
             <img src="/public/images/warning.svg" width="54px" height="50px" />
             <p>Only a part of this ontology could be loaded, due to errors.</p>

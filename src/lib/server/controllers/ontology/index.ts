@@ -20,6 +20,7 @@ import { ViewAndEditPermission } from '../../models/github.js'
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../models/renderedDiagram/index.js'
 import { type UUID } from '../../models/strings.js'
 import { Cache, type ICache } from '../../utils/cache.js'
+import { hasFileTreeErrors } from '../../utils/dtdl/fileTreeErrors.js'
 import { filterModelByDisplayName, getRelatedIdsById } from '../../utils/dtdl/filter.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { FuseSearch } from '../../utils/fuseSearch.js'
@@ -33,7 +34,7 @@ import SessionStore, { Session } from '../../utils/sessions.js'
 import { ErrorPage } from '../../views/components/errors.js'
 import MermaidTemplates from '../../views/components/mermaid.js'
 import { HTML, HTMLController } from '../HTMLController.js'
-import { checkEditPermission, dtdlCacheKey, hasFileTreeErrors } from '../helpers.js'
+import { checkEditPermission, dtdlCacheKey } from '../helpers.js'
 
 const rateLimiter = container.resolve(RateLimiter)
 
