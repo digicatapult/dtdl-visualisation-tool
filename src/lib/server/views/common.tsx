@@ -104,6 +104,7 @@ export const EditableText = ({
       hx-trigger={`blur[this.querySelector('textarea').value !== '${value}'] from:find textarea`}
       hx-vals={JSON.stringify(additionalBody)}
       hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
+      hx-disabled-elt=".nav-panel-editable"
       hx-swap="outerHTML transition:true"
       hx-target="#mermaid-output"
       hx-indicator="#spinner"
@@ -155,6 +156,7 @@ export const EditableSelect = ({
       hx-trigger={`change[this.querySelector('select').value !== '${text ?? ''}'] from:find select`}
       hx-vals={JSON.stringify(additionalBody)}
       hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
+      hx-disabled-elt=".nav-panel-editable"
       hx-swap="outerHTML transition:true"
       hx-target="#mermaid-output"
       hx-indicator="#spinner"
