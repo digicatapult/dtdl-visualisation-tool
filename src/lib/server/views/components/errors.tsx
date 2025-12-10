@@ -34,12 +34,7 @@ export function errorToast(error: unknown) {
     response: (
       <>
         <dialog open id={dialogId}>
-          <img
-            src="/public/images/warning.svg"
-            width="54px"
-            height="50px"
-            class={categoryToClass(httpError.category)}
-          />
+          <img src="/public/images/warning.svg" class={`${categoryToClass(httpError.category)} warning`} />
           <div class="toast-content">
             <h1>{escapeHtml(httpError.userTitle)}</h1>
             {httpError.message ? (

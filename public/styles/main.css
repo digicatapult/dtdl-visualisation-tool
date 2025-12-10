@@ -858,7 +858,6 @@ label[for='diagram-type-select'] {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   max-width: 420px;
   width: 100%;
-  gap: 1.2rem;
 }
 
 #share-link-modal form {
@@ -879,7 +878,7 @@ label[for='diagram-type-select'] {
   place-content: center;
 }
 
-#share-link-modal input[type='radio'] {
+.circle-radio {
   appearance: none;
   width: 20px;
   height: 20px;
@@ -892,8 +891,8 @@ label[for='diagram-type-select'] {
   background-color: white;
   outline: none;
 }
-#share-link-modal input[type='radio']::before {
-  content: '';
+.circle-radio::before {
+  content: "";
   width: 20px;
   height: 20px;
   background-image: url('../images/tick-circle.svg');
@@ -903,10 +902,10 @@ label[for='diagram-type-select'] {
   transition: transform 0.2s ease-in-out;
   border-width: 2px;
 }
-#share-link-modal input[type='radio']:checked::before {
+.circle-radio:checked::before {
   transform: scale(1);
 }
-#share-link-modal input[type='radio']:checked {
+.circle-radio:checked {
   border-color: #555;
 }
 
@@ -1182,6 +1181,16 @@ label[for='diagram-type-select'] {
   filter: hue-rotate(60deg) brightness(2) contrast(2);
 }
 
+#toast-container img.warning {
+  width: 54px;
+  height: 50px;
+}
+
+#toast-container img.tick {
+  width: 54px;
+  height: 50px;
+}
+
 #toast-container h1 {
   font-size: 1.2rem;
   line-height: 1;
@@ -1194,7 +1203,7 @@ label[for='diagram-type-select'] {
   overflow-y: auto;
 }
 
-#toast-container details {
+.toast-detail {
   margin-top: 0.5rem;
   font-size: 0.8rem;
 }
