@@ -118,6 +118,8 @@ export async function startVisualisationContainer(
         '-c',
         'npx knex migrate:latest --env production; dtdl-visualiser parse -p /sample/energygrid',
       ])
+      .withWaitStrategy(Wait.forLogMessage('Complete'))
+      .withStartupTimeout(300000) // 5 minutes for container build + migrations + parsing
       .start()
     logger.info(`Started container ${containerName}`)
     logger.info(`Started container on port ${visualisationUIContainer.getMappedPort(containerPort)}`)
