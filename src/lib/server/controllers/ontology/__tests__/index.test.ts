@@ -614,7 +614,7 @@ describe('OntologyController', async () => {
       await controllerNestedErrors.view(simpleDtdlId, { ...defaultParams }, req)
 
       // Verify template was rendered (would throw if not)
-      expect(req.res).to.not.be.undefined
+      expect(req.res).to.not.be.equal(undefined)
     })
 
     it('should set editDisabledReason to permissions when user lacks edit permission', async () => {
@@ -647,7 +647,7 @@ describe('OntologyController', async () => {
       await controllerGithub.view(simpleDtdlId, { ...defaultParams }, req)
 
       // Verify template was rendered with appropriate permissions
-      expect(req.res).to.not.be.undefined
+      expect(req.res).to.not.be.equal(undefined)
 
       // Restore the stub
       getRepoPermissionsStub.restore()
