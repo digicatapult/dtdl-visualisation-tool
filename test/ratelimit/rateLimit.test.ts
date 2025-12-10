@@ -6,6 +6,7 @@ import { container } from 'tsyringe'
 
 import { Env } from '../../src/lib/server/env'
 import createHttpServer from '../../src/lib/server/server.js'
+import { RateLimiter } from '../../src/lib/server/utils/rateLimit.js'
 import { mockAllowLocalIp, MockDispatcherContext, withDispatcherMock } from './helpers/mock.js'
 
 const env = container.resolve(Env)
@@ -17,6 +18,10 @@ describe('rate limit', () => {
   withDispatcherMock(context)
 
   beforeEach(async function () {
+    // Clear instances to ensure fresh rate limiter for each test
+    container.clearInstances()
+    // Re-register RateLimiter to get fresh middleware with reset counters
+    container.register(RateLimiter, { useClass: RateLimiter })
     app = await createHttpServer()
   })
 

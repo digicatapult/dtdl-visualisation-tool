@@ -1,6 +1,7 @@
 /// <reference types="@kitajs/html/htmx.d.ts" />
 
 import { escapeHtml } from '@kitajs/html'
+import express from 'express'
 import { container, singleton } from 'tsyringe'
 import version from '../../../../version.js'
 import { Env } from '../../env/index.js'
@@ -29,12 +30,14 @@ export default class OpenOntologyTemplates {
   public OpenOntologyRoot = ({
     recentFiles,
     showGithubModal,
+    req,
   }: {
     recentFiles: RecentFile[]
     showGithubModal?: boolean
+    req?: express.Request
   }) => {
     return (
-      <Page title="UKDTC">
+      <Page title="UKDTC" req={req}>
         <section id="upload-toolbar">
           <a href="/">
             <h2>UKDTC</h2>

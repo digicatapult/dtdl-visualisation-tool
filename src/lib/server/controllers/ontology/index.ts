@@ -224,6 +224,7 @@ export class OntologyController extends HTMLController {
       ontologyId: dtdlModelId,
       diagramType: newSession.diagramType,
       hasSearch: !!newSession.search,
+      searchTerm: newSession.search,
       expandedCount: newSession.expandedIds.length,
       highlightNodeId: newSession.highlightNodeId,
     })

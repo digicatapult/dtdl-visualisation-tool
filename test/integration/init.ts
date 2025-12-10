@@ -13,6 +13,7 @@ export let visualisationImage: GenericContainer
 
 before(async function () {
   this.timeout(420000)
+
   postgresContainer = await bringUpDatabaseContainer()
   visualisationImage = await buildVisualisationImage()
   visualisationUIContainer = await startVisualisationContainer(
