@@ -125,6 +125,8 @@ export class OntologyController extends HTMLController {
       return this.html(ErrorPage(output.renderToString(), this.getStatus()))
     }
 
+    this.setHeader('Cache-Control', 'no-store')
+
     return this.html(
       this.templates.MermaidRoot({
         search: params.search,
@@ -231,6 +233,8 @@ export class OntologyController extends HTMLController {
     if (current) {
       this.setReplaceUrl(current, params)
     }
+
+    this.setHeader('Cache-Control', 'no-store')
 
     // render out the final components to be replaced
     return this.html(

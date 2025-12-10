@@ -469,14 +469,6 @@ label[for='diagram-type-select'] {
   transition: background-color 0.3s;
 }
 
-#navigation-panel.edit section h3::after {
-  content: url('../images/pencil.svg');
-  display: inline-block;
-  width: 25px;
-  height: 25px;
-  margin-left: 5px;
-}
-
 #navigation-panel-tree {
   padding-block: 30px;
   padding-inline: 20px;

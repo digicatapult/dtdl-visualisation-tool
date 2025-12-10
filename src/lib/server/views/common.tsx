@@ -1,3 +1,5 @@
+/// <reference types="@kitajs/html/htmx.d.ts" />
+
 import { escapeHtml, type PropsWithChildren } from '@kitajs/html'
 import express from 'express'
 import { DtdlId } from '../models/strings.js'
@@ -46,29 +48,40 @@ export const Page = (props: PropsWithChildren<{ title: string; req?: express.Req
   </>
 )
 
-export const AccordionSection = (props: PropsWithChildren<{ heading: string; collapsed: boolean }>): JSX.Element => (
-  <section class="accordion-parent">
-    <h3>
-      <button
-        class="accordion-button"
-        {...(!props.collapsed && { 'aria-expanded': '' })}
-        onclick="globalThis.toggleAccordion(event)"
-      >
-        {escapeHtml(props.heading)}
-      </button>
-    </h3>
-    <div class="accordion-content" {...(props.collapsed && { 'aria-hidden': '' })}>
-      <div>{props.children}</div>
-    </div>
-  </section>
-)
+export const AccordionSection = (
+  props: PropsWithChildren<{ heading: string; collapsed: boolean; Action?: () => JSX.Element }>
+): JSX.Element => {
+  const { heading, collapsed, Action, children } = props
+  return (
+    <section class="accordion-parent">
+      <h3>
+        <button
+          class="accordion-button"
+          {...(!collapsed && { 'aria-expanded': '' })}
+          onclick="globalThis.toggleAccordion(event)"
+        >
+          {escapeHtml(heading)}
+        </button>
+        {Action ? (
+          <div class="accordion-action">
+            <Action />
+          </div>
+        ) : (
+          <></>
+        )}
+      </h3>
+      <div class="accordion-content" {...(collapsed && { 'aria-hidden': '' })}>
+        <div>{children}</div>
+      </div>
+    </section>
+  )
+}
 
 export const EditableText = ({
   edit,
   definedIn,
   putRoute,
   text,
-  keyName,
   additionalBody,
   multiline,
   maxLength,
@@ -77,19 +90,18 @@ export const EditableText = ({
   definedIn: DtdlId
   putRoute: string
   text?: string
-  keyName: string
   additionalBody?: Record<string, string>
   multiline?: boolean
   maxLength?: number
 }): JSX.Element => {
-  if (!text) return <p>'{escapeHtml(keyName)}' key missing in original file</p>
-  if (!edit) return <p>{escapeHtml(text)}</p>
+  const value = text ?? ''
+  if (!edit) return <p>{escapeHtml(value)}</p>
 
   return (
     <form
       hx-put={`entity/${definedIn}/${putRoute}`}
       // trigger when textarea loses focus and value has changed
-      hx-trigger={`blur[this.querySelector('textarea').value !== '${text}'] from:find textarea`}
+      hx-trigger={`blur[this.querySelector('textarea').value !== '${value}'] from:find textarea`}
       hx-vals={JSON.stringify(additionalBody)}
       hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
       hx-swap="outerHTML transition:true"
@@ -103,7 +115,7 @@ export const EditableText = ({
         onkeyup="globalThis.validateDtdlValue(this)"
         {...(maxLength ? { maxlength: maxLength } : {})}
       >
-        {escapeHtml(text)}
+        {escapeHtml(value)}
       </textarea>
     </form>
   )
@@ -121,7 +133,7 @@ export const EditableSelect = ({
   edit: boolean
   definedIn: DtdlId
   putRoute: string
-  text: string
+  text?: string
   additionalBody?: Record<string, string>
   options: readonly string[] | Array<{ value: string; label: string }>
   disabled?: boolean
@@ -133,15 +145,14 @@ export const EditableSelect = ({
       : (options as Array<{ value: string; label: string }>)
 
   // Find the display label for the current value
-  const displayLabel = normalizedOptions.find((o) => o.value === text)?.label ?? text
+  const displayLabel = text ? (normalizedOptions.find((o) => o.value === text)?.label ?? text) : ''
 
-  if (!text) return <p>Missing value</p>
   if (!edit || disabled) return <p>{escapeHtml(displayLabel)}</p>
 
   return (
     <form
       hx-put={`entity/${definedIn}/${putRoute}`}
-      hx-trigger={`change[this.querySelector('select').value !== '${text}'] from:find select`}
+      hx-trigger={`change[this.querySelector('select').value !== '${text ?? ''}'] from:find select`}
       hx-vals={JSON.stringify(additionalBody)}
       hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
       hx-swap="outerHTML transition:true"
@@ -149,6 +160,11 @@ export const EditableSelect = ({
       hx-indicator="#spinner"
     >
       <select name="value" class="nav-panel-editable">
+        {!text && (
+          <option value="" disabled selected>
+            Select...
+          </option>
+        )}
         {normalizedOptions.map((option) => (
           <option value={option.value} {...(option.value === text && { selected: true })}>
             {escapeHtml(option.label)}
