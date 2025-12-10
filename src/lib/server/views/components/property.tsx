@@ -37,6 +37,8 @@ export const PropertyDetails = ({
           class="trash-icon"
           hx-get={`entity/${entityId}/deleteDialog?contentName=${property.name}`}
           hx-target="#delete-dialog"
+          hx-swap="outerHTML"
+          hx-on--after-request="globalThis.showDeleteDialog()"
           title="Delete Property"
         >
           🗑️

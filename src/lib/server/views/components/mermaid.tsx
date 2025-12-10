@@ -544,6 +544,8 @@ export default class MermaidTemplates {
                         class="trash-icon"
                         hx-get={`entity/${entity.Id}/deleteDialog?contentName=${name}`}
                         hx-target="#delete-dialog"
+                        hx-swap="outerHTML"
+                        hx-on--after-request="globalThis.showDeleteDialog()"
                         title="Delete Telemetry"
                       >
                         🗑️
@@ -628,6 +630,8 @@ export default class MermaidTemplates {
                         class="trash-icon"
                         hx-get={`entity/${entity.Id}/deleteDialog?contentName=${name}`}
                         hx-target="#delete-dialog"
+                        hx-swap="outerHTML"
+                        hx-on--after-request="globalThis.showDeleteDialog()"
                         title="Delete Command"
                       >
                         🗑️

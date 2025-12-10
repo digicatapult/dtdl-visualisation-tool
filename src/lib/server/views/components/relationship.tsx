@@ -52,6 +52,8 @@ export const RelationshipDetails = ({
             class="trash-icon"
             hx-get={`entity/${entityId}/deleteDialog?contentName=${name}`}
             hx-target="#delete-dialog"
+            hx-swap="outerHTML"
+            hx-on--after-request="globalThis.showDeleteDialog()"
             title="Delete Relationship"
           >
             🗑️
