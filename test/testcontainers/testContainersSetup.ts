@@ -113,7 +113,11 @@ export async function startVisualisationContainer(
           : process.env.NEXT_PUBLIC_POSTHOG_HOST || '',
       })
       .withAddedCapabilities('SYS_ADMIN')
-      .withCommand(['sh', '-c', 'npx knex migrate:latest --env production; dtdl-visualiser parse -p /sample/energygrid'])
+      .withCommand([
+        'sh',
+        '-c',
+        'npx knex migrate:latest --env production; dtdl-visualiser parse -p /sample/energygrid',
+      ])
       .start()
     logger.info(`Started container ${containerName}`)
     logger.info(`Started container on port ${visualisationUIContainer.getMappedPort(containerPort)}`)
@@ -122,11 +126,12 @@ export async function startVisualisationContainer(
     // Log container output to help debug startup failures
     logger.error('Container failed to start, attempting to retrieve logs...')
     try {
-      const failedContainer = await containerRuntimeClient.container.list({ all: true, limit: 1 })
-      if (failedContainer.length > 0) {
-        const logs = await failedContainer[0].logs()
-        const stream = logs.output.on('data', (chunk) => logger.error({ containerLog: chunk.toString() }))
-        await new Promise((resolve) => stream.on('end', resolve))
+      const failedContainers = await containerRuntimeClient.container.list()
+      if (failedContainers.length > 0) {
+        const container = containerRuntimeClient.container.getById(failedContainers[0].Id)
+        const logsStream = await containerRuntimeClient.container.logs(container)
+        logsStream.on('data', (chunk) => logger.error({ containerLog: chunk.toString() }))
+        await new Promise((resolve) => logsStream.on('end', resolve))
       }
     } catch (logError) {
       logger.error({ err: logError }, 'Failed to retrieve container logs')
