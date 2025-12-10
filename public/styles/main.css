@@ -915,6 +915,10 @@ label[for='diagram-type-select'] {
 .circle-radio:checked {
   border-color: #555;
 }
+.circle-radio:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 
 #share-link-modal input[type='text'] {
   background-color: var(--background-color);

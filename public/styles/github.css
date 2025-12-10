@@ -191,7 +191,7 @@ a.new-tab-link:hover {
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
   padding: 1rem;
   background-color: #fff8e1;
   border: 1px solid #ffcc00;

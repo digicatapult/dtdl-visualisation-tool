@@ -1127,19 +1127,20 @@ export default class MermaidTemplates {
             {isOutOfSync && (
               <div id="publish-warning">
                 <img src="/public/images/warning.svg" />
-                <p>Caution - your ontology is out-of-date with the base branch on GitHub</p>
+                <p>Ontology is out-of-sync with the source branch on GitHub</p>
               </div>
             )}
             <label for="commitMessage">Commit message</label>
             <input type="text" id="commitMessage" name="commitMessage" value="Update DTDL" required />
             <div class="radio-group">
-              <label>
+              <label title={isOutOfSync ? 'Disabled because ontology is out-of-sync' : ''}>
                 <input
                   class="circle-radio"
                   type="radio"
                   name="publishType"
                   value="currentBranch"
-                  checked
+                  checked={!isOutOfSync}
+                  disabled={isOutOfSync}
                   onchange="globalThis.togglePrFields(false)"
                 />
                 Commit directly to '{escapeHtml(baseBranch ?? '')}' branch
@@ -1150,6 +1151,7 @@ export default class MermaidTemplates {
                   type="radio"
                   name="publishType"
                   value="newBranch"
+                  checked={isOutOfSync}
                   onchange="globalThis.togglePrFields(true)"
                 />
                 Create a new branch for this commit and start a pull request
@@ -1460,7 +1462,7 @@ export default class MermaidTemplates {
           class="new-tab-link"
           title="View on GitHub"
         >
-          {`View GitHub commit ↗`}
+          {`Source commit ↗`}
         </a>
 
         <a
@@ -1469,7 +1471,7 @@ export default class MermaidTemplates {
           class="new-tab-link"
           title="View base branch"
         >
-          {escapeHtml(`View GitHub branch ${is_out_of_sync ? '(out of sync)' : ''} ↗`)}
+          {escapeHtml(`Source branch ${is_out_of_sync ? '(out of sync)' : ''} ↗`)}
         </a>
       </div>
     )

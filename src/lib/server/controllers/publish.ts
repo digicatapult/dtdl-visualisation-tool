@@ -51,7 +51,18 @@ export class PublishController extends HTMLController {
       throw new GithubReqError('Missing GitHub token')
     }
 
-    const { owner, repo, base_branch: baseBranch } = await this.modelDb.getGithubModelById(ontologyId)
+    const {
+      owner,
+      repo,
+      base_branch: baseBranch,
+      is_out_of_sync: isOutOfSync,
+    } = await checkRemoteBranch(ontologyId, req, this.modelDb, this.githubRequest)
+
+    if (publishType === 'currentBranch' && isOutOfSync) {
+      throw new DataError(
+        'Cannot publish directly to the branch because the ontology is out-of-sync. Create a new branch and pull request instead.'
+      )
+    }
 
     const files = await this.modelDb.getDtdlFiles(ontologyId)
 
