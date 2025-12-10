@@ -613,7 +613,6 @@ describe('OntologyController', async () => {
       const req = mockReqWithCookie({})
       await controllerNestedErrors.view(simpleDtdlId, { ...defaultParams }, req)
 
-      // Verify template was rendered (would throw if not)
       expect(req.res).to.not.be.equal(undefined)
     })
 
@@ -628,7 +627,6 @@ describe('OntologyController', async () => {
           }),
       } as unknown as ModelDb
 
-      // Stub the getRepoPermissions method to return 'view'
       const getRepoPermissionsStub = sinon.stub(mockGithubRequest, 'getRepoPermissions').resolves('view' as const)
 
       const controllerGithub = new OntologyController(

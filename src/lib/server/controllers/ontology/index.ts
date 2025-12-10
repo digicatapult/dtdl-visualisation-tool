@@ -125,7 +125,6 @@ export class OntologyController extends HTMLController {
       return this.html(ErrorPage(output.renderToString(), this.getStatus()))
     }
 
-    // Check if fileTree has errors
     const { fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
     const hasErrors = hasFileTreeErrors(fileTree)
     const canEdit = permission === 'edit' && !hasErrors

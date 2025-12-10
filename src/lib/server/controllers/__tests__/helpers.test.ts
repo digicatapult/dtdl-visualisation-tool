@@ -156,7 +156,7 @@ describe('checkEditPermission', () => {
       getRepoPermissionsStub.resolves('edit' as ViewAndEditPermission)
       getDtdlModelAndTreeStub.resolves({
         model: {},
-        fileTree: [], // No errors in fileTree
+        fileTree: [],
       })
 
       // Should not throw and should call next()
