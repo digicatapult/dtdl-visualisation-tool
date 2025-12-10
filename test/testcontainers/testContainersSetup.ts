@@ -115,7 +115,7 @@ export async function startVisualisationContainer(
     containerEnv.NEXT_PUBLIC_POSTHOG_HOST = posthogHost
   }
 
-  const visualisationUIContainer = await visualisationImage
+  let containerBuilder = visualisationImage
     .withNetwork(network)
     .withExposedPorts({
       container: containerPort,
@@ -123,7 +123,14 @@ export async function startVisualisationContainer(
     })
     .withEnvironment(containerEnv)
     .withAddedCapabilities('SYS_ADMIN')
-    .withExtraHosts([{ host: 'host.docker.internal', ipAddress: 'host-gateway' }])
+
+  // Only add host.docker.internal mapping when PostHog mock is running
+  // This avoids DNS resolution overhead in non-PostHog tests
+  if (process.env.POSTHOG_MOCK_PORT) {
+    containerBuilder = containerBuilder.withExtraHosts([{ host: 'host.docker.internal', ipAddress: 'host-gateway' }])
+  }
+
+  const visualisationUIContainer = await containerBuilder
     .withCommand(['sh', '-c', 'npx knex migrate:latest --env production; dtdl-visualiser parse -p /sample/energygrid'])
     .start()
   logger.info(`Started container ${containerName}`)
