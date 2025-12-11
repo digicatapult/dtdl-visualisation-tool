@@ -44,6 +44,7 @@ jobs:
     permissions:
       contents: read
     with:
+      additional_args: "--ignore-npm-errors"
       enable_check_version: true
       enable_dtrack_project: true
       sbom_output_file: ${{ github.event.repository.name }}.cdx.json
