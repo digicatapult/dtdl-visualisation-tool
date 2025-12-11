@@ -142,7 +142,7 @@ export const EditableSelect = ({
   // Find the display label for the current value
   const match = options.find((o) => o.value === text)
   const displayLabel = match ? match.label : text || ''
-  const currentValueIsInvalidOption = text && !Boolean(match)
+  const currentValueIsInvalidOption = text && match
   if (!edit || disabled || currentValueIsInvalidOption)
     return (
       <p title={currentValueIsInvalidOption ? 'Cannot edit: current value is not a valid option' : undefined}>
