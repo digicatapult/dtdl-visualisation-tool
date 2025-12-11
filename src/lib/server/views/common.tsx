@@ -104,13 +104,14 @@ export const EditableText = ({
       hx-trigger={`blur[this.querySelector('textarea').value !== '${value}'] from:find textarea`}
       hx-vals={JSON.stringify(additionalBody)}
       hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
+      hx-disabled-elt=".disable-during-update-req"
       hx-swap="outerHTML transition:true"
       hx-target="#mermaid-output"
       hx-indicator="#spinner"
     >
       <textarea
         name="value"
-        class={`nav-panel-editable ${multiline ? 'multiline' : ''}`}
+        class={`nav-panel-editable ${multiline ? 'multiline' : ''} disable-during-update-req`}
         contenteditable="plaintext-only"
         onkeyup="globalThis.validateDtdlValue(this)"
         {...(maxLength ? { maxlength: maxLength } : {})}
@@ -155,11 +156,12 @@ export const EditableSelect = ({
       hx-trigger={`change[this.querySelector('select').value !== '${text ?? ''}'] from:find select`}
       hx-vals={JSON.stringify(additionalBody)}
       hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
+      hx-disabled-elt=".disable-during-update-req"
       hx-swap="outerHTML transition:true"
       hx-target="#mermaid-output"
       hx-indicator="#spinner"
     >
-      <select name="value" class="nav-panel-editable">
+      <select name="value" class="nav-panel-editable disable-during-update-req">
         {!text && (
           <option value="" disabled selected>
             Select...

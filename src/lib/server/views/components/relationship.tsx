@@ -3,7 +3,7 @@
 import { DtdlObjectModel, RelationshipInfo } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
 import { DtdlId } from '../../models/strings.js'
-import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
+import { MAX_DISPLAY_NAME_LENGTH, MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
 import { getDisplayName } from '../../utils/dtdl/extract.js'
 import { EditableSelect, EditableText } from '../common.js'
 
@@ -53,7 +53,7 @@ export const RelationshipDetails = ({
         putRoute="relationshipDisplayName"
         text={relationship.displayName?.en}
         additionalBody={{ relationshipName: name }}
-        maxLength={64}
+        maxLength={MAX_DISPLAY_NAME_LENGTH}
       />
       <p>
         <b>Description:</b>
