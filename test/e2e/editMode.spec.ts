@@ -254,7 +254,7 @@ const testNavPanelEdit = async (
   if (testInputDisabledDuringRequest) {
     await page.route(`**/entity/**${successRoute}`, async (route) => {
       await expect(textArea).toBeDisabled()
-      await expect(page.locator('.nav-panel-editable').first()).toBeDisabled()
+      await expect(page.locator('.disable-during-update-req').first()).toBeDisabled()
       await route.continue()
     })
   }

@@ -9,7 +9,7 @@ import { Env } from '../../env/index.js'
 import { DeletableEntities } from '../../models/controllerTypes.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { DTDL_VALID_SCHEMAS, DtdlId, UUID } from '../../models/strings.js'
-import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
+import { MAX_DISPLAY_NAME_LENGTH, MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
 import {
   getDisplayName,
   isCommand,
@@ -276,7 +276,7 @@ export default class MermaidTemplates {
                 type="text"
                 name="displayName"
                 placeholder="Enter display name"
-                maxlength={64}
+                maxlength={MAX_DISPLAY_NAME_LENGTH}
                 class="nav-panel-editable"
                 required
               />
@@ -550,7 +550,7 @@ export default class MermaidTemplates {
                       putRoute="telemetryDisplayName"
                       text={telemetry.displayName?.en}
                       additionalBody={{ telemetryName: name }}
-                      maxLength={64}
+                      maxLength={MAX_DISPLAY_NAME_LENGTH}
                     />
                     <b>Schema:</b>
                     <EditableSelect

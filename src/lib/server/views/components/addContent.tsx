@@ -66,6 +66,7 @@ export const AddContentForm = ({
       hx-swap="outerHTML"
       hx-target="#mermaid-output"
       hx-indicator="#spinner"
+      hx-disabled-elt=".disable-during-update-req"
       data-content-type={escapeHtml(contentType)}
       data-entity-id={escapeHtml(entityId)}
       class="add-content-form"
@@ -75,7 +76,7 @@ export const AddContentForm = ({
         type="text"
         name="contentName"
         placeholder={`Enter ${contentType} name`}
-        class="add-content-input"
+        class="add-content-input disable-during-update-req"
         pattern="^[A-Za-z](?:[A-Za-z0-9_]*[A-Za-z0-9])?$"
         title="Must start with a letter, contain only letters, numbers, and underscores, and cannot end with an underscore"
         required
