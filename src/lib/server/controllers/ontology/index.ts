@@ -4,7 +4,7 @@ import express from 'express'
 import { randomUUID } from 'node:crypto'
 import { container, inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../../db/modelDb.js'
-import { InternalError } from '../../errors.js'
+import { InternalError, UnauthorisedError } from '../../errors.js'
 import { Logger, type ILogger } from '../../logger.js'
 import {
   A11yPreference,
@@ -20,6 +20,7 @@ import { ViewAndEditPermission } from '../../models/github.js'
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../models/renderedDiagram/index.js'
 import { type UUID } from '../../models/strings.js'
 import { Cache, type ICache } from '../../utils/cache.js'
+import { hasFileTreeErrors } from '../../utils/dtdl/fileTreeErrors.js'
 import { filterModelByDisplayName, getRelatedIdsById } from '../../utils/dtdl/filter.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { FuseSearch } from '../../utils/fuseSearch.js'
@@ -125,6 +126,10 @@ export class OntologyController extends HTMLController {
       return this.html(ErrorPage(output.renderToString(), this.getStatus()))
     }
 
+    const { fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
+    const hasErrors = hasFileTreeErrors(fileTree)
+    const canEdit = permission === 'edit' && !hasErrors
+    const editDisabledReason = hasErrors ? 'errors' : permission !== 'edit' ? 'permissions' : undefined
     this.setHeader('Cache-Control', 'no-store')
 
     return this.html(
@@ -132,8 +137,8 @@ export class OntologyController extends HTMLController {
         search: params.search,
         sessionId,
         diagramType: params.diagramType,
-        canEdit: permission === 'edit',
-        req,
+        canEdit,
+        editDisabledReason,
         ontologyId: dtdlModelId,
       })
     )
@@ -284,7 +289,9 @@ export class OntologyController extends HTMLController {
 
     // get the base dtdl model that we will derive the graph from
     const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
-
+    if (hasFileTreeErrors(fileTree)) {
+      throw new UnauthorisedError('Cannot edit ontology with errors. Please fix all errors before editing.')
+    }
     this.sessionStore.update(sessionId, { editMode })
 
     // Track mode toggle event using persistent POSTHOG_ID cookie (fire-and-forget)
