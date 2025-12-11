@@ -476,6 +476,136 @@ describe('OntologyController', async () => {
 
       expect(result).to.equal(mockHtmlOutput)
     })
+
+    it('should throw UnauthorisedError when file tree has errors', async () => {
+      const mockModelDbWithErrors = {
+        ...simpleMockModelDb,
+        getDtdlModelAndTree: () =>
+          Promise.resolve({
+            model: simpleMockDtdlObjectModel,
+            fileTree: [
+              {
+                name: 'test.json',
+                type: 'file' as const,
+                path: 'test.json',
+                entries: [],
+                errors: [
+                  {
+                    ExceptionKind: 'Parsing' as const,
+                    Errors: [
+                      {
+                        Cause: 'Test error',
+                        Action: 'Fix it',
+                        ValidationID: 'test',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          }),
+      } as unknown as ModelDb
+
+      const controllerWithErrors = new OntologyController(
+        mockModelDbWithErrors,
+        mockGenerator,
+        mockMutator,
+        templateMock,
+        mockPostHog,
+        mockLogger,
+        mockCache,
+        mockSession,
+        mockGithubRequest
+      )
+
+      const req = mockReq({})
+      await expect(controllerWithErrors.editModel(req, simpleDtdlId, validSessionId, true)).to.be.rejectedWith(
+        'Cannot edit ontology with errors. Please fix all errors before editing.'
+      )
+    })
+
+    it('should throw UnauthorisedError when nested file tree has errors', async () => {
+      const mockModelDbNestedErrors = {
+        ...simpleMockModelDb,
+        getDtdlModelAndTree: () =>
+          Promise.resolve({
+            model: simpleMockDtdlObjectModel,
+            fileTree: [
+              {
+                name: 'folder',
+                type: 'directory' as const,
+                path: 'folder',
+                entries: [
+                  {
+                    name: 'nested.json',
+                    type: 'file' as const,
+                    path: 'folder/nested.json',
+                    entries: [],
+                    errors: [
+                      {
+                        ExceptionKind: 'Resolution' as const,
+                        UndefinedIdentifiers: ['dtmi:example:Missing;1'],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          }),
+      } as unknown as ModelDb
+
+      const controllerNestedErrors = new OntologyController(
+        mockModelDbNestedErrors,
+        mockGenerator,
+        mockMutator,
+        templateMock,
+        mockPostHog,
+        mockLogger,
+        mockCache,
+        mockSession,
+        mockGithubRequest
+      )
+
+      const req = mockReq({})
+      await expect(controllerNestedErrors.editModel(req, simpleDtdlId, validSessionId, true)).to.be.rejectedWith(
+        'Cannot edit ontology with errors. Please fix all errors before editing.'
+      )
+    })
+
+    it('should allow edit mode when file tree has no errors', async () => {
+      const mockModelDbNoErrors = {
+        ...simpleMockModelDb,
+        getDtdlModelAndTree: () =>
+          Promise.resolve({
+            model: simpleMockDtdlObjectModel,
+            fileTree: [
+              {
+                name: 'test.json',
+                type: 'file' as const,
+                path: 'test.json',
+                entries: [],
+              },
+            ],
+          }),
+      } as unknown as ModelDb
+
+      const controllerNoErrors = new OntologyController(
+        mockModelDbNoErrors,
+        mockGenerator,
+        mockMutator,
+        templateMock,
+        mockPostHog,
+        mockLogger,
+        mockCache,
+        mockSession,
+        mockGithubRequest
+      )
+
+      const req = mockReq({})
+      const result = await controllerNoErrors.editModel(req, simpleDtdlId, validSessionId, true).then(toHTMLString)
+
+      expect(result).to.equal(`navigationPanel_false__navigationPanel`)
+    })
   })
 
   describe('view - edit permission with errors', () => {

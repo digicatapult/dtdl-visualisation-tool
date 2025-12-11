@@ -164,55 +164,7 @@ describe('checkEditPermission', () => {
 
       sinon.assert.calledOnceWithExactly(getModelByIdStub, githubDtdlId)
       sinon.assert.calledOnceWithExactly(getRepoPermissionsStub, testToken, testOwner, testRepo)
-      sinon.assert.calledOnceWithExactly(getDtdlModelAndTreeStub, githubDtdlId)
       sinon.assert.calledOnce(mockNext)
-    })
-
-    it('should block editing when fileTree has errors', async () => {
-      const testToken = 'valid-github-token'
-      const testOwner = 'test-owner'
-      const testRepo = 'test-repo'
-
-      mockRequest.signedCookies[octokitTokenCookie] = testToken
-      getModelByIdStub.resolves({
-        id: githubDtdlId,
-        owner: testOwner,
-        repo: testRepo,
-      })
-      getRepoPermissionsStub.resolves('edit' as ViewAndEditPermission)
-      getDtdlModelAndTreeStub.resolves({
-        model: {},
-        fileTree: [
-          {
-            name: 'test.json',
-            type: 'file' as const,
-            path: 'test.json',
-            entries: [],
-            errors: [
-              {
-                ExceptionKind: 'Parsing' as const,
-                Errors: [
-                  {
-                    Cause: 'Test error',
-                    Action: 'Fix it',
-                    ValidationID: 'test',
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      })
-
-      await expect(checkEditPermission(mockRequest, mockResponse, mockNext))
-        .to.be.rejectedWith(UnauthorisedError)
-        .and.eventually.have.property(
-          'message',
-          'Cannot edit ontology with errors. Please fix all errors before editing.'
-        )
-
-      sinon.assert.calledOnceWithExactly(getDtdlModelAndTreeStub, githubDtdlId)
-      sinon.assert.notCalled(mockNext)
     })
   })
 

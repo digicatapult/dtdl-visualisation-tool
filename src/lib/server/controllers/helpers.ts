@@ -10,7 +10,6 @@ import { RecentFile } from '../models/openTypes.js'
 import { MermaidSvgRender, PlainTextRender } from '../models/renderedDiagram'
 import { UUID } from '../models/strings.js'
 import { ICache } from '../utils/cache.js'
-import { hasFileTreeErrors } from '../utils/dtdl/fileTreeErrors.js'
 import { authRedirectURL, GithubRequest } from '../utils/githubRequest.js'
 
 const formatLastVisited = (timestamp: number): string => {
@@ -110,11 +109,6 @@ export const checkEditPermission = async (
   }
   const permission = await githubRequest.getRepoPermissions(octokitToken, owner, repo)
   if (permission !== 'edit') throw new UnauthorisedError('User is unauthorised to make this request')
-
-  const { fileTree } = await modelDb.getDtdlModelAndTree(ontologyId)
-  if (hasFileTreeErrors(fileTree)) {
-    throw new UnauthorisedError('Cannot edit ontology with errors. Please fix all errors before editing.')
-  }
 
   next()
 }
