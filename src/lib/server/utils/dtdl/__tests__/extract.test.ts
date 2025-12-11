@@ -2,7 +2,7 @@ import { expect } from 'chai'
 import { describe, test } from 'mocha'
 
 import { EntityType } from '@digicatapult/dtdl-parser'
-import { getDisplayName } from '../extract.js'
+import { getDisplayName, getSchemaDisplayName } from '../extract.js'
 
 describe('getDisplayName', function () {
   test('should return "Entity not found in model" for undefined entity', function () {
@@ -38,5 +38,22 @@ describe('getDisplayName', function () {
       displayName: { en: 'Property Display Name' },
     } as unknown as EntityType
     expect(getDisplayName(entity)).to.equal('Property Display Name')
+  })
+})
+
+describe('getSchemaDisplayName', function () {
+  test('should return display name when primitive schema', function () {
+    const entity = {
+      EntityKind: 'String',
+      displayName: { en: 'string' },
+    } as unknown as EntityType
+    expect(getSchemaDisplayName(entity)).to.equal('string')
+  })
+
+  test('should return "Complex schema" when not primitive schema', function () {
+    const entity = {
+      EntityKind: 'Complex',
+    } as unknown as EntityType
+    expect(getSchemaDisplayName(entity)).to.equal('Complex schema')
   })
 })

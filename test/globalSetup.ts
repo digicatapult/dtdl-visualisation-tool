@@ -42,37 +42,39 @@ export let visualisationImage: GenericContainer
 export let posthogMockServer: Server | null = null
 
 async function globalSetup(config: FullConfig) {
-  // Start PostHog mock server before containers
-  posthogMockServer = await startMockPostHogServer(POSTHOG_MOCK_PORT)
+  if (false) {
+    // Start PostHog mock server before containers
+    posthogMockServer = await startMockPostHogServer(POSTHOG_MOCK_PORT)
 
-  postgresContainer = await bringUpDatabaseContainer()
-  visualisationImage = await buildVisualisationImage()
-  // Start the visualisation container on port 3000
-  visualisationUIContainer = await startVisualisationContainer(
-    {
-      containerName: 'dtdl-visualiser',
-      hostPort: 3000,
-      containerPort: 3000,
-      cookieSessionKeys: 'secret',
-      posthogMockPort: POSTHOG_MOCK_PORT,
-    },
-    visualisationImage
-  )
-  // Start the visualisation container on port 3001
-  visualisationUIContainer2 = await startVisualisationContainer(
-    {
-      containerName: 'dtdl-visualiser-custom',
-      hostPort: 3001,
-      containerPort: 3000,
-      cookieSessionKeys: 'test',
-      maxOntologySize: 25,
-      posthogMockPort: POSTHOG_MOCK_PORT,
-    },
-    visualisationImage
-  )
+    postgresContainer = await bringUpDatabaseContainer()
+    visualisationImage = await buildVisualisationImage()
+    // Start the visualisation container on port 3000
+    visualisationUIContainer = await startVisualisationContainer(
+      {
+        containerName: 'dtdl-visualiser',
+        hostPort: 3000,
+        containerPort: 3000,
+        cookieSessionKeys: 'secret',
+        posthogMockPort: POSTHOG_MOCK_PORT,
+      },
+      visualisationImage
+    )
+    // Start the visualisation container on port 3001
+    visualisationUIContainer2 = await startVisualisationContainer(
+      {
+        containerName: 'dtdl-visualiser-custom',
+        hostPort: 3001,
+        containerPort: 3000,
+        cookieSessionKeys: 'test',
+        maxOntologySize: 25,
+        posthogMockPort: POSTHOG_MOCK_PORT,
+      },
+      visualisationImage
+    )
+  }
 
   await getGithubToken(config, user1)
-  await getGithubToken(config, user2)
+  //await getGithubToken(config, user2)
 }
 
 const attempt2fa = async (totp: TOTP, page: Page) => {
