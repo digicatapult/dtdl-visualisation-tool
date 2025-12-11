@@ -39,6 +39,18 @@ jobs:
       contents: write
     secrets: inherit
 
+  generate-sbom-npm:
+    uses: digicatapult/shared-workflows/.github/workflows/generate-sbom-npm.yml@main
+    permissions:
+      contents: read
+    with:
+      enable_check_version: true
+      enable_dtrack_project: true
+      sbom_output_file: ${{ github.event.repository.name }}.cdx.json
+    secrets:
+      DTRACK_APIKEY: ${{ secrets.DTRACK_APIKEY }}
+      DTRACK_HOSTNAME: ${{ secrets.DTRACK_HOSTNAME }}
+
   build-docker:
     needs:
       - e2e-tests-npm
@@ -58,8 +70,12 @@ jobs:
       DOCKERHUB_USERNAME: ${{ secrets.SQNC_DOCKERHUB_USERNAME }}
 
   release-github:
-    needs: [build-docker]
+    needs:
+      - build-docker
+      - generate-sbom-npm
     uses: digicatapult/shared-workflows/.github/workflows/release-github.yml@main
+    with:
+      get_sbom: true
     permissions:
       contents: write
       pull-requests: read
