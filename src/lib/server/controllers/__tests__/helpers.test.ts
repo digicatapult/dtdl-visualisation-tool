@@ -99,6 +99,7 @@ describe('checkEditPermission', () => {
   let endStub: SinonStub
   let getModelByIdStub: SinonStub
   let getGithubModelByIdStub: SinonStub
+  let getDtdlModelAndTreeStub: SinonStub
   let getRepoPermissionsStub: SinonStub
   let containerResolveStub: SinonStub
 
@@ -124,6 +125,7 @@ describe('checkEditPermission', () => {
 
     getModelByIdStub = sinon.stub()
     getGithubModelByIdStub = sinon.stub()
+    getDtdlModelAndTreeStub = sinon.stub()
     getRepoPermissionsStub = sinon.stub()
 
     // Mock the container.resolve calls
@@ -131,6 +133,7 @@ describe('checkEditPermission', () => {
     containerResolveStub.withArgs(ModelDb).returns({
       getModelById: getModelByIdStub,
       getGithubModelById: getGithubModelByIdStub,
+      getDtdlModelAndTree: getDtdlModelAndTreeStub,
     })
     containerResolveStub.withArgs(GithubRequest).returns({
       getRepoPermissions: getRepoPermissionsStub,
@@ -154,6 +157,10 @@ describe('checkEditPermission', () => {
         repo: testRepo,
       })
       getRepoPermissionsStub.resolves('edit' as ViewAndEditPermission)
+      getDtdlModelAndTreeStub.resolves({
+        model: {},
+        fileTree: [],
+      })
 
       // Should not throw and should call next()
       await checkEditPermission(mockRequest, mockResponse, mockNext)

@@ -10,7 +10,7 @@ import { Env } from '../../env/index.js'
 import { DeletableEntities } from '../../models/controllerTypes.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
 import { DTDL_VALID_SCHEMAS, DtdlId, UUID } from '../../models/strings.js'
-import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
+import { MAX_DISPLAY_NAME_LENGTH, MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
 import {
   getDisplayName,
   isCommand,
@@ -19,6 +19,7 @@ import {
   isRelationship,
   isTelemetry,
 } from '../../utils/dtdl/extract.js'
+import { hasFileTreeErrors } from '../../utils/dtdl/fileTreeErrors.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { AccordionSection, EditableSelect, EditableText, Page } from '../common.js'
 import { AddContentButton } from './addContent.js'
@@ -55,6 +56,7 @@ export default class MermaidTemplates {
     svgWidth,
     svgHeight,
     canEdit,
+    editDisabledReason,
     req,
     ontologyId,
     model,
@@ -65,6 +67,7 @@ export default class MermaidTemplates {
     svgWidth?: number
     svgHeight?: number
     canEdit: boolean
+    editDisabledReason?: 'errors' | 'permissions'
     req?: express.Request
     ontologyId: UUID
     model: ModelRow
@@ -86,7 +89,7 @@ export default class MermaidTemplates {
       <this.Legend showContent={false} />
       <this.navPanelPlaceholder expanded={false} edit={canEdit} />
       <this.svgControls svgRawHeight={svgHeight} svgRawWidth={svgWidth} />
-      <this.editToggle canEdit={canEdit} />
+      <this.editToggle canEdit={canEdit} editDisabledReason={editDisabledReason} />
       <this.deleteDialog />
       <this.publishDialog />
     </Page>
@@ -280,7 +283,7 @@ export default class MermaidTemplates {
                 type="text"
                 name="displayName"
                 placeholder="Enter display name"
-                maxlength={64}
+                maxlength={MAX_DISPLAY_NAME_LENGTH}
                 class="nav-panel-editable"
                 required
               />
@@ -554,7 +557,7 @@ export default class MermaidTemplates {
                       putRoute="telemetryDisplayName"
                       text={telemetry.displayName?.en}
                       additionalBody={{ telemetryName: name }}
-                      maxLength={64}
+                      maxLength={MAX_DISPLAY_NAME_LENGTH}
                     />
                     <b>Schema:</b>
                     <EditableSelect
@@ -810,15 +813,6 @@ export default class MermaidTemplates {
       return false
     }
 
-    const containsErrors = (paths: DtdlPath[]): boolean =>
-      paths.some((path) =>
-        path.type === 'file'
-          ? path.errors !== undefined // found a file with errors
-          : path.type === 'directory'
-            ? containsErrors(path.entries)
-            : false
-      )
-
     return (
       <div id="navigation-panel-tree">
         <div>
@@ -830,7 +824,7 @@ export default class MermaidTemplates {
             hasChildErrors={hasChildErrors}
           />
         </div>
-        {containsErrors(fileTree) && (
+        {hasFileTreeErrors(fileTree) && (
           <div id="navigation-panel-tree-warning">
             <img src="/public/images/warning.svg" width="54px" height="50px" />
             <p>Only a part of this ontology could be loaded, due to errors.</p>
@@ -1425,19 +1419,24 @@ export default class MermaidTemplates {
     )
   }
 
-  public editToggle = ({ canEdit }: { canEdit: boolean }) => {
+  public editToggle = ({
+    canEdit,
+    editDisabledReason,
+  }: {
+    canEdit: boolean
+    editDisabledReason?: 'errors' | 'permissions'
+  }) => {
     if (!env.get('EDIT_ONTOLOGY')) return <></>
+
+    const getTooltip = () => {
+      if (canEdit) return 'Click to edit ontology'
+      if (editDisabledReason === 'errors') return 'You need to fix errors in ontology to be able to edit'
+      return 'Only Ontologies from github that you have write permissions on, can be edited'
+    }
+
     return (
       <div id="edit-controls">
-        <div
-          id="edit-toggle"
-          title={
-            canEdit
-              ? 'Click to edit ontology'
-              : 'Only Ontologies from github that you have write permissions on, can be edited'
-          }
-          class={canEdit ? '' : 'disabled'}
-        >
+        <div id="edit-toggle" title={getTooltip()} class={canEdit ? '' : 'disabled'}>
           <span class="view-text">View</span>
           <label class="switch">
             <form

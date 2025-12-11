@@ -107,6 +107,7 @@ export const checkEditPermission = async (
   const { owner, repo } = await modelDb.getGithubModelById(ontologyId)
   const permission = await githubRequest.getRepoPermissions(octokitToken, owner, repo)
   if (permission !== 'edit') throw new UnauthorisedError('User is unauthorised to make this request')
+
   next()
 }
 
