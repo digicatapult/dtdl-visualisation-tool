@@ -33,6 +33,8 @@ test.describe('highlight', () => {
     )
     await page.locator('#navigation-panel').getByText('Details', { exact: true }).click()
 
+    // Verify relationship Name field is visible
+    await expect(page.locator('#navigation-panel-details').getByText('Name: CurveDatas')).toBeVisible()
     await expect(page.locator('#navigation-panel-details').getByText('CurveDatas', { exact: true })).toBeVisible()
 
     const text = page.locator('#mermaid-output').getByText('CurveDatas', { exact: true })

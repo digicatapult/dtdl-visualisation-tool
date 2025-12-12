@@ -66,7 +66,10 @@ test.describe('Test edit ontology', () => {
     await testNavPanelEdit(page, /^telemetryDescriptionEdit$/, 'updated', '/telemetryDescription')
     await testNavPanelEdit(page, /^telemetryCommentEdit$/, 'updated', '/telemetryComment')
 
-    // command edits
+    // command edits & names visible
+    await expect(page.locator('#navigation-panel-details').getByText('Name: turnOn')).toBeVisible()
+    await expect(page.locator('#navigation-panel-details').getByText('Name: mode')).toBeVisible()
+
     await testNavPanelEdit(page, /^turnOnCommandDisplayNameEdit$/, 'updated', '/commandDisplayName')
     await testNavPanelEdit(page, /^turnOnCommandDescriptionEdit$/, 'updated', '/commandDescription')
     await testNavPanelEdit(page, /^turnOnCommandCommentEdit$/, 'updated', '/commandComment')
@@ -83,6 +86,7 @@ test.describe('Test edit ontology', () => {
       () => page.locator('#mermaid-output').getByText('relationshipDisplay').first().click(),
       '/update-layout'
     )
+    await expect(page.locator('#navigation-panel-details').getByText('Name: relationshipName')).toBeVisible()
     const newRelationshipDisplayName = 'new rel name'
     await testNavPanelEdit(
       page,
