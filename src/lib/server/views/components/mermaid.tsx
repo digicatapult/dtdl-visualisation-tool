@@ -653,7 +653,7 @@ export default class MermaidTemplates {
                     {requestEntity ? (
                       <AccordionSection heading={'Request'} collapsed={false}>
                         <b>Name: </b>
-                        {escapeHtml(requestEntity?.name ?? '')}
+                        {escapeHtml(requestEntity.name ?? '')}
                         <br />
                         <b>Request displayName:</b>
                         {EditableText({
@@ -700,13 +700,11 @@ export default class MermaidTemplates {
                           options={DTDL_VALID_SCHEMAS}
                         />
                       </AccordionSection>
-                    ) : (
-                      <></>
-                    )}
+                    ) : null}
                     {responseEntity ? (
                       <AccordionSection heading={'Response'} collapsed={false}>
                         <b>Name: </b>
-                        {escapeHtml(responseEntity?.name ?? '')}
+                        {escapeHtml(responseEntity.name ?? '')}
                         <br />
                         <b>Response displayName:</b>
                         {EditableText({
@@ -753,9 +751,7 @@ export default class MermaidTemplates {
                           options={DTDL_VALID_SCHEMAS}
                         />
                       </AccordionSection>
-                    ) : (
-                      <></>
-                    )}
+                    ) : null}
                     <br />
                   </>
                 )
