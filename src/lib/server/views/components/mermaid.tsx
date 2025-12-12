@@ -650,7 +650,7 @@ export default class MermaidTemplates {
                       multiline: true,
                       maxLength: MAX_VALUE_LENGTH,
                     })}
-                    {requestEntity && (
+                    {requestEntity ? (
                       <AccordionSection heading={'Request'} collapsed={false}>
                         <b>Name: </b>
                         {escapeHtml(requestEntity?.name ?? '')}
@@ -700,8 +700,10 @@ export default class MermaidTemplates {
                           options={DTDL_VALID_SCHEMAS}
                         />
                       </AccordionSection>
+                    ) : (
+                      <></>
                     )}
-                    {responseEntity && (
+                    {responseEntity ? (
                       <AccordionSection heading={'Response'} collapsed={false}>
                         <b>Name: </b>
                         {escapeHtml(responseEntity?.name ?? '')}
@@ -751,6 +753,8 @@ export default class MermaidTemplates {
                           options={DTDL_VALID_SCHEMAS}
                         />
                       </AccordionSection>
+                    ) : (
+                      <></>
                     )}
                     <br />
                   </>
