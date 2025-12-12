@@ -9,11 +9,14 @@ import { isGithubModel, ModelRow } from '../../../db/types.js'
 import { Env } from '../../env/index.js'
 import { DeletableEntities } from '../../models/controllerTypes.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
-import { DTDL_VALID_SCHEMAS, DtdlId, UUID } from '../../models/strings.js'
+import { DTDL_PRIMITIVE_SCHEMA_OPTIONS, DtdlId, UUID } from '../../models/strings.js'
 import { MAX_DISPLAY_NAME_LENGTH, MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
 import {
   getDisplayName,
+  getSchemaDisplayName,
   isCommand,
+  isCommandRequest,
+  isCommandResponse,
   isInterface,
   isProperty,
   isRelationship,
@@ -564,12 +567,9 @@ export default class MermaidTemplates {
                       edit={edit}
                       definedIn={telemetry.DefinedIn}
                       putRoute="telemetrySchema"
-                      text={
-                        model[telemetry.schema]?.displayName?.en ??
-                        (typeof telemetry.schema === 'string' ? telemetry.schema : 'Complex schema')
-                      }
+                      text={getSchemaDisplayName(model[telemetry.schema])}
                       additionalBody={{ telemetryName: name }}
-                      options={DTDL_VALID_SCHEMAS}
+                      options={DTDL_PRIMITIVE_SCHEMA_OPTIONS}
                     />
                     <b>Description:</b>
                     <EditableText
@@ -610,15 +610,13 @@ export default class MermaidTemplates {
             ? Object.entries(entity.commands).map(([name, id]) => {
                 const command = model[id]
                 if (!isCommand(command) || !command.DefinedIn) return
-                let requestEntity, responseEntity
+
                 const requestId = command.request
-                if (requestId) {
-                  requestEntity = model[requestId]
-                }
+                const requestEntity = requestId && isCommandRequest(model[requestId]) ? model[requestId] : undefined
+
                 const responseId = command.response
-                if (responseId) {
-                  responseEntity = model[responseId]
-                }
+                const responseEntity =
+                  responseId && isCommandResponse(model[responseId]) ? model[responseId] : undefined
                 return (
                   <>
                     <b>Display Name:</b>
@@ -652,7 +650,7 @@ export default class MermaidTemplates {
                       maxLength: MAX_VALUE_LENGTH,
                     })}
                     <AccordionSection heading={'Request'} collapsed={false}>
-                      <b>Request displayName:</b>
+                      <b>Request Display Name:</b>
                       {EditableText({
                         edit,
                         definedIn: command.DefinedIn,
@@ -687,18 +685,13 @@ export default class MermaidTemplates {
                         edit={edit}
                         definedIn={command.DefinedIn}
                         putRoute="commandRequestSchema"
-                        text={
-                          requestEntity?.schema
-                            ? (model[requestEntity.schema]?.displayName?.en ??
-                              (typeof requestEntity.schema === 'string' ? requestEntity.schema : 'Complex schema'))
-                            : undefined
-                        }
+                        text={requestEntity?.schema ? getSchemaDisplayName(model[requestEntity.schema]) : undefined}
                         additionalBody={{ commandName: name }}
-                        options={DTDL_VALID_SCHEMAS}
+                        options={DTDL_PRIMITIVE_SCHEMA_OPTIONS}
                       />
                     </AccordionSection>
                     <AccordionSection heading={'Response'} collapsed={false}>
-                      <b>Response displayName:</b>
+                      <b>Response Display Name:</b>
                       {EditableText({
                         edit,
                         definedIn: command.DefinedIn,
@@ -733,14 +726,9 @@ export default class MermaidTemplates {
                         edit={edit}
                         definedIn={command.DefinedIn}
                         putRoute="commandResponseSchema"
-                        text={
-                          responseEntity?.schema
-                            ? (model[responseEntity.schema]?.displayName?.en ??
-                              (typeof responseEntity.schema === 'string' ? responseEntity.schema : 'Complex schema'))
-                            : undefined
-                        }
+                        text={responseEntity?.schema ? getSchemaDisplayName(model[responseEntity.schema]) : undefined}
                         additionalBody={{ commandName: name }}
-                        options={DTDL_VALID_SCHEMAS}
+                        options={DTDL_PRIMITIVE_SCHEMA_OPTIONS}
                       />
                     </AccordionSection>
                     <br />

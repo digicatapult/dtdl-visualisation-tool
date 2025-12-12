@@ -39,7 +39,7 @@
   position: relative;
 
   --highlight-color: var(--active-button-color);
-  --transition-time: 0.5s;
+  --transition-time: 0.4s;
   --border-radius: 5px;
 }
 #upload-method:has(#upload-ontology-button:hover) {
@@ -164,7 +164,7 @@
 }
 
 #recent-files {
-  margin-top: 3rem;
+  margin-top: 6rem;
 }
 
 .file-grid {

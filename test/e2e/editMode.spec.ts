@@ -73,6 +73,10 @@ test.describe('Test edit ontology', () => {
     await testNavPanelEdit(page, /^modeRequestDisplayName$/, 'updated', '/commandRequestDisplayName')
     await testNavPanelEdit(page, /^modeRequestDescription$/, 'updated', '/commandRequestDescription')
     await testNavPanelEdit(page, /^modeRequestComment$/, 'updated', '/commandRequestComment')
+    await expect(page.locator('#navigation-panel-details').getByText('Complex schema')).toHaveAttribute(
+      'title',
+      'Cannot edit: current value is not a valid option'
+    )
     await testNavPanelEdit(page, /^modeResponseDescription$/, 'updated', '/commandResponseDescription')
     await testNavPanelEdit(page, /^modeResponseComment$/, 'updated', '/commandResponseComment')
     await testNavPanelDropdownEdit(page, 'string', 'long', '/commandResponseSchema')
