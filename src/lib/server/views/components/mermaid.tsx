@@ -617,6 +617,9 @@ export default class MermaidTemplates {
                 }
                 return (
                   <>
+                    <b>Name: </b>
+                    {escapeHtml(name)}
+                    <br />
                     <b>Display Name:</b>
                     {EditableText({
                       edit,
@@ -648,6 +651,9 @@ export default class MermaidTemplates {
                       maxLength: MAX_VALUE_LENGTH,
                     })}
                     <AccordionSection heading={'Request'} collapsed={false}>
+                      <b>Name: </b>
+                      {escapeHtml(requestEntity?.name ?? '')}
+                      <br />
                       <b>Request displayName:</b>
                       {EditableText({
                         edit,
@@ -694,6 +700,9 @@ export default class MermaidTemplates {
                       />
                     </AccordionSection>
                     <AccordionSection heading={'Response'} collapsed={false}>
+                      <b>Name: </b>
+                      {escapeHtml(responseEntity?.name ?? '')}
+                      <br />
                       <b>Response displayName:</b>
                       {EditableText({
                         edit,
@@ -739,6 +748,7 @@ export default class MermaidTemplates {
                         options={DTDL_VALID_SCHEMAS}
                       />
                     </AccordionSection>
+
                     <br />
                   </>
                 )
