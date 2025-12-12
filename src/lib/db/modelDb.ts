@@ -6,7 +6,7 @@ import { DtdlId, type UUID } from '../server/models/strings.js'
 import { allInterfaceFilter } from '../server/utils/dtdl/extract.js'
 import Parser, { DtdlPath } from '../server/utils/dtdl/parser.js'
 import Database from './index.js'
-import { DtdlFile, DtdlRow, DtdlSource, ModelRow, NullableDtdlSource } from './types.js'
+import { DtdlFile, DtdlRow, DtdlSource, GithubModelRow, isGithubModel, ModelRow, NullableDtdlSource } from './types.js'
 
 @singleton()
 export class ModelDb {
@@ -18,6 +18,14 @@ export class ModelDb {
   async getModelById(id: UUID): Promise<ModelRow> {
     const [model] = await this.db.get('model', { id })
     if (!model) throw new InternalError(`Failed to find model: ${id}`)
+    return model
+  }
+
+  async getGithubModelById(id: UUID): Promise<GithubModelRow> {
+    const model = await this.getModelById(id)
+    if (!isGithubModel(model)) {
+      throw new InternalError(`Model ${id} is not a valid GitHub model`)
+    }
     return model
   }
 
@@ -37,6 +45,7 @@ export class ModelDb {
     owner: string | null,
     repo: string | null,
     baseBranch: string | null,
+    commitHash: string | null,
     files: DtdlFile[]
   ): Promise<UUID> {
     return this.db.withTransaction(async (db) => {
@@ -47,6 +56,8 @@ export class ModelDb {
         owner,
         repo,
         base_branch: baseBranch,
+        commit_hash: commitHash,
+        is_out_of_sync: false,
       })
 
       for (const file of files) {
@@ -62,6 +73,15 @@ export class ModelDb {
       }
       return modelId
     })
+  }
+
+  async updateModel(id: UUID, updates: Partial<ModelRow>): Promise<GithubModelRow> {
+    const [model] = await this.db.update('model', { id }, updates)
+    if (!model) throw new InternalError(`Failed to find model: ${id}`)
+    if (!isGithubModel(model)) {
+      throw new InternalError(`Model ${id} is not a valid GitHub model`)
+    }
+    return model
   }
 
   async getDtdlFiles(model_id: UUID): Promise<DtdlFile[]> {

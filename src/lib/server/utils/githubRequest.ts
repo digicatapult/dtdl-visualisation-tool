@@ -245,6 +245,22 @@ export class GithubRequest {
     }
   }
 
+  updateBranch = async (token: string, owner: string, repo: string, branch: string, sha: string) => {
+    if (!token) throw new GithubReqError('Missing GitHub token')
+
+    const octokit = new Octokit({ auth: token })
+    const response = await this.requestWrapper(async () =>
+      octokit.request('PATCH /repos/{owner}/{repo}/git/refs/{ref}', {
+        owner,
+        repo,
+        ref: `heads/${branch}`,
+        sha,
+        force: false,
+      })
+    )
+    return response.data
+  }
+
   createBranch = async (token: string, owner: string, repo: string, branch: string, sha: string) => {
     if (!token) throw new GithubReqError('Missing GitHub token')
 
@@ -339,6 +355,20 @@ export class GithubRequest {
         head,
         base,
         body,
+      })
+    )
+    return response.data
+  }
+
+  getCommit = async (token: string, owner: string, repo: string, ref: string) => {
+    if (!token) throw new GithubReqError('Missing GitHub token')
+
+    const octokit = new Octokit({ auth: token })
+    const response = await this.requestWrapper(async () =>
+      octokit.request('GET /repos/{owner}/{repo}/commits/{ref}', {
+        owner,
+        repo,
+        ref,
       })
     )
     return response.data

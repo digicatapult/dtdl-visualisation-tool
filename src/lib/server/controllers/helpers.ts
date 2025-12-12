@@ -2,7 +2,8 @@ import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns'
 import express from 'express'
 import { container } from 'tsyringe'
 import { ModelDb } from '../../db/modelDb.js'
-import { InternalError, UnauthorisedError } from '../errors.js'
+import { GithubModelRow } from '../../db/types.js'
+import { UnauthorisedError } from '../errors.js'
 import { ILogger } from '../logger'
 import { CookieHistoryParams, GenerateParams, relevantParams } from '../models/controllerTypes.js'
 import { modelHistoryCookie, octokitTokenCookie } from '../models/cookieNames.js'
@@ -100,15 +101,28 @@ export const checkEditPermission = async (
 
   const modelDb: ModelDb = container.resolve(ModelDb)
   const githubRequest: GithubRequest = container.resolve(GithubRequest)
+  const ontologyId: UUID =
+    req.body?.ontologyId || req.params['ontologyId'] || req.params['dtdlModelId'] || req.query?.ontologyId
 
-  const ontologyId: UUID = req.body?.ontologyId || req.params['ontologyId'] || req.params['dtdlModelId']
-
-  const { owner, repo } = await modelDb.getModelById(ontologyId)
-  if (!owner || !repo) {
-    throw new InternalError(`owner or repo not found in database for GitHub source`)
-  }
+  const { owner, repo } = await modelDb.getGithubModelById(ontologyId)
   const permission = await githubRequest.getRepoPermissions(octokitToken, owner, repo)
   if (permission !== 'edit') throw new UnauthorisedError('User is unauthorised to make this request')
 
   next()
+}
+
+export const checkRemoteBranch = async (
+  dtdlModelId: UUID,
+  req: express.Request,
+  modelDb: ModelDb,
+  githubRequest: GithubRequest
+): Promise<GithubModelRow> => {
+  const model = await modelDb.getGithubModelById(dtdlModelId)
+  const { owner, repo, base_branch: baseBranch, commit_hash: commitHash } = model
+
+  const octokitToken = req.signedCookies[octokitTokenCookie]
+
+  const currentCommit = await githubRequest.getCommit(octokitToken, owner, repo, baseBranch)
+  const isOutOfSync = currentCommit.sha !== commitHash
+  return modelDb.updateModel(dtdlModelId, { is_out_of_sync: isOutOfSync })
 }

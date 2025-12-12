@@ -803,7 +803,8 @@ label[for='diagram-type-select'] {
 
 #toolbar {
   display: grid;
-  grid-template-columns: auto auto auto 1fr;
+  grid-template-columns: auto auto auto auto 1fr;
+  align-items: center;
 }
 
 #zip {
@@ -870,6 +871,12 @@ label[for='diagram-type-select'] {
   place-content: center;
 }
 
+#github-link {
+  margin: 1rem;
+  display: flex;
+  gap: 2rem;
+}
+
 .circle-radio {
   appearance: none;
   width: 20px;
@@ -899,6 +906,10 @@ label[for='diagram-type-select'] {
 }
 .circle-radio:checked {
   border-color: #555;
+}
+.circle-radio:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 #share-link-modal input[type='text'] {

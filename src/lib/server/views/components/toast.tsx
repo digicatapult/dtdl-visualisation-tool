@@ -1,7 +1,12 @@
 import { escapeHtml } from '@kitajs/html'
 import { randomUUID } from 'node:crypto'
 
-export function successToast(title: string, link?: string, linkText?: string) {
+export interface Toast {
+  dialogId: string
+  response: JSX.Element
+}
+
+export function successToast(title: string, link?: string, linkText?: string): Toast {
   const dialogId = randomUUID()
   const showLink = link !== undefined
   return {
@@ -15,7 +20,7 @@ export function successToast(title: string, link?: string, linkText?: string) {
             <div class="toast-detail">
               {showLink && (
                 <p>
-                  <a href={link} class="authorise-link" target="_blank" rel="noopener">
+                  <a href={link} class="new-tab-link" target="_blank" rel="noopener">
                     {escapeHtml(linkText ?? '')} ↗
                   </a>
                 </p>

@@ -35,11 +35,11 @@
   padding: 2rem 1rem 0 1rem;
 }
 
-a.authorise-link {
+a.new-tab-link {
   color: var(--active-button-color);
 }
 
-a.authorise-link:hover {
+a.new-tab-link:hover {
   text-decoration: underline;
 }
 
@@ -136,7 +136,6 @@ a.authorise-link:hover {
 
 #publish-dialog label {
   font-weight: bold;
-  margin-bottom: 0.5rem;
   color: #555;
 }
 
@@ -151,6 +150,8 @@ a.authorise-link:hover {
 
 #publish-dialog .radio-group {
   margin: 0.5rem 0;
+  display: grid;
+  gap: 0.5rem;
 }
 
 #publish-dialog .radio-group label {
@@ -160,10 +161,15 @@ a.authorise-link:hover {
   gap: 0.5rem;
 }
 
+#publish-dialog .radio-group input {
+  margin: 0;
+}
+
+
 #publish-dialog button[type="submit"] {
   background-color: var(--active-button-color);
   color: white;
-  margin: 0;
+  margin: 1rem 0 0 0;
   justify-self: start;
   padding: 0.5rem 2rem;
 }
@@ -173,4 +179,27 @@ a.authorise-link:hover {
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
+}
+
+#publish-dialog:has(input[name="publishType"][value="currentBranch"]:checked) .pr-fields {
+  opacity: 0.5;
+  pointer-events: none;
+  user-select: none;
+}
+
+#publish-warning {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #fff8e1;
+  border: 1px solid #ffcc00;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+#publish-warning img {
+  width: 54px;
+  height: 54px;
 }
