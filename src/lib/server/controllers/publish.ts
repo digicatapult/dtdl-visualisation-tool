@@ -56,6 +56,7 @@ export class PublishController extends HTMLController {
       repo,
       base_branch: baseBranch,
       is_out_of_sync: isOutOfSync,
+      commit_hash: currentCommitHash,
     } = await checkRemoteBranch(ontologyId, req, this.modelDb, this.githubRequest)
 
     if (publishType === 'currentBranch' && isOutOfSync) {
@@ -114,11 +115,19 @@ export class PublishController extends HTMLController {
       this.setHeader('HX-Trigger-After-Settle', JSON.stringify({ toastEvent: { dialogId: toast.dialogId } }))
       return this.html(toast.response)
     } else {
-      await this.githubRequest.updateBranch(octokitToken, owner, repo, baseBranch, commit.sha)
       const updatedModel = await this.modelDb.updateModel(ontologyId, {
         is_out_of_sync: false,
         commit_hash: commit.sha,
       })
+
+      try {
+        await this.githubRequest.updateBranch(octokitToken, owner, repo, baseBranch, commit.sha)
+      } catch (error) {
+        await this.modelDb.updateModel(ontologyId, {
+          commit_hash: currentCommitHash, // Revert commit hash if the branch update fails
+        })
+        throw error
+      }
 
       const toast = successToast(
         `Published successfully`,

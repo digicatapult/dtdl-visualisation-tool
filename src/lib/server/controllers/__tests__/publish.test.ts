@@ -273,5 +273,41 @@ describe('PublishController', () => {
         mockCommitSha,
       ])
     })
+
+    it('should revert commit hash if updating branch fails', async () => {
+      updateModelStub.reset()
+      const req = mockReqWithCookie(cookie)
+      getGithubModelByIdStub.resolves(mockModel)
+      getCommitStub.resolves({ sha: mockCommitSha })
+      updateModelStub.resolves(mockModel)
+      getDtdlFilesStub.resolves(mockFiles)
+      getBranchStub.resolves({ object: { sha: 'baseSha' } })
+      createBlobStub.resolves({ sha: 'blobSha' })
+      createTreeStub.resolves({ sha: mockTreeSha })
+      const newCommitSha = 'newCommitSha'
+      createCommitStub.resolves({ sha: newCommitSha })
+
+      const error = new Error('Update branch failed')
+      updateBranchStub.rejects(error)
+
+      await expect(
+        controller.publish(
+          req,
+          mockOntologyId,
+          mockCommitMessage,
+          mockPrTitle,
+          mockDescription,
+          'currentBranch',
+          mockBranchName
+        )
+      ).to.be.rejectedWith(error)
+
+      expect(updateModelStub.secondCall.args).to.deep.equal([
+        mockOntologyId,
+        { is_out_of_sync: false, commit_hash: newCommitSha },
+      ])
+
+      expect(updateModelStub.thirdCall.args).to.deep.equal([mockOntologyId, { commit_hash: mockCommitSha }])
+    })
   })
 })
