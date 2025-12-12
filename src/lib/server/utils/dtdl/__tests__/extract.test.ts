@@ -56,4 +56,8 @@ describe('getSchemaDisplayName', function () {
     } as unknown as EntityType
     expect(getSchemaDisplayName(entity)).to.equal('Complex schema')
   })
+
+  test('should return "Entity not found in model" for undefined entity', function () {
+    expect(getSchemaDisplayName(undefined as unknown as EntityType)).to.equal('Entity not found in model')
+  })
 })

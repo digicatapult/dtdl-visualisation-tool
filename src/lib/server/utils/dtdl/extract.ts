@@ -32,6 +32,7 @@ export const allInterfaceFilter = () => {
 }
 
 export const getSchemaDisplayName = (entity: EntityType) => {
-  if (!DTDL_PRIMITIVE_SCHEMAS_SET.has(entity?.EntityKind?.toLowerCase())) return 'Complex schema'
+  if (!entity) return 'Entity not found in model'
+  if (!DTDL_PRIMITIVE_SCHEMAS_SET.has(entity.EntityKind.toLowerCase())) return 'Complex schema'
   return getDisplayName(entity)
 }
