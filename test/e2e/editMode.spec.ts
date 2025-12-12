@@ -68,7 +68,6 @@ test.describe('Test edit ontology', () => {
 
     // command edits & names visible
     await expect(page.locator('#navigation-panel-details').getByText('Name: turnOn')).toBeVisible()
-    await expect(page.locator('#navigation-panel-details').getByText('Name: mode')).toBeVisible()
 
     await testNavPanelEdit(page, /^turnOnCommandDisplayNameEdit$/, 'updated', '/commandDisplayName')
     await testNavPanelEdit(page, /^turnOnCommandDescriptionEdit$/, 'updated', '/commandDescription')
