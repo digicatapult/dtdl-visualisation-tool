@@ -9,7 +9,7 @@
  */
 
 import { expect, test } from '@playwright/test'
-import { POSTHOG_MOCK_PORT } from '../constants.js'
+import { POSTHOG_MOCK_PORT } from '../mocks/posthogMock'
 
 const POSTHOG_MOCK_URL = `http://localhost:${POSTHOG_MOCK_PORT}`
 

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { POSTHOG_MOCK_PORT } from '../constants.js'
+import { POSTHOG_MOCK_PORT } from '../mocks/posthogMock'
 
 /**
  * PostHog Client-Side E2E Tests

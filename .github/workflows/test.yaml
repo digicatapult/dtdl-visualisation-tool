@@ -23,7 +23,6 @@ jobs:
   tests-npm:
     uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
     with:
-      docker_compose_file: ''
       npm_build_command: 'npm run build'
       tests: '["test:unit", "test:integration", "test:ratelimit"]'
       coverage_config_json: '.c8rc.json'
@@ -37,7 +36,6 @@ jobs:
   e2e-tests-npm:
     uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
     with:
-      docker_compose_file: ''
       node_version: '24'
       pre_test_command: 'npm ci && npx playwright install-deps && npx playwright install'
       test_command: 'npm run test:playwright || exit 1'

@@ -5,13 +5,21 @@
  * and provides an API for tests to query captured events.
  */
 
-import express, { Express, Request, Response } from 'express'
-import { Server } from 'http'
+import type { Express, Request, Response } from 'express'
+import express from 'express'
+import type { Server } from 'http'
 
-import { logger as pinoLogger } from '../../src/lib/server/logger.js'
-import { POSTHOG_MOCK_PORT } from '../constants.js'
+import pino from 'pino'
+export const POSTHOG_MOCK_PORT = 3333
 
-const logger = pinoLogger.child({ component: 'posthog-mock' })
+const logger = pino(
+  {
+    name: 'posthog-mock',
+    timestamp: true,
+    level: 'debug',
+  },
+  process.stdout
+)
 
 interface CapturedEvent {
   event: string
@@ -166,4 +174,12 @@ export const clearCapturedEvents = (): void => {
 
 export const getEventsByName = (eventName: string): CapturedEvent[] => {
   return capturedEvents.filter((e) => e.event === eventName)
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const port = process.env.POSTHOG_MOCK_PORT ? parseInt(process.env.POSTHOG_MOCK_PORT) : POSTHOG_MOCK_PORT
+  startMockPostHogServer(port).catch((err) => {
+    logger.error({ err }, 'Failed to start PostHog mock server')
+    process.exit(1)
+  })
 }
