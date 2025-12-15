@@ -92,10 +92,7 @@ test.describe('Iubenda Policy Widget', () => {
     const privacyPolicyLink = page.locator('a.iubenda-black[title*="Privacy Policy"]').first()
 
     // Set up a listener for new pages (Iubenda links typically open in new window/tab)
-    const [newPage] = await Promise.all([
-      context.waitForEvent('page'),
-      privacyPolicyLink.click(),
-    ])
+    const [newPage] = await Promise.all([context.waitForEvent('page'), privacyPolicyLink.click()])
 
     // Verify the new page URL is from Iubenda
     expect(newPage.url()).toContain('iubenda.com')

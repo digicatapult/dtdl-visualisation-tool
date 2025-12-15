@@ -5,7 +5,7 @@ describe('Page Component - Iubenda Policy Widget Integration', () => {
   it('should include the Iubenda widget script tag in rendered HTML', async () => {
     // Import dynamically to ensure JSX is loaded in the right context
     const { Page } = await import('../common.js')
-    
+
     const testChild = '<div>Test Content</div>'
     const pageContent = await Page({ title: 'Test Page', children: testChild as any })
     const pageString = pageContent.toString()
@@ -17,7 +17,7 @@ describe('Page Component - Iubenda Policy Widget Integration', () => {
 
   it('should include the widget container div in the body', async () => {
     const { Page } = await import('../common.js')
-    
+
     const testChild = '<div>Test Content</div>'
     const pageContent = await Page({ title: 'Test Page', children: testChild as any })
     const pageString = pageContent.toString()
@@ -28,7 +28,7 @@ describe('Page Component - Iubenda Policy Widget Integration', () => {
 
   it('should render the widget container after content-main', async () => {
     const { Page } = await import('../common.js')
-    
+
     const testChild = '<div id="my-content">Content</div>'
     const pageContent = await Page({ title: 'Test Page', children: testChild as any })
     const pageString = pageContent.toString()
@@ -44,7 +44,7 @@ describe('Page Component - Iubenda Policy Widget Integration', () => {
 
   it('should include all required elements in correct order', async () => {
     const { Page } = await import('../common.js')
-    
+
     const testChild = '<div>Content</div>'
     const pageContent = await Page({ title: 'Test Page', children: testChild as any })
     const pageString = pageContent.toString()
@@ -65,7 +65,7 @@ describe('Page Component - Iubenda Policy Widget Integration', () => {
 
   it('should not affect other page elements', async () => {
     const { Page } = await import('../common.js')
-    
+
     const testChild = '<div id="test-content">Test Content Here</div>'
     const pageContent = await Page({ title: 'Test Page', children: testChild as any })
     const pageString = pageContent.toString()
