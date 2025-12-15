@@ -8,8 +8,6 @@ import {
   getDisplayName,
   getSchemaDisplayName,
   isCommand,
-  isCommandRequest,
-  isCommandResponse,
   isInterface,
   isProperty,
   isRelationship,
@@ -17,6 +15,7 @@ import {
 } from '../../utils/dtdl/extract.js'
 import { AccordionSection, EditableSelect, EditableText } from '../common.js'
 import { AddContentButton } from './addContent.js'
+import { CommandDetails } from './command.js'
 import { PropertyDetails } from './property.js'
 import { RelationshipDetails } from './relationship.js'
 
@@ -260,140 +259,8 @@ export const NavigationPanelDetails = ({
         {isInterface(entity) && Object.keys(entity.commands).length > 0
           ? Object.entries(entity.commands).map(([name, id]) => {
               const command = model[id]
-              if (!isCommand(command) || !command.DefinedIn) return
-
-              const requestId = command.request
-              const requestEntity = requestId && isCommandRequest(model[requestId]) ? model[requestId] : undefined
-
-              const responseId = command.response
-              const responseEntity = responseId && isCommandResponse(model[responseId]) ? model[responseId] : undefined
-              return (
-                <>
-                  <b>Name: </b>
-                  {escapeHtml(name)}
-                  <br />
-                  <b>Display Name:</b>
-                  {EditableText({
-                    edit,
-                    definedIn: command.DefinedIn,
-                    putRoute: 'commandDisplayName',
-                    text: command.displayName.en,
-                    additionalBody: { commandName: name },
-                    maxLength: 64,
-                  })}
-
-                  <b>Description:</b>
-                  {EditableText({
-                    edit,
-                    definedIn: command.DefinedIn,
-                    putRoute: 'commandDescription',
-                    text: command.description.en,
-                    additionalBody: { commandName: name },
-                    multiline: true,
-                    maxLength: MAX_VALUE_LENGTH,
-                  })}
-                  <b>Comment:</b>
-                  {EditableText({
-                    edit,
-                    definedIn: command.DefinedIn,
-                    putRoute: 'commandComment',
-                    text: command.comment,
-                    additionalBody: { commandName: name },
-                    multiline: true,
-                    maxLength: MAX_VALUE_LENGTH,
-                  })}
-                  <AccordionSection heading={'Request'} collapsed={false}>
-                    <b>Name: </b>
-                    {escapeHtml(requestEntity?.name ?? '')}
-                    <br />
-                    <b>Request Display Name:</b>
-                    {EditableText({
-                      edit,
-                      definedIn: command.DefinedIn,
-                      putRoute: 'commandRequestDisplayName',
-                      text: requestEntity?.displayName?.en ?? '',
-                      additionalBody: { commandName: name },
-                      multiline: true,
-                      maxLength: MAX_VALUE_LENGTH,
-                    })}
-                    <b>Request comment:</b>
-                    {EditableText({
-                      edit,
-                      definedIn: command.DefinedIn,
-                      putRoute: 'commandRequestComment',
-                      text: requestEntity?.comment ?? '',
-                      additionalBody: { commandName: name },
-                      multiline: true,
-                      maxLength: MAX_VALUE_LENGTH,
-                    })}
-                    <b>Request description:</b>
-                    {EditableText({
-                      edit,
-                      definedIn: command.DefinedIn,
-                      putRoute: 'commandRequestDescription',
-                      text: requestEntity?.description?.en ?? '',
-                      additionalBody: { commandName: name },
-                      multiline: true,
-                      maxLength: MAX_VALUE_LENGTH,
-                    })}
-                    <b>Schema:</b>
-                    <EditableSelect
-                      edit={edit}
-                      definedIn={command.DefinedIn}
-                      putRoute="commandRequestSchema"
-                      text={requestEntity?.schema ? getSchemaDisplayName(model[requestEntity.schema]) : undefined}
-                      additionalBody={{ commandName: name }}
-                      options={DTDL_PRIMITIVE_SCHEMA_OPTIONS}
-                    />
-                  </AccordionSection>
-                  <AccordionSection heading={'Response'} collapsed={false}>
-                    <b>Name: </b>
-                    {escapeHtml(responseEntity?.name ?? '')}
-                    <br />
-                    <b>Response Display Name:</b>
-                    {EditableText({
-                      edit,
-                      definedIn: command.DefinedIn,
-                      putRoute: 'commandResponseDisplayName',
-                      text: responseEntity?.displayName?.en ?? '',
-                      additionalBody: { commandName: name },
-                      multiline: true,
-                      maxLength: MAX_VALUE_LENGTH,
-                    })}
-                    <b>Response comment:</b>
-                    {EditableText({
-                      edit,
-                      definedIn: command.DefinedIn,
-                      putRoute: 'commandResponseComment',
-                      text: responseEntity?.comment ?? '',
-                      additionalBody: { commandName: name },
-                      multiline: true,
-                      maxLength: MAX_VALUE_LENGTH,
-                    })}
-                    <b>Response description:</b>
-                    {EditableText({
-                      edit,
-                      definedIn: command.DefinedIn,
-                      putRoute: 'commandResponseDescription',
-                      text: responseEntity?.description?.en ?? '',
-                      additionalBody: { commandName: name },
-                      multiline: true,
-                      maxLength: MAX_VALUE_LENGTH,
-                    })}
-                    <b>Schema:</b>
-                    <EditableSelect
-                      edit={edit}
-                      definedIn={command.DefinedIn}
-                      putRoute="commandResponseSchema"
-                      text={responseEntity?.schema ? getSchemaDisplayName(model[responseEntity.schema]) : undefined}
-                      additionalBody={{ commandName: name }}
-                      options={DTDL_PRIMITIVE_SCHEMA_OPTIONS}
-                    />
-                  </AccordionSection>
-
-                  <br />
-                </>
-              )
+              if (!isCommand(command)) return
+              return <CommandDetails command={command} name={name} model={model} edit={edit} entityId={entity.Id} />
             })
           : 'None'}
       </AccordionSection>
