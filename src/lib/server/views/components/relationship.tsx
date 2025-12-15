@@ -44,6 +44,9 @@ export const RelationshipDetails = ({
 
   return (
     <div class={isInherited ? 'inherited-relationship' : ''} data-tooltip={tooltipText}>
+      <b>Name: </b>
+      {escapeHtml(relationship.name)}
+      <br />
       <p>
         <b>Display Name:</b>
       </p>
