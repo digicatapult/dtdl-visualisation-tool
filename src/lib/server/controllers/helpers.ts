@@ -124,6 +124,5 @@ export const checkRemoteBranch = async (
 
   const currentCommit = await githubRequest.getCommit(octokitToken, owner, repo, baseBranch)
   const isOutOfSync = currentCommit.sha !== commitHash
-  const updatedModel = await modelDb.updateModel(dtdlModelId, { is_out_of_sync: isOutOfSync })
-  return updatedModel
+  return modelDb.updateModel(dtdlModelId, { is_out_of_sync: isOutOfSync })
 }
