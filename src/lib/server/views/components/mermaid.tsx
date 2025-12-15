@@ -615,6 +615,9 @@ export default class MermaidTemplates {
                   responseId && isCommandResponse(model[responseId]) ? model[responseId] : undefined
                 return (
                   <>
+                    <b>Name: </b>
+                    {escapeHtml(name)}
+                    <br />
                     <b>Display Name:</b>
                     {EditableText({
                       edit,
@@ -646,6 +649,9 @@ export default class MermaidTemplates {
                       maxLength: MAX_VALUE_LENGTH,
                     })}
                     <AccordionSection heading={'Request'} collapsed={false}>
+                      <b>Name: </b>
+                      {escapeHtml(requestEntity?.name ?? '')}
+                      <br />
                       <b>Request Display Name:</b>
                       {EditableText({
                         edit,
@@ -687,6 +693,9 @@ export default class MermaidTemplates {
                       />
                     </AccordionSection>
                     <AccordionSection heading={'Response'} collapsed={false}>
+                      <b>Name: </b>
+                      {escapeHtml(responseEntity?.name ?? '')}
+                      <br />
                       <b>Response Display Name:</b>
                       {EditableText({
                         edit,
@@ -727,6 +736,7 @@ export default class MermaidTemplates {
                         options={DTDL_PRIMITIVE_SCHEMA_OPTIONS}
                       />
                     </AccordionSection>
+
                     <br />
                   </>
                 )
