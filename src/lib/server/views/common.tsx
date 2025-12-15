@@ -136,19 +136,19 @@ export const EditableSelect = ({
   putRoute: string
   text?: string
   additionalBody?: Record<string, string>
-  options: readonly string[] | Array<{ value: string; label: string }>
+  options: Array<{ value: string; label: string }>
   disabled?: boolean
 }): JSX.Element => {
-  // Normalize options to { value, label } format
-  const normalizedOptions =
-    typeof options[0] === 'string'
-      ? (options as readonly string[]).map((opt) => ({ value: opt, label: opt }))
-      : (options as Array<{ value: string; label: string }>)
-
   // Find the display label for the current value
-  const displayLabel = text ? (normalizedOptions.find((o) => o.value === text)?.label ?? text) : ''
-
-  if (!edit || disabled) return <p>{escapeHtml(displayLabel)}</p>
+  const match = options.find((o) => o.value === text)
+  const displayLabel = match ? match.label : text || ''
+  const currentValueIsInvalidOption = text && !match
+  if (!edit || disabled || currentValueIsInvalidOption)
+    return (
+      <p title={currentValueIsInvalidOption ? 'Cannot edit: current value is not a valid option' : undefined}>
+        {escapeHtml(displayLabel)}
+      </p>
+    )
 
   return (
     <form
@@ -167,7 +167,7 @@ export const EditableSelect = ({
             Select...
           </option>
         )}
-        {normalizedOptions.map((option) => (
+        {options.map((option) => (
           <option value={option.value} {...(option.value === text && { selected: true })}>
             {escapeHtml(option.label)}
           </option>
