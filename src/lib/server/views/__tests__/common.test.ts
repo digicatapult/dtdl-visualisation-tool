@@ -7,7 +7,7 @@ describe('Page Component - Iubenda Policy Widget Integration', () => {
     const { Page } = await import('../common.js')
 
     const testChild = '<div>Test Content</div>'
-    const pageContent = await Page({ title: 'Test Page', children: testChild as any })
+    const pageContent = await Page({ title: 'Test Page', children: testChild as unknown as JSX.Element })
     const pageString = pageContent.toString()
 
     // Verify the Iubenda script tag is present
@@ -19,7 +19,7 @@ describe('Page Component - Iubenda Policy Widget Integration', () => {
     const { Page } = await import('../common.js')
 
     const testChild = '<div>Test Content</div>'
-    const pageContent = await Page({ title: 'Test Page', children: testChild as any })
+    const pageContent = await Page({ title: 'Test Page', children: testChild as unknown as JSX.Element })
     const pageString = pageContent.toString()
 
     // Verify the widget container exists
@@ -30,7 +30,7 @@ describe('Page Component - Iubenda Policy Widget Integration', () => {
     const { Page } = await import('../common.js')
 
     const testChild = '<div id="my-content">Content</div>'
-    const pageContent = await Page({ title: 'Test Page', children: testChild as any })
+    const pageContent = await Page({ title: 'Test Page', children: testChild as unknown as JSX.Element })
     const pageString = pageContent.toString()
 
     // Verify order: content-main should come before iubenda-policy-widget
@@ -46,7 +46,7 @@ describe('Page Component - Iubenda Policy Widget Integration', () => {
     const { Page } = await import('../common.js')
 
     const testChild = '<div>Content</div>'
-    const pageContent = await Page({ title: 'Test Page', children: testChild as any })
+    const pageContent = await Page({ title: 'Test Page', children: testChild as unknown as JSX.Element })
     const pageString = pageContent.toString()
 
     // Check structure: script in head, container in body
@@ -67,7 +67,7 @@ describe('Page Component - Iubenda Policy Widget Integration', () => {
     const { Page } = await import('../common.js')
 
     const testChild = '<div id="test-content">Test Content Here</div>'
-    const pageContent = await Page({ title: 'Test Page', children: testChild as any })
+    const pageContent = await Page({ title: 'Test Page', children: testChild as unknown as JSX.Element })
     const pageString = pageContent.toString()
 
     // Verify all standard elements are still present
