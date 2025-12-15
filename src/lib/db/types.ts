@@ -20,6 +20,8 @@ const insertModel = z.object({
   owner: z.string().nullable(),
   repo: z.string().nullable(),
   base_branch: z.string().nullable(),
+  commit_hash: z.string().nullable(),
+  is_out_of_sync: z.boolean().default(false),
 })
 
 export const dtdlInterfaceBase = z.looseObject({ '@id': z.string(), '@type': z.literal('Interface') })
@@ -129,6 +131,23 @@ const Zod = {
 
 export type InsertModel = z.infer<typeof Zod.model.insert>
 export type ModelRow = z.infer<typeof Zod.model.get>
+export type GithubModelRow = ModelRow & {
+  source: 'github'
+  owner: string
+  repo: string
+  base_branch: string
+  commit_hash: string
+}
+
+export const isGithubModel = (model: ModelRow): model is GithubModelRow => {
+  return (
+    model.source === 'github' &&
+    model.owner !== null &&
+    model.repo !== null &&
+    model.base_branch !== null &&
+    model.commit_hash !== null
+  )
+}
 
 export type InsertDtdl = z.infer<typeof Zod.dtdl.insert>
 export type DtdlRow = z.infer<typeof Zod.dtdl.get>

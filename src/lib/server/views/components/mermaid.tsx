@@ -5,6 +5,7 @@ import { escapeHtml } from '@kitajs/html'
 import { randomUUID } from 'crypto'
 import express from 'express'
 import { container, singleton } from 'tsyringe'
+import { isGithubModel, ModelRow } from '../../../db/types.js'
 import { Env } from '../../env/index.js'
 import { DeletableEntities } from '../../models/controllerTypes.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
@@ -61,6 +62,7 @@ export default class MermaidTemplates {
     editDisabledReason,
     req,
     ontologyId,
+    model,
   }: {
     search?: string
     sessionId: UUID
@@ -71,6 +73,7 @@ export default class MermaidTemplates {
     editDisabledReason?: 'errors' | 'permissions'
     req?: express.Request
     ontologyId: UUID
+    model: ModelRow
   }) => (
     <Page title={'UKDTC'} req={req}>
       <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
@@ -79,6 +82,7 @@ export default class MermaidTemplates {
         <this.uploadForm />
         <this.shareOntology />
         <this.publishForm canPublish={canEdit} ontologyId={ontologyId} />
+        <this.githubLink model={model} />
       </section>
 
       <div id="mermaid-wrapper">
@@ -1113,7 +1117,11 @@ export default class MermaidTemplates {
     )
   }
 
-  public publishDialog = ({ ontologyId }: { ontologyId?: UUID } = {}) => {
+  public publishDialog = ({
+    ontologyId,
+    baseBranch,
+    isOutOfSync,
+  }: { ontologyId?: UUID; baseBranch?: string; isOutOfSync?: boolean } = {}) => {
     const defaultBranchName = `ontology-update-${Date.now()}`
 
     return (
@@ -1130,33 +1138,59 @@ export default class MermaidTemplates {
         >
           <div class="modal-content">
             <h3>Publish Changes</h3>
+            {isOutOfSync && (
+              <div id="publish-warning">
+                <img src="/public/images/warning.svg" />
+                <p>Ontology is out-of-sync with the source branch on GitHub</p>
+              </div>
+            )}
             <label for="commitMessage">Commit message</label>
             <input type="text" id="commitMessage" name="commitMessage" value="Update DTDL" required />
+            <div class="radio-group">
+              <label title={isOutOfSync ? 'Disabled because ontology is out-of-sync' : ''}>
+                <input
+                  class="circle-radio"
+                  type="radio"
+                  name="publishType"
+                  value="currentBranch"
+                  checked={!isOutOfSync}
+                  disabled={isOutOfSync}
+                  onchange="globalThis.togglePrFields(false)"
+                />
+                Commit directly to '{escapeHtml(baseBranch ?? '')}' branch
+              </label>
+              <label>
+                <input
+                  class="circle-radio"
+                  type="radio"
+                  name="publishType"
+                  value="newBranch"
+                  checked={isOutOfSync}
+                  onchange="globalThis.togglePrFields(true)"
+                />
+                Create a new branch for this commit and start a pull request
+              </label>
+            </div>
             <label for="prTitle">Pull Request title</label>
             <input
               type="text"
               id="prTitle"
               name="prTitle"
               value="Update ontology files from DTDL visualisation tool"
-              required
+              class="pr-fields"
             />
             <label for="description">Extended description</label>
-            <textarea id="description" name="description" rows="4" required>
+            <textarea id="description" name="description" rows="4" class="pr-fields">
               This PR was automatically created by the DTDL visualisation tool.
             </textarea>
-            <div class="radio-group">
-              <label>
-                <input class="circle-radio" type="radio" name="publishType" value="newBranch" checked />
-                Create a new branch for this commit and start a pull request
-              </label>
-            </div>
-
+            <label for="branchName">Branch name</label>
             <input
               type="text"
+              id="branchName"
               name="branchName"
               value={defaultBranchName}
               oninput="globalThis.validateBranchName(this)"
-              required
+              class="pr-fields"
             />
             <button type="submit" class="rounded-button">
               Publish Changes
@@ -1431,6 +1465,33 @@ export default class MermaidTemplates {
             hx-swap="outerHTML"
           ></button>
         </div>
+      </div>
+    )
+  }
+
+  public githubLink = ({ model, swapOutOfBand }: { model: ModelRow; swapOutOfBand?: boolean }) => {
+    if (!isGithubModel(model)) return <></>
+
+    const { owner, repo, is_out_of_sync, commit_hash, base_branch } = model
+    return (
+      <div id="github-link" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
+        <a
+          href={`https://github.com/${owner}/${repo}/tree/${commit_hash}`}
+          target="_blank"
+          class="new-tab-link"
+          title="View on GitHub"
+        >
+          {`Source commit ↗`}
+        </a>
+
+        <a
+          href={`https://github.com/${owner}/${repo}/tree/${base_branch}`}
+          target="_blank"
+          class="new-tab-link"
+          title="View base branch"
+        >
+          {escapeHtml(`Source branch ${is_out_of_sync ? '(out of sync)' : ''} ↗`)}
+        </a>
       </div>
     )
   }

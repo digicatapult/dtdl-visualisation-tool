@@ -48,6 +48,12 @@ globalThis.toggleEditSwitch = (event) => {
   document.getElementById('edit-buttons').classList.toggle('edit', isChecked)
 }
 
+globalThis.togglePrFields = (required) => {
+  document.querySelectorAll('.pr-fields').forEach((el) => {
+    el.required = required
+  })
+}
+
 globalThis.getOwnerRepoFromInput = () => {
   // Not passing in event as not all triggers produce HX-Events
   const input = document.getElementById('public-github-input').value.trim()

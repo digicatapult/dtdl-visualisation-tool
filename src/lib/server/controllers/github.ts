@@ -279,6 +279,7 @@ export class GithubController extends HTMLController {
   ): Promise<void> {
     const octokitToken = req.signedCookies[octokitTokenCookie]
 
+    const commit = await this.githubRequest.getCommit(octokitToken, owner, repo, ref)
     const zippedBranch = await this.githubRequest.getZip(octokitToken, owner, repo, ref)
     const jsonFiles = await this.parser.unzipJsonFiles(Buffer.from(zippedBranch), path)
 
@@ -296,6 +297,7 @@ export class GithubController extends HTMLController {
       owner,
       repo,
       ref,
+      commit.sha,
       files
     )
 

@@ -78,6 +78,7 @@ export class OpenOntologyController extends HTMLController {
       null,
       null,
       null,
+      null,
       files
     )
 

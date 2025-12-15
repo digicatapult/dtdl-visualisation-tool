@@ -124,6 +124,7 @@ export const mockGithubRequest = {
   getInstallationRepos: () => Promise.resolve(repos),
   getBranches: () => Promise.resolve(branches),
   getContents: getContentsStub,
+  getCommit: () => Promise.resolve({ sha: 'currentCommitSha' }),
   getAccessToken: () => Promise.resolve(token),
   getZip: () => Promise.resolve(readFileSync(path.resolve(__dirname, './simple.zip'))),
   getRepoPermissions: () => Promise.resolve('edit'),

@@ -102,7 +102,7 @@ export default class OpenOntologyTemplates {
             hx-get={`/github/modal?viewMode=${otherType}`}
             hx-target="#github-modal-content"
             hx-swap="outerHTML"
-            class="authorise-link"
+            class="new-tab-link"
           >
             {escapeHtml(`Show ${otherType}able`)}
           </a>
@@ -135,7 +135,7 @@ export default class OpenOntologyTemplates {
           ></ul>
         </div>
         <a
-          class="authorise-link"
+          class="new-tab-link"
           href={`https://github.com/apps/${env.get('GH_APP_NAME')}`}
           target="_blank"
           rel="noopener"
