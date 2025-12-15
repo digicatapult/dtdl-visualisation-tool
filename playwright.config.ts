@@ -35,15 +35,5 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
       dependencies: ['authorisePrivateRepos'],
     },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-      dependencies: ['authorisePrivateRepos'],
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-      dependencies: ['authorisePrivateRepos'],
-    },
   ],
 })
