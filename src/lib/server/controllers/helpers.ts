@@ -2,7 +2,6 @@ import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns'
 import express from 'express'
 import { container } from 'tsyringe'
 import { ModelDb } from '../../db/modelDb.js'
-import { GithubModelRow } from '../../db/types.js'
 import { UnauthorisedError } from '../errors.js'
 import { ILogger } from '../logger'
 import { CookieHistoryParams, GenerateParams, relevantParams } from '../models/controllerTypes.js'
@@ -109,20 +108,4 @@ export const checkEditPermission = async (
   if (permission !== 'edit') throw new UnauthorisedError('User is unauthorised to make this request')
 
   next()
-}
-
-export const checkRemoteBranch = async (
-  dtdlModelId: UUID,
-  req: express.Request,
-  modelDb: ModelDb,
-  githubRequest: GithubRequest
-): Promise<GithubModelRow> => {
-  const model = await modelDb.getGithubModelById(dtdlModelId)
-  const { owner, repo, base_branch: baseBranch, commit_hash: commitHash } = model
-
-  const octokitToken = req.signedCookies[octokitTokenCookie]
-
-  const currentCommit = await githubRequest.getCommit(octokitToken, owner, repo, baseBranch)
-  const isOutOfSync = currentCommit.sha !== commitHash
-  return modelDb.updateModel(dtdlModelId, { is_out_of_sync: isOutOfSync })
 }

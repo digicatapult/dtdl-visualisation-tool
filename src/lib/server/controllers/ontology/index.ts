@@ -1,10 +1,24 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
-import { Get, Middlewares, Path, Produces, Queries, Query, Request, Route, SuccessResponse } from '@tsoa/runtime'
+import {
+  FormField,
+  Get,
+  Middlewares,
+  Path,
+  Post,
+  Produces,
+  Queries,
+  Query,
+  Request,
+  Route,
+  SuccessResponse,
+} from '@tsoa/runtime'
 import express from 'express'
 import { randomUUID } from 'node:crypto'
+import * as prettier from 'prettier'
 import { container, inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../../db/modelDb.js'
-import { InternalError, UnauthorisedError } from '../../errors.js'
+import { GithubModelRow } from '../../../db/types.js'
+import { DataError, GithubReqError, InternalError, UnauthorisedError } from '../../errors.js'
 import { Logger, type ILogger } from '../../logger.js'
 import {
   A11yPreference,
@@ -33,8 +47,9 @@ import { RateLimiter } from '../../utils/rateLimit.js'
 import SessionStore, { Session } from '../../utils/sessions.js'
 import { ErrorPage } from '../../views/components/errors.js'
 import MermaidTemplates from '../../views/components/mermaid.js'
+import { successToast } from '../../views/components/toast.js'
 import { HTML, HTMLController } from '../HTMLController.js'
-import { checkEditPermission, checkRemoteBranch, dtdlCacheKey } from '../helpers.js'
+import { checkEditPermission, dtdlCacheKey } from '../helpers.js'
 
 const rateLimiter = container.resolve(RateLimiter)
 
@@ -291,7 +306,7 @@ export class OntologyController extends HTMLController {
 
     // get the base dtdl model that we will derive the graph from
     const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
-    const githubModelRow = await checkRemoteBranch(dtdlModelId, req, this.modelDb, this.githubRequest)
+    const githubModelRow = await this.checkRemoteBranch(dtdlModelId, req)
 
     if (hasFileTreeErrors(fileTree)) {
       throw new UnauthorisedError('Cannot edit ontology with errors. Please fix all errors before editing.')
@@ -319,6 +334,124 @@ export class OntologyController extends HTMLController {
         swapOutOfBand: true,
       })
     )
+  }
+
+  @Get('{ontologyId}/publish-dialog')
+  @Produces('text/html')
+  public async dialog(@Request() req: express.Request, @Path() ontologyId: UUID): Promise<HTML> {
+    const { base_branch: baseBranch, is_out_of_sync: isOutOfSync } = await this.checkRemoteBranch(ontologyId, req)
+    return this.html(this.templates.publishDialog({ ontologyId, baseBranch, isOutOfSync }))
+  }
+
+  @SuccessResponse(200)
+  @Post('{ontologyId}/publish')
+  @Middlewares(checkEditPermission)
+  public async publish(
+    @Request() req: express.Request,
+    @Path() ontologyId: UUID,
+    @FormField() commitMessage: string,
+    @FormField() prTitle: string,
+    @FormField() description: string,
+    @FormField() publishType: 'newBranch' | 'currentBranch',
+    @FormField() branchName: string
+  ): Promise<HTML> {
+    const octokitToken = req.signedCookies[octokitTokenCookie]
+    if (!octokitToken) {
+      throw new GithubReqError('Missing GitHub token')
+    }
+
+    const {
+      owner,
+      repo,
+      base_branch: baseBranch,
+      is_out_of_sync: isOutOfSync,
+      commit_hash: currentCommitHash,
+    } = await this.checkRemoteBranch(ontologyId, req)
+
+    if (publishType === 'currentBranch' && isOutOfSync) {
+      throw new DataError(
+        'Cannot publish directly to the branch because the ontology is out-of-sync. Create a new branch and pull request instead.'
+      )
+    }
+
+    const files = await this.modelDb.getDtdlFiles(ontologyId)
+
+    const baseBranchData = await this.githubRequest.getBranch(octokitToken, owner, repo, baseBranch)
+    if (!baseBranchData) {
+      throw new DataError(`Base branch ${baseBranch} not found`)
+    }
+
+    if (publishType === 'newBranch') {
+      const existingRemoteBranch = await this.githubRequest.getBranch(octokitToken, owner, repo, branchName)
+      if (existingRemoteBranch) {
+        throw new DataError(`Branch with name ${branchName} already exists`)
+      }
+    }
+
+    const blobs = await Promise.all(
+      files.map(async (file) => {
+        const formattedSource = await prettier.format(file.source, { parser: 'json' })
+        const blob = await this.githubRequest.createBlob(octokitToken, owner, repo, formattedSource)
+        return {
+          path: file.path,
+          mode: '100644' as const,
+          type: 'blob' as const,
+          sha: blob.sha,
+        }
+      })
+    )
+
+    const tree = await this.githubRequest.createTree(octokitToken, owner, repo, baseBranchData.object.sha, blobs)
+
+    const commit = await this.githubRequest.createCommit(octokitToken, owner, repo, commitMessage, tree.sha, [
+      baseBranchData.object.sha,
+    ])
+
+    if (publishType === 'newBranch') {
+      await this.githubRequest.createBranch(octokitToken, owner, repo, branchName!, commit.sha)
+
+      const pr = await this.githubRequest.createPullRequest(
+        octokitToken,
+        owner,
+        repo,
+        prTitle,
+        branchName!,
+        baseBranch,
+        description
+      )
+
+      const toast = successToast('Published successfully', pr.html_url, 'View Pull Request')
+      this.setHeader('HX-Trigger-After-Settle', JSON.stringify({ toastEvent: { dialogId: toast.dialogId } }))
+      return this.html(toast.response)
+    } else {
+      const updatedModel = await this.modelDb.updateModel(ontologyId, {
+        is_out_of_sync: false,
+        commit_hash: commit.sha,
+      })
+
+      try {
+        await this.githubRequest.updateBranch(octokitToken, owner, repo, baseBranch, commit.sha)
+      } catch (error) {
+        await this.modelDb.updateModel(ontologyId, {
+          commit_hash: currentCommitHash, // Revert commit hash if the branch update fails
+        })
+        throw error
+      }
+
+      const toast = successToast(
+        `Published successfully`,
+        `https://github.com/${owner}/${repo}/tree/${baseBranch}`,
+        'View branch'
+      )
+      this.setHeader('HX-Trigger-After-Settle', JSON.stringify({ toastEvent: { dialogId: toast.dialogId } }))
+      return this.html(
+        toast.response,
+        this.templates.githubLink({
+          model: updatedModel,
+          swapOutOfBand: true,
+        })
+      )
+    }
   }
 
   private getCurrentPathQuery(req: express.Request): { path: string; query: URLSearchParams } | undefined {
@@ -553,5 +686,16 @@ export class OntologyController extends HTMLController {
     }
 
     return this.githubRequest.getRepoPermissions(octokitToken, owner, repo)
+  }
+
+  private async checkRemoteBranch(dtdlModelId: UUID, req: express.Request): Promise<GithubModelRow> {
+    const model = await this.modelDb.getGithubModelById(dtdlModelId)
+    const { owner, repo, base_branch: baseBranch, commit_hash: commitHash } = model
+
+    const octokitToken = req.signedCookies[octokitTokenCookie]
+
+    const currentCommit = await this.githubRequest.getCommit(octokitToken, owner, repo, baseBranch)
+    const isOutOfSync = currentCommit.sha !== commitHash
+    return this.modelDb.updateModel(dtdlModelId, { is_out_of_sync: isOutOfSync })
   }
 }

@@ -11,7 +11,7 @@ test.describe('Publish ontology', () => {
     await openEditRepo(page)
 
     // open publish dialog
-    await waitForSuccessResponse(page, () => page.locator('#toolbar').getByText('Publish').click(), '/dialog')
+    await waitForSuccessResponse(page, () => page.locator('#toolbar').getByText('Publish').click(), '/publish-dialog')
     await expect(page.getByRole('button', { name: 'Publish Changes' })).toBeEnabled()
 
     page.locator('#publish-dialog').getByText('new branch').click()
@@ -24,7 +24,7 @@ test.describe('Publish ontology', () => {
     await openEditRepo(page)
 
     // open publish dialog
-    await waitForSuccessResponse(page, () => page.locator('#toolbar').getByText('Publish').click(), '/dialog')
+    await waitForSuccessResponse(page, () => page.locator('#toolbar').getByText('Publish').click(), '/publish-dialog')
     await expect(page.getByRole('button', { name: 'Publish Changes' })).toBeEnabled()
 
     // TODO assert committed to existing branch successfully against mock GitHub API

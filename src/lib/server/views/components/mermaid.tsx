@@ -1127,7 +1127,7 @@ export default class MermaidTemplates {
     return (
       <dialog id="publish-dialog">
         <form
-          hx-post="/publish"
+          hx-post={`${ontologyId}/publish`}
           hx-target=".toast-wrapper:empty"
           hx-swap="beforeend"
           hx-vals={JSON.stringify({
@@ -1402,7 +1402,7 @@ export default class MermaidTemplates {
         id="publish-ontology"
         class={`button ${!canPublish ? 'disabled' : ''}`}
         disabled={!canPublish}
-        hx-get={`/publish/dialog?ontologyId=${ontologyId}`}
+        hx-get={`${ontologyId}/publish-dialog`}
         hx-target="#publish-dialog"
         hx-swap="outerHTML"
         hx-on--after-request="document.getElementById('publish-dialog').showModal()"

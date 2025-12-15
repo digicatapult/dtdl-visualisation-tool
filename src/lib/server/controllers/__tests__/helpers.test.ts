@@ -9,7 +9,7 @@ import { UnauthorisedError } from '../../errors.js'
 import { modelHistoryCookie, octokitTokenCookie } from '../../models/cookieNames.js'
 import { ViewAndEditPermission } from '../../models/github.js'
 import { GithubRequest } from '../../utils/githubRequest.js'
-import { checkEditPermission, checkRemoteBranch, recentFilesFromCookies } from '../helpers.js'
+import { checkEditPermission, recentFilesFromCookies } from '../helpers.js'
 import { githubDtdlId, mockLogger, previewDtdlId, simpleDtdlId, simpleMockModelDb } from './helpers.js'
 
 chai.use(chaiAsPromised)
@@ -268,33 +268,5 @@ describe('checkEditPermission', () => {
       sinon.assert.notCalled(getRepoPermissionsStub)
       sinon.assert.notCalled(mockNext)
     })
-  })
-})
-
-describe('checkRemoteBranch', () => {
-  it('should check remote branch and update model to out of sync', async () => {
-    const mockRequest = {
-      signedCookies: { [octokitTokenCookie]: 'test-token' },
-    } as unknown as express.Request
-
-    const updateModelStub = sinon.stub().resolves()
-
-    const modelDbStub = {
-      getGithubModelById: sinon.stub().resolves({
-        commit_hash: 'sha-1',
-      }),
-      updateModel: updateModelStub,
-    } as unknown as ModelDb
-
-    const githubRequestStub = {
-      getCommit: sinon.stub().resolves({
-        sha: 'different-sha',
-      }),
-    } as unknown as GithubRequest
-    const dtdlModelId = 'test-model-id'
-
-    await checkRemoteBranch(dtdlModelId, mockRequest, modelDbStub, githubRequestStub)
-
-    sinon.assert.calledWith(updateModelStub, dtdlModelId, { is_out_of_sync: true })
   })
 })
