@@ -24,6 +24,44 @@ body {
   --svg-zoom: 1;
 }
 
+/* Iubenda Policy Widget - positioned at bottom right */
+#iubenda-policy-widget {
+  position: fixed !important;
+  right: 20px !important;
+  left: auto !important;
+  bottom: 20px !important;
+  top: auto !important;
+  z-index: 5 !important;
+  pointer-events: auto !important;
+  transform: none !important;
+}
+
+/* Force all Iubenda widget children positioning */
+#iubenda-policy-widget *,
+#iubenda-policy-widget div,
+#iubenda-policy-widget span {
+  position: relative !important;
+  float: none !important;
+}
+
+/* Ensure Iubenda widget links are visible and styled */
+#iubenda-policy-widget a {
+  font-size: 0.85rem !important;
+  color: #666 !important;
+  text-decoration: none !important;
+  padding: 5px 10px !important;
+  display: inline-block !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 4px !important;
+  margin-left: 5px !important;
+  transition: background-color 0.2s, color 0.2s !important;
+}
+
+#iubenda-policy-widget a:hover {
+  background: rgba(255, 255, 255, 1) !important;
+  color: #333 !important;
+}
+
 button.highlighted {
   outline: 4px solid #9370db;
   outline-offset: -2px;
