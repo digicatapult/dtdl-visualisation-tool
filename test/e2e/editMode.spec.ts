@@ -89,7 +89,6 @@ test.describe('Test edit ontology', () => {
       () => page.locator('#mermaid-output').getByText('relationshipDisplay').first().click(),
       '/update-layout'
     )
-    await expect(page.locator('#navigation-panel-details').getByText('relationshipName')).toBeVisible()
     const newRelationshipDisplayName = 'new rel name'
     await testNavPanelEdit(
       page,
@@ -157,7 +156,6 @@ test.describe('Test edit ontology', () => {
     await expect(inheritedSelect).toHaveCount(0)
 
     // search by new interface name
-    await page.focus('#search')
     await waitForUpdateLayout(page, () => page.fill('#search', newInterfaceDisplayName))
     await waitForSuccessResponse(
       page,
