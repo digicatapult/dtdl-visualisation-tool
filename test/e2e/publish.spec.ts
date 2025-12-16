@@ -14,7 +14,6 @@ test.describe('Publish ontology', () => {
     await waitForSuccessResponse(page, () => page.locator('#toolbar').getByText('Publish').click(), '/dialog')
     await expect(page.getByRole('button', { name: 'Publish Changes' })).toBeEnabled()
 
-    page.locator('#publish-dialog').getByText('new branch').click()
     // TODO assert PR created successfully against mock GitHub API
     // TODO assert committed to existing branch successfully against mock GitHub API
 
