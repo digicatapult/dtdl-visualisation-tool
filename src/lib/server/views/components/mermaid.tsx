@@ -540,16 +540,15 @@ export default class MermaidTemplates {
                     <b>Name: </b>
                     {escapeHtml(name)}
                     {edit && isInterface(entity) && (
-                      <span
+                      <img
+                        src="/public/images/bin.svg"
                         class="trash-icon"
                         hx-get={`entity/${entity.Id}/deleteDialog?contentName=${name}`}
                         hx-target="#delete-dialog"
                         hx-swap="outerHTML"
                         hx-on--after-request="globalThis.showDeleteDialog()"
                         title="Delete Telemetry"
-                      >
-                        🗑️
-                      </span>
+                      />
                     )}
                     <br />
                     <b>Display Name:</b>
@@ -626,16 +625,15 @@ export default class MermaidTemplates {
                     <b>Name: </b>
                     {escapeHtml(name)}
                     {edit && isInterface(entity) && (
-                      <span
+                      <img
+                        src="/public/images/bin.svg"
                         class="trash-icon"
                         hx-get={`entity/${entity.Id}/deleteDialog?contentName=${name}`}
                         hx-target="#delete-dialog"
                         hx-swap="outerHTML"
                         hx-on--after-request="globalThis.showDeleteDialog()"
                         title="Delete Command"
-                      >
-                        🗑️
-                      </span>
+                      />
                     )}
                     <br />
                     <b>Display Name:</b>
@@ -1436,7 +1434,7 @@ export default class MermaidTemplates {
               hx-target="#navigation-panel"
               hx-trigger="checked"
               hx-swap="outerHTML"
-              hx-vals="js:{ editMode: event.detail.checked, t: Date.now() }"
+              hx-vals="js:{ editMode: event.detail.checked }"
             >
               <input
                 id="edit-toggle-checkbox"

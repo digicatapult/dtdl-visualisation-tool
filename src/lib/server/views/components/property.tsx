@@ -33,16 +33,15 @@ export const PropertyDetails = ({
       <b>Name: </b>
       {escapeHtml(property.name)}
       {canEdit && (
-        <span
+        <img
+          src="/public/images/bin.svg"
           class="trash-icon"
           hx-get={`entity/${entityId}/deleteDialog?contentName=${property.name}`}
           hx-target="#delete-dialog"
           hx-swap="outerHTML"
           hx-on--after-request="globalThis.showDeleteDialog()"
           title="Delete Property"
-        >
-          🗑️
-        </span>
+        />
       )}
       <br />
       <b>Display Name:</b>

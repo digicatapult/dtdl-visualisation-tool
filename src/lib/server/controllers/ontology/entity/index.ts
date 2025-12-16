@@ -629,7 +629,6 @@ export class EntityController extends HTMLController {
     const { contentName, ...updateParams } = queries
 
     await this.putEntityValue(ontologyId, entityId, deleteContent(contentName))
-    this.sessionStore.update(updateParams.sessionId, { highlightNodeId: '' })
 
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
   }

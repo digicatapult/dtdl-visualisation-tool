@@ -1484,8 +1484,9 @@ textarea.multiline {
 
 .trash-icon {
   cursor: pointer;
-  margin-left: 0.5rem;
-  font-size: 1.2em;
+  float: right;
+  width: 1em;
+  height: 1em;
 }
 
 .trash-icon:hover {
