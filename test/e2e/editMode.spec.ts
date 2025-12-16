@@ -89,7 +89,7 @@ test.describe('Test edit ontology', () => {
       () => page.locator('#mermaid-output').getByText('relationshipDisplay').first().click(),
       '/update-layout'
     )
-    await expect(page.locator('#navigation-panel-details').getByText('Name: relationshipName')).toBeVisible()
+    await expect(page.locator('#navigation-panel-details').getByText('relationshipName')).toBeVisible()
     const newRelationshipDisplayName = 'new rel name'
     await testNavPanelEdit(
       page,
