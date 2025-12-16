@@ -175,6 +175,8 @@ test.describe('Test edit ontology', () => {
         return getStyledComponent(page, '#navigation-panel h3:first-of-type', '::after', 'content')
       })
       .toBe('none')
+
+    await context.close()
   })
 
   test('delete interface + relationship', async ({ browser }) => {
@@ -239,6 +241,7 @@ test.describe('Test edit ontology', () => {
     )
     await expect(page.locator('#mermaid-output')).not.toContainText(baseInterface)
     await expect(page.locator('#mermaid-output')).not.toContainText(extendedInterface)
+    await context.close()
   })
 })
 
