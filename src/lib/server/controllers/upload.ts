@@ -42,7 +42,7 @@ export class OpenOntologyController extends HTMLController {
     this.setHeader('HX-Push-Url', `/open`)
 
     const recentFiles = await recentFilesFromCookies(this.modelDb, req.signedCookies, this.logger)
-    return this.html(this.openOntologyTemplates.OpenOntologyRoot({ recentFiles }))
+    return this.html(this.openOntologyTemplates.OpenOntologyRoot({ recentFiles, req }))
   }
 
   @SuccessResponse(200)
@@ -75,6 +75,7 @@ export class OpenOntologyController extends HTMLController {
       file.originalname,
       output.renderForMinimap(),
       'zip',
+      null,
       null,
       null,
       null,

@@ -1,6 +1,7 @@
 /// <reference types="@kitajs/html/htmx.d.ts" />
 
 import { escapeHtml } from '@kitajs/html'
+import express from 'express'
 import { container, singleton } from 'tsyringe'
 import version from '../../../../version.js'
 import { Env } from '../../env/index.js'
@@ -29,12 +30,14 @@ export default class OpenOntologyTemplates {
   public OpenOntologyRoot = ({
     recentFiles,
     showGithubModal,
+    req,
   }: {
     recentFiles: RecentFile[]
     showGithubModal?: boolean
+    req?: express.Request
   }) => {
     return (
-      <Page title="UKDTC">
+      <Page title="UKDTC" req={req}>
         <section id="upload-toolbar">
           <a href="/">
             <h2>UKDTC</h2>
@@ -99,7 +102,7 @@ export default class OpenOntologyTemplates {
             hx-get={`/github/modal?viewMode=${otherType}`}
             hx-target="#github-modal-content"
             hx-swap="outerHTML"
-            class="authorise-link"
+            class="new-tab-link"
           >
             {escapeHtml(`Show ${otherType}able`)}
           </a>
@@ -132,7 +135,7 @@ export default class OpenOntologyTemplates {
           ></ul>
         </div>
         <a
-          class="authorise-link"
+          class="new-tab-link"
           href={`https://github.com/apps/${env.get('GH_APP_NAME')}`}
           target="_blank"
           rel="noopener"

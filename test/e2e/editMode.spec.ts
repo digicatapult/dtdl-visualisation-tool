@@ -43,7 +43,7 @@ test.describe('Test edit ontology', () => {
 
     // interface edits
     const newInterfaceDisplayName = 'new display name'
-    await testNavPanelEdit(page, /^displayNameEdit$/, newInterfaceDisplayName, '/displayName')
+    await testNavPanelEdit(page, /^displayNameEdit$/, newInterfaceDisplayName, '/displayName', true)
     await testNavPanelEdit(page, /^descriptionEdit$/, 'updated', '/description')
     await testNavPanelEdit(page, /^commentEdit$/, 'updated', '/comment')
 
@@ -66,13 +66,19 @@ test.describe('Test edit ontology', () => {
     await testNavPanelEdit(page, /^telemetryDescriptionEdit$/, 'updated', '/telemetryDescription')
     await testNavPanelEdit(page, /^telemetryCommentEdit$/, 'updated', '/telemetryComment')
 
-    // command edits
+    // command edits & names visible
+    await expect(page.locator('#navigation-panel-details').getByText('Name: turnOn')).toBeVisible()
+
     await testNavPanelEdit(page, /^turnOnCommandDisplayNameEdit$/, 'updated', '/commandDisplayName')
     await testNavPanelEdit(page, /^turnOnCommandDescriptionEdit$/, 'updated', '/commandDescription')
     await testNavPanelEdit(page, /^turnOnCommandCommentEdit$/, 'updated', '/commandComment')
     await testNavPanelEdit(page, /^modeRequestDisplayName$/, 'updated', '/commandRequestDisplayName')
     await testNavPanelEdit(page, /^modeRequestDescription$/, 'updated', '/commandRequestDescription')
     await testNavPanelEdit(page, /^modeRequestComment$/, 'updated', '/commandRequestComment')
+    await expect(page.locator('#navigation-panel-details').getByText('Complex schema')).toHaveAttribute(
+      'title',
+      'Cannot edit: current value is not a valid option'
+    )
     await testNavPanelEdit(page, /^modeResponseDescription$/, 'updated', '/commandResponseDescription')
     await testNavPanelEdit(page, /^modeResponseComment$/, 'updated', '/commandResponseComment')
     await testNavPanelDropdownEdit(page, 'string', 'long', '/commandResponseSchema')
@@ -83,6 +89,7 @@ test.describe('Test edit ontology', () => {
       () => page.locator('#mermaid-output').getByText('relationshipDisplay').first().click(),
       '/update-layout'
     )
+    await expect(page.locator('#navigation-panel-details').getByText('Name: relationshipName')).toBeVisible()
     const newRelationshipDisplayName = 'new rel name'
     await testNavPanelEdit(
       page,
@@ -238,11 +245,26 @@ test.describe('Test edit ontology', () => {
 })
 
 // edit and focus away from textarea to trigger update
-const testNavPanelEdit = async (page: Page, textToEdit: RegExp, newValue: string, successRoute: string) => {
+const testNavPanelEdit = async (
+  page: Page,
+  textToEdit: RegExp,
+  newValue: string,
+  successRoute: string,
+  testInputDisabledDuringRequest = false
+) => {
   const textArea = page.locator('.nav-panel-editable').getByText(textToEdit)
   await textArea.click()
   await textArea.fill(newValue)
   await page.waitForTimeout(100)
+
+  // optionally test that inputs are disabled during request
+  if (testInputDisabledDuringRequest) {
+    await page.route(`**/entity/**${successRoute}`, async (route) => {
+      await expect(textArea).toBeDisabled()
+      await expect(page.locator('.disable-during-update-req').first()).toBeDisabled()
+      await route.continue()
+    })
+  }
 
   await waitForSuccessResponse(
     page,

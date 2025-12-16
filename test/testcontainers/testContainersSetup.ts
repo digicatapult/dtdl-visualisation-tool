@@ -7,6 +7,7 @@ interface VisualisationUIConfig {
   containerPort: number
   cookieSessionKeys: string
   maxOntologySize?: number
+  posthogMockPort?: number
 }
 interface databaseConfig {
   containerName: string
@@ -78,30 +79,59 @@ export async function startVisualisationContainer(
   env: VisualisationUIConfig,
   visualisationImage: GenericContainer
 ): Promise<StartedTestContainer> {
-  const { containerName, containerPort, hostPort, cookieSessionKeys, maxOntologySize } = env
+  const { containerName, containerPort, hostPort, cookieSessionKeys, maxOntologySize, posthogMockPort } = env
 
   logger.info(`Starting container ${containerName} on port ${containerPort}...`)
-  const visualisationUIContainer = await visualisationImage
+
+  // Build environment object, only including PostHog host if it has a value
+  // (envalid's optionalStrValidator doesn't accept empty string)
+  const containerEnv: Record<string, string> = {
+    DB_HOST: 'postgres-dtdl-visualisation-tool',
+    DB_NAME: 'dtdl-visualisation-tool',
+    DB_USERNAME: 'postgres',
+    DB_PASSWORD: 'postgres',
+    DB_PORT: '5432',
+    GH_CLIENT_ID: process.env.GH_CLIENT_ID || '',
+    GH_CLIENT_SECRET: process.env.GH_CLIENT_SECRET || '',
+    GH_APP_NAME: process.env.GH_APP_NAME || '',
+    GH_APP_PRIVATE_KEY: process.env.GH_APP_PRIVATE_KEY || '',
+    COOKIE_SESSION_KEYS: cookieSessionKeys,
+    EDIT_ONTOLOGY: 'true',
+    MAX_DTDL_OBJECT_SIZE: maxOntologySize ? maxOntologySize.toString() : '1000',
+    // PostHog configuration for E2E tests
+    // When posthogMockPort is set, the container is configured to send analytics
+    // events to our mock PostHog server at host.docker.internal instead of the
+    // real PostHog service. This allows E2E tests to verify that analytics events
+    // are being tracked correctly without sending data externally.
+    POSTHOG_ENABLED: posthogMockPort ? 'true' : process.env.POSTHOG_ENABLED || 'false',
+    NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY || 'phc_test_key',
+  }
+
+  // Only set NEXT_PUBLIC_POSTHOG_HOST if it has a value
+  const posthogHost = posthogMockPort
+    ? `http://host.docker.internal:${posthogMockPort}`
+    : process.env.NEXT_PUBLIC_POSTHOG_HOST
+
+  if (posthogHost) {
+    containerEnv.NEXT_PUBLIC_POSTHOG_HOST = posthogHost
+  }
+
+  let containerBuilder = visualisationImage
     .withNetwork(network)
     .withExposedPorts({
       container: containerPort,
       host: hostPort,
     })
-    .withEnvironment({
-      DB_HOST: 'postgres-dtdl-visualisation-tool',
-      DB_NAME: 'dtdl-visualisation-tool',
-      DB_USERNAME: 'postgres',
-      DB_PASSWORD: 'postgres',
-      DB_PORT: '5432',
-      GH_CLIENT_ID: process.env.GH_CLIENT_ID || '',
-      GH_CLIENT_SECRET: process.env.GH_CLIENT_SECRET || '',
-      GH_APP_NAME: process.env.GH_APP_NAME || '',
-      GH_APP_PRIVATE_KEY: process.env.GH_APP_PRIVATE_KEY || '',
-      COOKIE_SESSION_KEYS: cookieSessionKeys,
-      EDIT_ONTOLOGY: 'true',
-      MAX_DTDL_OBJECT_SIZE: maxOntologySize ? maxOntologySize.toString() : '1000',
-    })
+    .withEnvironment(containerEnv)
     .withAddedCapabilities('SYS_ADMIN')
+
+  // Only add host.docker.internal mapping when PostHog mock is running
+  // This avoids DNS resolution overhead in non-PostHog tests
+  if (posthogMockPort) {
+    containerBuilder = containerBuilder.withExtraHosts([{ host: 'host.docker.internal', ipAddress: 'host-gateway' }])
+  }
+
+  const visualisationUIContainer = await containerBuilder
     .withCommand(['sh', '-c', 'npx knex migrate:latest --env production; dtdl-visualiser parse -p /sample/energygrid'])
     .start()
   logger.info(`Started container ${containerName}`)

@@ -1,15 +1,18 @@
 /// <reference types="@kitajs/html/htmx.d.ts" />
 
 import { escapeHtml, type PropsWithChildren } from '@kitajs/html'
+import express from 'express'
 import { DtdlId } from '../models/strings.js'
+import { PostHogScript } from './components/posthog.js'
 
 export const parseError = (): JSX.Element => <p>Ontology Undefined</p>
 
-export const Page = (props: PropsWithChildren<{ title: string }>): JSX.Element => (
+export const Page = (props: PropsWithChildren<{ title: string; req?: express.Request }>): JSX.Element => (
   <>
     {'<!DOCTYPE html>'}
     <html lang="en">
       <head>
+        <PostHogScript req={props.req} />
         <script src="/lib/htmx.org/htmx.min.js"></script>
         <script src="/lib/htmx-ext-json-enc/json-enc.js"></script>
         <script src="/lib/htmx-ext-response-targets/response-targets.js"></script>
@@ -23,6 +26,7 @@ export const Page = (props: PropsWithChildren<{ title: string }>): JSX.Element =
         <script src="/public/scripts/events.js" type="module"></script>
         <script src="/public/scripts/a11y.js" type="module"></script>
         <script src="/public/scripts/mpa.js"></script>
+        <script src="/public/scripts/posthog.js"></script>
         <link rel="icon" type="image/ico" sizes="48x48" href="/public/images/favicon.ico" />
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700&display=swap" />
         <link rel="stylesheet" type="text/css" href="/public/styles/main.css" />
@@ -100,13 +104,14 @@ export const EditableText = ({
       hx-trigger={`blur[this.querySelector('textarea').value !== '${value}'] from:find textarea`}
       hx-vals={JSON.stringify(additionalBody)}
       hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
+      hx-disabled-elt=".disable-during-update-req"
       hx-swap="outerHTML transition:true"
       hx-target="#mermaid-output"
       hx-indicator="#spinner"
     >
       <textarea
         name="value"
-        class={`nav-panel-editable ${multiline ? 'multiline' : ''}`}
+        class={`nav-panel-editable ${multiline ? 'multiline' : ''} disable-during-update-req`}
         contenteditable="plaintext-only"
         onkeyup="globalThis.validateDtdlValue(this)"
         {...(maxLength ? { maxlength: maxLength } : {})}
@@ -131,19 +136,19 @@ export const EditableSelect = ({
   putRoute: string
   text?: string
   additionalBody?: Record<string, string>
-  options: readonly string[] | Array<{ value: string; label: string }>
+  options: Array<{ value: string; label: string }>
   disabled?: boolean
 }): JSX.Element => {
-  // Normalize options to { value, label } format
-  const normalizedOptions =
-    typeof options[0] === 'string'
-      ? (options as readonly string[]).map((opt) => ({ value: opt, label: opt }))
-      : (options as Array<{ value: string; label: string }>)
-
   // Find the display label for the current value
-  const displayLabel = text ? (normalizedOptions.find((o) => o.value === text)?.label ?? text) : ''
-
-  if (!edit || disabled) return <p>{escapeHtml(displayLabel)}</p>
+  const match = options.find((o) => o.value === text)
+  const displayLabel = match ? match.label : text || ''
+  const currentValueIsInvalidOption = text && !match
+  if (!edit || disabled || currentValueIsInvalidOption)
+    return (
+      <p title={currentValueIsInvalidOption ? 'Cannot edit: current value is not a valid option' : undefined}>
+        {escapeHtml(displayLabel)}
+      </p>
+    )
 
   return (
     <form
@@ -151,17 +156,18 @@ export const EditableSelect = ({
       hx-trigger={`change[this.querySelector('select').value !== '${text ?? ''}'] from:find select`}
       hx-vals={JSON.stringify(additionalBody)}
       hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
+      hx-disabled-elt=".disable-during-update-req"
       hx-swap="outerHTML transition:true"
       hx-target="#mermaid-output"
       hx-indicator="#spinner"
     >
-      <select name="value" class="nav-panel-editable">
+      <select name="value" class="nav-panel-editable disable-during-update-req">
         {!text && (
           <option value="" disabled selected>
             Select...
           </option>
         )}
-        {normalizedOptions.map((option) => (
+        {options.map((option) => (
           <option value={option.value} {...(option.value === text && { selected: true })}>
             {escapeHtml(option.label)}
           </option>

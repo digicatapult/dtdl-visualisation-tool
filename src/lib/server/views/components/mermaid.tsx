@@ -3,20 +3,26 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
 import { randomUUID } from 'crypto'
+import express from 'express'
 import { container, singleton } from 'tsyringe'
+import { isGithubModel, ModelRow } from '../../../db/types.js'
 import { Env } from '../../env/index.js'
 import { DeletableEntities } from '../../models/controllerTypes.js'
 import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
-import { DTDL_VALID_SCHEMAS, DtdlId, UUID } from '../../models/strings.js'
-import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
+import { DTDL_PRIMITIVE_SCHEMA_OPTIONS, DtdlId, UUID } from '../../models/strings.js'
+import { MAX_DISPLAY_NAME_LENGTH, MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
 import {
   getDisplayName,
+  getSchemaDisplayName,
   isCommand,
+  isCommandRequest,
+  isCommandResponse,
   isInterface,
   isProperty,
   isRelationship,
   isTelemetry,
 } from '../../utils/dtdl/extract.js'
+import { hasFileTreeErrors } from '../../utils/dtdl/fileTreeErrors.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { AccordionSection, EditableSelect, EditableText, Page } from '../common.js'
 import { AddContentButton } from './addContent.js'
@@ -53,7 +59,10 @@ export default class MermaidTemplates {
     svgWidth,
     svgHeight,
     canEdit,
+    editDisabledReason,
+    req,
     ontologyId,
+    model,
   }: {
     search?: string
     sessionId: UUID
@@ -61,15 +70,19 @@ export default class MermaidTemplates {
     svgWidth?: number
     svgHeight?: number
     canEdit: boolean
+    editDisabledReason?: 'errors' | 'permissions'
+    req?: express.Request
     ontologyId: UUID
+    model: ModelRow
   }) => (
-    <Page title={'UKDTC'}>
+    <Page title={'UKDTC'} req={req}>
       <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
       <section id="toolbar">
         <this.searchPanel search={search} diagramType={diagramType} svgWidth={svgWidth} svgHeight={svgHeight} />
         <this.uploadForm />
         <this.shareOntology />
         <this.publishForm canPublish={canEdit} ontologyId={ontologyId} />
+        <this.githubLink model={model} />
       </section>
 
       <div id="mermaid-wrapper">
@@ -79,7 +92,7 @@ export default class MermaidTemplates {
       <this.Legend showContent={false} />
       <this.navPanelPlaceholder expanded={false} edit={canEdit} />
       <this.svgControls svgRawHeight={svgHeight} svgRawWidth={svgWidth} />
-      <this.editToggle canEdit={canEdit} />
+      <this.editToggle canEdit={canEdit} editDisabledReason={editDisabledReason} />
       <this.deleteDialog />
       <this.publishDialog />
     </Page>
@@ -273,7 +286,7 @@ export default class MermaidTemplates {
                 type="text"
                 name="displayName"
                 placeholder="Enter display name"
-                maxlength={64}
+                maxlength={MAX_DISPLAY_NAME_LENGTH}
                 class="nav-panel-editable"
                 required
               />
@@ -558,19 +571,16 @@ export default class MermaidTemplates {
                       putRoute="telemetryDisplayName"
                       text={telemetry.displayName?.en}
                       additionalBody={{ telemetryName: name }}
-                      maxLength={64}
+                      maxLength={MAX_DISPLAY_NAME_LENGTH}
                     />
                     <b>Schema:</b>
                     <EditableSelect
                       edit={edit}
                       definedIn={telemetry.DefinedIn}
                       putRoute="telemetrySchema"
-                      text={
-                        model[telemetry.schema]?.displayName?.en ??
-                        (typeof telemetry.schema === 'string' ? telemetry.schema : 'Complex schema')
-                      }
+                      text={getSchemaDisplayName(model[telemetry.schema])}
                       additionalBody={{ telemetryName: name }}
-                      options={DTDL_VALID_SCHEMAS}
+                      options={DTDL_PRIMITIVE_SCHEMA_OPTIONS}
                     />
                     <b>Description:</b>
                     <EditableText
@@ -611,15 +621,13 @@ export default class MermaidTemplates {
             ? Object.entries(entity.commands).map(([name, id]) => {
                 const command = model[id]
                 if (!isCommand(command) || !command.DefinedIn) return
-                let requestEntity, responseEntity
+
                 const requestId = command.request
-                if (requestId) {
-                  requestEntity = model[requestId]
-                }
+                const requestEntity = requestId && isCommandRequest(model[requestId]) ? model[requestId] : undefined
+
                 const responseId = command.response
-                if (responseId) {
-                  responseEntity = model[responseId]
-                }
+                const responseEntity =
+                  responseId && isCommandResponse(model[responseId]) ? model[responseId] : undefined
                 return (
                   <>
                     <b>Name: </b>
@@ -667,7 +675,10 @@ export default class MermaidTemplates {
                       maxLength: MAX_VALUE_LENGTH,
                     })}
                     <AccordionSection heading={'Request'} collapsed={false}>
-                      <b>Request displayName:</b>
+                      <b>Name: </b>
+                      {escapeHtml(requestEntity?.name ?? '')}
+                      <br />
+                      <b>Request Display Name:</b>
                       {EditableText({
                         edit,
                         definedIn: command.DefinedIn,
@@ -702,18 +713,16 @@ export default class MermaidTemplates {
                         edit={edit}
                         definedIn={command.DefinedIn}
                         putRoute="commandRequestSchema"
-                        text={
-                          requestEntity?.schema
-                            ? (model[requestEntity.schema]?.displayName?.en ??
-                              (typeof requestEntity.schema === 'string' ? requestEntity.schema : 'Complex schema'))
-                            : undefined
-                        }
+                        text={requestEntity?.schema ? getSchemaDisplayName(model[requestEntity.schema]) : undefined}
                         additionalBody={{ commandName: name }}
-                        options={DTDL_VALID_SCHEMAS}
+                        options={DTDL_PRIMITIVE_SCHEMA_OPTIONS}
                       />
                     </AccordionSection>
                     <AccordionSection heading={'Response'} collapsed={false}>
-                      <b>Response displayName:</b>
+                      <b>Name: </b>
+                      {escapeHtml(responseEntity?.name ?? '')}
+                      <br />
+                      <b>Response Display Name:</b>
                       {EditableText({
                         edit,
                         definedIn: command.DefinedIn,
@@ -748,16 +757,12 @@ export default class MermaidTemplates {
                         edit={edit}
                         definedIn={command.DefinedIn}
                         putRoute="commandResponseSchema"
-                        text={
-                          responseEntity?.schema
-                            ? (model[responseEntity.schema]?.displayName?.en ??
-                              (typeof responseEntity.schema === 'string' ? responseEntity.schema : 'Complex schema'))
-                            : undefined
-                        }
+                        text={responseEntity?.schema ? getSchemaDisplayName(model[responseEntity.schema]) : undefined}
                         additionalBody={{ commandName: name }}
-                        options={DTDL_VALID_SCHEMAS}
+                        options={DTDL_PRIMITIVE_SCHEMA_OPTIONS}
                       />
                     </AccordionSection>
+
                     <br />
                   </>
                 )
@@ -828,15 +833,6 @@ export default class MermaidTemplates {
       return false
     }
 
-    const containsErrors = (paths: DtdlPath[]): boolean =>
-      paths.some((path) =>
-        path.type === 'file'
-          ? path.errors !== undefined // found a file with errors
-          : path.type === 'directory'
-            ? containsErrors(path.entries)
-            : false
-      )
-
     return (
       <div id="navigation-panel-tree">
         <div>
@@ -848,7 +844,7 @@ export default class MermaidTemplates {
             hasChildErrors={hasChildErrors}
           />
         </div>
-        {containsErrors(fileTree) && (
+        {hasFileTreeErrors(fileTree) && (
           <div id="navigation-panel-tree-warning">
             <img src="/public/images/warning.svg" width="54px" height="50px" />
             <p>Only a part of this ontology could be loaded, due to errors.</p>
@@ -1143,7 +1139,11 @@ export default class MermaidTemplates {
     )
   }
 
-  public publishDialog = ({ ontologyId }: { ontologyId?: UUID } = {}) => {
+  public publishDialog = ({
+    ontologyId,
+    baseBranch,
+    isOutOfSync,
+  }: { ontologyId?: UUID; baseBranch?: string; isOutOfSync?: boolean } = {}) => {
     const defaultBranchName = `ontology-update-${Date.now()}`
 
     return (
@@ -1160,33 +1160,59 @@ export default class MermaidTemplates {
         >
           <div class="modal-content">
             <h3>Publish Changes</h3>
+            {isOutOfSync && (
+              <div id="publish-warning">
+                <img src="/public/images/warning.svg" />
+                <p>Ontology is out-of-sync with the source branch on GitHub</p>
+              </div>
+            )}
             <label for="commitMessage">Commit message</label>
             <input type="text" id="commitMessage" name="commitMessage" value="Update DTDL" required />
+            <div class="radio-group">
+              <label title={isOutOfSync ? 'Disabled because ontology is out-of-sync' : ''}>
+                <input
+                  class="circle-radio"
+                  type="radio"
+                  name="publishType"
+                  value="currentBranch"
+                  checked={!isOutOfSync}
+                  disabled={isOutOfSync}
+                  onchange="globalThis.togglePrFields(false)"
+                />
+                Commit directly to '{escapeHtml(baseBranch ?? '')}' branch
+              </label>
+              <label>
+                <input
+                  class="circle-radio"
+                  type="radio"
+                  name="publishType"
+                  value="newBranch"
+                  checked={isOutOfSync}
+                  onchange="globalThis.togglePrFields(true)"
+                />
+                Create a new branch for this commit and start a pull request
+              </label>
+            </div>
             <label for="prTitle">Pull Request title</label>
             <input
               type="text"
               id="prTitle"
               name="prTitle"
               value="Update ontology files from DTDL visualisation tool"
-              required
+              class="pr-fields"
             />
             <label for="description">Extended description</label>
-            <textarea id="description" name="description" rows="4" required>
+            <textarea id="description" name="description" rows="4" class="pr-fields">
               This PR was automatically created by the DTDL visualisation tool.
             </textarea>
-            <div class="radio-group">
-              <label>
-                <input class="circle-radio" type="radio" name="publishType" value="newBranch" checked />
-                Create a new branch for this commit and start a pull request
-              </label>
-            </div>
-
+            <label for="branchName">Branch name</label>
             <input
               type="text"
+              id="branchName"
               name="branchName"
               value={defaultBranchName}
               oninput="globalThis.validateBranchName(this)"
-              required
+              class="pr-fields"
             />
             <button type="submit" class="rounded-button">
               Publish Changes
@@ -1413,19 +1439,24 @@ export default class MermaidTemplates {
     )
   }
 
-  public editToggle = ({ canEdit }: { canEdit: boolean }) => {
+  public editToggle = ({
+    canEdit,
+    editDisabledReason,
+  }: {
+    canEdit: boolean
+    editDisabledReason?: 'errors' | 'permissions'
+  }) => {
     if (!env.get('EDIT_ONTOLOGY')) return <></>
+
+    const getTooltip = () => {
+      if (canEdit) return 'Click to edit ontology'
+      if (editDisabledReason === 'errors') return 'You need to fix errors in ontology to be able to edit'
+      return 'Only Ontologies from github that you have write permissions on, can be edited'
+    }
+
     return (
       <div id="edit-controls">
-        <div
-          id="edit-toggle"
-          title={
-            canEdit
-              ? 'Click to edit ontology'
-              : 'Only Ontologies from github that you have write permissions on, can be edited'
-          }
-          class={canEdit ? '' : 'disabled'}
-        >
+        <div id="edit-toggle" title={getTooltip()} class={canEdit ? '' : 'disabled'}>
           <span class="view-text">View</span>
           <label class="switch">
             <form
@@ -1456,6 +1487,33 @@ export default class MermaidTemplates {
             hx-swap="outerHTML"
           ></button>
         </div>
+      </div>
+    )
+  }
+
+  public githubLink = ({ model, swapOutOfBand }: { model: ModelRow; swapOutOfBand?: boolean }) => {
+    if (!isGithubModel(model)) return <></>
+
+    const { owner, repo, is_out_of_sync, commit_hash, base_branch } = model
+    return (
+      <div id="github-link" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
+        <a
+          href={`https://github.com/${owner}/${repo}/tree/${commit_hash}`}
+          target="_blank"
+          class="new-tab-link"
+          title="View on GitHub"
+        >
+          {`Source commit ↗`}
+        </a>
+
+        <a
+          href={`https://github.com/${owner}/${repo}/tree/${base_branch}`}
+          target="_blank"
+          class="new-tab-link"
+          title="View base branch"
+        >
+          {escapeHtml(`Source branch ${is_out_of_sync ? '(out of sync)' : ''} ↗`)}
+        </a>
       </div>
     )
   }

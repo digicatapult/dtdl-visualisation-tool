@@ -26,17 +26,25 @@ const mockToken = 'token'
 const mockTreeSha = 'treeSha'
 const mockCommitSha = 'commitSha'
 const mockPrUrl = 'http://github.com/pr'
+const mockModel = {
+  owner: mockOwner,
+  repo: mockRepo,
+  base_branch: mockBaseBranch,
+  commit_hash: mockCommitSha,
+}
 
 const cookie = { [octokitTokenCookie]: mockToken }
 
 const mockFiles = [{ path: 'file1.json', source: '{}' }]
 
-const getModelByIdStub = sinon.stub()
 const getDtdlFilesStub = sinon.stub()
+const getGithubModelByIdStub = sinon.stub()
+const updateModelStub = sinon.stub()
 
 const mockModelDb = {
-  getModelById: getModelByIdStub,
   getDtdlFiles: getDtdlFilesStub,
+  getGithubModelById: getGithubModelByIdStub,
+  updateModel: updateModelStub,
 } as unknown as ModelDb
 
 const getBranchStub = sinon.stub()
@@ -45,6 +53,8 @@ const createBlobStub = sinon.stub()
 const createTreeStub = sinon.stub()
 const createCommitStub = sinon.stub()
 const createPullRequestStub = sinon.stub()
+const updateBranchStub = sinon.stub()
+const getCommitStub = sinon.stub()
 
 const mockGithubRequest = {
   getBranch: getBranchStub,
@@ -53,12 +63,16 @@ const mockGithubRequest = {
   createTree: createTreeStub,
   createCommit: createCommitStub,
   createPullRequest: createPullRequestStub,
+  updateBranch: updateBranchStub,
+  getCommit: getCommitStub,
 } as unknown as GithubRequest
 
 const publishDialogStub = sinon.stub().returns('publishDialog_html')
+const githubLinkStub = sinon.stub().returns('githubLink_html')
 
 const mockTemplates = {
   publishDialog: publishDialogStub,
+  githubLink: githubLinkStub,
 } as unknown as MermaidTemplates
 
 const controller = new PublishController(mockModelDb, mockGithubRequest, mockTemplates)
@@ -72,13 +86,17 @@ describe('PublishController', () => {
     createTreeStub.reset()
     createCommitStub.reset()
     createPullRequestStub.reset()
-    getModelByIdStub.reset()
+    updateBranchStub.reset()
+    getGithubModelByIdStub.reset()
     getDtdlFilesStub.reset()
   })
 
   describe('/dialog', () => {
     it('should return publish dialog', async () => {
-      const result = await controller.dialog(mockOntologyId)
+      getGithubModelByIdStub.resolves(mockModel)
+      getCommitStub.resolves({ sha: mockCommitSha })
+      updateModelStub.resolves(mockModel)
+      const result = await controller.dialog(mockReqWithCookie({}), mockOntologyId)
       const html = await toHTMLString(result)
       expect(html).to.equal('publishDialog_html')
     })
@@ -88,46 +106,61 @@ describe('PublishController', () => {
     it('should throw error if missing GitHub token', async () => {
       const req = mockReqWithCookie({})
       await expect(
-        controller.publish(req, mockOntologyId, mockCommitMessage, mockPrTitle, mockDescription, mockBranchName)
+        controller.publish(
+          req,
+          mockOntologyId,
+          mockCommitMessage,
+          mockPrTitle,
+          mockDescription,
+          'newBranch',
+          mockBranchName
+        )
       ).to.be.rejectedWith(GithubReqError, 'Missing GitHub token')
     })
 
-    it('should throw error if ontology is missing GitHub metadata', async () => {
+    it('should throw error if publishing to current branch and out of sync', async () => {
       const req = mockReqWithCookie(cookie)
-
-      getModelByIdStub.resolves({
-        owner: null,
-        repo: null,
-        base_branch: null,
-      })
+      getGithubModelByIdStub.resolves(mockModel)
+      getCommitStub.resolves({ sha: mockCommitSha })
+      updateModelStub.resolves({ ...mockModel, is_out_of_sync: true })
 
       await expect(
-        controller.publish(req, mockOntologyId, mockCommitMessage, mockPrTitle, mockDescription, mockBranchName)
-      ).to.be.rejectedWith(DataError, 'Ontology is not from GitHub or missing base branch information')
+        controller.publish(
+          req,
+          mockOntologyId,
+          mockCommitMessage,
+          mockPrTitle,
+          mockDescription,
+          'currentBranch',
+          mockBranchName
+        )
+      ).to.be.rejectedWith(DataError, `ontology is out-of-sync`)
     })
 
     it('should throw error if base branch not found', async () => {
       const req = mockReqWithCookie(cookie)
-      getModelByIdStub.resolves({
-        owner: mockOwner,
-        repo: mockRepo,
-        base_branch: mockBaseBranch,
-      })
+      getGithubModelByIdStub.resolves(mockModel)
+      getCommitStub.resolves({ sha: mockCommitSha })
       getDtdlFilesStub.resolves(mockFiles)
       getBranchStub.resolves(null)
 
       await expect(
-        controller.publish(req, mockOntologyId, mockCommitMessage, mockPrTitle, mockDescription, mockBranchName)
+        controller.publish(
+          req,
+          mockOntologyId,
+          mockCommitMessage,
+          mockPrTitle,
+          mockDescription,
+          'newBranch',
+          mockBranchName
+        )
       ).to.be.rejectedWith(DataError, `Base branch ${mockBaseBranch} not found`)
     })
 
     it('should throw error if branch already exists', async () => {
       const req = mockReqWithCookie(cookie)
-      getModelByIdStub.resolves({
-        owner: mockOwner,
-        repo: mockRepo,
-        base_branch: mockBaseBranch,
-      })
+      getGithubModelByIdStub.resolves(mockModel)
+      getCommitStub.resolves({ sha: mockCommitSha })
       getDtdlFilesStub.resolves(mockFiles)
       getBranchStub
         .onFirstCall()
@@ -136,17 +169,22 @@ describe('PublishController', () => {
         .resolves({ object: { sha: 'existingSha' } })
 
       await expect(
-        controller.publish(req, mockOntologyId, mockCommitMessage, mockPrTitle, mockDescription, mockBranchName)
+        controller.publish(
+          req,
+          mockOntologyId,
+          mockCommitMessage,
+          mockPrTitle,
+          mockDescription,
+          'newBranch',
+          mockBranchName
+        )
       ).to.be.rejectedWith(DataError, `Branch with name ${mockBranchName} already exists`)
     })
 
-    it('should publish successfully', async () => {
+    it('should publish to new branch successfully', async () => {
       const req = mockReqWithCookie(cookie)
-      getModelByIdStub.resolves({
-        owner: mockOwner,
-        repo: mockRepo,
-        base_branch: mockBaseBranch,
-      })
+      getGithubModelByIdStub.resolves(mockModel)
+      getCommitStub.resolves({ sha: mockCommitSha })
       getDtdlFilesStub.resolves(mockFiles)
       getBranchStub
         .onFirstCall()
@@ -165,6 +203,7 @@ describe('PublishController', () => {
         mockCommitMessage,
         mockPrTitle,
         mockDescription,
+        'newBranch',
         mockBranchName
       )
 
@@ -193,6 +232,82 @@ describe('PublishController', () => {
         mockBaseBranch,
         mockDescription,
       ])
+    })
+
+    it('should publish to current branch successfully', async () => {
+      const req = mockReqWithCookie(cookie)
+      getGithubModelByIdStub.resolves(mockModel)
+      getCommitStub.resolves({ sha: mockCommitSha })
+      updateModelStub.resolves(mockModel)
+      getDtdlFilesStub.resolves(mockFiles)
+      updateModelStub.resolves()
+      getBranchStub.resolves({ object: { sha: 'baseSha' } })
+      createBlobStub.resolves({ sha: 'blobSha' })
+      createTreeStub.resolves({ sha: mockTreeSha })
+      createCommitStub.resolves({ sha: mockCommitSha })
+      updateModelStub.resolves({
+        owner: mockOwner,
+        repo: mockRepo,
+        base_branch: mockBaseBranch,
+      })
+
+      const result = await controller.publish(
+        req,
+        mockOntologyId,
+        mockCommitMessage,
+        mockPrTitle,
+        mockDescription,
+        'currentBranch',
+        mockBranchName
+      )
+
+      const html = await toHTMLString(result)
+      expect(html).to.contain(`Published successfully`)
+      expect(html).to.contain(`View branch`)
+
+      expect(updateBranchStub.firstCall.args).to.deep.equal([
+        mockToken,
+        mockOwner,
+        mockRepo,
+        mockBaseBranch,
+        mockCommitSha,
+      ])
+    })
+
+    it('should revert commit hash if updating branch fails', async () => {
+      updateModelStub.reset()
+      const req = mockReqWithCookie(cookie)
+      getGithubModelByIdStub.resolves(mockModel)
+      getCommitStub.resolves({ sha: mockCommitSha })
+      updateModelStub.resolves(mockModel)
+      getDtdlFilesStub.resolves(mockFiles)
+      getBranchStub.resolves({ object: { sha: 'baseSha' } })
+      createBlobStub.resolves({ sha: 'blobSha' })
+      createTreeStub.resolves({ sha: mockTreeSha })
+      const newCommitSha = 'newCommitSha'
+      createCommitStub.resolves({ sha: newCommitSha })
+
+      const error = new Error('Update branch failed')
+      updateBranchStub.rejects(error)
+
+      await expect(
+        controller.publish(
+          req,
+          mockOntologyId,
+          mockCommitMessage,
+          mockPrTitle,
+          mockDescription,
+          'currentBranch',
+          mockBranchName
+        )
+      ).to.be.rejectedWith(error)
+
+      expect(updateModelStub.secondCall.args).to.deep.equal([
+        mockOntologyId,
+        { is_out_of_sync: false, commit_hash: newCommitSha },
+      ])
+
+      expect(updateModelStub.thirdCall.args).to.deep.equal([mockOntologyId, { commit_hash: mockCommitSha }])
     })
   })
 })

@@ -2,9 +2,9 @@
 
 import { DtdlObjectModel, PropertyInfo } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
-import { DTDL_VALID_SCHEMAS, DTDL_VALID_WRITABLE, DtdlId } from '../../models/strings.js'
-import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
-import { getDisplayName } from '../../utils/dtdl/extract.js'
+import { DTDL_PRIMITIVE_SCHEMA_OPTIONS, DTDL_VALID_WRITABLE_OPTIONS, DtdlId } from '../../models/strings.js'
+import { MAX_DISPLAY_NAME_LENGTH, MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
+import { getDisplayName, getSchemaDisplayName } from '../../utils/dtdl/extract.js'
 import { EditableSelect, EditableText } from '../common.js'
 
 export const PropertyDetails = ({
@@ -51,19 +51,16 @@ export const PropertyDetails = ({
         putRoute="propertyDisplayName"
         text={property.displayName?.en}
         additionalBody={{ propertyName: name }}
-        maxLength={64}
+        maxLength={MAX_DISPLAY_NAME_LENGTH}
       />
       <b>Schema:</b>
       <EditableSelect
         edit={canEdit}
         definedIn={property.DefinedIn}
         putRoute="propertySchema"
-        text={
-          model[property.schema]?.displayName?.en ??
-          (typeof property.schema === 'string' ? property.schema : 'Complex schema')
-        }
+        text={getSchemaDisplayName(model[property.schema])}
         additionalBody={{ propertyName: name }}
-        options={DTDL_VALID_SCHEMAS}
+        options={DTDL_PRIMITIVE_SCHEMA_OPTIONS}
       />
       <b>Description:</b>
       {EditableText({
@@ -92,7 +89,7 @@ export const PropertyDetails = ({
         putRoute="propertyWritable"
         text={String(property.writable)}
         additionalBody={{ propertyName: name }}
-        options={DTDL_VALID_WRITABLE.map(String)}
+        options={DTDL_VALID_WRITABLE_OPTIONS}
       />
       <br />
     </div>

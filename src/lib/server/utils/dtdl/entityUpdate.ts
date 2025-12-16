@@ -317,10 +317,11 @@ export const addContent =
         .default([]),
     })
 
-    const validInterface: z.infer<typeof schema> = schema.loose().parse(dtdlInterface)
+    const validInterface: z.infer<typeof schema> = preserveKeyOrder(schema.loose()).parse(dtdlInterface)
+    const contents = validInterface.contents ?? []
 
     // Validate uniqueness
-    const existingContent = validInterface.contents.find((c) => c.name === contentName)
+    const existingContent = contents.find((c) => c.name === contentName)
     if (existingContent) {
       throw new DataError(`Content with name '${contentName}' already exists`)
     }
@@ -336,7 +337,7 @@ export const addContent =
       newContent.schema = 'string'
     }
 
-    const updatedContents = [...validInterface.contents, newContent]
+    const updatedContents = [...contents, newContent]
 
     return { ...validInterface, contents: updatedContents }
   }
