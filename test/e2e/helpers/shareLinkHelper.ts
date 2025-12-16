@@ -11,7 +11,7 @@ export const getShareableLink = async (
   }
   await expect(page.locator('#toolbar').getByText('Share', { exact: true })).toBeVisible()
   page.locator('#toolbar').getByText('Share', { exact: true }).click()
-  await expect(page.locator('#toolbar').getByText('Shareable Link')).toBeVisible()
+  await expect(page.locator('#share-link-modal')).toBeVisible()
   // click on first radio
   page
     .locator('#share-link-modal')
