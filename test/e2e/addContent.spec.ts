@@ -225,6 +225,7 @@ test.describe('Test add content to ontology', () => {
     await page.fill('#delete-confirmation', 'delete')
     await waitForSuccessResponse(page, () => page.locator('#delete-button').click(), '/content')
     await expect(page.locator('#navigation-panel-details').getByText(`Name: ${commandName}`)).not.toBeVisible()
+    await context.close()
   })
 })
 

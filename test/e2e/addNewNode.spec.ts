@@ -30,7 +30,7 @@ test.describe('Add New Node', () => {
     const extendsSelect = page.locator('select[name="extends"]')
     const hasExtendsOptions = (await extendsSelect.locator('option:not([value=""])').count()) > 0
     if (hasExtendsOptions) {
-      const firstOption = await extendsSelect.locator('option:not([value=""])').first()
+      const firstOption = extendsSelect.locator('option:not([value=""])').first()
       const optionValue = await firstOption.getAttribute('value')
       if (optionValue) {
         await extendsSelect.selectOption(optionValue)
@@ -54,6 +54,7 @@ test.describe('Add New Node', () => {
     await expect(page.locator('#navigation-panel-details')).toContainText(comment)
 
     await expect(page.locator('#navigation-panel-details')).toContainText('Interface')
+    await context.close()
   })
 
   test('should add a new node to a specific folder', async ({ browser }) => {
@@ -96,6 +97,7 @@ test.describe('Add New Node', () => {
 
       await waitForUpdateLayout(page, () => page.locator('#search').fill(displayName))
       await expect(page.locator('#mermaid-output')).toContainText(displayName)
+      await context.close()
     }
   })
 
@@ -128,6 +130,7 @@ test.describe('Add New Node', () => {
     await waitForSuccessResponse(page, () => page.locator('#create-new-node-button').click(), '/entity/new-node')
 
     await expect(page.locator('#mermaid-output')).toContainText('ValidName')
+    await context.close()
   })
 
   test('should handle duplicate display names correctly', async ({ browser }) => {
@@ -158,6 +161,7 @@ test.describe('Add New Node', () => {
     } else {
       await expect(page.locator('#navigation-panel')).toBeVisible()
     }
+    await context.close()
   })
 
   test('should cancel creation and return to edit mode', async ({ browser }) => {
@@ -180,6 +184,7 @@ test.describe('Add New Node', () => {
     await expect(page.locator('#create-node-form')).not.toBeVisible()
 
     await expect(page.locator('#add-node-button')).toBeVisible()
+    await context.close()
   })
 
   test('should only be available in edit mode', async ({ browser }) => {
@@ -205,5 +210,6 @@ test.describe('Add New Node', () => {
 
     await waitForSuccessResponse(page, () => addNodeButton.click(), '/entity/add-new-node')
     await expect(page.locator('#create-node-form')).toBeVisible()
+    await context.close()
   })
 })
