@@ -23,18 +23,10 @@ export const NavigationPanelDetails = ({
   entityId,
   model,
   edit,
-  commonRerenderAttrs,
 }: {
   entityId?: DtdlId
   model?: DtdlObjectModel
   edit: boolean
-  commonRerenderAttrs: {
-    'hx-target': string
-    'hx-swap': string
-    'hx-include': string
-    'hx-indicator': string
-    'hx-disabled-elt': string
-  }
 }): JSX.Element => {
   const entity = entityId && model ? model[entityId] : undefined
 
