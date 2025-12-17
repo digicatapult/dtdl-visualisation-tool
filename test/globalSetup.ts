@@ -144,10 +144,7 @@ async function getGithubToken(config: FullConfig, credentials: UserCredentials) 
     () => page.locator('#main-view').getByTitle('Upload New Ontology').click(),
     '/menu'
   )
-
-  // Click GitHub button and wait for any response (GitHub redirects may vary)
-  await page.locator('#main-view').getByText('GitHub').click()
-  await page.waitForURL(/github\.com/, { timeout: 30000 })
+  await waitForSuccessResponse(page, () => page.locator('#main-view').getByText('GitHub').click(), 'github.com/login')
 
   // Wait for GitHub login form
   await page.waitForSelector('#login_field')
@@ -155,10 +152,7 @@ async function getGithubToken(config: FullConfig, credentials: UserCredentials) 
   // Fill in the credentials and sign in
   await page.fill('#login_field', ghTestUser)
   await page.fill('#password', ghTestPassword)
-
-  // Submit login and wait for 2FA page
-  await page.click('input[name="commit"]')
-  await page.waitForURL(/github\.com\/sessions\/two-factor/, { timeout: 30000 })
+  await waitForSuccessResponse(page, () => page.click('input[name="commit"]'), 'github.com/sessions/two-factor/app')
   await page.waitForSelector('#app_totp')
 
   const totp = new TOTP({

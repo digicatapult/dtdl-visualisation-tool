@@ -52,6 +52,18 @@ test.describe('Iubenda Privacy Policy Widget', () => {
     // Verify the iubenda branding link is present (use class to avoid multiple match error)
     const iubendaBrandLink = page.locator('a.iubenda-cs-brand-badge')
     await expect(iubendaBrandLink).toBeVisible()
+
+    // Verify widget is positioned in the bottom right corner
+    const brandLinkBox = await iubendaBrandLink.boundingBox()
+    expect(brandLinkBox).not.toBeNull()
+    if (brandLinkBox) {
+      // Widget should be in the right side of viewport
+      // X position should be > 1700px (right side of 1920px viewport)
+      expect(brandLinkBox.x).toBeGreaterThan(1700)
+      // Y position should be in lower half (> 400px) of 1080px viewport
+      // Iubenda positions widget in lower-right but not at absolute bottom
+      expect(brandLinkBox.y).toBeGreaterThan(400)
+    }
   })
 
   test('Should not overlap with other UI elements', async ({ page }) => {
