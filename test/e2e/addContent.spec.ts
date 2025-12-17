@@ -185,6 +185,7 @@ test.describe('Test add content to ontology', () => {
       `form[hx-put*="commandRequestSchema"][hx-vals*='"commandName":"${commandName}"']`
     )
     await testNavPanelDropdownEdit(page, requestSchemaForm.locator('select'), 'string', '/commandRequestSchema')
+    await context.close()
   })
 })
 
