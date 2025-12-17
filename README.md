@@ -171,7 +171,7 @@ This tool integrates with PostHog for both server-side and client-side analytics
 
 ## Privacy Policy
 
-This tool integrates with Iubenda for privacy policy and cookie policy compliance. The widget is enabled by default and can be disabled by setting `IUBENDA_ENABLED=false`.
+This tool integrates with Iubenda for privacy policy and cookie policy compliance. The widget is disabled by default (opt-in) and can be enabled by setting `IUBENDA_ENABLED=true`.
 
 **Configuration:**
 *   **Widget ID**: Configure using `IUBENDA_WIDGET_ID` to point to your Iubenda privacy policy.
