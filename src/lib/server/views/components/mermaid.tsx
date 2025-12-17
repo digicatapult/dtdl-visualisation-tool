@@ -247,7 +247,9 @@ export default class MermaidTemplates {
     model?: DtdlObjectModel
     edit: boolean
   }): JSX.Element => {
-    return <NavigationPanelDetails entityId={entityId} model={model} edit={edit} />
+    return (
+      <NavigationPanelDetails entityId={entityId} model={model} edit={edit} commonRerenderAttrs={commonRerenderAttrs} />
+    )
   }
 
   navigationPanelTree = ({ entityId, fileTree }: { entityId?: DtdlId; fileTree: DtdlPath[] }): JSX.Element => {

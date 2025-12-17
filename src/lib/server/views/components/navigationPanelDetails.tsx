@@ -23,10 +23,18 @@ export const NavigationPanelDetails = ({
   entityId,
   model,
   edit,
+  commonRerenderAttrs,
 }: {
   entityId?: DtdlId
   model?: DtdlObjectModel
   edit: boolean
+  commonRerenderAttrs: {
+    'hx-target': string
+    'hx-swap': string
+    'hx-include': string
+    'hx-indicator': string
+    'hx-disabled-elt': string
+  }
 }): JSX.Element => {
   const entity = entityId && model ? model[entityId] : undefined
 
@@ -102,27 +110,14 @@ export const NavigationPanelDetails = ({
             <p>
               <b>Target:</b>
             </p>
-            {(() => {
-              // Build options list for all interfaces in the model
-              const interfaceOptions = Object.values(model)
-                .filter(isInterface)
-                .map((iface) => ({
-                  value: iface.Id,
-                  label: `${getDisplayName(iface)} (${iface.Id})`,
-                }))
-                .sort((a, b) => a.label.localeCompare(b.label))
-
-              return (
-                <EditableSelect
-                  edit={edit}
-                  definedIn={definedIn}
-                  putRoute="relationshipTarget"
-                  text={entity.target}
-                  options={interfaceOptions}
-                  additionalBody={{ relationshipName }}
-                />
-              )
-            })()}
+            <EditableSelect
+              edit={edit}
+              definedIn={definedIn}
+              putRoute="relationshipTarget"
+              text={entity.target}
+              options={interfaceOptions}
+              additionalBody={{ relationshipName }}
+            />
           </>
         )}
       </section>
