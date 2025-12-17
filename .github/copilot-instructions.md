@@ -234,7 +234,7 @@ The application uses a dual-environment variable loading pattern that can cause 
 
 ```typescript
 // In src/lib/server/env/index.ts
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV === 'test') {
   dotenv.config({ path: 'test/test.env' })        // Loads test.env FIRST
   dotenv.config({ override: true })               // Loads .env SECOND with override: true
 }

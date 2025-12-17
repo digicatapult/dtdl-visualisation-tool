@@ -19,7 +19,7 @@ test.describe('Iubenda Privacy Policy Widget', () => {
     // Check that the Iubenda script tag is present
     // Iubenda injects multiple scripts, so check for at least one
     const scriptTag = page.locator('script[src*="iubenda.com"]')
-    await expect(scriptTag.first()).toBeVisible({ visible: false }) // Script tags are never visible, just check they exist
+    await expect(scriptTag.first()).toBeAttached() // Script tags are in DOM but not visible
 
     // Wait for the Iubenda widget to load - it creates an alertdialog
     await page.waitForSelector('[role="alertdialog"]', { timeout: 15000 })
