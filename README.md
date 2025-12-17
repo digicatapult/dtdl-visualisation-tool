@@ -124,7 +124,7 @@ The application can be run in Docker. `sample/energygrid` is automatically parse
 | POSTHOG_ENABLED          | n        | 'false'                   | Feature flag for PostHog analytics tracking                                                                                                  |
 | NEXT_PUBLIC_POSTHOG_KEY  | n        | ''                        | API key for Posthog dashboard                                                                                                                |
 | NEXT_PUBLIC_POSTHOG_HOST | n        | ''                        | endpoint for Posthog dashboard                                                                                                               |
-| IUBENDA_ENABLED          | n        | 'true'                    | Feature flag for Iubenda Privacy Policy widget                                                                                               |
+| IUBENDA_ENABLED          | n        | 'false'                   | Feature flag for Iubenda Privacy Policy widget                                                                                               |
 | IUBENDA_WIDGET_ID        | n        | 'bfba4c13...'             | Widget ID for Iubenda privacy policy and cookie policy                                                                                       |
 
 ## GitHub integration
