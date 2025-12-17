@@ -2,11 +2,10 @@
 
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
-import { DTDL_PRIMITIVE_SCHEMA_OPTIONS, DtdlId } from '../../models/strings.js'
-import { MAX_DISPLAY_NAME_LENGTH, MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
+import { DtdlId } from '../../models/strings.js'
+import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
 import {
   getDisplayName,
-  getSchemaDisplayName,
   isCommand,
   isInterface,
   isProperty,
@@ -18,6 +17,7 @@ import { AddContentButton } from './addContent.js'
 import { CommandDetails } from './command.js'
 import { PropertyDetails } from './property.js'
 import { RelationshipDetails } from './relationship.js'
+import { TelemetryDetails } from './telemetry.js'
 
 export const NavigationPanelDetails = ({
   entityId,
@@ -199,50 +199,7 @@ export const NavigationPanelDetails = ({
               const telemetry = model[id]
               if (!isTelemetry(telemetry) || !telemetry.DefinedIn) return
               return (
-                <>
-                  <b>Name: </b>
-                  {escapeHtml(name)}
-                  <br />
-                  <b>Display Name:</b>
-                  <EditableText
-                    edit={edit}
-                    definedIn={telemetry.DefinedIn}
-                    putRoute="telemetryDisplayName"
-                    text={telemetry.displayName?.en}
-                    additionalBody={{ telemetryName: name }}
-                    maxLength={MAX_DISPLAY_NAME_LENGTH}
-                  />
-                  <b>Schema:</b>
-                  <EditableSelect
-                    edit={edit}
-                    definedIn={telemetry.DefinedIn}
-                    putRoute="telemetrySchema"
-                    text={getSchemaDisplayName(model[telemetry.schema])}
-                    additionalBody={{ telemetryName: name }}
-                    options={DTDL_PRIMITIVE_SCHEMA_OPTIONS}
-                  />
-                  <b>Description:</b>
-                  <EditableText
-                    edit={edit}
-                    definedIn={telemetry.DefinedIn}
-                    putRoute="telemetryDescription"
-                    text={telemetry.description?.en}
-                    additionalBody={{ telemetryName: name }}
-                    multiline={true}
-                    maxLength={MAX_VALUE_LENGTH}
-                  />
-                  <b>Comment:</b>
-                  {EditableText({
-                    edit,
-                    definedIn: telemetry.DefinedIn,
-                    putRoute: 'telemetryComment',
-                    text: telemetry.comment,
-                    additionalBody: { telemetryName: name },
-                    multiline: true,
-                    maxLength: MAX_VALUE_LENGTH,
-                  })}
-                  <br />
-                </>
+                <TelemetryDetails telemetry={telemetry} name={name} model={model} edit={edit} entityId={entity.Id} />
               )
             })
           : 'None'}
