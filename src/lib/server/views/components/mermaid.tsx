@@ -207,7 +207,7 @@ export default class MermaidTemplates {
           </label>
         </div>
         <div id="navigation-panel-content">
-          <this.navigationPanelDetails entityId={entityId} model={model} edit={edit} />
+          <NavigationPanelDetails entityId={entityId} model={model} edit={edit} />
           <this.navigationPanelTree entityId={entityId} fileTree={fileTree} />
         </div>
       </aside>
@@ -237,17 +237,6 @@ export default class MermaidTemplates {
         folderTreeLevel={this.folderTreeLevel}
       />
     )
-  }
-  navigationPanelDetails = ({
-    entityId,
-    model,
-    edit,
-  }: {
-    entityId?: DtdlId
-    model?: DtdlObjectModel
-    edit: boolean
-  }): JSX.Element => {
-    return <NavigationPanelDetails entityId={entityId} model={model} edit={edit} />
   }
 
   navigationPanelTree = ({ entityId, fileTree }: { entityId?: DtdlId; fileTree: DtdlPath[] }): JSX.Element => {
