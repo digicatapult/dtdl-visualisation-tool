@@ -124,6 +124,8 @@ The application can be run in Docker. `sample/energygrid` is automatically parse
 | POSTHOG_ENABLED          | n        | 'false'                   | Feature flag for PostHog analytics tracking                                                                                                  |
 | NEXT_PUBLIC_POSTHOG_KEY  | n        | ''                        | API key for Posthog dashboard                                                                                                                |
 | NEXT_PUBLIC_POSTHOG_HOST | n        | ''                        | endpoint for Posthog dashboard                                                                                                               |
+| IUBENDA_ENABLED          | n        | 'true'                    | Feature flag for Iubenda Privacy Policy widget                                                                                               |
+| IUBENDA_WIDGET_ID        | n        | 'bfba4c13...'             | Widget ID for Iubenda privacy policy and cookie policy                                                                                       |
 
 ## GitHub integration
 
@@ -167,10 +169,21 @@ This tool integrates with PostHog for both server-side and client-side analytics
     *   **Server-side**: Ontology uploads, searches, view changes (diagram type, expansion), and errors.
     *   **Client-side**: Standard page views and interaction events.
 
+## Privacy Policy
+
+This tool integrates with Iubenda for privacy policy and cookie policy compliance. The widget is enabled by default and can be disabled by setting `IUBENDA_ENABLED=false`.
+
+**Configuration:**
+*   **Widget ID**: Configure using `IUBENDA_WIDGET_ID` to point to your Iubenda privacy policy.
+*   **Display**: The widget appears in the bottom right corner of all pages, providing users access to Privacy Policy and Cookie Policy.
+*   **Testing**: The widget is disabled in test environments by default to prevent interference with E2E tests.
+
 
 ## Testing
 
 This repository consists of two test types: [**e2e**, **unit**] and we are using a combination of `mocha`, `chai` and `sinon` frameworks.
+
+**Important**: During tests, `.env` overrides `test/test.env` values. Keep external services (PostHog, Iubenda) **disabled** in `.env` to prevent test interference. See `.github/copilot-instructions.md` for detailed environment loading behavior.
 
 ### Unit Testing
 

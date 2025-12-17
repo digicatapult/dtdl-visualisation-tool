@@ -8,6 +8,7 @@ interface VisualisationUIConfig {
   cookieSessionKeys: string
   maxOntologySize?: number
   posthogMockPort?: number
+  iubendaEnabled?: boolean
 }
 interface databaseConfig {
   containerName: string
@@ -79,7 +80,15 @@ export async function startVisualisationContainer(
   env: VisualisationUIConfig,
   visualisationImage: GenericContainer
 ): Promise<StartedTestContainer> {
-  const { containerName, containerPort, hostPort, cookieSessionKeys, maxOntologySize, posthogMockPort } = env
+  const {
+    containerName,
+    containerPort,
+    hostPort,
+    cookieSessionKeys,
+    maxOntologySize,
+    posthogMockPort,
+    iubendaEnabled,
+  } = env
 
   logger.info(`Starting container ${containerName} on port ${containerPort}...`)
 
@@ -105,6 +114,11 @@ export async function startVisualisationContainer(
     // are being tracked correctly without sending data externally.
     POSTHOG_ENABLED: posthogMockPort ? 'true' : process.env.POSTHOG_ENABLED || 'false',
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY || 'phc_test_key',
+    // Iubenda configuration for E2E tests
+    // Disabled by default in tests to prevent external script loading interfering with tests
+    // Can be enabled for specific tests by setting iubendaEnabled to true
+    IUBENDA_ENABLED: iubendaEnabled ? 'true' : process.env.IUBENDA_ENABLED || 'false',
+    IUBENDA_WIDGET_ID: process.env.IUBENDA_WIDGET_ID || 'bfba4c13-caab-42ef-8296-83f3b3e081ed',
   }
 
   // Only set NEXT_PUBLIC_POSTHOG_HOST if it has a value

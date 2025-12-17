@@ -83,21 +83,4 @@ test.describe('Upload ontology from local drive', () => {
     await waitForUpdateLayout(page, () => page.locator('#diagram-type-select').selectOption('classDiagram'))
     await expect(page.locator('#mermaid-output #mermaid-svg')).toHaveClass('classDiagram')
   })
-
-  test('Should load Iubenda privacy policy widget', async ({ page }) => {
-    await page.setViewportSize({ width: 1920, height: 1080 })
-    await waitForUpdateLayout(page, () => page.goto('./'))
-
-    // Check that the Iubenda widget container exists
-    const widgetContainer = page.locator('#iubenda-policy-widget')
-    await expect(widgetContainer).toBeVisible()
-
-    // Wait for the Iubenda script to load and render links
-    await page.waitForSelector('a.iubenda-black', { timeout: 10000 })
-
-    // Verify at least one policy link is present
-    const policyLinks = page.locator('a.iubenda-black')
-    await expect(policyLinks.first()).toBeVisible()
-    await expect(policyLinks.first()).toHaveAttribute('href', /iubenda\.com/)
-  })
 })

@@ -3,6 +3,7 @@
 import { escapeHtml, type PropsWithChildren } from '@kitajs/html'
 import express from 'express'
 import { DtdlId } from '../models/strings.js'
+import { IubendaScript } from './components/iubenda.js'
 import { PostHogScript } from './components/posthog.js'
 
 export const parseError = (): JSX.Element => <p>Ontology Undefined</p>
@@ -27,10 +28,7 @@ export const Page = (props: PropsWithChildren<{ title: string; req?: express.Req
         <script src="/public/scripts/a11y.js" type="module"></script>
         <script src="/public/scripts/mpa.js"></script>
         <script src="/public/scripts/posthog.js"></script>
-        <script
-          type="text/javascript"
-          src="https://embeds.iubenda.com/widgets/bfba4c13-caab-42ef-8296-83f3b3e081ed.js"
-        ></script>
+        <IubendaScript />
         <link rel="icon" type="image/ico" sizes="48x48" href="/public/images/favicon.ico" />
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700&display=swap" />
         <link rel="stylesheet" type="text/css" href="/public/styles/main.css" />
