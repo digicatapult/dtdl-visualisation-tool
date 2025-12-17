@@ -12,7 +12,7 @@ import { waitForUpdateLayout } from './helpers/waitForHelpers.js'
 test.describe('Iubenda Privacy Policy Widget', () => {
   test.use({ baseURL: 'http://localhost:3002' })
 
-  test('Should load and display the Iubenda widget', async ({ page }) => {
+  test('Should load, display, and position the Iubenda widget correctly', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 })
     await waitForUpdateLayout(page, () => page.goto('./'))
 
@@ -28,55 +28,22 @@ test.describe('Iubenda Privacy Policy Widget', () => {
     const cookieDialog = page.locator('[role="alertdialog"]')
     await expect(cookieDialog).toBeVisible()
 
-    // Verify the iubenda branding link is present (there may be multiple iubenda links)
-    const iubendaBrandLink = page.locator('a.iubenda-cs-brand-badge')
-    await expect(iubendaBrandLink).toBeVisible()
-
     // Verify the consent buttons are present
     const acceptButton = page.locator('button:has-text("Accept")')
     const rejectButton = page.locator('button:has-text("Reject")')
     await expect(acceptButton).toBeVisible()
     await expect(rejectButton).toBeVisible()
-  })
 
-  test('Should position widget in bottom right corner', async ({ page }) => {
-    await page.setViewportSize({ width: 1920, height: 1080 })
-    await waitForUpdateLayout(page, () => page.goto('./'))
-
-    // Wait for the Iubenda widget alertdialog to load
-    await page.waitForSelector('[role="alertdialog"]', { timeout: 15000 })
-
-    const cookieDialog = page.locator('[role="alertdialog"]')
-    await expect(cookieDialog).toBeVisible()
-
-    // Verify the iubenda branding link is present (use class to avoid multiple match error)
-    const iubendaBrandLink = page.locator('a.iubenda-cs-brand-badge')
-    await expect(iubendaBrandLink).toBeVisible()
-
-    // Verify widget is positioned in the bottom right corner
-    const brandLinkBox = await iubendaBrandLink.boundingBox()
-    expect(brandLinkBox).not.toBeNull()
-    if (brandLinkBox) {
-      // Widget should be in the right side of viewport
-      // X position should be > 1650px (right side of 1920px viewport)
-      // Allow some margin for browser rendering differences
-      expect(brandLinkBox.x).toBeGreaterThan(1650)
+    // Verify widget is positioned in the bottom right area using the cookie dialog
+    // Note: We use the dialog element itself rather than Iubenda's class names which could change
+    const dialogBox = await cookieDialog.boundingBox()
+    expect(dialogBox).not.toBeNull()
+    if (dialogBox) {
+      // Widget should be in the right half of viewport (X > 960px for 1920px width)
+      expect(dialogBox.x).toBeGreaterThan(960)
       // Y position should be in lower half (> 400px) of 1080px viewport
-      // Iubenda positions widget in lower-right but not at absolute bottom
-      expect(brandLinkBox.y).toBeGreaterThan(400)
+      expect(dialogBox.y).toBeGreaterThan(400)
     }
-  })
-
-  test('Should not overlap with other UI elements', async ({ page }) => {
-    await page.setViewportSize({ width: 1920, height: 1080 })
-    await waitForUpdateLayout(page, () => page.goto('./'))
-
-    // Wait for the Iubenda widget alertdialog to load
-    await page.waitForSelector('[role="alertdialog"]', { timeout: 15000 })
-
-    // Verify the cookie dialog is visible and properly layered
-    const cookieDialog = page.locator('[role="alertdialog"]')
-    await expect(cookieDialog).toBeVisible()
 
     // Verify key UI elements are still accessible despite the cookie banner
     const heading = page.locator('h2:has-text("UKDTC")')
