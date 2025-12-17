@@ -573,7 +573,11 @@ export class EntityController extends HTMLController {
     let targetEntity = entity
     let definedIn = entity.DefinedIn ?? entityId
 
-    if (contentName && isInterface(entity)) {
+    if (contentName) {
+      if (!isInterface(entity)) {
+        throw new DataError(`Cannot delete content from a non-Interface entity "${entityId}"`)
+      }
+
       const propertyId = entity.properties[contentName]
       const relationshipId = entity.relationships[contentName]
       const telemetryId = entity.telemetries[contentName]
