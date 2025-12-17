@@ -583,6 +583,8 @@ export class EntityController extends HTMLController {
       if (contentId && model[contentId]) {
         targetEntity = model[contentId]
         definedIn = targetEntity.DefinedIn ?? entityId
+      } else {
+        throw new DataError(`Content with name "${contentName}" not found in entity "${entityId}"`)
       }
     }
 

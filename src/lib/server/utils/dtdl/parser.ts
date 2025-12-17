@@ -98,14 +98,7 @@ export default class Parser {
     const files = await Promise.all(
       directory.files.map((entry) => this.handleUnzipFileOrDir(topDir.path, entry, uncompressedSize, subdir))
     )
-    const flatFiles = files.flat().filter((f) => f !== undefined)
-
-    // Deduplicate by path
-    const uniqueFiles = new Map<string, DtdlFile>()
-    for (const file of flatFiles) {
-      if (file) uniqueFiles.set(file.path, file)
-    }
-    return Array.from(uniqueFiles.values())
+    return files.flat().filter((f) => f !== undefined)
   }
 
   private async handleUnzipFileOrDir(
