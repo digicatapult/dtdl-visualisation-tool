@@ -102,14 +102,27 @@ export const NavigationPanelDetails = ({
             <p>
               <b>Target:</b>
             </p>
-            <EditableSelect
-              edit={edit}
-              definedIn={definedIn}
-              putRoute="relationshipTarget"
-              text={entity.target}
-              options={interfaceOptions}
-              additionalBody={{ relationshipName }}
-            />
+            {(() => {
+              // Build options list for all interfaces in the model
+              const interfaceOptions = Object.values(model)
+                .filter(isInterface)
+                .map((iface) => ({
+                  value: iface.Id,
+                  label: `${getDisplayName(iface)} (${iface.Id})`,
+                }))
+                .sort((a, b) => a.label.localeCompare(b.label))
+
+              return (
+                <EditableSelect
+                  edit={edit}
+                  definedIn={definedIn}
+                  putRoute="relationshipTarget"
+                  text={entity.target}
+                  options={interfaceOptions}
+                  additionalBody={{ relationshipName }}
+                />
+              )
+            })()}
           </>
         )}
       </section>
