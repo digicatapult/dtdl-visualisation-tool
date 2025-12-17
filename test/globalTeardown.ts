@@ -3,6 +3,7 @@ import {
   posthogMockServer,
   visualisationUIContainer,
   visualisationUIContainer2,
+  visualisationUIContainer3,
 } from './globalSetup'
 import { stopMockPostHogServer } from './mocks/posthogMock.js'
 import { network } from './testcontainers/testContainersSetup'
@@ -10,6 +11,7 @@ import { network } from './testcontainers/testContainersSetup'
 async function globalTeardown() {
   if (visualisationUIContainer) await visualisationUIContainer.stop()
   if (visualisationUIContainer2) await visualisationUIContainer2.stop()
+  if (visualisationUIContainer3) await visualisationUIContainer3.stop()
   if (postgresContainer) await postgresContainer.stop()
   if (posthogMockServer) await stopMockPostHogServer()
 
