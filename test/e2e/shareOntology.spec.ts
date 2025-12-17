@@ -48,7 +48,7 @@ test.describe('Share Ontology Link', () => {
       throw new Error('Test GitHub user 2 credentials required')
     }
     // Open ontology and copy share link
-    const repo = 'https://github.com/digicatapult-nidt-user-1/nidt_ontology_private_with_collaborator'
+    const repoName = 'nidt_ontology_private_with_collaborator'
     const context1 = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const projectName = test.info().project.name
     if (projectName.includes('chromium')) {
@@ -57,7 +57,7 @@ test.describe('Share Ontology Link', () => {
     const page1 = await context1.newPage()
     await page1.setViewportSize({ width: 1920, height: 1080 })
 
-    await openGithubOntology(page1, repo, /^main$/, 'sample')
+    await openGithubOntology(page1, repoName, /^main$/)
 
     const clipboardText = await getShareableLink(page1, context1, projectName)
     await context1.close()
@@ -74,7 +74,7 @@ test.describe('Share Ontology Link', () => {
     await context2.close()
   })
   test('private ontology cannot be viewed on another browser/github user', async ({ browser }) => {
-    const repo = 'https://github.com/digicatapult-nidt-user-1/nidt_ontology_private_without_collaborator'
+    const repoName = 'nidt_ontology_private_without_collaborator'
     // Open ontology and copy share link
     const context1 = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const projectName = test.info().project.name
@@ -84,7 +84,7 @@ test.describe('Share Ontology Link', () => {
     const page1 = await context1.newPage()
     await page1.setViewportSize({ width: 1920, height: 1080 })
 
-    await openGithubOntology(page1, repo, /^main$/, 'sample')
+    await openGithubOntology(page1, repoName, /^main$/)
 
     const clipboardText = await getShareableLink(page1, context1, projectName)
     await context1.close()

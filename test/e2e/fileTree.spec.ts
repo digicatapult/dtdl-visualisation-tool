@@ -53,7 +53,7 @@ test.describe('file tree', () => {
 
     const interfaceName = navigationPanelTree.getByText('Bay', { exact: true })
     await expect(interfaceName).toBeInViewport()
-    expect(interfaceName).toHaveCSS('background-color', 'rgb(251, 242, 145)')
+    await expect(interfaceName).toHaveClass(/nav-tree-leaf-highlighted/)
 
     // shows details
     await page.locator('#navigation-panel').getByText('Details', { exact: true }).click()
@@ -106,6 +106,6 @@ test.describe('file tree', () => {
     // shows file tree with file expanded and relationship highlighted
     const interfaceName = navigationPanelTree.getByText('CurveDatas', { exact: true })
     await expect(interfaceName).toBeInViewport()
-    expect(interfaceName).toHaveCSS('background-color', 'rgb(251, 242, 145)')
+    await expect(interfaceName).toHaveClass(/nav-tree-leaf-highlighted/)
   })
 })

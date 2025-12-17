@@ -43,14 +43,14 @@ test.describe('multiple sessions', () => {
     await expect(pageTwo.locator('#mermaid-output').getByText('dtmi:com:example;1')).toBeVisible()
 
     // search for a node on both pages
-    await pageOne.focus('#search')
     await waitForUpdateLayout(pageOne, () => pageOne.fill('#search', 'Container'))
 
-    await pageTwo.focus('#search')
     await waitForUpdateLayout(pageTwo, () => pageTwo.fill('#search', 'example'))
 
     // check both pages are still showing their correct model
     await expect(pageOne.locator('#mermaid-output').getByText('ConnectivityNode', { exact: true })).toBeVisible()
     await expect(pageTwo.locator('#mermaid-output').getByText('dtmi:com:example;1')).toBeVisible()
+
+    await context.close()
   })
 })
