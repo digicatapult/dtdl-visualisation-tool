@@ -2,42 +2,43 @@
 
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
-import { randomUUID } from 'crypto'
 import express from 'express'
-import { container, singleton } from 'tsyringe'
-import { isGithubModel, ModelRow } from '../../../db/types.js'
-import { Env } from '../../env/index.js'
-import { DeletableEntities } from '../../models/controllerTypes.js'
-import { DiagramType, diagramTypes } from '../../models/mermaidDiagrams.js'
+import { singleton } from 'tsyringe'
+import { ModelRow } from '../../../db/types.js'
+import { DiagramType } from '../../models/mermaidDiagrams.js'
 import { DtdlId, UUID } from '../../models/strings.js'
 import { hasFileTreeErrors } from '../../utils/dtdl/fileTreeErrors.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { Page } from '../common.js'
 import { AddNode } from './addNode.js'
+import { DeleteDialog } from './deleteDialog.js'
+import { EditToggle } from './editToggle.js'
+import { GithubLink } from './githubLink.js'
+import { buildFolderButtonClasses, getNavigationPanelNodeClass, hasSubdirectories } from './helpers.js'
+import { Legend } from './legend.js'
+import { MermaidTarget } from './mermaidTarget.js'
 import { NavigationPanelDetails } from './navigationPanelDetails.js'
-
-const env = container.resolve(Env)
-const commonRerenderAttrs = {
-  'hx-target': '#mermaid-output',
-  'hx-swap': 'outerHTML  transition:true',
-  'hx-include': '#sessionId, #search-panel, input[name="navigationPanelTab"], #navigationPanelExpanded',
-  'hx-indicator': '#spinner',
-  'hx-disabled-elt': 'select',
-} as const
-type CommonRerenderAttrs = typeof commonRerenderAttrs
-
-const commonUpdateAttrs: CommonRerenderAttrs & { 'hx-get': string } = {
-  ...commonRerenderAttrs,
-  'hx-get': 'update-layout',
-}
-
-function maybeNumberToAttr(value: number | undefined, defaultValue: number) {
-  return `${value === undefined ? defaultValue : value}`
-}
+import { PublishDialog } from './publishDialog.js'
+import { PublishForm } from './publishForm.js'
+import { SearchPanel } from './searchPanel.js'
+import { ShareOntology } from './shareOntology.js'
+import { SvgControls } from './svgControls.js'
+import { UploadForm } from './uploadForm.js'
 
 @singleton()
 export default class MermaidTemplates {
   constructor() {}
+
+  navigationPanelNodeClass = getNavigationPanelNodeClass
+
+  public searchPanel = SearchPanel
+  public publishDialog = PublishDialog
+  public deleteDialog = DeleteDialog
+  public Legend = Legend
+  public editToggle = EditToggle
+  public githubLink = GithubLink
+  public svgControls = SvgControls
+  public mermaidTarget = MermaidTarget
 
   public MermaidRoot = ({
     search,
@@ -65,90 +66,25 @@ export default class MermaidTemplates {
     <Page title={'UKDTC'} req={req}>
       <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
       <section id="toolbar">
-        <this.searchPanel search={search} diagramType={diagramType} svgWidth={svgWidth} svgHeight={svgHeight} />
-        <this.uploadForm />
-        <this.shareOntology />
-        <this.publishForm canPublish={canEdit} ontologyId={ontologyId} />
-        <this.githubLink model={model} />
+        <SearchPanel search={search} diagramType={diagramType} svgWidth={svgWidth} svgHeight={svgHeight} />
+        <UploadForm />
+        <ShareOntology />
+        <PublishForm canPublish={canEdit} ontologyId={ontologyId} />
+        <GithubLink model={model} />
       </section>
 
       <div id="mermaid-wrapper">
-        <this.mermaidTarget target="mermaid-output" />
+        <MermaidTarget target="mermaid-output" />
         <div id="spinner" class="spinner" />
       </div>
-      <this.Legend showContent={false} />
+      <Legend showContent={false} />
       <this.navPanelPlaceholder expanded={false} edit={canEdit} />
-      <this.svgControls svgRawHeight={svgHeight} svgRawWidth={svgWidth} />
-      <this.editToggle canEdit={canEdit} editDisabledReason={editDisabledReason} />
-      <this.deleteDialog />
-      <this.publishDialog />
+      <SvgControls svgRawHeight={svgHeight} svgRawWidth={svgWidth} />
+      <EditToggle canEdit={canEdit} editDisabledReason={editDisabledReason} />
+      <DeleteDialog />
+      <PublishDialog />
     </Page>
   )
-
-  public svgControls = ({
-    generatedOutput,
-    svgRawWidth,
-    svgRawHeight,
-    swapOutOfBand,
-  }: {
-    generatedOutput?: JSX.Element
-    svgRawWidth?: number
-    svgRawHeight?: number
-    swapOutOfBand?: boolean
-  }): JSX.Element => {
-    const output = generatedOutput ?? ''
-    return (
-      <div id="svg-controls" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
-        <div
-          id="minimap"
-          style={`
-            --svg-raw-width: ${svgRawWidth || 300};
-            --svg-raw-height: ${svgRawHeight || 100};
-          `}
-        >
-          {output && <div id="minimap-svg">{output}</div>}
-        </div>
-        <div id="zoom-buttons">
-          <button id="zoom-in">+</button>
-          <button id="reset-pan-zoom">◯</button>
-          <button id="zoom-out">-</button>
-        </div>
-      </div>
-    )
-  }
-
-  public mermaidTarget = ({
-    generatedOutput,
-    target,
-    swapOutOfBand,
-  }: {
-    generatedOutput?: JSX.Element
-    target: string
-    swapOutOfBand?: boolean
-  }): JSX.Element => {
-    const attributes = generatedOutput
-      ? { 'hx-on::after-settle': `globalThis.setMermaidListeners()`, 'pending-listeners': '' }
-      : {
-          'hx-trigger': 'load',
-          ...commonUpdateAttrs,
-        }
-    const output = generatedOutput ?? ''
-    const content = target === 'mermaid-output' ? output : this.mermaidMessage(output, target)
-    return (
-      <div id="mermaid-output" class="mermaid" hx-swap-oob={swapOutOfBand ? 'true' : undefined} {...attributes}>
-        {content}
-      </div>
-    )
-  }
-
-  private mermaidMessage = (message: JSX.Element, target: string): JSX.Element => {
-    return (
-      <div id="mermaid-output-message">
-        <div class={target == 'mermaid-warning-message' ? 'warning-logo' : 'info-logo'} />
-        <p>{escapeHtml(message)}</p>
-      </div>
-    )
-  }
 
   public navPanelPlaceholder = ({ expanded, edit }: { expanded: boolean; edit: boolean }): JSX.Element => {
     return (
@@ -417,30 +353,7 @@ export default class MermaidTemplates {
     )
   }
 
-  // Check if a directory contains subdirectories
-  private hasSubdirectories = (entries: DtdlPath[]): boolean => {
-    return entries.some((entry) => entry.type === 'directory')
-  }
-
-  // Build folder tree button classes
-  private buildFolderButtonClasses = (
-    path: DtdlPath,
-    hasSubdirs: boolean,
-    isHighlighted: boolean,
-    isSelected: boolean
-  ): string => {
-    const classes = [
-      'folder-tree-button',
-      'tree-icon',
-      hasSubdirs ? '' : 'no-arrow',
-      this.navigationPanelNodeClass(path),
-      isHighlighted ? 'folder-tree-leaf-highlighted' : '',
-      isSelected ? 'folder-tree-selected' : '',
-    ]
-    return classes.filter(Boolean).join(' ')
-  }
-
-  folderTreeLevel = ({
+  public folderTreeLevel = ({
     highlightedEntityId,
     highlightedEntitySet,
     fileTree,
@@ -464,20 +377,26 @@ export default class MermaidTemplates {
 
           if (path.type !== 'directory') {
             return (
-              <div class={` ${this.navigationPanelNodeClass(path)} ${highlightClass}`.trim()}>
+              <div class={` ${getNavigationPanelNodeClass(path)} ${highlightClass}`.trim()}>
                 {escapeHtml(path.name)}
               </div>
             )
           }
 
           // Check if this directory contains subdirectories to show/hide arrow
-          const hasSubdirs = this.hasSubdirectories(path.entries)
+          const hasSubdirs = hasSubdirectories(path.entries)
 
           return (
             <div class="accordion-parent">
               <button
                 type="button"
-                class={this.buildFolderButtonClasses(path, hasSubdirs, isHighlighted, isSelected)}
+                class={buildFolderButtonClasses(
+                  path,
+                  hasSubdirs,
+                  isHighlighted,
+                  isSelected,
+                  getNavigationPanelNodeClass
+                )}
                 {...{ [isExpanded ? 'aria-expanded' : 'aria-hidden']: '' }}
                 onclick={`globalThis.handleFolderSelection(event, '${escapeHtml(currentPath)}'); globalThis.toggleAccordion(event);`}
                 data-folder-path={escapeHtml(currentPath)}
@@ -499,468 +418,6 @@ export default class MermaidTemplates {
           )
         })}
       </>
-    )
-  }
-
-  navigationPanelNodeClass = (
-    path: DtdlPath
-  ): 'directory' | 'file' | 'interface' | 'relationship' | 'property' | 'telemetry' | 'command' => {
-    if (path.type === 'directory' || path.type === 'file') {
-      return path.type
-    }
-    switch (path.dtdlType) {
-      case 'Interface':
-        return 'interface'
-      case 'Relationship':
-        return 'relationship'
-      case 'Property':
-        return 'property'
-      case 'Telemetry':
-        return 'telemetry'
-      case 'Command':
-        return 'command'
-      default:
-        return 'property'
-    }
-  }
-
-  public searchPanel = ({
-    search,
-    swapOutOfBand,
-    diagramType,
-    svgWidth,
-    svgHeight,
-    currentZoom,
-    currentPanX,
-    currentPanY,
-  }: {
-    // inputs with current state
-    search?: string
-    diagramType: DiagramType
-    // hidden inputs not set by input controls
-    svgWidth?: number
-    svgHeight?: number
-    currentZoom?: number
-    currentPanX?: number
-    currentPanY?: number
-    // is this swap being done out of band?
-    swapOutOfBand?: boolean
-  }) => {
-    return (
-      <form
-        id="search-panel"
-        name={`search-panel-${randomUUID()}`} // avoid a firefox annoyance where it reverts the form state on refresh by making each form distinct
-        class="button-group"
-        hx-swap-oob={swapOutOfBand ? 'true' : undefined}
-        hx-sync="this:replace"
-        {...commonUpdateAttrs}
-      >
-        <h2>
-          <a href="/">UKDTC</a>
-        </h2>
-        <input
-          id="search"
-          name="search"
-          type="search"
-          value={escapeHtml(search || '')}
-          placeholder="Search"
-          hx-trigger="input changed delay:500ms, search"
-          {...commonUpdateAttrs}
-        />
-
-        <input id="svgWidth" name="svgWidth" type="hidden" value={maybeNumberToAttr(svgWidth, 300)} />
-        <input id="svgHeight" name="svgHeight" type="hidden" value={maybeNumberToAttr(svgHeight, 100)} />
-        <input id="currentZoom" name="currentZoom" type="hidden" value={maybeNumberToAttr(currentZoom, 1)} />
-        <input id="currentPanX" name="currentPanX" type="hidden" value={maybeNumberToAttr(currentPanX, 0)} />
-        <input id="currentPanY" name="currentPanY" type="hidden" value={maybeNumberToAttr(currentPanY, 0)} />
-
-        <select id="diagram-type-select" name="diagramType" hx-trigger="input changed" {...commonUpdateAttrs}>
-          {diagramTypes.map((entry) => (
-            <option value={entry} selected={entry === diagramType}>
-              {escapeHtml(entry)}
-            </option>
-          ))}
-        </select>
-      </form>
-    )
-  }
-
-  public publishDialog = ({
-    ontologyId,
-    baseBranch,
-    isOutOfSync,
-  }: { ontologyId?: UUID; baseBranch?: string; isOutOfSync?: boolean } = {}) => {
-    const defaultBranchName = `ontology-update-${Date.now()}`
-
-    return (
-      <dialog id="publish-dialog">
-        <form
-          hx-post="/publish"
-          hx-target=".toast-wrapper:empty"
-          hx-swap="beforeend"
-          hx-vals={JSON.stringify({
-            ontologyId,
-          })}
-          hx-on--after-request="document.getElementById('publish-dialog').close()"
-          hx-indicator="#spin"
-        >
-          <div class="modal-content">
-            <h3>Publish Changes</h3>
-            {isOutOfSync && (
-              <div id="publish-warning">
-                <img src="/public/images/warning.svg" />
-                <p>Ontology is out-of-sync with the source branch on GitHub</p>
-              </div>
-            )}
-            <label for="commitMessage">Commit message</label>
-            <input type="text" id="commitMessage" name="commitMessage" value="Update DTDL" required />
-            <div class="radio-group">
-              <label title={isOutOfSync ? 'Disabled because ontology is out-of-sync' : ''}>
-                <input
-                  class="circle-radio"
-                  type="radio"
-                  name="publishType"
-                  value="currentBranch"
-                  checked={!isOutOfSync}
-                  disabled={isOutOfSync}
-                  onchange="globalThis.togglePrFields(false)"
-                />
-                Commit directly to '{escapeHtml(baseBranch ?? '')}' branch
-              </label>
-              <label>
-                <input
-                  class="circle-radio"
-                  type="radio"
-                  name="publishType"
-                  value="newBranch"
-                  checked={isOutOfSync}
-                  onchange="globalThis.togglePrFields(true)"
-                />
-                Create a new branch for this commit and start a pull request
-              </label>
-            </div>
-            <label for="prTitle">Pull Request title</label>
-            <input
-              type="text"
-              id="prTitle"
-              name="prTitle"
-              value="Update ontology files from DTDL visualisation tool"
-              class="pr-fields"
-            />
-            <label for="description">Extended description</label>
-            <textarea id="description" name="description" rows="4" class="pr-fields">
-              This PR was automatically created by the DTDL visualisation tool.
-            </textarea>
-            <label for="branchName">Branch name</label>
-            <input
-              type="text"
-              id="branchName"
-              name="branchName"
-              value={defaultBranchName}
-              oninput="globalThis.validateBranchName(this)"
-              class="pr-fields"
-            />
-            <button type="submit" class="rounded-button">
-              Publish Changes
-            </button>
-            <div id="spin" class="spinner" />
-          </div>
-        </form>
-        <form method="dialog">
-          <button class="modal-button" />
-        </form>
-      </dialog>
-    )
-  }
-
-  public deleteDialog = ({
-    displayName,
-    entityKind,
-    definedIn,
-    definedInDisplayName,
-    contentName,
-    extendedBys,
-  }: {
-    displayName?: string
-    entityKind?: DeletableEntities
-    definedIn?: string
-    definedInDisplayName?: string
-    contentName?: string
-    extendedBys?: string[]
-  }) => {
-    const isInterface = entityKind === 'Interface'
-    const displayDefinedIn = definedInDisplayName !== undefined
-    const displayExtendedBys = extendedBys !== undefined && extendedBys.length > 0
-    return (
-      <dialog id="delete-dialog">
-        <div id="modal-wrapper">
-          <h3>Delete {entityKind}</h3>
-          <p>{escapeHtml(displayName ?? 'No display name')}</p>
-          {displayDefinedIn && <p>Defined in: {escapeHtml(definedInDisplayName ?? 'No defined in display name')}</p>}
-          <p>
-            Type
-            <b>
-              <em> delete </em>
-            </b>
-            to continue
-          </p>
-          <input
-            type="text"
-            id="delete-confirmation"
-            oninput="document.getElementById('delete-button').disabled = this.value !== 'delete'"
-          />
-          <br />
-          <p>Are you sure you want to delete this {entityKind}?</p>
-          {displayExtendedBys && (
-            <>
-              <p>Please note, it will also delete the following:</p>
-              <div id="extended-by-list">
-                {extendedBys.map((displayName) => (
-                  <p>{escapeHtml(displayName)}</p>
-                ))}
-              </div>
-            </>
-          )}
-          <button
-            id="delete-button"
-            hx-delete={isInterface ? `entity/${definedIn}` : `entity/${definedIn}/content`}
-            hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
-            hx-swap="outerHTML transition:true"
-            hx-target="#mermaid-output"
-            hx-vals={isInterface ? '' : JSON.stringify({ contentName })}
-            hx-indicator="#spinner"
-            class="rounded-button"
-            disabled
-            hx-on--after-request="globalThis.hideDeleteDialog()"
-          >
-            Delete {entityKind}
-          </button>
-
-          <form method="dialog">
-            <button class="modal-button" />
-          </form>
-        </div>
-      </dialog>
-    )
-  }
-
-  public Legend = ({ showContent }: { showContent: boolean }) => {
-    return (
-      <section id="legend">
-        <div id="legend-content" class={showContent ? 'show-content' : ''}>
-          <this.LegendItem
-            iconClass="active"
-            title="Currently Active (Clicked) Node"
-            description="Indicates the currently active selection."
-          />
-          <this.LegendItem
-            iconClass="search"
-            title="Search Result Node"
-            description="Nodes matching the current search criteria."
-          />
-          <this.LegendItem
-            iconClass="expanded"
-            title="Expanded Node"
-            description="Node is expanded, connections visible."
-          />
-          <this.LegendItem
-            iconClass="unexpanded"
-            title="Unexpanded Node"
-            description="Node is unexpanded, no connections shown."
-          />
-        </div>
-        <button
-          hx-swap="outerHTML"
-          hx-target="#legend"
-          hx-get={`/legend?showContent=${!showContent}`}
-          class={showContent ? 'show-content' : ''}
-        >
-          Legend
-        </button>
-      </section>
-    )
-  }
-
-  private LegendItem = ({
-    iconClass,
-    title,
-    description,
-  }: {
-    iconClass: string
-    title: string
-    description: string
-  }) => {
-    return (
-      <div class="legend-item">
-        <div class={`legend-icon ${iconClass}`}></div>
-        <div>
-          <b safe>{title}</b>
-          <p safe>{description}</p>
-        </div>
-      </div>
-    )
-  }
-
-  private uploadForm = () => {
-    return (
-      <a id="open-button" href={`/open`} class="rounded-button">
-        Open
-      </a>
-    )
-  }
-
-  private shareOntology = () => {
-    // htmx component to generate a shareable link for the ontology
-    return (
-      <>
-        <a id="share-ontology" onclick="globalThis.showShareModal()" class="rounded-button">
-          Share
-        </a>
-        <dialog id="share-link-modal" class="modal">
-          <form method="dialog">
-            <h3>Shareable Link</h3>
-
-            <label>
-              <input
-                class="circle-radio"
-                type="radio"
-                name="link-type"
-                value="short"
-                checked
-                onchange="globalThis.updateShareLink()"
-              />
-              <span>Entire ontology</span>
-            </label>
-            <label>
-              <input
-                class="circle-radio"
-                type="radio"
-                name="link-type"
-                value="full"
-                onchange="globalThis.updateShareLink()"
-              />
-              <span>Current search selection of ontology</span>
-            </label>
-
-            <input id="link-output" type="text" readonly value="" placeholder="Generated link here" />
-            <p style="font-size: 0.9rem; color: #555;">
-              🔒 Access to this ontology depends on your GitHub permissions. Ensure recipients have the necessary access
-              before sharing.
-            </p>
-            <div id="copy-button-wrapper">
-              <span id="copy-tooltip" class="tooltip">
-                Copy url to clipboard
-              </span>
-              <button id="copy-link-button" type="button" onclick="globalThis.copyShareLink()">
-                Copy URL
-                <span id="copy-icon" />
-              </button>
-            </div>
-            <button class="modal-button" />
-          </form>
-        </dialog>
-      </>
-    )
-  }
-
-  private publishForm = ({ canPublish, ontologyId }: { canPublish: boolean; ontologyId: UUID }) => {
-    if (!env.get('EDIT_ONTOLOGY')) return <></>
-    return (
-      <button
-        id="publish-ontology"
-        class={`button ${!canPublish ? 'disabled' : ''}`}
-        disabled={!canPublish}
-        hx-get={`/publish/dialog?ontologyId=${ontologyId}`}
-        hx-target="#publish-dialog"
-        hx-swap="outerHTML"
-        hx-on--after-request="document.getElementById('publish-dialog').showModal()"
-        title={
-          canPublish
-            ? 'Click to publish ontology'
-            : 'Only Ontologies from github that you have write permissions on, can be published'
-        }
-      >
-        Publish
-      </button>
-    )
-  }
-
-  public editToggle = ({
-    canEdit,
-    editDisabledReason,
-  }: {
-    canEdit: boolean
-    editDisabledReason?: 'errors' | 'permissions'
-  }) => {
-    if (!env.get('EDIT_ONTOLOGY')) return <></>
-
-    const getTooltip = () => {
-      if (canEdit) return 'Click to edit ontology'
-      if (editDisabledReason === 'errors') return 'You need to fix errors in ontology to be able to edit'
-      return 'Only Ontologies from github that you have write permissions on, can be edited'
-    }
-
-    return (
-      <div id="edit-controls">
-        <div id="edit-toggle" title={getTooltip()} class={canEdit ? '' : 'disabled'}>
-          <span class="view-text">View</span>
-          <label class="switch">
-            <form
-              {...commonUpdateAttrs}
-              hx-get="edit-model"
-              hx-target="#navigation-panel"
-              hx-trigger="checked"
-              hx-swap="outerHTML"
-              hx-vals="js:{ editMode: event.detail.checked }"
-            >
-              <input
-                id="edit-toggle-checkbox"
-                type="checkbox"
-                disabled={!canEdit}
-                onclick="globalThis.toggleEditSwitch(event)"
-              />
-              <span class="slider"></span>
-            </form>
-          </label>
-          <span class="edit-text">Edit</span>
-        </div>
-        <div id="edit-buttons">
-          <button
-            {...commonUpdateAttrs}
-            id="add-node-button"
-            hx-get={`entity/add-new-node`}
-            hx-target="#navigation-panel"
-            hx-swap="outerHTML"
-          ></button>
-        </div>
-      </div>
-    )
-  }
-
-  public githubLink = ({ model, swapOutOfBand }: { model: ModelRow; swapOutOfBand?: boolean }) => {
-    if (!isGithubModel(model)) return <></>
-
-    const { owner, repo, is_out_of_sync, commit_hash, base_branch } = model
-    return (
-      <div id="github-link" hx-swap-oob={swapOutOfBand ? 'true' : undefined}>
-        <a
-          href={`https://github.com/${owner}/${repo}/tree/${commit_hash}`}
-          target="_blank"
-          class="new-tab-link"
-          title="View on GitHub"
-        >
-          {`Source commit ↗`}
-        </a>
-
-        <a
-          href={`https://github.com/${owner}/${repo}/tree/${base_branch}`}
-          target="_blank"
-          class="new-tab-link"
-          title="View base branch"
-        >
-          {escapeHtml(`Source branch ${is_out_of_sync ? '(out of sync)' : ''} ↗`)}
-        </a>
-      </div>
     )
   }
 }
