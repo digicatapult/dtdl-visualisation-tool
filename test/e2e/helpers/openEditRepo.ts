@@ -3,6 +3,9 @@ import { waitForSuccessResponse } from './waitForHelpers.js'
 
 export const openEditRepo = async (page: Page) => {
   await page.setViewportSize({ width: 1920, height: 1080 })
+  await page.goto('./')
+  await page.waitForSelector(`text='Terminal'`)
+
   await page.goto('./open')
   await expect(page.locator('#main-view').getByTitle('Upload New Ontology')).toBeVisible()
 

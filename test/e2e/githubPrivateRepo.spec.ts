@@ -51,5 +51,6 @@ test.describe('Private GitHub repos', () => {
     await expect(installation).toBeVisible()
     await waitForSuccessResponse(page, () => installation.click(), '/repos')
     await expect(page.locator('.github-list').getByText('private_with_')).toBeVisible()
+    await context.close()
   })
 })
