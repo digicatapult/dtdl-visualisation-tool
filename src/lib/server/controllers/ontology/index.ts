@@ -32,7 +32,7 @@ import { ensurePostHogId, PostHogService } from '../../utils/postHog/postHogServ
 import { RateLimiter } from '../../utils/rateLimit.js'
 import SessionStore, { Session } from '../../utils/sessions.js'
 import { ErrorPage } from '../../views/components/errors.js'
-import MermaidTemplates from '../../views/components/mermaid.js'
+import OntologyViewTemplates from '../../views/templates/ontologyView.js'
 import { HTML, HTMLController } from '../HTMLController.js'
 import { checkEditPermission, checkRemoteBranch, dtdlCacheKey } from '../helpers.js'
 
@@ -54,7 +54,7 @@ export class OntologyController extends HTMLController {
     private modelDb: ModelDb,
     private generator: SvgGenerator,
     private svgMutator: SvgMutator,
-    private templates: MermaidTemplates,
+    private templates: OntologyViewTemplates,
     private postHog: PostHogService,
     @inject(Logger) private logger: ILogger,
     @inject(Cache) private cache: ICache,

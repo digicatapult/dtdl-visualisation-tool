@@ -14,7 +14,7 @@ import { SvgGenerator } from '../utils/mermaid/generator.js'
 import { PostHogService, ensurePostHogId } from '../utils/postHog/postHogService.js'
 import { RateLimiter } from '../utils/rateLimit.js'
 import { safeUrl } from '../utils/url.js'
-import OpenOntologyTemplates from '../views/components/openOntology.js'
+import OntologyOpenTemplates from '../views/templates/ontologyOpen.js'
 import { HTML, HTMLController } from './HTMLController.js'
 import { recentFilesFromCookies, setCacheWithDefaultParams } from './helpers.js'
 
@@ -35,7 +35,7 @@ export function ensureOctokitToken(req: express.Request, res: express.Response, 
 export class GithubController extends HTMLController {
   constructor(
     private modelDb: ModelDb,
-    private templates: OpenOntologyTemplates,
+    private templates: OntologyOpenTemplates,
     private githubRequest: GithubRequest,
     private generator: SvgGenerator,
     private parser: Parser,

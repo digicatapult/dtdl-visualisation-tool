@@ -62,7 +62,7 @@ import { getDisplayName, isInterface, isNamedEntity } from '../../../utils/dtdl/
 import { DtdlPath } from '../../../utils/dtdl/parser.js'
 import SessionStore from '../../../utils/sessions.js'
 import { AddContentForm } from '../../../views/components/addContent.js'
-import MermaidTemplates from '../../../views/components/mermaid.js'
+import OntologyViewTemplates from '../../../views/templates/ontologyView.js'
 import { checkEditPermission } from '../../helpers.js'
 import { HTML, HTMLController } from '../../HTMLController.js'
 import { OntologyController } from '../index.js'
@@ -75,7 +75,7 @@ export class EntityController extends HTMLController {
   constructor(
     private modelDb: ModelDb,
     private ontologyController: OntologyController,
-    private templates: MermaidTemplates,
+    private templates: OntologyViewTemplates,
     private sessionStore: SessionStore,
     @inject(Cache) private cache: ICache
   ) {

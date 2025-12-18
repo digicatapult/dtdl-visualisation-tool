@@ -7,7 +7,7 @@ import { ModelDb } from '../../../db/modelDb.js'
 import { DataError, GithubReqError } from '../../errors.js'
 import { octokitTokenCookie } from '../../models/cookieNames.js'
 import { GithubRequest } from '../../utils/githubRequest.js'
-import MermaidTemplates from '../../views/components/mermaid.js'
+import OntologyViewTemplates from '../../views/templates/ontologyView.js'
 import { PublishController } from '../publish.js'
 import { mockReqWithCookie, toHTMLString } from './helpers.js'
 
@@ -73,7 +73,7 @@ const githubLinkStub = sinon.stub().returns('githubLink_html')
 const mockTemplates = {
   publishDialog: publishDialogStub,
   githubLink: githubLinkStub,
-} as unknown as MermaidTemplates
+} as unknown as OntologyViewTemplates
 
 const controller = new PublishController(mockModelDb, mockGithubRequest, mockTemplates)
 

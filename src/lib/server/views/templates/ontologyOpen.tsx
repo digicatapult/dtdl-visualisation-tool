@@ -24,7 +24,7 @@ type SelectFolderProps =
 const env = container.resolve(Env)
 
 @singleton()
-export default class OpenOntologyTemplates {
+export default class OntologyOpenTemplates {
   constructor() {}
 
   public OpenOntologyRoot = ({

@@ -3,7 +3,7 @@ import { inject, injectable } from 'tsyringe'
 import { ModelDb } from '../../db/modelDb.js'
 import { Logger, type ILogger } from '../logger.js'
 import { type RootParams } from '../models/controllerTypes.js'
-import MermaidTemplates from '../views/components/mermaid.js'
+import OntologyViewTemplates from '../views/templates/ontologyView.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
 @injectable()
@@ -11,7 +11,7 @@ import { HTML, HTMLController } from './HTMLController.js'
 export class RootController extends HTMLController {
   constructor(
     private modelDb: ModelDb,
-    private templates: MermaidTemplates,
+    private templates: OntologyViewTemplates,
     @inject(Logger) private logger: ILogger
   ) {
     super()
