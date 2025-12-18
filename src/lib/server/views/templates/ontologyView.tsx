@@ -10,23 +10,23 @@ import { DtdlId, UUID } from '../../models/strings.js'
 import { hasFileTreeErrors } from '../../utils/dtdl/fileTreeErrors.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { Page } from '../common.js'
-import { AddNode } from './addNode.js'
-import { DeleteDialog } from './deleteDialog.js'
-import { EditToggle } from './editToggle.js'
-import { GithubLink } from './githubLink.js'
-import { buildFolderButtonClasses, getNavigationPanelNodeClass, hasSubdirectories } from './helpers.js'
-import { Legend } from './legend.js'
-import { MermaidTarget } from './mermaidTarget.js'
-import { NavigationPanelDetails } from './navigationPanelDetails.js'
-import { PublishDialog } from './publishDialog.js'
-import { PublishForm } from './publishForm.js'
-import { SearchPanel } from './searchPanel.js'
-import { ShareOntology } from './shareOntology.js'
-import { SvgControls } from './svgControls.js'
-import { UploadForm } from './uploadForm.js'
+import { AddNode } from '../components/addNode.js'
+import { DeleteDialog } from '../components/deleteDialog.js'
+import { EditToggle } from '../components/editToggle.js'
+import { GithubLink } from '../components/githubLink.js'
+import { buildFolderButtonClasses, getNavigationPanelNodeClass, hasSubdirectories } from '../components/helpers.js'
+import { Legend } from '../components/legend.js'
+import { MermaidTarget } from '../components/mermaidTarget.js'
+import { NavigationPanelDetails } from '../components/navigationPanelDetails.js'
+import { PublishDialog } from '../components/publishDialog.js'
+import { PublishForm } from '../components/publishForm.js'
+import { SearchPanel } from '../components/searchPanel.js'
+import { ShareOntology } from '../components/shareOntology.js'
+import { SvgControls } from '../components/svgControls.js'
+import { UploadForm } from '../components/uploadForm.js'
 
 @singleton()
-export default class MermaidTemplates {
+export default class OntologyViewTemplates {
   constructor() {}
 
   navigationPanelNodeClass = getNavigationPanelNodeClass

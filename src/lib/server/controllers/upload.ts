@@ -6,7 +6,7 @@ import { UploadError } from '../errors.js'
 import { octokitTokenCookie, posthogIdCookie } from '../models/cookieNames.js'
 import Parser from '../utils/dtdl/parser.js'
 import { PostHogService, ensurePostHogId } from '../utils/postHog/postHogService.js'
-import OpenOntologyTemplates from '../views/components/openOntology.js'
+import OntologyOpenTemplates from '../views/templates/ontologyOpen.js'
 import { HTML, HTMLController } from './HTMLController.js'
 
 import { ModelDb } from '../../db/modelDb.js'
@@ -24,7 +24,7 @@ export class OpenOntologyController extends HTMLController {
   constructor(
     private modelDb: ModelDb,
     private generator: SvgGenerator,
-    private openOntologyTemplates: OpenOntologyTemplates,
+    private openOntologyTemplates: OntologyOpenTemplates,
     private parser: Parser,
     private postHog: PostHogService,
     @inject(Logger) private logger: ILogger,
