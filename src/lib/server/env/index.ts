@@ -47,6 +47,10 @@ export const envConfig = {
   NEXT_PUBLIC_POSTHOG_HOST: optionalStrValidator({
     default: undefined,
   }),
+  IUBENDA_ENABLED: envalid.bool({ default: false, devDefault: false }),
+  IUBENDA_WIDGET_ID: envalid.str({
+    default: 'bfba4c13-caab-42ef-8296-83f3b3e081ed',
+  }),
 }
 
 export type ENV_CONFIG = typeof envConfig

@@ -14,6 +14,22 @@ import {
   startVisualisationContainer,
 } from './testcontainers/testContainersSetup.js'
 
+// Wait for container to be healthy by polling the health endpoint
+async function waitForContainerHealth(baseURL: string, maxAttempts = 30) {
+  for (let i = 0; i < maxAttempts; i++) {
+    try {
+      const response = await fetch(`${baseURL}/api/health`)
+      if (response.ok) {
+        return
+      }
+    } catch {
+      // Ignore errors, keep retrying
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+  }
+  throw new Error(`Container at ${baseURL} failed to become healthy after ${maxAttempts} attempts`)
+}
+
 type UserCredentials = {
   ghTestUser: string
   ghTestPassword: string
@@ -37,6 +53,7 @@ const user2: UserCredentials = {
 
 export let visualisationUIContainer: StartedTestContainer
 export let visualisationUIContainer2: StartedTestContainer
+export let visualisationUIContainer3: StartedTestContainer
 export let postgresContainer: StartedTestContainer
 export let visualisationImage: GenericContainer
 export let posthogMockServer: Server | null = null
@@ -71,8 +88,26 @@ async function globalSetup(config: FullConfig) {
     visualisationImage
   )
 
+  // Wait for containers to be fully ready before running OAuth
+  await waitForContainerHealth(config.projects[0].use.baseURL || 'http://localhost:3000')
+
+  // Run GitHub OAuth flow before starting Iubenda container to avoid interference
   await getGithubToken(config, user1)
   await getGithubToken(config, user2)
+
+  // Start the visualisation container on port 3002 with Iubenda enabled
+  // Started after OAuth to prevent external Iubenda script from interfering
+  visualisationUIContainer3 = await startVisualisationContainer(
+    {
+      containerName: 'dtdl-visualiser-iubenda',
+      hostPort: 3002,
+      containerPort: 3000,
+      cookieSessionKeys: 'iubenda-test',
+      posthogMockPort: POSTHOG_MOCK_PORT,
+      iubendaEnabled: true,
+    },
+    visualisationImage
+  )
 }
 
 const attempt2fa = async (totp: TOTP, page: Page) => {
