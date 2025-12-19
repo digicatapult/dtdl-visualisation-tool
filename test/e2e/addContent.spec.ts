@@ -87,10 +87,8 @@ test.describe('Test add content to ontology', () => {
 
     // Verify Relationship Added
     const newRelSection = page
-      .locator('#navigation-panel-details section.accordion-parent')
-      .filter({ has: page.locator('h3 button', { hasText: /^Relationships$/ }) })
-      .locator('.accordion-content > div > div:not(.inherited-relationship)')
-      .last()
+      .locator('#navigation-panel-details')
+      .locator('div', { has: page.getByText(`Name: ${relationshipName}`) })
 
     // Edit Display Name
     await testNavPanelEdit(
@@ -187,30 +185,24 @@ test.describe('Test add content to ontology', () => {
     await testNavPanelDropdownEdit(page, requestSchemaForm.locator('select'), 'string', '/commandRequestSchema')
 
     // Delete Property
-    await propSection.locator('.trash-icon').click()
+    await propSection.locator('.trash-icon').nth(1).click()
     await expect(page.locator('#delete-dialog')).toBeVisible()
     await page.fill('#delete-confirmation', 'delete')
     await waitForSuccessResponse(page, () => page.locator('#delete-button').click(), '/content')
     await expect(page.locator('#navigation-panel-details').getByText(`Name: ${propertyName}`)).not.toBeVisible()
 
     // Delete Relationship
-    await newRelSection.locator('.trash-icon').click()
+    await newRelSection.locator('.trash-icon').nth(1).click()
     await expect(page.locator('#delete-dialog')).toBeVisible()
     await page.fill('#delete-confirmation', 'delete')
     await waitForSuccessResponse(page, () => page.locator('#delete-button').click(), '/content')
-    await expect(
-      page
-        .locator('#navigation-panel-details section.accordion-parent')
-        .filter({ has: page.locator('h3 button', { hasText: /^Relationships$/ }) })
-        .locator('.accordion-content > div > div:not(.inherited-relationship)')
-        .last()
-    ).not.toBeVisible()
+    await expect(page.locator('#navigation-panel-details').getByText(`Name: ${relationshipName}`)).not.toBeVisible()
 
     // Delete Telemetry
     const newTelSection = page
       .locator('#navigation-panel-details')
       .locator('div', { has: page.getByText(`Name: ${telemetryName}`) })
-    await newTelSection.locator('.trash-icon').click()
+    await newTelSection.locator('.trash-icon').nth(1).click()
     await expect(page.locator('#delete-dialog')).toBeVisible()
     await page.fill('#delete-confirmation', 'delete')
     await waitForSuccessResponse(page, () => page.locator('#delete-button').click(), '/content')
@@ -220,7 +212,7 @@ test.describe('Test add content to ontology', () => {
     const newCmdSection = page
       .locator('#navigation-panel-details')
       .locator('div', { has: page.getByText(`Name: ${commandName}`) })
-    await newCmdSection.locator('.trash-icon').click()
+    await newCmdSection.locator('.trash-icon').nth(2).click()
     await expect(page.locator('#delete-dialog')).toBeVisible()
     await page.fill('#delete-confirmation', 'delete')
     await waitForSuccessResponse(page, () => page.locator('#delete-button').click(), '/content')
