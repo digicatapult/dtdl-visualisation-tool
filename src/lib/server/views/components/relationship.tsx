@@ -44,9 +44,21 @@ export const RelationshipDetails = ({
 
   return (
     <div class={isInherited ? 'inherited-relationship' : ''} data-tooltip={tooltipText}>
-      <b>Name: </b>
-      {escapeHtml(relationship.name)}
-      <br />
+      <p>
+        <b>Name: </b>
+        {escapeHtml(name)}
+        {edit && !isInherited && (
+          <img
+            src="/public/images/bin.svg"
+            class="trash-icon"
+            hx-get={`entity/${entityId}/deleteDialog?contentName=${name}`}
+            hx-target="#delete-dialog"
+            hx-swap="outerHTML"
+            hx-on--after-request="globalThis.showDeleteDialog()"
+            title="Delete Relationship"
+          />
+        )}
+      </p>
       <p>
         <b>Display Name:</b>
       </p>

@@ -3,8 +3,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { waitForSuccessResponse } from './helpers/waitForHelpers'
 
-test.describe('Test add content to ontology', () => {
-  test('add and edit property', async ({ browser }) => {
+test.describe('Test content in ontology', () => {
+  test('add, edit and delete content', async ({ browser }) => {
     test.setTimeout(110000)
     const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
     const page = await context.newPage()
@@ -87,10 +87,8 @@ test.describe('Test add content to ontology', () => {
 
     // Verify Relationship Added
     const newRelSection = page
-      .locator('#navigation-panel-details section.accordion-parent')
-      .filter({ has: page.locator('h3 button', { hasText: /^Relationships$/ }) })
-      .locator('.accordion-content > div > div:not(.inherited-relationship)')
-      .last()
+      .locator('#navigation-panel-details')
+      .locator('div', { has: page.getByText(`Name: ${relationshipName}`) })
 
     // Edit Display Name
     await testNavPanelEdit(
@@ -185,6 +183,40 @@ test.describe('Test add content to ontology', () => {
       `form[hx-put*="commandRequestSchema"][hx-vals*='"commandName":"${commandName}"']`
     )
     await testNavPanelDropdownEdit(page, requestSchemaForm.locator('select'), 'string', '/commandRequestSchema')
+
+    // Delete Property
+    await propSection.locator('.trash-icon').nth(1).click()
+    await expect(page.locator('#delete-dialog')).toBeVisible()
+    await page.fill('#delete-confirmation', 'delete')
+    await waitForSuccessResponse(page, () => page.locator('#delete-button').click(), '/content')
+    await expect(page.locator('#navigation-panel-details').getByText(`Name: ${propertyName}`)).not.toBeVisible()
+
+    // Delete Relationship
+    await newRelSection.locator('.trash-icon').nth(1).click()
+    await expect(page.locator('#delete-dialog')).toBeVisible()
+    await page.fill('#delete-confirmation', 'delete')
+    await waitForSuccessResponse(page, () => page.locator('#delete-button').click(), '/content')
+    await expect(page.locator('#navigation-panel-details').getByText(`Name: ${relationshipName}`)).not.toBeVisible()
+
+    // Delete Telemetry
+    const newTelSection = page
+      .locator('#navigation-panel-details')
+      .locator('div', { has: page.getByText(`Name: ${telemetryName}`) })
+    await newTelSection.locator('.trash-icon').nth(1).click()
+    await expect(page.locator('#delete-dialog')).toBeVisible()
+    await page.fill('#delete-confirmation', 'delete')
+    await waitForSuccessResponse(page, () => page.locator('#delete-button').click(), '/content')
+    await expect(page.locator('#navigation-panel-details').getByText(`Name: ${telemetryName}`)).not.toBeVisible()
+
+    // Delete Command
+    const newCmdSection = page
+      .locator('#navigation-panel-details')
+      .locator('div', { has: page.getByText(`Name: ${commandName}`) })
+    await newCmdSection.locator('.trash-icon').nth(2).click()
+    await expect(page.locator('#delete-dialog')).toBeVisible()
+    await page.fill('#delete-confirmation', 'delete')
+    await waitForSuccessResponse(page, () => page.locator('#delete-button').click(), '/content')
+    await expect(page.locator('#navigation-panel-details').getByText(`Name: ${commandName}`)).not.toBeVisible()
     await context.close()
   })
 })
