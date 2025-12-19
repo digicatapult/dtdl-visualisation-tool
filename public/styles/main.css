@@ -24,6 +24,19 @@ body {
   --svg-zoom: 1;
 }
 
+/* Iubenda Policy Widget - positioned at bottom right */
+/* Note: z-index set to 1000 to match tooltips and appear above toasts (z-index: 10) */
+#iubenda-policy-widget {
+  position: fixed !important;
+  right: 20px !important;
+  left: auto !important;
+  bottom: 20px !important;
+  top: auto !important;
+  z-index: 1000 !important;
+  pointer-events: auto !important;
+  transform: none !important;
+}
+
 button.highlighted {
   outline: 4px solid #9370db;
   outline-offset: -2px;

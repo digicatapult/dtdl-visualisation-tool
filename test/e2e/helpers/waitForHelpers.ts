@@ -7,11 +7,17 @@ export const waitForUpdateLayout = async <T>(page: Page, action: () => Promise<T
 export const waitForSuccessResponse = async <T>(page: Page, action: () => Promise<T>, includeRoute: string) => {
   const response = page.waitForResponse((resp) => {
     const acceptableStatuses = new Set([200, 201, 204, 302, 304])
-    if (!acceptableStatuses.has(resp.status())) {
-      throw new Error(`Caught bad request to '${resp.url()}' failed with: ${resp.status()}`)
+
+    // Only validate the response if it matches our expected route
+    if (resp.url().includes(includeRoute)) {
+      if (!acceptableStatuses.has(resp.status())) {
+        throw new Error(`Caught bad request to '${resp.url()}' failed with: ${resp.status()}`)
+      }
+      return true
     }
 
-    return resp.url().includes(includeRoute) && acceptableStatuses.has(resp.status())
+    // Ignore responses that don't match our route
+    return false
   })
   await action()
   await response

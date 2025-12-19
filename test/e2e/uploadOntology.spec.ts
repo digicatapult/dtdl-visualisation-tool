@@ -30,7 +30,7 @@ test.describe('Upload ontology from local drive', () => {
     let filePath = path.join(__dirname, '../../src/lib/server/controllers/__tests__/error.zip')
 
     const warningSVGResponsePromise = page.waitForResponse(
-      (resp) => resp.url().includes('/warning.svg') && resp.status() === 200
+      (resp) => /\/warning\.svg$/.test(resp.url()) && resp.status() === 200
     )
     await waitForUploadFile(page, () => page.locator('#main-view').getByText('Local Zip File').click(), filePath)
     await warningSVGResponsePromise

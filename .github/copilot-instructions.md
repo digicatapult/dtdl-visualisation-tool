@@ -228,6 +228,64 @@ test('search functionality', async ({ page }) => {
 - GitHub OAuth flow automated with test users (requires `GH_TEST_USER`, `GH_TEST_PASSWORD`, `GH_TEST_2FA_SECRET` env vars)
 - PostHog mock server started on `POSTHOG_MOCK_PORT` to intercept analytics during tests
 
+**Environment Variable Loading in Tests - CRITICAL:**
+
+The application uses a dual-environment variable loading pattern that can cause unexpected behavior:
+
+```typescript
+// In src/lib/server/env/index.ts
+if (process.env.NODE_ENV === 'test') {
+  dotenv.config({ path: 'test/test.env' })        // Loads test.env FIRST
+  dotenv.config({ override: true })               // Loads .env SECOND with override: true
+}
+```
+
+**Problem**: `.env` always overrides `test.env` due to `override: true`, meaning:
+- ✅ **Good**: `.env` values used in development/manual testing
+- ⚠️ **Bad**: `.env` values override test-specific settings during E2E tests
+- ❌ **Critical**: External scripts (PostHog, Iubenda) enabled in `.env` can interfere with test flows
+
+**Solution Pattern**:
+1. Keep external integrations **disabled** in `.env` during active development:
+   ```env
+   POSTHOG_ENABLED=false
+   IUBENDA_ENABLED=false
+   ```
+2. Use container-level environment variables in `testContainersSetup.ts` for test-specific configs
+3. Create dedicated test containers with `*Enabled: true` flags when testing integrations
+4. Run integration tests on separate ports (e.g., Iubenda tests on port 3002)
+
+**Why This Matters**:
+- External JavaScript widgets can block or interfere with automated OAuth flows
+- GitHub OAuth in `globalSetup.ts` must complete before other tests run
+- Test isolation requires predictable environment state
+
+**Example** (from Iubenda integration):
+```typescript
+// test/globalSetup.ts - Start Iubenda container AFTER OAuth
+const visualisationUIContainer3 = await startVisualisationContainer(
+  {
+    containerName: 'dtdl-visualiser-iubenda',
+    hostPort: 3002,
+    iubendaEnabled: true,  // Override at container level
+  },
+  visualisationImage
+)
+
+// test/e2e/iubendaWidget.spec.ts
+test.describe('Iubenda Widget', () => {
+  test.use({ baseURL: 'http://localhost:3002' })  // Dedicated port
+  // ...
+})
+```
+
+**Best Practice**: When adding new external integrations:
+1. Add environment flag (e.g., `SERVICE_ENABLED`)
+2. Set to `false` by default in `.env`
+3. Create dedicated test container if E2E testing is needed
+4. Start integration containers AFTER OAuth in `globalSetup.ts`
+5. Document the behavior in this file
+
 ### Running the Application for Playwright Testing
 
 **Prerequisites:**

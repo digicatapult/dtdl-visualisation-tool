@@ -23,8 +23,8 @@ import { SvgGenerator } from '../../utils/mermaid/generator.js'
 import { SvgMutator } from '../../utils/mermaid/svgMutator.js'
 import { PostHogService } from '../../utils/postHog/postHogService.js'
 import SessionStore from '../../utils/sessions.js'
-import MermaidTemplates from '../../views/components/mermaid'
-import OpenOntologyTemplates from '../../views/components/openOntology'
+import OntologyOpenTemplates from '../../views/templates/ontologyOpen.js'
+import OntologyViewTemplates from '../../views/templates/ontologyView.js'
 import { complexMockDtdlModel } from './complexDtdlfixture.js'
 import { sessionMap } from './sessionFixtures.js'
 
@@ -261,7 +261,7 @@ export const templateMock = {
     folderTree: DtdlPath[]
     swapOutOfBand?: boolean
   }) => `addNode_${dtdlModelId}_${Object.keys(displayNameIdMap).length}_${folderTree.length}_${swapOutOfBand}_addNode`,
-} as unknown as MermaidTemplates
+} as unknown as OntologyViewTemplates
 export const openOntologyMock = {
   OpenOntologyRoot: () => `root_root`,
   mainView: (): JSX.Element => `mainView_SomethingHere_mainView`,
@@ -288,7 +288,7 @@ export const openOntologyMock = {
     swapOutOfBand?: boolean
     stage: string
   }): JSX.Element => `selectFolder_${link}_${swapOutOfBand}_${stage}_selectFolder`,
-} as unknown as OpenOntologyTemplates
+} as unknown as OntologyOpenTemplates
 export const mockLogger = pino({ level: 'silent' })
 export const mockCache = new LRUCache(10, 1000 * 60)
 

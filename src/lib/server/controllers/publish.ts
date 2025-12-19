@@ -6,8 +6,8 @@ import { ModelDb } from '../../db/modelDb.js'
 import { DataError, GithubReqError } from '../errors.js'
 import { octokitTokenCookie } from '../models/cookieNames.js'
 import { GithubRequest } from '../utils/githubRequest.js'
-import MermaidTemplates from '../views/components/mermaid.js'
 import { successToast } from '../views/components/toast.js'
+import OntologyViewTemplates from '../views/templates/ontologyView.js'
 import { HTML, HTMLController } from './HTMLController.js'
 import { checkEditPermission, checkRemoteBranch } from './helpers.js'
 @injectable()
@@ -17,7 +17,7 @@ export class PublishController extends HTMLController {
   constructor(
     private modelDb: ModelDb,
     private githubRequest: GithubRequest,
-    @inject(MermaidTemplates) private templates: MermaidTemplates
+    @inject(OntologyViewTemplates) private templates: OntologyViewTemplates
   ) {
     super()
   }
