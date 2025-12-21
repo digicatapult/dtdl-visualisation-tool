@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.9.6",
+  "version": "0.9.7",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -74,7 +74,7 @@
     "pino-http": "^11.0.0",
     "posthog-node": "^5.17.4",
     "prettier": "^3.7.4",
-    "puppeteer": "^24.33.0",
+    "puppeteer": "^24.33.1",
     "react": "^19.2.3",
     "reflect-metadata": "^0.2.2",
     "svg-pan-zoom": "^3.6.2",
@@ -90,7 +90,7 @@
     "@playwright/test": "^1.57.0",
     "@swc-node/register": "^1.11.1",
     "@swc/cli": "^0.7.9",
-    "@swc/core": "^1.15.5",
+    "@swc/core": "^1.15.7",
     "@types/chai": "^5.2.3",
     "@types/chai-as-promised": "^8.0.2",
     "@types/cors": "^2.8.19",
