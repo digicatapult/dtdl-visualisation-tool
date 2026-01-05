@@ -38,6 +38,17 @@ export const CommandDetails = ({
     >
       <b>Name: </b>
       {escapeHtml(name)}
+      {edit && (
+        <img
+          src="/public/images/bin.svg"
+          class="trash-icon"
+          hx-get={`entity/${entityId}/deleteDialog?contentName=${name}`}
+          hx-target="#delete-dialog"
+          hx-swap="outerHTML"
+          hx-on--after-request="globalThis.showDeleteDialog()"
+          title="Delete Command"
+        />
+      )}
       <br />
       <b>Display Name:</b>
       {EditableText({

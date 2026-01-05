@@ -1505,3 +1505,14 @@ textarea.multiline {
   border-bottom-color: #333;
   z-index: 1001;
 }
+
+.trash-icon {
+  cursor: pointer;
+  float: right;
+  width: 1em;
+  height: 1em;
+}
+
+.trash-icon:hover {
+  opacity: 0.7;
+}
