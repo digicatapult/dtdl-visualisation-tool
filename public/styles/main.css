@@ -1227,11 +1227,16 @@ label[for='diagram-type-select'] {
 #toast-container details::details-content {
   block-size: 0;
   overflow: hidden;
-  interpolate-size: allow-keywords;
   transition:
     block-size var(--dialog-shift-duration) var(--open-close-duration),
     content-visibility var(--dialog-shift-duration) var(--open-close-duration);
   transition-behavior: allow-discrete;
+}
+
+@supports (interpolate-size: allow-keywords) {
+  #toast-container details::details-content {
+    interpolate-size: allow-keywords;
+  }
 }
 
 #toast-container details[open]::details-content {
