@@ -1172,8 +1172,8 @@ label[for='diagram-type-select'] {
   transition: transform var(--dialog-shift-duration) var(--open-close-duration);
 }
 /*moves the toast-wrapper up by the same height as the details */
-#toast-container dialog:has(details[open]) + .toast-wrapper {
-  transform: translateY(calc(-1lh - (calc(var(--dialog-height) * 4))));
+#toast-container dialog[open]:has(details[open]) + .toast-wrapper {
+  transform: translateY(calc(-1lh - var(--dialog-height) - var(--toast-detail-open-height, 0px)));
 }
 
 #toast-container .toast-content {
@@ -1226,14 +1226,21 @@ label[for='diagram-type-select'] {
 
 #toast-container details::details-content {
   block-size: 0;
+  overflow: hidden;
   transition:
     block-size var(--dialog-shift-duration) var(--open-close-duration),
     content-visibility var(--dialog-shift-duration) var(--open-close-duration);
   transition-behavior: allow-discrete;
 }
 
+@supports (interpolate-size: allow-keywords) {
+  #toast-container details::details-content {
+    interpolate-size: allow-keywords;
+  }
+}
+
 #toast-container details[open]::details-content {
-  block-size: calc((var(--dialog-height) * 4) - 1lh);
+  block-size: auto;
 }
 
 #toast-container summary {
