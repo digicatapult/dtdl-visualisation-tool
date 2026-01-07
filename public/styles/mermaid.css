@@ -50,8 +50,19 @@
     fill: red;
   }
 
+  g.edgePaths > path[extends-edge] {
+    stroke: orange;
+    stroke-width: 3;
+    fill: orange;
+  }
+
   g.edgeLabel[highlighted] .text-inner-tspan {
     fill: red;
+  }
+
+  g.edgeLabel[extends-edge] .text-inner-tspan,
+  g.edgeLabel[extends-edge] .label rect {
+    display: none;
   }
 
   g.edgeLabel[clickable]:hover {

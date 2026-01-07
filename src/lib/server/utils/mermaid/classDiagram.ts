@@ -86,7 +86,7 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
     const graph: string[] = []
     if (entity.ChildOf && entity.target && entity.target in dtdlObjectModel) {
       const label = getDisplayName(entity)
-      graph.push(this.createEdgeString(entity.ChildOf, entity.target, arrowTypes.Association, label))
+      graph.push(this.createEdgeString(entity.ChildOf, entity.target, arrowTypes.LinkSolid, label))
     }
     return graph
   }
