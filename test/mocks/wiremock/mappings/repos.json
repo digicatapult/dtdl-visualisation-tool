@@ -1,0 +1,102 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/user/installations/[0-9]+/repositories",
+        "queryParameters": {
+          "page": {
+            "equalTo": "1"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "repositories": [
+            {
+              "full_name": "digicatapult/dtdl-test-fixtures",
+              "name": "dtdl-test-fixtures",
+              "owner": {
+                "login": "digicatapult"
+              },
+              "permissions": {
+                "push": true
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/user/installations/[0-9]+/repositories",
+        "queryParameters": {
+          "page": {
+            "equalTo": "2"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "repositories": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/user/repositories",
+        "queryParameters": {
+          "page": {
+            "equalTo": "1"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": [
+          {
+            "full_name": "digicatapult/dtdl-test-fixtures",
+            "name": "dtdl-test-fixtures",
+            "owner": {
+              "login": "digicatapult"
+            },
+            "permissions": {
+              "push": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/user/repositories",
+        "queryParameters": {
+          "page": {
+            "equalTo": "2"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": []
+      }
+    }
+  ]
+}

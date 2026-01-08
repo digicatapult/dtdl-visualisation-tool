@@ -95,7 +95,7 @@ test.describe('Add New Node', () => {
 
       await waitForSuccessResponse(page, () => page.locator('#create-new-node-button').click(), '/entity/new-node')
 
-      await waitForUpdateLayout(page, () => page.locator('#search').fill(displayName))
+      await waitForUpdateLayout(page, () => page.type('#search', displayName, { delay: 100 }))
       await expect(page.locator('#mermaid-output')).toContainText(displayName)
       await context.close()
     }

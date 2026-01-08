@@ -1,3 +1,4 @@
+import { resolve } from 'node:path'
 import { GenericContainer, getContainerRuntimeClient, StartedNetwork, StartedTestContainer, Wait } from 'testcontainers'
 import { logger } from '../../src/lib/server/logger.js'
 
@@ -67,6 +68,23 @@ export async function startDatabaseContainer(env: databaseConfig): Promise<Start
   return postgresContainer
 }
 
+export async function startWireMockContainer(): Promise<StartedTestContainer> {
+  const wiremockContainer = await new GenericContainer('wiremock/wiremock:3.10.0')
+    .withName('wiremock')
+    .withExposedPorts({ container: 8080, host: 8080 })
+    .withNetwork(network)
+    .withBindMounts([
+      {
+        source: resolve('./test/mocks/wiremock/mappings'),
+        target: '/home/wiremock/mappings',
+      },
+    ])
+    .withWaitStrategy(Wait.forLogMessage('response-template,webhook'))
+    .withReuse()
+    .start()
+  return wiremockContainer
+}
+
 //build
 export async function buildVisualisationImage(): Promise<GenericContainer> {
   logger.info(`Building container...`)
@@ -104,6 +122,9 @@ export async function startVisualisationContainer(
     GH_CLIENT_SECRET: process.env.GH_CLIENT_SECRET || '',
     GH_APP_NAME: process.env.GH_APP_NAME || '',
     GH_APP_PRIVATE_KEY: process.env.GH_APP_PRIVATE_KEY || '',
+    GH_API_BASE_URL: 'http://wiremock:8080',
+    GH_OAUTH_BASE_URL: 'http://localhost:8080',
+    GH_OAUTH_TOKEN_BASE_URL: 'http://wiremock:8080',
     COOKIE_SESSION_KEYS: cookieSessionKeys,
     EDIT_ONTOLOGY: 'true',
     MAX_DTDL_OBJECT_SIZE: maxOntologySize ? maxOntologySize.toString() : '1000',

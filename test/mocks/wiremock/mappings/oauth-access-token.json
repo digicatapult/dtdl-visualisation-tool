@@ -1,0 +1,18 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPathPattern": "/login/oauth/access_token"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "access_token": "fake-github-token",
+      "expires_in": 28800,
+      "token_type": "bearer",
+      "scope": "repo,user"
+    }
+  }
+}

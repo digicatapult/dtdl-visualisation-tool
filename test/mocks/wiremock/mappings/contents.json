@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/repos/[^/]+/[^/]+/contents/",
+    "queryParameters": {
+      "ref": {
+        "equalTo": "main"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": [
+      {
+        "name": "mockFile.json",
+        "path": "mockFile.json",
+        "type": "file"
+      }
+    ]
+  }
+}
