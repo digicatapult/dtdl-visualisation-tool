@@ -51,9 +51,9 @@
   }
 
   g.edgePaths > path[extends-edge] {
-    stroke: orange;
+    stroke: var(--extends-edge-color);
     stroke-width: 3;
-    fill: orange;
+    fill: var(--extends-edge-color);
   }
 
   g.edgeLabel[highlighted] .text-inner-tspan {

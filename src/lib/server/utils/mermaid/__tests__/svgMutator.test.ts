@@ -270,6 +270,25 @@ describe('Generator', function () {
       expect(!label.hasAttribute('highlighted')).to.equal(true)
       expect(!line.hasAttribute('highlighted')).to.equal(true)
     })
+
+    it('marks extends edges for styling', () => {
+      const labelInner = document.createElement('text')
+      labelInner.classList.add('text-inner-tspan')
+      labelInner.innerHTML = 'extends'
+
+      const label = document.createElement('g')
+      label.appendChild(labelInner)
+
+      const line = document.createElement('g')
+      line.id = 'test_extends_1_2_3'
+
+      const relationshipMap = new Map()
+
+      mutator.setEdgeAttributes(line, label, relationshipMap)
+
+      expect(line.hasAttribute('extends-edge')).to.equal(true)
+      expect(label.hasAttribute('extends-edge')).to.equal(true)
+    })
   })
 
   describe('setSVGAttributes', () => {
