@@ -1,6 +1,6 @@
-import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { singleton } from 'tsyringe'
 import { InternalError } from '../server/errors.js'
+import { DtdlModel } from '../server/models/dtdlOmParser.js'
 import { FileSourceKeys } from '../server/models/openTypes.js'
 import { DtdlId, type UUID } from '../server/models/strings.js'
 import { allInterfaceFilter } from '../server/utils/dtdl/extract.js'
@@ -106,7 +106,7 @@ export class ModelDb {
     })
   }
 
-  async getDtdlModelAndTree(id: UUID): Promise<{ model: DtdlObjectModel; fileTree: DtdlPath[] }> {
+  async getDtdlModelAndTree(id: UUID): Promise<{ model: DtdlModel; fileTree: DtdlPath[] }> {
     const files = await this.getDtdlFiles(id)
     const parsedDtdl = await this.parser.parseAll(files)
     const fileTree = this.parser.extractDtdlPaths(files, parsedDtdl)
@@ -132,7 +132,7 @@ export class ModelDb {
   }
 
   // collection for searching
-  getCollection(dtdlModel: DtdlObjectModel) {
+  getCollection(dtdlModel: DtdlModel) {
     return Object.entries(dtdlModel)
       .filter(allInterfaceFilter)
       .map(([, entity]) => entity)

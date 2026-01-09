@@ -1,10 +1,10 @@
 /// <reference types="@kitajs/html/htmx.d.ts" />
 
-import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
 import express from 'express'
 import { singleton } from 'tsyringe'
 import { ModelRow } from '../../../db/types.js'
+import { DtdlModel } from '../../models/dtdlOmParser.js'
 import { DiagramType } from '../../models/mermaidDiagrams.js'
 import { DtdlId, UUID } from '../../models/strings.js'
 import { hasFileTreeErrors } from '../../utils/dtdl/fileTreeErrors.js'
@@ -112,7 +112,7 @@ export default class OntologyViewTemplates {
   }: {
     swapOutOfBand?: boolean
     entityId?: DtdlId
-    model: DtdlObjectModel
+    model: DtdlModel
     expanded: boolean
     edit: boolean
     tab: 'details' | 'tree'

@@ -1,13 +1,43 @@
-import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
-import { DtdlPath } from '../parser'
+import { DtdlModel } from '../../../models/dtdlOmParser.js'
+import { DtdlPath } from '../parser.js'
 
-export const singleInterfaceFirst: DtdlObjectModel = {
+const entityDefaults = {
+  ClassId: '',
+  SupplementalTypes: [],
+  SupplementalProperties: {},
+  UndefinedTypes: [],
+  UndefinedProperties: {},
+  description: {},
+  comment: '',
+}
+
+const interfaceDefaults = {
+  ...entityDefaults,
+  extends: [],
+  extendedBy: [],
+  contents: [],
+  schemas: [],
+  properties: {},
+  relationships: {},
+  telemetries: {},
+  commands: {},
+  components: {},
+}
+
+const relationshipDefaults = {
+  ...entityDefaults,
+  properties: {},
+  writable: false,
+}
+
+export const singleInterfaceFirst: DtdlModel = {
   first: {
+    ...interfaceDefaults,
     EntityKind: 'Interface',
     Id: 'first',
     displayName: { en: 'display name' },
   },
-} as unknown as DtdlObjectModel
+}
 
 export const singleInterfaceFirstFilePaths: DtdlPath[] = [
   {
@@ -17,95 +47,102 @@ export const singleInterfaceFirstFilePaths: DtdlPath[] = [
   },
 ]
 
-export const multipleInterfaces: DtdlObjectModel = {
+export const multipleInterfaces: DtdlModel = {
   ...singleInterfaceFirst,
   second: {
+    ...interfaceDefaults,
     EntityKind: 'Interface',
     Id: 'second',
   },
   third: {
+    ...interfaceDefaults,
     EntityKind: 'Interface',
     Id: 'third',
   },
-} as unknown as DtdlObjectModel
+}
 
-export const multipleInterfacesAndRelationship: DtdlObjectModel = {
+export const multipleInterfacesAndRelationship: DtdlModel = {
   ...multipleInterfaces,
   relFirstSecond: {
+    ...relationshipDefaults,
     EntityKind: 'Relationship',
     Id: 'relFirstSecond',
     target: 'first',
     ChildOf: 'second',
   },
   relInvalidTarget: {
+    ...relationshipDefaults,
     EntityKind: 'Relationship',
     Id: 'relInvalidTarget',
     ChildOf: 'third',
     target: 'invalid',
   },
-} as unknown as DtdlObjectModel
+}
 
-export const expandedWithRelationships: DtdlObjectModel = {
+export const expandedWithRelationships: DtdlModel = {
   first: {
+    ...interfaceDefaults,
     EntityKind: 'Interface',
     Id: 'first',
-    extendedBy: [],
-    extends: [],
   },
   second: {
+    ...interfaceDefaults,
     EntityKind: 'Interface',
     Id: 'second',
-    extendedBy: [],
-    extends: [],
   },
   third: {
+    ...interfaceDefaults,
     EntityKind: 'Interface',
     Id: 'third',
-    extendedBy: [],
-    extends: [],
   },
   relFirstSecond: {
+    ...relationshipDefaults,
     EntityKind: 'Relationship',
     Id: 'relFirstSecond',
     target: 'first',
     ChildOf: 'second',
   },
   ['rel second third']: {
+    ...relationshipDefaults,
     EntityKind: 'Relationship',
     Id: 'rel second third',
     target: 'second',
     ChildOf: 'third',
   },
-} as unknown as DtdlObjectModel
+}
 
-export const extendedInterface: DtdlObjectModel = {
+export const extendedInterface: DtdlModel = {
   parent: {
+    ...interfaceDefaults,
     EntityKind: 'Interface',
     Id: 'parent',
     extendedBy: ['child'],
     extends: [],
   },
   child: {
+    ...interfaceDefaults,
     EntityKind: 'Interface',
     Id: 'child',
-    extendedBy: [],
     extends: ['parent'],
   },
-} as unknown as DtdlObjectModel
+}
 
-export const interfaceWithContents: DtdlObjectModel = {
+export const interfaceWithContents: DtdlModel = {
   first: {
+    ...interfaceDefaults,
     EntityKind: 'Interface',
     Id: 'first',
-    properties: ['someProperty'],
-    telemetries: ['someTelemetry'],
+    properties: { someProperty: 'someProperty' },
+    telemetries: { someTelemetry: 'someTelemetry' },
   },
   someProperty: {
+    ...entityDefaults,
     EntityKind: 'Property',
     Id: 'someProperty',
   },
   someTelemetry: {
+    ...entityDefaults,
     EntityKind: 'Telemetry',
     Id: 'someTelemetry',
   },
-} as unknown as DtdlObjectModel
+}

@@ -1,5 +1,5 @@
-import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 import { InternalError } from '../../errors.js'
+import { DtdlEntity, DtdlModel, InterfaceEntity, RelationshipEntity } from '../../models/dtdlOmParser.js'
 import { getDisplayName } from '../dtdl/extract.js'
 import { getVisualisationState } from '../dtdl/filter.js'
 import { Direction, EntityTypeToMarkdownFn, IDiagram, NarrowMappingFn } from './diagramInterface.js'
@@ -67,7 +67,7 @@ export default class Flowchart implements IDiagram<'flowchart'> {
     return `@{ shape: ${shapeTemplate}, label: "${displayName}"}` // TODO: looks like an injection risk
   }
 
-  createNodeString(entity: EntityType, withClick: boolean = true): string {
+  createNodeString(entity: DtdlEntity, withClick: boolean = true): string {
     const displayName = getDisplayName(entity)
     const mermaidSafeId = dtdlIdReplaceSemicolon(entity.Id)
     let entityMarkdown = mermaidSafeId
@@ -81,7 +81,7 @@ export default class Flowchart implements IDiagram<'flowchart'> {
     return `${dtdlIdReplaceSemicolon(nodeFrom)} ${edgeType} ${label ? '|' + label + '|' : ``} ${dtdlIdReplaceSemicolon(nodeTo)}`
   }
 
-  relationshipToMarkdown(dtdlObjectModel: DtdlObjectModel, entity: RelationshipType) {
+  relationshipToMarkdown(dtdlObjectModel: DtdlModel, entity: RelationshipEntity) {
     // if we don't have both sides of the relationship don't render it
     if (!entity.ChildOf || !entity.target || !(entity.target in dtdlObjectModel)) {
       return []
@@ -91,7 +91,7 @@ export default class Flowchart implements IDiagram<'flowchart'> {
     return [this.createEdgeString(entity.ChildOf, entity.target, arrowTypes.LinkWithArrowHead, label)]
   }
 
-  interfaceToMarkdown(dtdlObjectModel: DtdlObjectModel, entity: InterfaceType) {
+  interfaceToMarkdown(dtdlObjectModel: DtdlModel, entity: InterfaceEntity) {
     return [
       this.createNodeString(entity),
       ...entity.extends
@@ -101,15 +101,14 @@ export default class Flowchart implements IDiagram<'flowchart'> {
     ]
   }
 
-  generateMarkdown(dtdlObjectModel: DtdlObjectModel, direction: Direction = ' TD'): string | null {
+  generateMarkdown(dtdlObjectModel: DtdlModel, direction: Direction = ' TD'): string | null {
     const graph: string[] = []
-    for (const entity in dtdlObjectModel) {
-      const entityObject: EntityType = dtdlObjectModel[entity]
+    Object.values(dtdlObjectModel).forEach((entityObject: DtdlEntity) => {
       const markdown = (this.entityKindToMarkdown[entityObject.EntityKind] || defaultMarkdownFn) as NarrowMappingFn<
         (typeof entityObject)['EntityKind']
       >
       graph.push(...markdown(dtdlObjectModel, entityObject))
-    }
+    })
 
     if (graph.length === 0) {
       return null

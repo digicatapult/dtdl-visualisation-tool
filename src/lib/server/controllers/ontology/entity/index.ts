@@ -24,8 +24,8 @@ import { DtdlSchema, type DtdlId, type UUID } from '../../../models/strings.js'
 import { Cache, type ICache } from '../../../utils/cache.js'
 import { dtdlIdReplaceSemicolon } from '../../../utils/mermaid/helpers.js'
 
-import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { DtdlInterface, NullableDtdlSource } from '../../../../db/types.js'
+import { DtdlModel } from '../../../models/dtdlOmParser.js'
 import {
   addContent,
   deleteContent,
@@ -706,7 +706,7 @@ export class EntityController extends HTMLController {
     this.cache.clear()
   }
 
-  getExtendedBy = (model: DtdlObjectModel, entityId: DtdlId, visited = new Set<DtdlId>()): DtdlId[] => {
+  getExtendedBy = (model: DtdlModel, entityId: DtdlId, visited = new Set<DtdlId>()): DtdlId[] => {
     if (visited.has(entityId)) throw new Error('Circular reference in extended bys')
 
     visited.add(entityId)
@@ -715,7 +715,7 @@ export class EntityController extends HTMLController {
     return entity.extendedBy.flatMap((e) => [e, ...this.getExtendedBy(model, e, visited)])
   }
 
-  private getDisplayNameIdMap(model: DtdlObjectModel): Record<string, string> {
+  private getDisplayNameIdMap(model: DtdlModel): Record<string, string> {
     return Object.fromEntries(
       Object.entries(model)
         .filter(([, node]) => isInterface(node))
@@ -741,7 +741,7 @@ export class EntityController extends HTMLController {
       }))
   }
 
-  private extractCommonDtmiPrefix(model: DtdlObjectModel): string {
+  private extractCommonDtmiPrefix(model: DtdlModel): string {
     const interfaceIds = Object.entries(model)
       .filter(([, node]) => node.EntityKind === 'Interface')
       .map(([id]) => id)

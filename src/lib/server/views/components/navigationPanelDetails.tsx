@@ -1,10 +1,11 @@
 /// <reference types="@kitajs/html/htmx.d.ts" />
 
-import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
+import { DtdlModel } from '../../models/dtdlOmParser.js'
 import { DtdlId } from '../../models/strings.js'
 import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
 import {
+  getCommentText,
   getDisplayName,
   isCommand,
   isInterface,
@@ -25,7 +26,7 @@ export const NavigationPanelDetails = ({
   edit,
 }: {
   entityId?: DtdlId
-  model?: DtdlObjectModel
+  model?: DtdlModel
   edit: boolean
 }): JSX.Element => {
   const entity = entityId && model ? model[entityId] : undefined
@@ -93,7 +94,7 @@ export const NavigationPanelDetails = ({
           additionalBody: {
             ...(relationshipName ? { relationshipName } : {}),
           },
-          text: entity.comment,
+          text: getCommentText(entity.comment),
           multiline: true,
           maxLength: MAX_VALUE_LENGTH,
         })}
@@ -197,7 +198,7 @@ export const NavigationPanelDetails = ({
         {isInterface(entity) && Object.keys(entity.telemetries).length > 0
           ? Object.entries(entity.telemetries).map(([name, id]) => {
               const telemetry = model[id]
-              if (!isTelemetry(telemetry) || !telemetry.DefinedIn) return
+              if (!isTelemetry(telemetry)) return
               return (
                 <TelemetryDetails telemetry={telemetry} name={name} model={model} edit={edit} entityId={entity.Id} />
               )

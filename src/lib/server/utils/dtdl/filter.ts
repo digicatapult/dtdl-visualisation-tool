@@ -1,22 +1,33 @@
-import { DtdlObjectModel, EntityType, RelationshipType } from '@digicatapult/dtdl-parser'
-
 import { InvalidQueryError } from '../../errors.js'
+import { DtdlEntity, DtdlModel } from '../../models/dtdlOmParser.js'
 import { DtdlId } from '../../models/strings.js'
 import { ISearch } from '../search.js'
+import { isInterface, isRelationship } from './extract.js'
 
 export const stateSymbol = Symbol('visualisationState')
 type VisualisationState = 'unexpanded' | 'expanded' | 'search'
 
-export type DtdlModelWithMetadata = {
-  [key in string]: EntityType & { [stateSymbol]?: VisualisationState }
+export type DtdlEntityWithMetadata = DtdlEntity & { [stateSymbol]?: VisualisationState }
+export type DtdlModelWithMetadata = Record<string, DtdlEntityWithMetadata>
+
+export const getVisualisationState = (entity: DtdlEntityWithMetadata): VisualisationState | undefined => {
+  return entity[stateSymbol]
 }
 
-export const getVisualisationState = (entity: EntityType): string => {
-  return entity?.[stateSymbol]
-}
-
-export const setVisualisationState = (entity: EntityType, value: string) => {
+export const setVisualisationState = (entity: DtdlEntityWithMetadata, value: VisualisationState) => {
   entity[stateSymbol] = value
+}
+
+const idsFromRecordOrArray = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value.filter((v): v is string => typeof v === 'string')
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.values(value as Record<string, unknown>).filter((v): v is string => typeof v === 'string')
+  }
+
+  return []
 }
 
 const determineVisualisationState = (
@@ -34,12 +45,12 @@ const determineVisualisationState = (
 }
 
 const relationshipFilter =
-  (dtdlObjectModel: DtdlObjectModel, matchingIds: Set<string>) =>
-  ([, entity]: [id: unknown, entity: EntityType]) => {
-    if (entity.EntityKind !== 'Relationship') {
+  (dtdlObjectModel: DtdlModel, matchingIds: Set<string>) =>
+  ([, entity]: [id: unknown, entity: DtdlEntity]) => {
+    if (!isRelationship(entity)) {
       return false
     }
-    const relationship = entity as RelationshipType
+    const relationship = entity
 
     if (!relationship.target || !(relationship.target in dtdlObjectModel)) {
       return false
@@ -60,7 +71,7 @@ const relationshipFilter =
     return false
   }
 
-export const searchInterfaces = (search: ISearch<EntityType>, searchQuery: string): Set<string> => {
+export const searchInterfaces = (search: ISearch<DtdlEntity>, searchQuery: string): Set<string> => {
   const quotedStringRegex = /(['"])(.*?)\1/g // capture groups inside "" or ''
   const quotedTerms = Array.from(searchQuery.matchAll(quotedStringRegex)).map((match) => match[2])
 
@@ -72,8 +83,8 @@ export const searchInterfaces = (search: ISearch<EntityType>, searchQuery: strin
 }
 
 export const filterModelByDisplayName = (
-  dtdlObjectModel: DtdlObjectModel,
-  search: ISearch<EntityType>,
+  dtdlObjectModel: DtdlModel,
+  search: ISearch<DtdlEntity>,
   searchQuery: string,
   expandedIds: string[]
 ): DtdlModelWithMetadata => {
@@ -112,8 +123,10 @@ export const filterModelByDisplayName = (
   // get all relationships of search matches
   const matchingRelationships = new Set(
     entityPairs.filter(relationshipFilter(dtdlObjectModel, matchingIds)).flatMap(([, entity]) => {
-      const relationship = entity as RelationshipType
-      return [relationship.Id, relationship.ChildOf, relationship.target].filter((x) => x !== undefined)
+      if (!isRelationship(entity)) {
+        return []
+      }
+      return [entity.Id, entity.ChildOf, entity.target].filter((x) => x !== undefined)
     })
   )
 
@@ -136,9 +149,13 @@ export const filterModelByDisplayName = (
   // get contents of all
   const contentsIds = [...idsAndRelationships].flatMap((id) => {
     const entity = dtdlObjectModel[id]
+    if (!entity || !isInterface(entity)) {
+      return []
+    }
+
     return [
-      ...('properties' in entity ? Object.values(entity.properties) : []),
-      ...('telemetries' in entity ? Object.values(entity.telemetries) : []),
+      ...idsFromRecordOrArray((entity as Record<string, unknown>).properties),
+      ...idsFromRecordOrArray((entity as Record<string, unknown>).telemetries),
     ]
   })
 
@@ -146,27 +163,34 @@ export const filterModelByDisplayName = (
 
   return [...idsAndRelationshipsAndContents].reduce((acc, id) => {
     const entity = dtdlObjectModel[id]
-    if (entity.EntityKind === 'Interface')
-      setVisualisationState(entity, determineVisualisationState(id, searchedIds, expandedIds))
-    acc[id] = entity
+    if (!entity) {
+      return acc
+    }
+    const entityWithMetadata = entity as DtdlEntityWithMetadata
+    if (isInterface(entityWithMetadata)) {
+      setVisualisationState(entityWithMetadata, determineVisualisationState(id, searchedIds, expandedIds))
+    }
+    acc[id] = entityWithMetadata
     return acc
-  }, {} as DtdlObjectModel)
+  }, {} as DtdlModelWithMetadata)
 }
 
-export const getRelatedIdsById = (dtdlObjectModel: DtdlObjectModel, id: string): Set<string> => {
+export const getRelatedIdsById = (dtdlObjectModel: DtdlModel, id: string): Set<string> => {
   const entityPairs = Object.entries(dtdlObjectModel)
   const matchingIds = new Set([id])
   if (!(id in dtdlObjectModel)) {
     return new Set()
   }
   const matchingEntity = dtdlObjectModel[id]
-  if (matchingEntity.EntityKind !== 'Interface' || !('extendedBy' in matchingEntity)) {
+  if (!matchingEntity || !isInterface(matchingEntity)) {
     return new Set()
   }
   const relatedIds = new Set([
     ...entityPairs.filter(relationshipFilter(dtdlObjectModel, matchingIds)).flatMap(([, entity]) => {
-      const relationship = entity as RelationshipType
-      return [relationship.ChildOf, relationship.target].filter((x) => x !== undefined)
+      if (!isRelationship(entity)) {
+        return []
+      }
+      return [entity.ChildOf, entity.target].filter((x) => x !== undefined)
     }),
     ...matchingEntity.extendedBy,
     ...matchingEntity.extends,

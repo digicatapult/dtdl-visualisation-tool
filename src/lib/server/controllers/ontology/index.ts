@@ -1,4 +1,3 @@
-import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { Get, Middlewares, Path, Produces, Queries, Query, Request, Route, SuccessResponse } from '@tsoa/runtime'
 import express from 'express'
 import { randomUUID } from 'node:crypto'
@@ -16,6 +15,7 @@ import {
   type UpdateParams,
 } from '../../models/controllerTypes.js'
 import { modelHistoryCookie, octokitTokenCookie, posthogIdCookie } from '../../models/cookieNames.js'
+import { DtdlEntity, DtdlModel } from '../../models/dtdlOmParser.js'
 import { ViewAndEditPermission } from '../../models/github.js'
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../models/renderedDiagram/index.js'
 import { type UUID } from '../../models/strings.js'
@@ -161,7 +161,7 @@ export class OntologyController extends HTMLController {
 
     // get the base dtdl model that we will derive the graph from
     const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
-    const search = new FuseSearch(this.modelDb.getCollection(baseModel))
+    const search = new FuseSearch<DtdlEntity>(this.modelDb.getCollection(baseModel))
 
     const newSession: Session = {
       diagramType: params.diagramType,
@@ -366,7 +366,7 @@ export class OntologyController extends HTMLController {
   private manipulateOutput(
     output: MermaidSvgRender | PlainTextRender,
     dtdlModelId: UUID,
-    model: DtdlObjectModel,
+    model: DtdlModel,
     oldSession: Session,
     newSession: Session,
     params: UpdateParams
@@ -471,7 +471,7 @@ export class OntologyController extends HTMLController {
 
   private async generateRawOutput(
     dtdlModelId: UUID,
-    model: DtdlObjectModel,
+    model: DtdlModel,
     session: GenerateParams
   ): Promise<MermaidSvgRender | PlainTextRender> {
     const cacheKey = dtdlCacheKey(dtdlModelId, session)
@@ -485,7 +485,7 @@ export class OntologyController extends HTMLController {
     return output
   }
 
-  private truncateExpandedIds(truncateId: string, model: DtdlObjectModel, expandedIds: string[]): string[] {
+  private truncateExpandedIds(truncateId: string, model: DtdlModel, expandedIds: string[]): string[] {
     const relatedIds = getRelatedIdsById(model, truncateId)
     const truncateIdIndex = expandedIds.findIndex((id) => id === truncateId)
 

@@ -1,4 +1,4 @@
-import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
+import { DtdlModel } from '../../models/dtdlOmParser.js'
 
 const emptyEntityProperties = {
   SupplementalTypes: [],
@@ -10,7 +10,7 @@ const emptyEntityProperties = {
   ClassId: 'dtmi:dtdl:class:SomeClass;2',
 }
 const emptyInterfaceProperties = {
-  contents: {},
+  contents: [],
   commands: {},
   components: {},
   properties: {},
@@ -219,4 +219,4 @@ export const complexMockDtdlModel = {
     ...emptyEntityProperties,
     ...emptyRelationshipProperties,
   },
-} as DtdlObjectModel
+} as DtdlModel

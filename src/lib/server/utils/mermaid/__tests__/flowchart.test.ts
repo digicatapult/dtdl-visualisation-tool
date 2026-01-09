@@ -1,8 +1,8 @@
-import { InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 import { assert, expect } from 'chai'
 import { JSDOM } from 'jsdom'
 import { describe, it } from 'mocha'
 
+import { InterfaceEntity, RelationshipEntity } from '../../../models/dtdlOmParser.js'
 import Flowchart, { extractFlowchartNodeCoordinates } from '../flowchart.js'
 import { flowchartFixture, mockDtdlObjectModel } from './fixtures.js'
 import { parseMermaid } from './helpers.js'
@@ -26,7 +26,7 @@ describe('Mermaid', function () {
     it('should return a list of mermaid markdown string that represent an interface ', () => {
       const interfaceAsMarkdown = flowchart.interfaceToMarkdown(
         mockDtdlObjectModel,
-        mockDtdlObjectModel['dtmi:com:example_extended;1'] as InterfaceType
+        mockDtdlObjectModel['dtmi:com:example_extended;1'] as InterfaceEntity
       )
       const test = [
         `dtmi:com:example_extended:1@{ shape: rect, label: "example extended"}\nclick dtmi:com:example_extended:1 getEntity`,
@@ -38,7 +38,7 @@ describe('Mermaid', function () {
     it('should return a list of mermaid markdown string that represents a relationship ', () => {
       const relationshipAsMarkdown = flowchart.relationshipToMarkdown(
         mockDtdlObjectModel,
-        mockDtdlObjectModel['dtmi:com:example_relationship;1'] as RelationshipType
+        mockDtdlObjectModel['dtmi:com:example_relationship;1'] as RelationshipEntity
       )
       const test = [`dtmi:com:example:1 --> |A relationship| dtmi:com:example_related:1`]
       expect(relationshipAsMarkdown).to.deep.equal(test)
@@ -46,7 +46,7 @@ describe('Mermaid', function () {
     it('should return undefined for a relationship with an undefined interface', () => {
       const relationshipAsMarkdown = flowchart.relationshipToMarkdown(
         mockDtdlObjectModel,
-        mockDtdlObjectModel['dtmi:com:example_relationship_undefined_interface;1'] as RelationshipType
+        mockDtdlObjectModel['dtmi:com:example_relationship_undefined_interface;1'] as RelationshipEntity
       )
       const test = []
       expect(relationshipAsMarkdown).to.deep.equal(test)
