@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.9.21",
+  "version": "0.9.22",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -48,7 +48,7 @@
     "@tsoa/runtime": "^6.6.0",
     "@types/compression": "^1.8.1",
     "async-mutex": "^0.5.0",
-    "body-parser": "^2.2.1",
+    "body-parser": "^2.2.2",
     "chai": "^6.2.2",
     "chalk": "^5.6.2",
     "commander": "^14.0.2",
