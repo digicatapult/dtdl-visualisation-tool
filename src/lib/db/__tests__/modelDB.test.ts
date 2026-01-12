@@ -3,6 +3,7 @@ import * as chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import { describe, it } from 'mocha'
 import sinon from 'sinon'
+import { container } from 'tsyringe'
 import { InternalError } from '../../server/errors.js'
 import { FileSourceKeys } from '../../server/models/openTypes.js'
 import { UUID } from '../../server/models/strings.js'
@@ -267,6 +268,31 @@ describe('modelDB', function () {
         { source: JSON.stringify(dtdlToUpdate.source) },
       ])
       expect(deleteStub.firstCall.args).to.deep.equal(['dtdl', { id: dtdlToDelete.id }])
+    })
+  })
+
+  describe('regeneratePreview', () => {
+    it('should regenerate preview and update model', async () => {
+      const mockPreviewSvg = '<svg>minimap preview</svg>'
+      const mockOutput = {
+        renderForMinimap: sinon.stub().returns(mockPreviewSvg),
+      }
+      const mockGenerator = {
+        run: sinon.stub().resolves(mockOutput),
+      }
+
+      const containerStub = sinon.stub(container, 'resolve').returns(mockGenerator)
+
+      await model.regeneratePreview('1')
+
+      expect(mockParserParseStub.calledOnce).to.equal(true)
+      expect(mockGenerator.run.calledOnceWith(defaultModel, 'flowchart', 'elk')).to.equal(true)
+      expect(mockOutput.renderForMinimap.calledOnce).to.equal(true)
+      expect((mockDb.update as sinon.SinonStub).calledWith('model', { id: '1' }, { preview: mockPreviewSvg })).to.equal(
+        true
+      )
+
+      containerStub.restore()
     })
   })
 })

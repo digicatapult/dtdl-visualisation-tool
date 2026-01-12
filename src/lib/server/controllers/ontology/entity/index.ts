@@ -151,6 +151,10 @@ export class EntityController extends HTMLController {
     await this.modelDb.addEntityToModel(ontologyId, formattedSource, fileName)
 
     this.cache.clear()
+
+    // Regenerate preview after adding new node
+    await this.modelDb.regeneratePreview(ontologyId)
+
     this.sessionStore.update(updateParams.sessionId, {
       highlightNodeId: dtdlIdReplaceSemicolon(newId),
       search: undefined,
@@ -619,6 +623,9 @@ export class EntityController extends HTMLController {
 
     await this.deleteInterfaces(ontologyId, [entityId, ...extendedBys])
 
+    // Regenerate preview after deleting interface
+    await this.modelDb.regeneratePreview(ontologyId)
+
     this.sessionStore.update(updateParams.sessionId, { highlightNodeId: '' })
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
   }
@@ -636,6 +643,9 @@ export class EntityController extends HTMLController {
 
     await this.putEntityValue(ontologyId, entityId, deleteContent(contentName))
 
+    // Regenerate preview after deleting content - it could have been a relationship change
+    await this.modelDb.regeneratePreview(ontologyId)
+
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
   }
 
@@ -652,6 +662,9 @@ export class EntityController extends HTMLController {
     const { contentName, contentType, ...updateParams } = body
 
     await this.putEntityValue(ontologyId, entityId, addContent(contentName, contentType))
+
+    // Regenerate preview after adding content - could have been a relationship chnage
+    await this.modelDb.regeneratePreview(ontologyId)
 
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
   }

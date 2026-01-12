@@ -1,10 +1,11 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
-import { singleton } from 'tsyringe'
+import { container, singleton } from 'tsyringe'
 import { InternalError } from '../server/errors.js'
 import { FileSourceKeys } from '../server/models/openTypes.js'
 import { DtdlId, type UUID } from '../server/models/strings.js'
 import { allInterfaceFilter } from '../server/utils/dtdl/extract.js'
 import Parser, { DtdlPath } from '../server/utils/dtdl/parser.js'
+import { SvgGenerator } from '../server/utils/mermaid/generator.js'
 import Database from './index.js'
 import { DtdlFile, DtdlRow, DtdlSource, GithubModelRow, isGithubModel, ModelRow, NullableDtdlSource } from './types.js'
 
@@ -172,5 +173,17 @@ export class ModelDb {
         }
       }
     })
+  }
+
+  async regeneratePreview(ontologyId: UUID): Promise<void> {
+    const { model } = await this.getDtdlModelAndTree(ontologyId)
+
+    const generator = container.resolve(SvgGenerator)
+
+    // Generate with default params (flowchart, elk layout, no search/expand)
+    const output = await generator.run(model, 'flowchart', 'elk')
+    const preview = output.renderForMinimap()
+
+    await this.db.update('model', { id: ontologyId }, { preview })
   }
 }

@@ -28,6 +28,7 @@ import {
   mockReqWithCookie,
   mockSession,
   propertyName,
+  regeneratePreviewStub,
   relationshipName,
   sessionUpdateStub,
   simpleDtdlFileEntityId,
@@ -998,6 +999,7 @@ describe('EntityController', async () => {
     afterEach(() => {
       updateDtdlSourceStub.resetHistory()
       deleteOrUpdateDtdlSourceStub.resetHistory()
+      regeneratePreviewStub.resetHistory()
     })
 
     it('should delete single interface file - not extended', async () => {
@@ -1005,6 +1007,7 @@ describe('EntityController', async () => {
         .deleteInterface(req, githubDtdlId, 'dtmi:com:example_extended;1', defaultParams)
         .then(toHTMLString)
       expect(deleteOrUpdateDtdlSourceStub.firstCall.args).to.deep.equal([[{ id: simpleDtdlRowId, source: null }]])
+      expect(regeneratePreviewStub.calledOnceWith(githubDtdlId)).to.equal(true)
 
       expect(result).to.equal(updateLayoutOutput)
     })
@@ -1020,6 +1023,7 @@ describe('EntityController', async () => {
           { id: simpleDtdlRowId, source: null },
         ],
       ])
+      expect(regeneratePreviewStub.calledOnceWith(githubDtdlId)).to.equal(true)
 
       expect(result).to.equal(updateLayoutOutput)
     })
@@ -1040,7 +1044,10 @@ describe('EntityController', async () => {
   })
 
   describe('deleteContent', () => {
-    afterEach(() => updateDtdlSourceStub.resetHistory())
+    afterEach(() => {
+      updateDtdlSourceStub.resetHistory()
+      regeneratePreviewStub.resetHistory()
+    })
 
     it('should update db and layout to delete content on non-array DTDL file', async () => {
       const result = await controller
@@ -1053,6 +1060,7 @@ describe('EntityController', async () => {
         contents: file.contents.filter((c) => c.name !== relationshipName),
       }
       expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(fileWithoutRelationship)
+      expect(regeneratePreviewStub.calledOnceWith(githubDtdlId)).to.equal(true)
       expect(result).to.equal(updateLayoutOutput)
     })
 
@@ -1067,6 +1075,7 @@ describe('EntityController', async () => {
         contents: file.contents.filter((c) => c.name !== relationshipName),
       }
       expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal([simpleDtdlFileFixture({}), fileWithoutRelationship])
+      expect(regeneratePreviewStub.calledOnceWith(githubDtdlId)).to.equal(true)
       expect(result).to.equal(updateLayoutOutput)
     })
   })
@@ -1099,6 +1108,7 @@ describe('EntityController', async () => {
   describe('createNewNode', () => {
     beforeEach(() => {
       addEntityToModelStub.reset()
+      regeneratePreviewStub.resetHistory()
     })
 
     it('should create new node with valid input', async () => {
@@ -1130,6 +1140,8 @@ describe('EntityController', async () => {
         extends: ['dtmi:com:example;1'],
         contents: [],
       })
+
+      expect(regeneratePreviewStub.calledOnceWith(simpleDtdlId)).to.equal(true)
 
       expect(result).to.include('mermaidTarget')
       expect(result).to.include('searchPanel')
