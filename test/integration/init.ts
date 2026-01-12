@@ -1,6 +1,6 @@
 import 'reflect-metadata'
 
-import { GenericContainer, type StartedTestContainer } from 'testcontainers'
+import { type StartedTestContainer } from 'testcontainers'
 import {
   bringUpDatabaseContainer,
   buildVisualisationImage,
@@ -9,13 +9,12 @@ import {
 
 export let visualisationUIContainer: StartedTestContainer
 export let postgresContainer: StartedTestContainer
-export let visualisationImage: GenericContainer
 
 before(async function () {
   this.timeout(420000)
 
   postgresContainer = await bringUpDatabaseContainer()
-  visualisationImage = await buildVisualisationImage()
+  const visualisationImage = await buildVisualisationImage()
   visualisationUIContainer = await startVisualisationContainer(
     {
       containerName: 'dtdl-visualiser',

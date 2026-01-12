@@ -1,8 +1,11 @@
 import { expect, test } from '@playwright/test'
+import { visualisationUIWiremockPort } from '../globalSetup'
 import { directlyClickElement } from './helpers/clickHelpers'
 import { waitForUpdateLayout } from './helpers/waitForHelpers'
 
 test.describe('expand', () => {
+  test.use({ baseURL: `http://localhost:${visualisationUIWiremockPort}` })
+
   test('flowchart - expand/unexpand nodes', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 })
     await page.goto('./?search=IdentifiedObject')

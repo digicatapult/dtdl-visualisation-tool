@@ -5,11 +5,14 @@ import { logger } from '../../src/lib/server/logger.js'
 interface VisualisationUIConfig {
   containerName: string
   hostPort: number
-  containerPort: number
-  cookieSessionKeys: string
+  containerPort?: number
+  cookieSessionKeys?: string
   maxOntologySize?: number
   posthogMockPort?: number
   iubendaEnabled?: boolean
+  ghApiBaseUrl?: string
+  ghOauthBaseUrl?: string
+  ghOauthTokenBaseUrl?: string
 }
 interface databaseConfig {
   containerName: string
@@ -100,12 +103,15 @@ export async function startVisualisationContainer(
 ): Promise<StartedTestContainer> {
   const {
     containerName,
-    containerPort,
+    containerPort = 3000,
     hostPort,
-    cookieSessionKeys,
+    cookieSessionKeys = 'secret',
     maxOntologySize,
     posthogMockPort,
     iubendaEnabled,
+    ghApiBaseUrl,
+    ghOauthBaseUrl,
+    ghOauthTokenBaseUrl,
   } = env
 
   logger.info(`Starting container ${containerName} on port ${containerPort}...`)
@@ -122,9 +128,10 @@ export async function startVisualisationContainer(
     GH_CLIENT_SECRET: process.env.GH_CLIENT_SECRET || '',
     GH_APP_NAME: process.env.GH_APP_NAME || '',
     GH_APP_PRIVATE_KEY: process.env.GH_APP_PRIVATE_KEY || '',
-    GH_API_BASE_URL: 'http://wiremock:8080',
-    GH_OAUTH_BASE_URL: 'http://localhost:8080',
-    GH_OAUTH_TOKEN_BASE_URL: 'http://wiremock:8080',
+    GH_REDIRECT_ORIGIN: `http://localhost:${hostPort}`,
+    ...(ghApiBaseUrl && { GH_API_BASE_URL: ghApiBaseUrl }),
+    ...(ghOauthBaseUrl && { GH_OAUTH_BASE_URL: ghOauthBaseUrl }),
+    ...(ghOauthTokenBaseUrl && { GH_OAUTH_TOKEN_BASE_URL: ghOauthTokenBaseUrl }),
     COOKIE_SESSION_KEYS: cookieSessionKeys,
     EDIT_ONTOLOGY: 'true',
     MAX_DTDL_OBJECT_SIZE: maxOntologySize ? maxOntologySize.toString() : '1000',
@@ -166,10 +173,11 @@ export async function startVisualisationContainer(
     containerBuilder = containerBuilder.withExtraHosts([{ host: 'host.docker.internal', ipAddress: 'host-gateway' }])
   }
 
-  const visualisationUIContainer = await containerBuilder
+  const container = await containerBuilder
+    .withName(env.containerName)
     .withCommand(['sh', '-c', 'npx knex migrate:latest --env production; dtdl-visualiser parse -p /sample/energygrid'])
     .start()
   logger.info(`Started container ${containerName}`)
-  logger.info(`Started container on port ${visualisationUIContainer.getMappedPort(containerPort)}`)
-  return visualisationUIContainer
+  logger.info(`Started container on port ${container.getMappedPort(containerPort)}`)
+  return container
 }

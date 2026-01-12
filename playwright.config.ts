@@ -20,7 +20,6 @@ export default defineConfig({
   use: {
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
-    baseURL: 'http://localhost:3000',
     headless: !!process.env.CI,
   },
   expect: {
@@ -28,23 +27,24 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'authorisePrivateRepos',
-      testMatch: 'githubPrivateRepo.spec.ts',
+      name: 'github-chromium',
+      testMatch: '**/github.spec.ts',
+      use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'chromium',
+      testIgnore: '**/github.spec.ts',
       use: { ...devices['Desktop Chrome'] },
-      dependencies: ['authorisePrivateRepos'],
     },
     {
       name: 'firefox',
+      testIgnore: '**/github.spec.ts',
       use: { ...devices['Desktop Firefox'] },
-      dependencies: ['authorisePrivateRepos'],
     },
     {
       name: 'webkit',
+      testIgnore: '**/github.spec.ts',
       use: { ...devices['Desktop Safari'] },
-      dependencies: ['authorisePrivateRepos'],
     },
   ],
 })

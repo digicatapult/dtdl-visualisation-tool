@@ -8,6 +8,6 @@
     "headers": {
       "Content-Type": "application/zip"
     },
-    "bodyFileName": "sample-repo.zip"
+    "bodyFileName": "dtdl-test-fixtures.zip"
   }
 }

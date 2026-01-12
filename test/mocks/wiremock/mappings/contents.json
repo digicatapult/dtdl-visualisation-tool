@@ -1,24 +1,43 @@
 {
-  "request": {
-    "method": "GET",
-    "urlPathPattern": "/repos/[^/]+/[^/]+/contents/",
-    "queryParameters": {
-      "ref": {
-        "equalTo": "main"
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/repos/[^/]+/[^/]+/contents/",
+        "queryParameters": {
+          "ref": {
+            "equalTo": "main"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": [
+          {
+            "name": "mockFile.json",
+            "path": "mockFile.json",
+            "type": "file"
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/repos/digicatapult/dtdl-visualisation-tool-fake/contents.*"
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "message": "Not Found"
+        }
       }
     }
-  },
-  "response": {
-    "status": 200,
-    "headers": {
-      "Content-Type": "application/json"
-    },
-    "jsonBody": [
-      {
-        "name": "mockFile.json",
-        "path": "mockFile.json",
-        "type": "file"
-      }
-    ]
-  }
+  ]
 }

@@ -1,35 +1,38 @@
 import AdmZip from 'adm-zip'
-import { mkdir, rm, writeFile } from 'node:fs/promises'
-import { dirname } from 'node:path'
+import { randomUUID } from 'node:crypto'
+import { rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { StartedTestContainer } from 'testcontainers'
 
-export interface DtdlFile {
+export interface DtdlZipFile {
   path: string
   content: string
 }
 
-export async function createGithubZip(
-  files: DtdlFile[],
-  outputPath: string,
-  repoName = 'test-repo',
-  commitSha = 'abc123def456'
-): Promise<() => Promise<void>> {
-  await mkdir(dirname(outputPath), { recursive: true })
+export async function copyGithubZipToWiremock(
+  wiremockContainer: StartedTestContainer,
+  files: DtdlZipFile[],
+  targetFileName: string
+): Promise<void> {
+  const zipPath = join(tmpdir(), 'repo.zip')
 
   const zip = new AdmZip()
-  const rootFolder = `${repoName}-${commitSha.substring(0, 7)}`
+  const rootFolder = randomUUID()
 
-  zip.addFile(`${rootFolder}/`, Buffer.alloc(0)) // add explicit top level dir
+  zip.addFile(`${rootFolder}/`, Buffer.alloc(0))
   for (const file of files) {
     zip.addFile(`${rootFolder}/${file.path}`, Buffer.from(file.content, 'utf-8'))
   }
 
-  await writeFile(outputPath, zip.toBuffer())
+  await writeFile(zipPath, zip.toBuffer())
 
-  return async () => {
-    try {
-      await rm(outputPath, { force: true })
-    } catch (err) {
-      console.error(`Failed to cleanup zip file: ${err}`)
-    }
-  }
+  await wiremockContainer.copyFilesToContainer([
+    {
+      source: zipPath,
+      target: `/home/wiremock/__files/${targetFileName}`,
+    },
+  ])
+
+  await rm(zipPath, { force: true })
 }

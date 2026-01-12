@@ -1,13 +1,12 @@
 import { expect, test } from '@playwright/test'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { visualisationUIWiremockPort } from '../globalSetup.js'
 import { openEditRepo } from './helpers/openEditRepo.js'
 import { waitForSuccessResponse } from './helpers/waitForHelpers.js'
 
 test.describe('Publish ontology', () => {
-  test('publish success - new/existing branch', async ({ browser }) => {
-    const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
-    const page = await context.newPage()
+  test.use({ baseURL: `http://localhost:${visualisationUIWiremockPort}` })
+
+  test('publish success - new/existing branch', async ({ page }) => {
     await openEditRepo(page)
 
     // open publish dialog
@@ -17,6 +16,6 @@ test.describe('Publish ontology', () => {
     // TODO assert PR created successfully against mock GitHub API
     // TODO assert committed to existing branch successfully against mock GitHub API
 
-    await context.close()
+    await page.close()
   })
 })

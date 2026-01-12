@@ -1,13 +1,14 @@
 import { expect, Page, test } from '@playwright/test'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { visualisationUIWiremockPort } from '../globalSetup.js'
 import { openEditRepo } from './helpers/openEditRepo.js'
 import { waitForSuccessResponse, waitForUpdateLayout } from './helpers/waitForHelpers'
 
 test.describe('Test edit ontology', () => {
-  test('open ontology that cant be edited and check that toggle is disabled', async ({ page, baseURL }) => {
+  test.use({ baseURL: `http://localhost:${visualisationUIWiremockPort}` })
+
+  test('open ontology that cant be edited and check that toggle is disabled', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 })
-    await waitForUpdateLayout(page, () => page.goto(baseURL!))
+    await waitForUpdateLayout(page, () => page.goto('./'))
     await expect(page.locator('#toolbar').getByText('Open')).toBeVisible()
 
     await waitForSuccessResponse(page, () => page.locator('#open-button').click(), '/open')
@@ -21,10 +22,8 @@ test.describe('Test edit ontology', () => {
       'Only Ontologies from github that you have write permissions on, can be edited'
     )
   })
-  test('edit interface + relationship', async ({ browser }) => {
+  test('edit interface + relationship', async ({ page }) => {
     test.setTimeout(110000)
-    const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
-    const page = await context.newPage()
     await openEditRepo(page)
 
     // turn on edit mode
@@ -176,12 +175,10 @@ test.describe('Test edit ontology', () => {
       })
       .toBe('none')
 
-    await context.close()
+    await page.close()
   })
 
-  test('delete interface + relationship', async ({ browser }) => {
-    const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
-    const page = await context.newPage()
+  test('delete interface + relationship', async ({ page }) => {
     await openEditRepo(page)
 
     // zoom out until visible
@@ -241,7 +238,7 @@ test.describe('Test edit ontology', () => {
     )
     await expect(page.locator('#mermaid-output')).not.toContainText(baseInterface)
     await expect(page.locator('#mermaid-output')).not.toContainText(extendedInterface)
-    await context.close()
+    await page.close()
   })
 })
 

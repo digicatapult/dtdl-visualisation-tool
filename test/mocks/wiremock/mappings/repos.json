@@ -54,7 +54,7 @@
     {
       "request": {
         "method": "GET",
-        "urlPathPattern": "/user/repositories",
+        "urlPathPattern": "/user/repos",
         "queryParameters": {
           "page": {
             "equalTo": "1"
@@ -83,7 +83,7 @@
     {
       "request": {
         "method": "GET",
-        "urlPathPattern": "/user/repositories",
+        "urlPathPattern": "/user/repos",
         "queryParameters": {
           "page": {
             "equalTo": "2"

@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
+import { visualisationUIWiremockPort } from '../globalSetup'
 import { waitForSuccessResponse, waitForUpdateLayout, waitForUploadFile } from './helpers/waitForHelpers'
 
 // Convert import.meta.url to __dirname equivalent
@@ -9,6 +10,8 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 test.describe('Upload ontology from local drive', () => {
+  test.use({ baseURL: `http://localhost:${visualisationUIWiremockPort}` })
+
   test('Should error + success path for uploading ontology from local zip files', async ({ page }) => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     await page.setViewportSize({ width: 1920, height: 1080 })

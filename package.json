@@ -12,6 +12,8 @@
     "test:unit": "NODE_OPTIONS=--no-experimental-strip-types NODE_ENV=test ./node_modules/.bin/mocha --config ./test/mocharc.json ./src/**/*.test.ts",
     "test:e2e": "DEBUG=testcontainers* NODE_ENV=test playwright test --ui",
     "test:playwright": "NODE_ENV=test playwright test --trace on --max-failures=1",
+    "test:playwright:wiremock": "NODE_ENV=test playwright test --project=chromium --project=firefox --project=webkit --trace on --max-failures=1",
+    "test:playwright:github": "NODE_ENV=test playwright test --project=github-chromium --project=github-firefox --project=github-webkit --trace on --max-failures=1",
     "test:integration": "NODE_ENV=test ./node_modules/.bin/mocha --config ./test/mocharc.json --file ./test/integration/init.ts ./test/integration/*.test.ts",
     "test:ratelimit": "NODE_OPTIONS=--no-experimental-strip-types NODE_ENV=test ./node_modules/.bin/mocha --config ./test/mocharc.json ./test/ratelimit/*.test.ts",
     "build": "npm run tsoa:build && swc ./src -d ./build --copy-files --strip-leading-paths",

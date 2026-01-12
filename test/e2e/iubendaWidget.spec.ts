@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { visualisationUIIubendaPort } from '../globalSetup.js'
 import { waitForUpdateLayout } from './helpers/waitForHelpers.js'
 
 /**
@@ -10,7 +11,7 @@ import { waitForUpdateLayout } from './helpers/waitForHelpers.js'
  */
 
 test.describe('Iubenda Privacy Policy Widget', () => {
-  test.use({ baseURL: 'http://localhost:3002' })
+  test.use({ baseURL: `http://localhost:${visualisationUIIubendaPort}` })
 
   test('Should load, display, and position the Iubenda widget correctly', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 })
