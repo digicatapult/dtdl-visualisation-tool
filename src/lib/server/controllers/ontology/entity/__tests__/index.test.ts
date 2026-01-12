@@ -1043,6 +1043,30 @@ describe('EntityController', async () => {
     })
   })
 
+  describe('postContent', () => {
+    afterEach(() => {
+      updateDtdlSourceStub.resetHistory()
+      regeneratePreviewStub.resetHistory()
+    })
+
+    it('should update db and layout to add relationship content and regenerate preview', async () => {
+      const newRelationshipName = 'newRelationship'
+      const result = await controller
+        .postContent(req, githubDtdlId, arrayDtdlFileEntityId, {
+          contentName: newRelationshipName,
+          contentType: 'Relationship',
+          ...defaultParams,
+        })
+        .then(toHTMLString)
+
+      const updatedSource = updateDtdlSourceStub.firstCall.args[1]
+      const targetInterface = Array.isArray(updatedSource) ? updatedSource[1] : updatedSource
+      expect(targetInterface.contents.some((c: { name: string }) => c.name === newRelationshipName)).to.equal(true)
+      expect(regeneratePreviewStub.calledOnceWith(githubDtdlId)).to.equal(true)
+      expect(result).to.equal(updateLayoutOutput)
+    })
+  })
+
   describe('deleteContent', () => {
     afterEach(() => {
       updateDtdlSourceStub.resetHistory()

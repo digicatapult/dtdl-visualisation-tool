@@ -663,8 +663,10 @@ export class EntityController extends HTMLController {
 
     await this.putEntityValue(ontologyId, entityId, addContent(contentName, contentType))
 
-    // Regenerate preview after adding content - could have been a relationship chnage
-    await this.modelDb.regeneratePreview(ontologyId)
+    // Regenerate preview only for relationship changes
+    if (contentType === 'Relationship') {
+      await this.modelDb.regeneratePreview(ontologyId)
+    }
 
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
   }
