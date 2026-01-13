@@ -68,7 +68,7 @@ test.describe('Share Ontology Link', () => {
     await context2.close()
   })
   test('private ontology cannot be viewed on another browser/github user', async ({ browser }) => {
-    // Reset specific wiremock scenario to avoid affecting other parallel tests
+    // Reset wiremock scenario
     await fetch('http://localhost:8080/__admin/scenarios/privateRepoPermissionsShareOntology/state', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },

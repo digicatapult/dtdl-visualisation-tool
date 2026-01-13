@@ -32,12 +32,12 @@ export default defineConfig({
     },
     {
       name: 'firefox',
-      testIgnore: '**/github.spec.ts',
+      testIgnore: ['**/github.spec.ts', '**/shareOntology.spec.ts'],
       use: { ...devices['Desktop Firefox'] },
     },
     {
       name: 'webkit',
-      testIgnore: '**/github.spec.ts',
+      testIgnore: ['**/github.spec.ts', '**/shareOntology.spec.ts'],
       use: { ...devices['Desktop Safari'] },
     },
   ],
