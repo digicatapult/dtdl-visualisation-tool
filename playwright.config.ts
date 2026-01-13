@@ -27,13 +27,7 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'github-chromium',
-      testMatch: '**/github.spec.ts',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
       name: 'chromium',
-      testIgnore: '**/github.spec.ts',
       use: { ...devices['Desktop Chrome'] },
     },
     {

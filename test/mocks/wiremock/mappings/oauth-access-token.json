@@ -5,14 +5,13 @@
   },
   "response": {
     "status": 200,
+    "transformers": ["response-template"],
     "headers": {
       "Content-Type": "application/json"
     },
     "jsonBody": {
-      "access_token": "fake-github-token",
-      "expires_in": 28800,
-      "token_type": "bearer",
-      "scope": "repo,user"
+      "access_token": "fake-github-token-{{randomValue length=10 type='ALPHANUMERIC'}}",
+      "expires_in": 28800
     }
   }
 }

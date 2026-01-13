@@ -76,6 +76,16 @@
             "permissions": {
               "push": true
             }
+          },
+          {
+            "full_name": "digicatapult/nidt_ontology_private_without_collaborator",
+            "name": "nidt_ontology_private_without_collaborator",
+            "owner": {
+              "login": "digicatapult"
+            },
+            "permissions": {
+              "push": true
+            }
           }
         ]
       }

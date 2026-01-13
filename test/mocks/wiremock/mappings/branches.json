@@ -39,6 +39,21 @@
         },
         "jsonBody": []
       }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/repos/digicatapult/dtdl-visualisation-tool-fake/branches"
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "message": "Not Found"
+        }
+      }
     }
   ]
 }

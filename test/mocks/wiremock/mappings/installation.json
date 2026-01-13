@@ -11,20 +11,12 @@
     "jsonBody": {
       "id": 789012,
       "account": {
-        "login": "digicatapult",
-        "id": 12345
+        "login": "digicatapult"
       },
-      "repository_selection": "selected",
-      "access_tokens_url": "https://api.github.com/app/installations/789012/access_tokens",
-      "repositories_url": "https://api.github.com/installation/repositories",
       "permissions": {
         "contents": "write",
-        "pull_requests": "write",
-        "metadata": "read"
-      },
-      "created_at": "2024-01-01T00:00:00Z",
-      "updated_at": "2024-01-01T00:00:00Z",
-      "app_id": 12345
+        "pull_requests": "write"
+      }
     }
   }
 }

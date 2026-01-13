@@ -42,7 +42,7 @@ test.describe('Share Ontology Link', () => {
   })
   test('private ontology can be viewed correctly on another browser/github user edits enabled', async ({ browser }) => {
     // Open ontology and copy share link
-    const repoName = 'nidt_ontology_private_with_collaborator'
+    const repoName = 'dtdl-test-fixtures'
     const context1 = await browser.newContext()
     const projectName = test.info().project.name
     if (projectName.includes('chromium')) {
@@ -68,6 +68,13 @@ test.describe('Share Ontology Link', () => {
     await context2.close()
   })
   test('private ontology cannot be viewed on another browser/github user', async ({ browser }) => {
+    // Reset specific wiremock scenario to avoid affecting other parallel tests
+    await fetch('http://localhost:8080/__admin/scenarios/privateRepoPermissionsShareOntology/state', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ state: 'Started' }),
+    })
+
     const repoName = 'nidt_ontology_private_without_collaborator'
     // Open ontology and copy share link
     const context1 = await browser.newContext()

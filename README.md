@@ -210,13 +210,7 @@ E2E tests use `playwright` and are described in `test/`. Install dependencies wi
 npx playwright install
 ```
 
-Most E2E tests use WireMock to mock the GitHub API.
-
-```sh
-npm run test:playwright:wiremock
-```
-
-WireMock stubs are configured in `test/mocks/wiremock/mappings/`.
+Most E2E tests use WireMock to mock the GitHub API. WireMock stubs are configured in `test/mocks/wiremock/mappings/`.
 
 The `github.spec.ts` test file performs a real OAuth flow with GitHub and requires test user credentials (see [GitHub Integration](#github-integration) for configuration):
 
@@ -224,11 +218,7 @@ The `github.spec.ts` test file performs a real OAuth flow with GitHub and requir
 - `GH_TEST_PASSWORD` - GitHub test account password
 - `GH_TEST_2FA_SECRET` - TOTP secret for 2FA
 
-```sh
-npm run test:playwright:github
-```
-
-Run all E2E tests (both WireMock and real GitHub):
+Run all E2E tests:
 
 ```sh
 npm run test:playwright

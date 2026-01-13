@@ -23,21 +23,6 @@
           }
         ]
       }
-    },
-    {
-      "request": {
-        "method": "GET",
-        "urlPathPattern": "/repos/digicatapult/dtdl-visualisation-tool-fake/contents.*"
-      },
-      "response": {
-        "status": 404,
-        "headers": {
-          "Content-Type": "application/json"
-        },
-        "jsonBody": {
-          "message": "Not Found"
-        }
-      }
     }
   ]
 }
