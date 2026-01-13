@@ -42,7 +42,7 @@ program
     const postHog = container.resolve(PostHogService)
     logger.info(`Loading default model`)
 
-    const modelDb = new ModelDb(db, parser)
+    const modelDb = new ModelDb(db, parser, generator)
     container.register(ModelDb, {
       useValue: modelDb,
     })
