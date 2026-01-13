@@ -1,9 +1,8 @@
 import AdmZip from 'adm-zip'
 import { randomUUID } from 'node:crypto'
 import { rm, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
 import { StartedTestContainer } from 'testcontainers'
+import tmp from 'tmp'
 
 export interface DtdlZipFile {
   path: string
@@ -15,7 +14,7 @@ export async function copyGithubZipToWiremock(
   files: DtdlZipFile[],
   targetFileName: string
 ): Promise<void> {
-  const zipPath = join(tmpdir(), 'repo.zip')
+  const { name: zipPath } = tmp.fileSync({ prefix: 'repo-', postfix: '.zip' })
 
   const zip = new AdmZip()
   const rootFolder = randomUUID()

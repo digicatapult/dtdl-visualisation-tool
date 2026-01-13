@@ -5,7 +5,6 @@ export const waitForUpdateLayout = async <T>(page: Page, action: () => Promise<T
 }
 
 export const waitForSuccessResponse = async <T>(page: Page, action: () => Promise<T>, includeRoute: string) => {
-  await page.waitForLoadState('networkidle')
   const response = page.waitForResponse((resp) => {
     const acceptableStatuses = new Set([200, 201, 204, 302, 304])
 

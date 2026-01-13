@@ -10,7 +10,7 @@
   "scripts": {
     "depcheck": "depcheck",
     "test:unit": "NODE_OPTIONS=--no-experimental-strip-types NODE_ENV=test ./node_modules/.bin/mocha --config ./test/mocharc.json ./src/**/*.test.ts",
-    "test:e2e": "DEBUG=testcontainers* NODE_ENV=test playwright test --ui",
+    "test:e2e": "NODE_ENV=test playwright test --ui",
     "test:playwright": "NODE_ENV=test playwright test --trace on --max-failures=1",
     "test:integration": "NODE_ENV=test ./node_modules/.bin/mocha --config ./test/mocharc.json --file ./test/integration/init.ts ./test/integration/*.test.ts",
     "test:ratelimit": "NODE_OPTIONS=--no-experimental-strip-types NODE_ENV=test ./node_modules/.bin/mocha --config ./test/mocharc.json ./test/ratelimit/*.test.ts",
@@ -102,6 +102,7 @@
     "@types/pino-http": "^6.1.0",
     "@types/sinon": "^21.0.0",
     "@types/supertest": "^6.0.3",
+    "@types/tmp": "^0.2.6",
     "@types/unzipper": "^0.10.11",
     "@typescript-eslint/eslint-plugin": "^8.52.0",
     "@typescript-eslint/parser": "^8.52.0",
@@ -121,6 +122,7 @@
     "sinon": "^21.0.1",
     "supertest": "^7.2.2",
     "testcontainers": "^11.11.0",
+    "tmp": "^0.2.5",
     "typescript": "^5.9.3",
     "undici": "^7.18.2"
   },
