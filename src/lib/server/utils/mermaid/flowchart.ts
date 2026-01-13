@@ -96,7 +96,7 @@ export default class Flowchart implements IDiagram<'flowchart'> {
       this.createNodeString(entity),
       ...entity.extends
         .filter((parent) => !!dtdlObjectModel[parent])
-        .map((parent) => this.createEdgeString(parent, entity.Id, arrowTypes.LinkDotted, 'extends')),
+        .map((parent) => this.createEdgeString(parent, entity.Id, arrowTypes.LinkWithArrowHead, 'extends')),
       `class ${dtdlIdReplaceSemicolon(entity.Id)} ${getVisualisationState(entity)}`,
     ]
   }
