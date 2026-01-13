@@ -5,6 +5,7 @@ import { FileSourceKeys } from '../server/models/openTypes.js'
 import { DtdlId, type UUID } from '../server/models/strings.js'
 import { allInterfaceFilter } from '../server/utils/dtdl/extract.js'
 import Parser, { DtdlPath } from '../server/utils/dtdl/parser.js'
+import { SvgGenerator } from '../server/utils/mermaid/generator.js'
 import Database from './index.js'
 import { DtdlFile, DtdlRow, DtdlSource, GithubModelRow, isGithubModel, ModelRow, NullableDtdlSource } from './types.js'
 
@@ -12,7 +13,8 @@ import { DtdlFile, DtdlRow, DtdlSource, GithubModelRow, isGithubModel, ModelRow,
 export class ModelDb {
   constructor(
     private db: Database,
-    private parser: Parser
+    private parser: Parser,
+    private generator: SvgGenerator
   ) {}
 
   async getModelById(id: UUID): Promise<ModelRow> {
@@ -172,5 +174,15 @@ export class ModelDb {
         }
       }
     })
+  }
+
+  async regeneratePreview(ontologyId: UUID): Promise<void> {
+    const { model } = await this.getDtdlModelAndTree(ontologyId)
+
+    // Generate with default params (flowchart, elk layout, no search/expand)
+    const output = await this.generator.run(model, 'flowchart', 'elk')
+    const preview = output.renderForMinimap()
+
+    await this.db.update('model', { id: ontologyId }, { preview })
   }
 }

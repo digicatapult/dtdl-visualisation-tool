@@ -37,6 +37,11 @@ export const Legend = ({ showContent }: { showContent: boolean }): JSX.Element =
         title="Unexpanded Node"
         description="Node is unexpanded, no connections shown."
       />
+      <LegendItem
+        iconClass="extends-edge"
+        title="Extends Edge"
+        description="Represents an extends relationship between nodes."
+      />
     </div>
     <button
       hx-swap="outerHTML"

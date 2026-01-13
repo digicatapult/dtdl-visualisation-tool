@@ -100,6 +100,11 @@ export class SvgMutator {
     const labelText = [...labelElement.querySelectorAll('.text-inner-tspan')].map((n) => n.innerHTML).join('')
     const relationshipId = relationshipMap.get(`${this.getMermaidIdFromId(lineElement.id, 'edge')}_${labelText}`)
 
+    if (labelText === 'extends') {
+      lineElement.setAttribute('extends-edge', '')
+      labelElement.setAttribute('extends-edge', '')
+    }
+
     if (!relationshipId) {
       return
     }

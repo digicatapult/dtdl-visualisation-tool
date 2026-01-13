@@ -58,7 +58,7 @@ describe('ClassDiagram', function () {
         mockDtdlObjectModel,
         mockDtdlObjectModel['dtmi:com:example_relationship;1'] as RelationshipType
       )
-      const test = ['`dtmi:com:example:1` --> `dtmi:com:example_related:1` : A relationship']
+      const test = ['`dtmi:com:example:1` -- `dtmi:com:example_related:1` : A relationship']
       expect(relationshipAsMarkdown).to.deep.equal(test)
     })
     it('should return undefined for a relationship with an undefined interface', () => {

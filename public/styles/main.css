@@ -17,6 +17,7 @@ body {
   --background-color: #f5f6fa;
   --active-button-color: #397edd;
   --highlighted-color: #fbf291;
+  --extends-edge-color: #ff9800;
   --delete-color: #d4596b;
   --disabled-button-color: var(--background-color);
   --svg-pan-x: 0px;
@@ -549,10 +550,10 @@ label[for='diagram-type-select'] {
 
   .navigation-panel-tree-leaf.tree-icon {
     position: relative;
-    padding-left: 1.75em;
+    padding-left: 2.75em;
 
     &::after {
-      left: 0.5em;
+      left: 1.5em;
     }
   }
 
@@ -716,7 +717,7 @@ label[for='diagram-type-select'] {
 #legend {
   position: absolute;
   left: 0;
-  top: calc(100% - 21rem);
+  top: calc(100% - 31rem);
 }
 
 #legend-content {
@@ -725,6 +726,8 @@ label[for='diagram-type-select'] {
   display: grid;
   z-index: -1;
   padding: 3rem 1rem 1rem 1rem;
+  max-height: 31rem;
+  overflow-y: auto;
   gap: 1.5rem;
   grid-template-columns: auto max-content;
   background: white;
@@ -812,6 +815,34 @@ label[for='diagram-type-select'] {
   position: absolute;
   top: -5px;
   right: 2px;
+}
+
+.legend-icon.extends-edge {
+  border: none;
+  background: transparent;
+}
+
+.legend-icon.extends-edge::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  right: 18px;
+  border-top: 3px solid var(--extends-edge-color);
+  transform: translateY(-50%);
+}
+
+.legend-icon.extends-edge::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 9px solid var(--extends-edge-color);
+  transform: translateY(-50%);
 }
 
 #toolbar {
