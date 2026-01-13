@@ -95,6 +95,7 @@ test.describe('Share Ontology Link', () => {
     const page2 = await context2.newPage()
     await page2.setViewportSize({ width: 1920, height: 1080 })
     await page2.goto(clipboardText)
+    await page2.goto(clipboardText)
     // Assert 401
     await expect(page2.locator('#mermaid-output-message').getByText('You are unauthorised')).toBeVisible()
     await context2.close()
