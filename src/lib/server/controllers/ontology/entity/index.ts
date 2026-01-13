@@ -26,6 +26,7 @@ import { dtdlIdReplaceSemicolon } from '../../../utils/mermaid/helpers.js'
 
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { DtdlInterface, NullableDtdlSource } from '../../../../db/types.js'
+import { Logger, type ILogger } from '../../../logger.js'
 import {
   addContent,
   deleteContent,
@@ -77,7 +78,8 @@ export class EntityController extends HTMLController {
     private ontologyController: OntologyController,
     private templates: OntologyViewTemplates,
     private sessionStore: SessionStore,
-    @inject(Cache) private cache: ICache
+    @inject(Cache) private cache: ICache,
+    @inject(Logger) private logger: ILogger
   ) {
     super()
   }
@@ -152,8 +154,8 @@ export class EntityController extends HTMLController {
 
     this.cache.clear()
 
-    // Regenerate preview after adding new node
-    await this.modelDb.regeneratePreview(ontologyId)
+    // Regenerate preview after adding new node (intentional fire and forget)
+    this.modelDb.regeneratePreview(ontologyId).catch((err) => this.logger.debug({ err }, 'Preview regeneration failed'))
 
     this.sessionStore.update(updateParams.sessionId, {
       highlightNodeId: dtdlIdReplaceSemicolon(newId),
@@ -623,8 +625,8 @@ export class EntityController extends HTMLController {
 
     await this.deleteInterfaces(ontologyId, [entityId, ...extendedBys])
 
-    // Regenerate preview after deleting interface
-    await this.modelDb.regeneratePreview(ontologyId)
+    // Regenerate preview after deleting interface (intentional fire and forget)
+    this.modelDb.regeneratePreview(ontologyId).catch((err) => this.logger.debug({ err }, 'Preview regeneration failed'))
 
     this.sessionStore.update(updateParams.sessionId, { highlightNodeId: '' })
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)

@@ -74,6 +74,7 @@ describe('EntityController', async () => {
   afterEach(() => {
     sinon.restore()
     mockCache.clear()
+    regeneratePreviewStub.resetHistory()
   })
 
   const ontologyController = new OntologyController(
@@ -88,7 +89,14 @@ describe('EntityController', async () => {
     mockGithubRequest
   )
 
-  const controller = new EntityController(simpleMockModelDb, ontologyController, templateMock, mockSession, mockCache)
+  const controller = new EntityController(
+    simpleMockModelDb,
+    ontologyController,
+    templateMock,
+    mockSession,
+    mockCache,
+    mockLogger
+  )
 
   describe('putDisplayName', () => {
     afterEach(() => updateDtdlSourceStub.resetHistory())
@@ -999,13 +1007,16 @@ describe('EntityController', async () => {
     afterEach(() => {
       updateDtdlSourceStub.resetHistory()
       deleteOrUpdateDtdlSourceStub.resetHistory()
-      regeneratePreviewStub.resetHistory()
     })
 
     it('should delete single interface file - not extended', async () => {
       const result = await controller
         .deleteInterface(req, githubDtdlId, 'dtmi:com:example_extended;1', defaultParams)
         .then(toHTMLString)
+
+      // Wait for fire-and-forget regeneratePreview to be called
+      await new Promise((resolve) => setImmediate(resolve))
+
       expect(deleteOrUpdateDtdlSourceStub.firstCall.args).to.deep.equal([[{ id: simpleDtdlRowId, source: null }]])
       expect(regeneratePreviewStub.calledOnceWith(githubDtdlId)).to.equal(true)
 
@@ -1016,6 +1027,9 @@ describe('EntityController', async () => {
       const result = await controller
         .deleteInterface(req, githubDtdlId, 'dtmi:com:example;1', defaultParams)
         .then(toHTMLString)
+
+      // Wait for fire-and-forget regeneratePreview to be called
+      await new Promise((resolve) => setImmediate(resolve))
 
       expect(deleteOrUpdateDtdlSourceStub.firstCall.args).to.deep.equal([
         [
@@ -1046,7 +1060,6 @@ describe('EntityController', async () => {
   describe('postContent', () => {
     afterEach(() => {
       updateDtdlSourceStub.resetHistory()
-      regeneratePreviewStub.resetHistory()
     })
 
     it('should update db and layout to add relationship content and regenerate preview', async () => {
@@ -1069,7 +1082,6 @@ describe('EntityController', async () => {
   describe('deleteContent', () => {
     afterEach(() => {
       updateDtdlSourceStub.resetHistory()
-      regeneratePreviewStub.resetHistory()
     })
 
     it('should update db and layout to delete content on non-array DTDL file', async () => {
@@ -1144,6 +1156,9 @@ describe('EntityController', async () => {
       }
 
       const result = await controller.createNewNode(simpleDtdlId, body, mockReqObj).then(toHTMLString)
+
+      // Wait for fire-and-forget regeneratePreview to be called
+      await new Promise((resolve) => setImmediate(resolve))
 
       expect(addEntityToModelStub.calledOnce).to.equal(true)
       const [modelId, entityJson, filePath] = addEntityToModelStub.firstCall.args
@@ -1286,7 +1301,8 @@ describe('EntityController', async () => {
         ontologyController,
         templateMock,
         mockSession,
-        mockCache
+        mockCache,
+        mockLogger
       )
 
       const body = {
