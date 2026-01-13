@@ -1062,7 +1062,6 @@ describe('EntityController', async () => {
       const updatedSource = updateDtdlSourceStub.firstCall.args[1]
       const targetInterface = Array.isArray(updatedSource) ? updatedSource[1] : updatedSource
       expect(targetInterface.contents.some((c: { name: string }) => c.name === newRelationshipName)).to.equal(true)
-      expect(regeneratePreviewStub.calledOnceWith(githubDtdlId)).to.equal(true)
       expect(result).to.equal(updateLayoutOutput)
     })
   })
@@ -1084,7 +1083,6 @@ describe('EntityController', async () => {
         contents: file.contents.filter((c) => c.name !== relationshipName),
       }
       expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal(fileWithoutRelationship)
-      expect(regeneratePreviewStub.calledOnceWith(githubDtdlId)).to.equal(true)
       expect(result).to.equal(updateLayoutOutput)
     })
 
@@ -1099,7 +1097,6 @@ describe('EntityController', async () => {
         contents: file.contents.filter((c) => c.name !== relationshipName),
       }
       expect(updateDtdlSourceStub.firstCall.args[1]).to.deep.equal([simpleDtdlFileFixture({}), fileWithoutRelationship])
-      expect(regeneratePreviewStub.calledOnceWith(githubDtdlId)).to.equal(true)
       expect(result).to.equal(updateLayoutOutput)
     })
   })

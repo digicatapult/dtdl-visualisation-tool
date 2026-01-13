@@ -643,9 +643,6 @@ export class EntityController extends HTMLController {
 
     await this.putEntityValue(ontologyId, entityId, deleteContent(contentName))
 
-    // Regenerate preview after deleting content - it could have been a relationship change
-    await this.modelDb.regeneratePreview(ontologyId)
-
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
   }
 
@@ -662,11 +659,6 @@ export class EntityController extends HTMLController {
     const { contentName, contentType, ...updateParams } = body
 
     await this.putEntityValue(ontologyId, entityId, addContent(contentName, contentType))
-
-    // Regenerate preview only for relationship changes
-    if (contentType === 'Relationship') {
-      await this.modelDb.regeneratePreview(ontologyId)
-    }
 
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
   }
