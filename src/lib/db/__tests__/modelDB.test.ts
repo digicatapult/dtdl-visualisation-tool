@@ -3,7 +3,6 @@ import * as chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import { describe, it } from 'mocha'
 import sinon from 'sinon'
-import { container } from 'tsyringe'
 import { InternalError } from '../../server/errors.js'
 import { FileSourceKeys } from '../../server/models/openTypes.js'
 import { UUID } from '../../server/models/strings.js'
@@ -95,8 +94,17 @@ const mockParser = {
   parseAll: mockParserParseStub,
   extractDtdlPaths: mockParserExtractPathsStub,
 } as unknown as Parser
-const model = new ModelDb(mockDb, mockParser)
-const modelNoDefault = new ModelDb(mockDbNoDefault, mockParser)
+
+const mockPreviewSvg = '<svg>minimap preview</svg>'
+const mockOutput = {
+  renderForMinimap: sinon.stub().returns(mockPreviewSvg),
+}
+const mockGenerator = {
+  run: sinon.stub().resolves(mockOutput),
+}
+
+const model = new ModelDb(mockDb, mockParser, mockGenerator as any)
+const modelNoDefault = new ModelDb(mockDbNoDefault, mockParser, mockGenerator as any)
 
 describe('modelDB', function () {
   afterEach(() => {
@@ -272,27 +280,20 @@ describe('modelDB', function () {
   })
 
   describe('regeneratePreview', () => {
+    afterEach(() => {
+      ;(mockGenerator.run as sinon.SinonStub).resetHistory()
+      ;(mockOutput.renderForMinimap as sinon.SinonStub).resetHistory()
+    })
+
     it('should regenerate preview and update model', async () => {
-      const mockPreviewSvg = '<svg>minimap preview</svg>'
-      const mockOutput = {
-        renderForMinimap: sinon.stub().returns(mockPreviewSvg),
-      }
-      const mockGenerator = {
-        run: sinon.stub().resolves(mockOutput),
-      }
-
-      const containerStub = sinon.stub(container, 'resolve').returns(mockGenerator)
-
       await model.regeneratePreview('1')
 
       expect(mockParserParseStub.calledOnce).to.equal(true)
-      expect(mockGenerator.run.calledOnceWith(defaultModel, 'flowchart', 'elk')).to.equal(true)
-      expect(mockOutput.renderForMinimap.calledOnce).to.equal(true)
+      expect((mockGenerator.run as sinon.SinonStub).calledOnceWith(defaultModel, 'flowchart', 'elk')).to.equal(true)
+      expect((mockOutput.renderForMinimap as sinon.SinonStub).calledOnce).to.equal(true)
       expect((mockDb.update as sinon.SinonStub).calledWith('model', { id: '1' }, { preview: mockPreviewSvg })).to.equal(
         true
       )
-
-      containerStub.restore()
     })
   })
 })

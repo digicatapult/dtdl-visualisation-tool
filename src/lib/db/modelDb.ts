@@ -1,5 +1,5 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
-import { container, singleton } from 'tsyringe'
+import { singleton } from 'tsyringe'
 import { InternalError } from '../server/errors.js'
 import { FileSourceKeys } from '../server/models/openTypes.js'
 import { DtdlId, type UUID } from '../server/models/strings.js'
@@ -13,7 +13,8 @@ import { DtdlFile, DtdlRow, DtdlSource, GithubModelRow, isGithubModel, ModelRow,
 export class ModelDb {
   constructor(
     private db: Database,
-    private parser: Parser
+    private parser: Parser,
+    private generator: SvgGenerator
   ) {}
 
   async getModelById(id: UUID): Promise<ModelRow> {
@@ -178,10 +179,8 @@ export class ModelDb {
   async regeneratePreview(ontologyId: UUID): Promise<void> {
     const { model } = await this.getDtdlModelAndTree(ontologyId)
 
-    const generator = container.resolve(SvgGenerator)
-
     // Generate with default params (flowchart, elk layout, no search/expand)
-    const output = await generator.run(model, 'flowchart', 'elk')
+    const output = await this.generator.run(model, 'flowchart', 'elk')
     const preview = output.renderForMinimap()
 
     await this.db.update('model', { id: ontologyId }, { preview })
