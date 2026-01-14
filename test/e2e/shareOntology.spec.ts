@@ -4,6 +4,14 @@ import { openGithubOntology } from './helpers/githubHelpers.js'
 import { getShareableLink } from './helpers/shareLinkHelper.js'
 import { waitForSuccessResponse, waitForUpdateLayout } from './helpers/waitForHelpers'
 
+async function setWiremockScenarioState(scenarioName: string, state: string): Promise<void> {
+  await fetch(`http://localhost:8080/__admin/scenarios/${scenarioName}/state`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ state }),
+  })
+}
+
 test.describe('Share Ontology Link', () => {
   test.use({ baseURL: `http://localhost:${visualisationUIWiremockPort}` })
 
@@ -68,14 +76,10 @@ test.describe('Share Ontology Link', () => {
     await context2.close()
   })
   test('private ontology cannot be viewed on another browser/github user', async ({ browser }) => {
-    // Reset wiremock scenario
-    await fetch('http://localhost:8080/__admin/scenarios/privateRepoPermissionsShareOntology/state', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ state: 'Started' }),
-    })
-
     const repoName = 'nidt_ontology_private_without_collaborator'
+
+    await setWiremockScenarioState('privateRepoPermissionsShareOntology', 'authorised')
+
     // Open ontology and copy share link
     const context1 = await browser.newContext()
     const projectName = test.info().project.name
@@ -90,12 +94,14 @@ test.describe('Share Ontology Link', () => {
     const clipboardText = await getShareableLink(page1, context1, projectName)
     await context1.close()
 
+    await setWiremockScenarioState('privateRepoPermissionsShareOntology', 'unauthorised')
+
     // Open another browser without user any user logged in
     const context2 = await browser.newContext()
     const page2 = await context2.newPage()
     await page2.setViewportSize({ width: 1920, height: 1080 })
     await page2.goto(clipboardText)
-    await page2.goto(clipboardText)
+
     // Assert 401
     await expect(page2.locator('#mermaid-output-message').getByText('You are unauthorised')).toBeVisible()
     await context2.close()

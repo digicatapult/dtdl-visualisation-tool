@@ -61,8 +61,7 @@
     },
     {
       "scenarioName": "privateRepoPermissionsShareOntology",
-      "requiredScenarioState": "Started",
-      "newScenarioState": "unauthorisedUser",
+      "requiredScenarioState": "authorised",
       "request": {
         "method": "GET",
         "urlPathPattern": "/repos/digicatapult/nidt_ontology_private_without_collaborator"
@@ -81,7 +80,7 @@
     },
     {
       "scenarioName": "privateRepoPermissionsShareOntology",
-      "requiredScenarioState": "unauthorisedUser",
+      "requiredScenarioState": "unauthorised",
       "request": {
         "method": "GET",
         "urlPathPattern": "/repos/digicatapult/nidt_ontology_private_without_collaborator"
