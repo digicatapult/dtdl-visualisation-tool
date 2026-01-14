@@ -73,7 +73,7 @@
         },
         "jsonBody": {
           "permissions": {
-            "pull": true
+            "pull": false
           }
         }
       }
