@@ -301,6 +301,7 @@ export const mockDb = {
 
 export const updateDtdlSourceStub = sinon.stub().resolves()
 export const deleteOrUpdateDtdlSourceStub = sinon.stub().resolves()
+export const regeneratePreviewStub = sinon.stub().resolves()
 export const addEntityToModelStub = sinon.stub().resolves()
 export const simpleMockModelDb = {
   getModelById: (id: UUID) => {
@@ -333,6 +334,7 @@ export const simpleMockModelDb = {
   parseWithUpdatedFiles: () => Promise.resolve(),
   updateDtdlSource: updateDtdlSourceStub,
   deleteOrUpdateDtdlSource: deleteOrUpdateDtdlSourceStub,
+  regeneratePreview: regeneratePreviewStub,
   getDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
   insertModel: () => Promise.resolve(1),
   updateModel: () => Promise.resolve(),

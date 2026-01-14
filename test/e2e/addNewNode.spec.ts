@@ -212,4 +212,41 @@ test.describe('Add New Node', () => {
     await expect(page.locator('#create-node-form')).toBeVisible()
     await context.close()
   })
+
+  test('should regenerate preview after adding new node', async ({ browser }) => {
+    test.setTimeout(60000)
+    const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
+    const page = await context.newPage()
+    await openEditRepo(page)
+
+    const ontologyUrl = page.url()
+
+    await waitForSuccessResponse(page, () => page.goto('/open'), '/open')
+    await page.waitForSelector('.file-card', { timeout: 10000 })
+
+    const previewBefore = await page.locator('.file-card .file-preview').first().innerHTML()
+
+    await page.goto(ontologyUrl)
+    await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
+    await expect(page.locator('#edit-toggle').getByText('Edit')).toBeVisible()
+
+    await waitForSuccessResponse(page, () => page.locator('#add-node-button').click(), '/entity/add-new-node')
+
+    const displayName = 'PreviewTestNode'
+    await page.locator('input[name="displayName"]').fill(displayName)
+    await page.locator('button[data-folder-path=""]').click()
+
+    await waitForSuccessResponse(page, () => page.locator('#create-new-node-button').click(), '/entity/new-node')
+    await expect(page.locator('#mermaid-output')).toContainText(displayName)
+
+    await waitForSuccessResponse(page, () => page.goto('/open'), '/open')
+    await page.waitForSelector('.file-card', { timeout: 10000 })
+
+    const previewAfter = await page.locator('.file-card .file-preview').first().innerHTML()
+
+    // Verify preview has changed
+    expect(previewAfter).not.toBe(previewBefore)
+
+    await context.close()
+  })
 })

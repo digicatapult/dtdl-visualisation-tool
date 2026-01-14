@@ -11,6 +11,7 @@ import {
   singleInterfaceFirstFilePaths,
 } from '../../server/utils/dtdl/__tests__/fixtures.js'
 import Parser from '../../server/utils/dtdl/parser.js'
+import { SvgGenerator } from '../../server/utils/mermaid/generator.js'
 import Database from '../index.js'
 import { ModelDb } from '../modelDb.js'
 import { DtdlFile, DtdlSource } from '../types.js'
@@ -94,8 +95,17 @@ const mockParser = {
   parseAll: mockParserParseStub,
   extractDtdlPaths: mockParserExtractPathsStub,
 } as unknown as Parser
-const model = new ModelDb(mockDb, mockParser)
-const modelNoDefault = new ModelDb(mockDbNoDefault, mockParser)
+
+const mockPreviewSvg = '<svg>minimap preview</svg>'
+const mockOutput = {
+  renderForMinimap: sinon.stub().returns(mockPreviewSvg),
+}
+const mockGenerator = {
+  run: sinon.stub().resolves(mockOutput),
+}
+
+const model = new ModelDb(mockDb, mockParser, mockGenerator as unknown as SvgGenerator)
+const modelNoDefault = new ModelDb(mockDbNoDefault, mockParser, mockGenerator as unknown as SvgGenerator)
 
 describe('modelDB', function () {
   afterEach(() => {
@@ -267,6 +277,24 @@ describe('modelDB', function () {
         { source: JSON.stringify(dtdlToUpdate.source) },
       ])
       expect(deleteStub.firstCall.args).to.deep.equal(['dtdl', { id: dtdlToDelete.id }])
+    })
+  })
+
+  describe('regeneratePreview', () => {
+    afterEach(() => {
+      ;(mockGenerator.run as sinon.SinonStub).resetHistory()
+      ;(mockOutput.renderForMinimap as sinon.SinonStub).resetHistory()
+    })
+
+    it('should regenerate preview and update model', async () => {
+      await model.regeneratePreview('1')
+
+      expect(mockParserParseStub.calledOnce).to.equal(true)
+      expect((mockGenerator.run as sinon.SinonStub).calledOnceWith(defaultModel, 'flowchart', 'elk')).to.equal(true)
+      expect((mockOutput.renderForMinimap as sinon.SinonStub).calledOnce).to.equal(true)
+      expect((mockDb.update as sinon.SinonStub).calledWith('model', { id: '1' }, { preview: mockPreviewSvg })).to.equal(
+        true
+      )
     })
   })
 })

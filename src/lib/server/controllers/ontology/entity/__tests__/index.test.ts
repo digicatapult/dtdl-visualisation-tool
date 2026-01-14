@@ -28,6 +28,7 @@ import {
   mockReqWithCookie,
   mockSession,
   propertyName,
+  regeneratePreviewStub,
   relationshipName,
   sessionUpdateStub,
   simpleDtdlFileEntityId,
@@ -73,6 +74,7 @@ describe('EntityController', async () => {
   afterEach(() => {
     sinon.restore()
     mockCache.clear()
+    regeneratePreviewStub.resetHistory()
   })
 
   const ontologyController = new OntologyController(
@@ -87,7 +89,14 @@ describe('EntityController', async () => {
     mockGithubRequest
   )
 
-  const controller = new EntityController(simpleMockModelDb, ontologyController, templateMock, mockSession, mockCache)
+  const controller = new EntityController(
+    simpleMockModelDb,
+    ontologyController,
+    templateMock,
+    mockSession,
+    mockCache,
+    mockLogger
+  )
 
   describe('putDisplayName', () => {
     afterEach(() => updateDtdlSourceStub.resetHistory())
@@ -1004,7 +1013,12 @@ describe('EntityController', async () => {
       const result = await controller
         .deleteInterface(req, githubDtdlId, 'dtmi:com:example_extended;1', defaultParams)
         .then(toHTMLString)
+
+      // Wait for fire-and-forget regeneratePreview to be called
+      await new Promise((resolve) => setImmediate(resolve))
+
       expect(deleteOrUpdateDtdlSourceStub.firstCall.args).to.deep.equal([[{ id: simpleDtdlRowId, source: null }]])
+      expect(regeneratePreviewStub.calledOnceWith(githubDtdlId)).to.equal(true)
 
       expect(result).to.equal(updateLayoutOutput)
     })
@@ -1014,12 +1028,16 @@ describe('EntityController', async () => {
         .deleteInterface(req, githubDtdlId, 'dtmi:com:example;1', defaultParams)
         .then(toHTMLString)
 
+      // Wait for fire-and-forget regeneratePreview to be called
+      await new Promise((resolve) => setImmediate(resolve))
+
       expect(deleteOrUpdateDtdlSourceStub.firstCall.args).to.deep.equal([
         [
           { id: arrayDtdlRowId, source: [dtdlFileFixture('dtmi:com:partial;1')({})] },
           { id: simpleDtdlRowId, source: null },
         ],
       ])
+      expect(regeneratePreviewStub.calledOnceWith(githubDtdlId)).to.equal(true)
 
       expect(result).to.equal(updateLayoutOutput)
     })
@@ -1039,8 +1057,32 @@ describe('EntityController', async () => {
     })
   })
 
+  describe('postContent', () => {
+    afterEach(() => {
+      updateDtdlSourceStub.resetHistory()
+    })
+
+    it('should update db and layout to add relationship content and regenerate preview', async () => {
+      const newRelationshipName = 'newRelationship'
+      const result = await controller
+        .postContent(req, githubDtdlId, arrayDtdlFileEntityId, {
+          contentName: newRelationshipName,
+          contentType: 'Relationship',
+          ...defaultParams,
+        })
+        .then(toHTMLString)
+
+      const updatedSource = updateDtdlSourceStub.firstCall.args[1]
+      const targetInterface = Array.isArray(updatedSource) ? updatedSource[1] : updatedSource
+      expect(targetInterface.contents.some((c: { name: string }) => c.name === newRelationshipName)).to.equal(true)
+      expect(result).to.equal(updateLayoutOutput)
+    })
+  })
+
   describe('deleteContent', () => {
-    afterEach(() => updateDtdlSourceStub.resetHistory())
+    afterEach(() => {
+      updateDtdlSourceStub.resetHistory()
+    })
 
     it('should update db and layout to delete content on non-array DTDL file', async () => {
       const result = await controller
@@ -1099,6 +1141,7 @@ describe('EntityController', async () => {
   describe('createNewNode', () => {
     beforeEach(() => {
       addEntityToModelStub.reset()
+      regeneratePreviewStub.resetHistory()
     })
 
     it('should create new node with valid input', async () => {
@@ -1113,6 +1156,9 @@ describe('EntityController', async () => {
       }
 
       const result = await controller.createNewNode(simpleDtdlId, body, mockReqObj).then(toHTMLString)
+
+      // Wait for fire-and-forget regeneratePreview to be called
+      await new Promise((resolve) => setImmediate(resolve))
 
       expect(addEntityToModelStub.calledOnce).to.equal(true)
       const [modelId, entityJson, filePath] = addEntityToModelStub.firstCall.args
@@ -1130,6 +1176,8 @@ describe('EntityController', async () => {
         extends: ['dtmi:com:example;1'],
         contents: [],
       })
+
+      expect(regeneratePreviewStub.calledOnceWith(simpleDtdlId)).to.equal(true)
 
       expect(result).to.include('mermaidTarget')
       expect(result).to.include('searchPanel')
@@ -1253,7 +1301,8 @@ describe('EntityController', async () => {
         ontologyController,
         templateMock,
         mockSession,
-        mockCache
+        mockCache,
+        mockLogger
       )
 
       const body = {
