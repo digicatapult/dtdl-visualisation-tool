@@ -28,8 +28,6 @@ const stringArrayFromArrayOrRecordValuesParser = z.preprocess((v) => {
   return value
 }, z.array(z.string()).optional())
 
-const unknownSchema = z.unknown().optional()
-
 const commentParser = z.preprocess(
   (v) => nullToUndefined(v),
   z.union([z.string(), z.record(z.string(), z.string())]).optional()
@@ -72,7 +70,7 @@ const relationshipParser = z
     Id: z.string(),
     EntityKind: z.literal('Relationship'),
     ChildOf: z.preprocess((v) => nullToUndefined(v), z.string().optional()),
-    target: z.preprocess((v) => nullToUndefined(v), z.string()),
+    target: z.preprocess((v) => nullToUndefined(v), z.string().optional()),
     properties: stringRecordParser.transform((v) => v ?? {}),
     name: z.string(),
     writable: z.boolean().optional(),
@@ -105,6 +103,7 @@ const commandRequestParser = z
     ...commonEntityFields,
     Id: z.string(),
     EntityKind: z.literal('CommandRequest'),
+    nullable: z.boolean().optional(),
     schema: z.preprocess((v) => nullToUndefined(v), z.string()),
     name: z.string(),
   })
@@ -115,6 +114,7 @@ const commandResponseParser = z
     ...commonEntityFields,
     Id: z.string(),
     EntityKind: z.literal('CommandResponse'),
+    nullable: z.boolean().optional(),
     schema: z.preprocess((v) => nullToUndefined(v), z.string()),
     name: z.string(),
   })
@@ -127,7 +127,7 @@ const commandParser = z
     EntityKind: z.literal('Command'),
     request: z.preprocess((v) => nullToUndefined(v), z.string().optional()),
     response: z.preprocess((v) => nullToUndefined(v), z.string().optional()),
-    name: z.string().optional(),
+    name: z.string(),
   })
   .passthrough()
 
@@ -136,8 +136,8 @@ const componentParser = z
     ...commonEntityFields,
     Id: z.string(),
     EntityKind: z.literal('Component'),
-    schema: z.preprocess((v) => nullToUndefined(v), z.string().optional()),
-    name: z.string().optional(),
+    schema: z.preprocess((v) => nullToUndefined(v), z.string()),
+    name: z.string(),
   })
   .passthrough()
 
@@ -175,7 +175,7 @@ const enumParser = z
     Id: z.string(),
     EntityKind: z.literal('Enum'),
     enumValues: stringArrayParser.transform((v) => v ?? []),
-    valueSchema: unknownSchema,
+    valueSchema: z.unknown(),
   })
   .passthrough()
 
@@ -184,8 +184,8 @@ const enumValueParser = z
     ...commonEntityFields,
     Id: z.string(),
     EntityKind: z.literal('EnumValue'),
-    enumValue: z.union([z.string(), z.number(), z.boolean()]).optional(),
-    name: z.string().optional(),
+    enumValue: z.union([z.string(), z.number(), z.boolean()]),
+    name: z.string(),
   })
   .passthrough()
 
@@ -203,8 +203,8 @@ const fieldParser = z
     ...commonEntityFields,
     Id: z.string(),
     EntityKind: z.literal('Field'),
-    schema: unknownSchema,
-    name: z.string().optional(),
+    schema: z.unknown(),
+    name: z.string(),
   })
   .passthrough()
 
@@ -213,7 +213,7 @@ const arrayParser = z
     ...commonEntityFields,
     Id: z.string(),
     EntityKind: z.literal('Array'),
-    elementSchema: unknownSchema,
+    elementSchema: z.unknown(),
   })
   .passthrough()
 
@@ -222,8 +222,8 @@ const mapParser = z
     ...commonEntityFields,
     Id: z.string(),
     EntityKind: z.literal('Map'),
-    mapKey: unknownSchema,
-    mapValue: unknownSchema,
+    mapKey: z.unknown(),
+    mapValue: z.unknown(),
   })
   .passthrough()
 

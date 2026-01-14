@@ -2,7 +2,7 @@ import { singleton } from 'tsyringe'
 
 import { InternalError } from '../../errors.js'
 import { type AttributeParams } from '../../models/controllerTypes.js'
-import { DtdlModel } from '../../models/dtdlOmParser.js'
+import { DtdlModel, type RelationshipEntity } from '../../models/dtdlOmParser.js'
 import { type DiagramType } from '../../models/mermaidDiagrams.js'
 import { type MermaidSvgRender } from '../../models/renderedDiagram/index.js'
 import { type MermaidId } from '../../models/strings.js'
@@ -155,11 +155,14 @@ export class SvgMutator {
     const relationshipMap = new Map(
       Object.values(model)
         .filter(isRelationship)
-        .filter((entity) => !!entity.ChildOf && !!entity.target)
+        .filter(
+          (entity): entity is RelationshipEntity & { ChildOf: string; target: string } =>
+            typeof entity.ChildOf === 'string' && typeof entity.target === 'string'
+        )
         .map((entity) => {
           const key = [
-            dtdlIdReplaceSemicolon(entity.ChildOf as string),
-            dtdlIdReplaceSemicolon(entity.target as string),
+            dtdlIdReplaceSemicolon(entity.ChildOf),
+            dtdlIdReplaceSemicolon(entity.target),
             getDisplayName(entity),
           ].join('_')
           return [key, entity.Id] as const

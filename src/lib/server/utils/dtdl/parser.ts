@@ -57,6 +57,33 @@ export default class Parser {
     @inject(Cache) private cache: ICache
   ) {}
 
+  private dedupeFilesByPath(files: DtdlFile[]): DtdlFile[] {
+    const seenPaths = new Set<string>()
+    const deduped: DtdlFile[] = []
+
+    for (const file of files) {
+      // Some call sites (and tests) provide in-memory files without a meaningful path.
+      // Only de-duplicate when a non-empty path is present.
+      if (!file.path) {
+        deduped.push(file)
+        continue
+      }
+
+      if (seenPaths.has(file.path)) continue
+      seenPaths.add(file.path)
+      deduped.push(file)
+    }
+
+    if (deduped.length !== files.length) {
+      this.logger.warn(
+        { originalCount: files.length, dedupedCount: deduped.length },
+        'Duplicate DTDL file paths detected; de-duplicated'
+      )
+    }
+
+    return deduped
+  }
+
   async getJsonFiles(dir: string, topDir?: string) {
     topDir = topDir || dir
     const entries = await readdir(dir, { withFileTypes: true })
@@ -141,6 +168,7 @@ export default class Parser {
    * Ignores resolution errors.
    */
   async validate(files: DtdlFile[]): Promise<DtdlFile[]> {
+    files = this.dedupeFilesByPath(files)
     const parser = await getInterop()
 
     const filesWithErrors = files.map((file) => {
@@ -158,6 +186,7 @@ export default class Parser {
   }
 
   async parseAll(files: DtdlFile[]): Promise<DtdlModel> {
+    files = this.dedupeFilesByPath(files)
     const source = Parser.fileSourceToString(files)
 
     const dtdlHashKey = createHash('sha256').update(source).digest('base64')
@@ -346,6 +375,10 @@ export default class Parser {
 
   static fileSourceToString(files: DtdlFile[]): string {
     const validFiles = files.filter((f) => !f.errors)
-    return `[${validFiles.map((f) => f.source).join(',')}]`
+    const combined = validFiles.flatMap((f) => {
+      const parsed = JSON.parse(f.source) as unknown
+      return Array.isArray(parsed) ? parsed : [parsed]
+    })
+    return JSON.stringify(combined)
   }
 }
