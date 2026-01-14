@@ -92,7 +92,6 @@ test.describe('Share Ontology Link', () => {
     await openGithubOntology(page1, repoName, /^main$/)
 
     const clipboardText = await getShareableLink(page1, context1, projectName)
-    console.log(await context1.cookies())
 
     await context1.close()
 
@@ -101,7 +100,6 @@ test.describe('Share Ontology Link', () => {
     const page2 = await context2.newPage()
     await setWiremockScenarioState('privateRepoPermissionsShareOntology', 'unauthorised')
     await page2.goto(clipboardText)
-    console.log(await context2.cookies())
 
     // Assert 401
     await expect(page2.locator('#mermaid-output-message').getByText('You are unauthorised')).toBeVisible()
