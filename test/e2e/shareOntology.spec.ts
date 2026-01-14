@@ -96,10 +96,10 @@ test.describe('Share Ontology Link', () => {
 
     // Open another browser
     const context2 = await browser.newContext()
+    await context2.clearCookies()
     const page2 = await context2.newPage()
     await page2.setViewportSize({ width: 1920, height: 1080 })
     await setWiremockScenarioState('privateRepoPermissionsShareOntology', 'unauthorised')
-    await page2.waitForTimeout(1000)
     await page2.goto(clipboardText)
 
     // Assert 401

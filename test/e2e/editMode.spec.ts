@@ -243,7 +243,7 @@ test.describe('Test edit ontology', () => {
 })
 
 // edit and focus away from textarea to trigger update
-const testNavPanelEdit = async (
+export const testNavPanelEdit = async (
   page: Page,
   textToEdit: RegExp,
   newValue: string,
