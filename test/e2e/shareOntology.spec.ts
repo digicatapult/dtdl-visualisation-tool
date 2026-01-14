@@ -98,10 +98,10 @@ test.describe('Share Ontology Link', () => {
 
     // Open another browser
     const context2 = await browser.newContext()
-    console.log(await context2.cookies())
     const page2 = await context2.newPage()
     await setWiremockScenarioState('privateRepoPermissionsShareOntology', 'unauthorised')
     await page2.goto(clipboardText)
+    console.log(await context2.cookies())
 
     // Assert 401
     await expect(page2.locator('#mermaid-output-message').getByText('You are unauthorised')).toBeVisible()
