@@ -72,9 +72,9 @@ const relationshipParser = z
     Id: z.string(),
     EntityKind: z.literal('Relationship'),
     ChildOf: z.preprocess((v) => nullToUndefined(v), z.string().optional()),
-    target: z.preprocess((v) => nullToUndefined(v), z.string().optional()),
+    target: z.preprocess((v) => nullToUndefined(v), z.string()),
     properties: stringRecordParser.transform((v) => v ?? {}),
-    name: z.string().optional(),
+    name: z.string(),
     writable: z.boolean().optional(),
   })
   .passthrough()
@@ -84,8 +84,8 @@ const propertyParser = z
     ...commonEntityFields,
     Id: z.string(),
     EntityKind: z.literal('Property'),
-    schema: z.preprocess((v) => nullToUndefined(v), z.string().optional()),
-    name: z.string().optional(),
+    schema: z.preprocess((v) => nullToUndefined(v), z.string()),
+    name: z.string(),
     writable: z.boolean().optional(),
   })
   .passthrough()
@@ -95,8 +95,8 @@ const telemetryParser = z
     ...commonEntityFields,
     Id: z.string(),
     EntityKind: z.literal('Telemetry'),
-    schema: z.preprocess((v) => nullToUndefined(v), z.string().optional()),
-    name: z.string().optional(),
+    schema: z.preprocess((v) => nullToUndefined(v), z.string()),
+    name: z.string(),
   })
   .passthrough()
 
@@ -105,8 +105,8 @@ const commandRequestParser = z
     ...commonEntityFields,
     Id: z.string(),
     EntityKind: z.literal('CommandRequest'),
-    schema: z.preprocess((v) => nullToUndefined(v), z.string().optional()),
-    name: z.string().optional(),
+    schema: z.preprocess((v) => nullToUndefined(v), z.string()),
+    name: z.string(),
   })
   .passthrough()
 
@@ -115,8 +115,8 @@ const commandResponseParser = z
     ...commonEntityFields,
     Id: z.string(),
     EntityKind: z.literal('CommandResponse'),
-    schema: z.preprocess((v) => nullToUndefined(v), z.string().optional()),
-    name: z.string().optional(),
+    schema: z.preprocess((v) => nullToUndefined(v), z.string()),
+    name: z.string(),
   })
   .passthrough()
 

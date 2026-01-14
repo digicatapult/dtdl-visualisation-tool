@@ -27,6 +27,7 @@ const interfaceDefaults = {
 const relationshipDefaults = {
   ...entityDefaults,
   properties: {},
+  name: 'rel',
   writable: false,
 }
 
@@ -139,10 +140,14 @@ export const interfaceWithContents: DtdlModel = {
     ...entityDefaults,
     EntityKind: 'Property',
     Id: 'someProperty',
+    name: 'someProperty',
+    schema: 'string',
   },
   someTelemetry: {
     ...entityDefaults,
     EntityKind: 'Telemetry',
     Id: 'someTelemetry',
+    name: 'someTelemetry',
+    schema: 'string',
   },
 }

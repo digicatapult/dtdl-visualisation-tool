@@ -138,6 +138,8 @@ export const mockDtdlObjectModel = {
     Id: 'dtmi:com:example_property;1',
     displayName: { en: 'property 1' },
     EntityKind: 'Property',
+    name: 'example_property',
+    schema: 'string',
   },
 } as DtdlModel
 

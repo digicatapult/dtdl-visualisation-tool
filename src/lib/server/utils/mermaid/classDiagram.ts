@@ -59,12 +59,11 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
   safeClassName = (className: string): string => `\`${dtdlIdReplaceSemicolon(className)}\``
 
   generateMarkdown(dtdlObjectModel: DtdlModel, direction: Direction = ' TD'): string | null {
-    const graph: string[] = []
-    Object.values(dtdlObjectModel).forEach((entityObject: DtdlEntity) => {
+    const graph = Object.values(dtdlObjectModel).flatMap((entityObject: DtdlEntity) => {
       const markdown = (this.entityKindToMarkdown[entityObject.EntityKind] || defaultMarkdownFn) as NarrowMappingFn<
         (typeof entityObject)['EntityKind']
       >
-      graph.push(...markdown(dtdlObjectModel, entityObject))
+      return markdown(dtdlObjectModel, entityObject)
     })
     if (graph.length === 0) {
       return null

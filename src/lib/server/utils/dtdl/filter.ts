@@ -10,8 +10,8 @@ type VisualisationState = 'unexpanded' | 'expanded' | 'search'
 export type DtdlEntityWithMetadata = DtdlEntity & { [stateSymbol]?: VisualisationState }
 export type DtdlModelWithMetadata = Record<string, DtdlEntityWithMetadata>
 
-export const getVisualisationState = (entity: DtdlEntityWithMetadata): VisualisationState | undefined => {
-  return entity[stateSymbol]
+export const getVisualisationState = (entity?: DtdlEntityWithMetadata): VisualisationState | undefined => {
+  return entity?.[stateSymbol]
 }
 
 export const setVisualisationState = (entity: DtdlEntityWithMetadata, value: VisualisationState) => {
