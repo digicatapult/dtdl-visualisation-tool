@@ -92,13 +92,14 @@ test.describe('Share Ontology Link', () => {
     await openGithubOntology(page1, repoName, /^main$/)
 
     const clipboardText = await getShareableLink(page1, context1, projectName)
+    console.log(await context1.cookies())
+
     await context1.close()
 
     // Open another browser
     const context2 = await browser.newContext()
-    await context2.clearCookies()
+    console.log(await context2.cookies())
     const page2 = await context2.newPage()
-    await page2.setViewportSize({ width: 1920, height: 1080 })
     await setWiremockScenarioState('privateRepoPermissionsShareOntology', 'unauthorised')
     await page2.goto(clipboardText)
 
