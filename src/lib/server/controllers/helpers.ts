@@ -1,5 +1,6 @@
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns'
 import express from 'express'
+import { createHash } from 'node:crypto'
 import { container } from 'tsyringe'
 import { ModelDb } from '../../db/modelDb.js'
 import { GithubModelRow } from '../../db/types.js'
@@ -106,6 +107,10 @@ export const checkEditPermission = async (
 
   const { owner, repo } = await modelDb.getGithubModelById(ontologyId)
   const permission = await githubRequest.getRepoPermissions(octokitToken, owner, repo)
+  const tokenHash = createHash('sha256').update(octokitToken).digest('hex')
+  const cacheKey = `github_permissions_${tokenHash}_${owner}_${repo}`
+  req.signedCookies['cacheKey'] = cacheKey
+  req.signedCookies['permission'] = permission
   if (permission !== 'edit') throw new UnauthorisedError('User is unauthorised to make this request')
 
   next()

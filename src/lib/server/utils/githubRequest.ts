@@ -142,10 +142,8 @@ export class GithubRequest {
     const tokenHash = createHash('sha256').update(token).digest('hex')
     const cacheKey = `github_permissions_${tokenHash}_${owner}_${repo}`
 
-    if (process.env.NODE_ENV !== 'test') {
-      const cached = this.cache.get(cacheKey, z.enum(viewAndEditPermissions))
-      if (cached) return cached
-    }
+    const cached = this.cache.get(cacheKey, z.enum(viewAndEditPermissions))
+    if (cached) return cached
 
     const permission = await this.resolveRepoPermissions(token, owner, repo)
 
