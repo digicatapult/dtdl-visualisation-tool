@@ -110,24 +110,17 @@ describe('githubRequest', function () {
   })
 
   test('getRepoPermissions caches the result', async function () {
-    const originalEnv = process.env.NODE_ENV
-    process.env.NODE_ENV = 'development'
+    const githubRequest = new GithubRequest(mockLogger, mockCache)
+    const stub = Sinon.stub(githubRequest, 'requestWrapper')
 
-    try {
-      const githubRequest = new GithubRequest(mockLogger, mockCache)
-      const stub = Sinon.stub(githubRequest, 'requestWrapper')
+    stub.onCall(0).resolves(null)
 
-      stub.onCall(0).resolves(null)
+    const result1 = await githubRequest.getRepoPermissions('token', 'owner', 'repo')
+    expect(result1).to.equal('unauthorised')
+    expect(stub.callCount).to.equal(1)
 
-      const result1 = await githubRequest.getRepoPermissions('token', 'owner', 'repo')
-      expect(result1).to.equal('unauthorised')
-      expect(stub.callCount).to.equal(1)
-
-      const result2 = await githubRequest.getRepoPermissions('token', 'owner', 'repo')
-      expect(result2).to.equal('unauthorised')
-      expect(stub.callCount).to.equal(1)
-    } finally {
-      process.env.NODE_ENV = originalEnv
-    }
+    const result2 = await githubRequest.getRepoPermissions('token', 'owner', 'repo')
+    expect(result2).to.equal('unauthorised')
+    expect(stub.callCount).to.equal(1)
   })
 })
