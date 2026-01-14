@@ -3,7 +3,7 @@
     {
       "request": {
         "method": "GET",
-        "urlPathPattern": "/repos/[^/]+/[^/]+"
+        "urlPathPattern": "/repos/digicatapult/dtdl-test-fixtures"
       },
       "response": {
         "status": 200,

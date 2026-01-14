@@ -1,14 +1,12 @@
 import { createAppAuth } from '@octokit/auth-app'
 import { Octokit } from '@octokit/core'
 import { RequestError } from '@octokit/request-error'
-import { createHash } from 'node:crypto'
 import { container, inject, singleton } from 'tsyringe'
-import { z } from 'zod'
 
 import { Env } from '../env/index.js'
 import { GithubNotFound, GithubReqError } from '../errors.js'
 import { Logger, type ILogger } from '../logger.js'
-import { OAuthToken, ViewAndEditPermission, viewAndEditPermissions } from '../models/github.js'
+import { OAuthToken, ViewAndEditPermission } from '../models/github.js'
 import { Cache, type ICache } from './cache.js'
 import { safeUrl } from './url.js'
 
@@ -139,15 +137,15 @@ export class GithubRequest {
   }
 
   getRepoPermissions = async (token: string, owner: string, repo: string): Promise<ViewAndEditPermission> => {
-    const tokenHash = createHash('sha256').update(token).digest('hex')
-    const cacheKey = `github_permissions_${tokenHash}_${owner}_${repo}`
-    const cached = this.cache.get(cacheKey, z.enum(viewAndEditPermissions))
-    if (cached) return cached
+    // const tokenHash = createHash('sha256').update(token).digest('hex')
+    // const cacheKey = `github_permissions_${tokenHash}_${owner}_${repo}`
+    // const cached = this.cache.get(cacheKey, z.enum(viewAndEditPermissions))
+    // if (cached) return cached
 
     const permission = await this.resolveRepoPermissions(token, owner, repo)
 
     // Cache permissions for 1 minute to balance performance and freshness
-    this.cache.set(cacheKey, permission, 60 * 1000)
+    //this.cache.set(cacheKey, permission, 60 * 1000)
 
     return permission
   }
