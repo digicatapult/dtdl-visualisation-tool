@@ -10,7 +10,7 @@
     },
     "jsonBody": {
       "object": {
-        "sha": "updatedSha"
+        "sha": "commitSha"
       }
     }
   }

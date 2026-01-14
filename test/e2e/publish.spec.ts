@@ -1,6 +1,5 @@
 import { expect, test } from '@playwright/test'
 import { visualisationUIWiremockPort } from '../globalSetup.js'
-import { testNavPanelEdit } from './editMode.spec.js'
 import { openEditRepo } from './helpers/openEditRepo.js'
 import { waitForSuccessResponse } from './helpers/waitForHelpers.js'
 
@@ -16,8 +15,6 @@ test.describe('Publish ontology', () => {
       () => page.locator('#mermaid-output').getByText('displayNameEdit', { exact: true }).first().click(),
       '/update-layout'
     )
-    const newInterfaceDisplayName = 'new display name'
-    await testNavPanelEdit(page, /^displayNameEdit$/, newInterfaceDisplayName, '/displayName', true)
 
     // open publish dialog
     await waitForSuccessResponse(page, () => page.locator('#toolbar').getByText('Publish').click(), '/dialog')
@@ -40,8 +37,6 @@ test.describe('Publish ontology', () => {
       () => page.locator('#mermaid-output').getByText('displayNameEdit', { exact: true }).first().click(),
       '/update-layout'
     )
-    const newInterfaceDisplayName = 'new display name'
-    await testNavPanelEdit(page, /^displayNameEdit$/, newInterfaceDisplayName, '/displayName', true)
 
     // open publish dialog
     await waitForSuccessResponse(page, () => page.locator('#toolbar').getByText('Publish').click(), '/dialog')
