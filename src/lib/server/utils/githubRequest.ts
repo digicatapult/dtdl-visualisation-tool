@@ -20,7 +20,7 @@ const oauthBaseUrl = env.get('GH_OAUTH_BASE_URL') || 'https://github.com'
 const oauthTokenBaseUrl = env.get('GH_OAUTH_TOKEN_BASE_URL') || 'https://github.com'
 const privateKey = Buffer.from(env.get('GH_APP_PRIVATE_KEY'), 'base64').toString('utf-8')
 
-function createOctokit(auth: string | object) {
+const createOctokit = (auth: string | object) => {
   return new Octokit({
     auth,
     ...(baseUrl ? { baseUrl } : {}),

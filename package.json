@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.9.24",
+  "version": "0.9.26",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -70,7 +70,7 @@
     "mermaid": "^11.12.2",
     "multer": "^2.0.2",
     "pg": "^8.16.3",
-    "pino": "^10.1.0",
+    "pino": "^10.1.1",
     "pino-http": "^11.0.0",
     "posthog-node": "^5.20.0",
     "prettier": "^3.7.4",
@@ -98,7 +98,7 @@
     "@types/express": "^5.0.6",
     "@types/jsdom": "^27.0.0",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^22.19.3",
+    "@types/node": "^22.19.5",
     "@types/pino-http": "^6.1.0",
     "@types/sinon": "^21.0.0",
     "@types/supertest": "^6.0.3",
