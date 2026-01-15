@@ -23,6 +23,22 @@ const containerRuntimeClient = await getContainerRuntimeClient()
 const networkName = 'dtdl-visualisation-tool-network'
 export const network = await startNetwork()
 
+async function removeContainerIfExists(containerName: string) {
+  const container = containerRuntimeClient.container.getById(containerName)
+  try {
+    await container.inspect()
+  } catch {
+    return
+  }
+
+  try {
+    logger.warn({ containerName }, 'Removing existing container to avoid name conflict')
+    await container.remove({ force: true })
+  } catch (err) {
+    logger.warn({ err, containerName }, 'Failed removing existing container')
+  }
+}
+
 async function startNetwork() {
   const network = containerRuntimeClient.network.getById(networkName)
   // check if network is running
@@ -44,6 +60,8 @@ export async function bringUpDatabaseContainer(): Promise<StartedTestContainer> 
     dbUsername: 'postgres',
     dbPassword: 'postgres',
   }
+
+  await removeContainerIfExists(postgresConfig.containerName)
   const postgresContainer = await startDatabaseContainer(postgresConfig)
   return postgresContainer
 }

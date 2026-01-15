@@ -8,7 +8,7 @@ import { DtdlPath } from '../../utils/dtdl/parser.js'
 const commonRerenderAttrs = {
   'hx-target': '#mermaid-output',
   'hx-swap': 'outerHTML  transition:true',
-  'hx-include': '#sessionId, #search-panel, input[name="navigationPanelTab"], #navigationPanelExpanded',
+  'hx-include': '#viewId, #search-panel, input[name="navigationPanelTab"], #navigationPanelExpanded',
   'hx-indicator': '#spinner',
   'hx-disabled-elt': 'select',
 } as const
@@ -150,7 +150,7 @@ export const AddNode = ({
               hx-get={`/ontology/${dtdlModelId}/edit-model`}
               hx-target="#navigation-panel"
               hx-swap="outerHTML"
-              hx-include="#sessionId, #navigationPanelExpanded"
+              hx-include="#viewId, #navigationPanelExpanded"
               hx-vals='{"editMode": true}'
             >
               Cancel

@@ -41,7 +41,7 @@ import {
   toHTMLString,
   updateDtdlSourceStub,
 } from '../../../__tests__/helpers.js'
-import { validSessionId } from '../../../__tests__/sessionFixtures.js'
+import { validViewId } from '../../../__tests__/sessionFixtures.js'
 import { OntologyController } from '../../index.js'
 import { EntityController } from '../index.js'
 
@@ -49,7 +49,7 @@ chai.use(chaiAsPromised)
 const { expect } = chai
 
 export const defaultParams: UpdateParams = {
-  sessionId: validSessionId,
+  viewId: validViewId,
   diagramType: 'flowchart',
   svgWidth: 300,
   svgHeight: 100,
@@ -1129,8 +1129,8 @@ describe('EntityController', async () => {
       await controller.addNewNode(simpleDtdlId, defaultParams)
 
       expect(sessionUpdateStub.callCount).to.equal(initialCallCount + 1)
-      const [sessionId, updates] = sessionUpdateStub.lastCall.args
-      expect(sessionId).to.equal(validSessionId)
+      const [viewId, updates] = sessionUpdateStub.lastCall.args
+      expect(viewId).to.equal(validViewId)
       expect(updates).to.deep.equal({
         highlightNodeId: undefined,
         search: undefined,

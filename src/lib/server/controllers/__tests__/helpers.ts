@@ -22,11 +22,11 @@ import {
 import { SvgGenerator } from '../../utils/mermaid/generator.js'
 import { SvgMutator } from '../../utils/mermaid/svgMutator.js'
 import { PostHogService } from '../../utils/postHog/postHogService.js'
-import SessionStore from '../../utils/sessions.js'
+import ViewStateStore from '../../utils/viewStates.js'
 import OntologyOpenTemplates from '../../views/templates/ontologyOpen.js'
 import OntologyViewTemplates from '../../views/templates/ontologyView.js'
 import { complexMockDtdlModel } from './complexDtdlfixture.js'
-import { sessionMap } from './sessionFixtures.js'
+import { viewStateMap } from './sessionFixtures.js'
 
 export const simpleDtdlId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed7'
 export const complexDtdlId: UUID = 'e89f119a-fc3b-4ce8-8722-2000a7ebeeab'
@@ -380,10 +380,10 @@ export const complexMockModelDb = {
 export const sessionSetStub = sinon.stub()
 export const sessionUpdateStub = sinon.stub()
 export const mockSession = {
-  get: sinon.stub().callsFake((id) => sessionMap[id]),
+  get: sinon.stub().callsFake((id) => viewStateMap[id]),
   set: sessionSetStub,
   update: sessionUpdateStub,
-} as unknown as SessionStore
+} as unknown as ViewStateStore
 
 export const mockSearch = new FuseSearch<EntityType>(Object.values(simpleMockDtdlObjectModel))
 

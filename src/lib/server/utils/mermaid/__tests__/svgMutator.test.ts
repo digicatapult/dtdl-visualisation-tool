@@ -301,7 +301,7 @@ describe('Generator', function () {
 
       const attributes = render.svgElement.attributes
       expect(attributes.getNamedItem('hx-include')?.value).to.equal(
-        '#sessionId, #search-panel, input[name="navigationPanelTab"]'
+        '#viewId, #search-panel, input[name="navigationPanelTab"]'
       )
       expect(attributes.getNamedItem('viewBox')?.value).to.equal('0 0 300 100')
       expect(attributes.getNamedItem('height')?.value).to.equal('100')

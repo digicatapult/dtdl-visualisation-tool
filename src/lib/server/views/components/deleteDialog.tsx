@@ -54,7 +54,7 @@ export const DeleteDialog = ({
         <button
           id="delete-button"
           hx-delete={isInterface ? `entity/${definedIn}` : `entity/${definedIn}/content`}
-          hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
+          hx-include="#viewId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
           hx-swap="outerHTML transition:true"
           hx-target="#mermaid-output"
           hx-vals={isInterface ? '' : JSON.stringify({ contentName })}

@@ -42,7 +42,7 @@ export default class OntologyViewTemplates {
 
   public MermaidRoot = ({
     search,
-    sessionId,
+    viewId,
     diagramType,
     svgWidth,
     svgHeight,
@@ -53,7 +53,7 @@ export default class OntologyViewTemplates {
     model,
   }: {
     search?: string
-    sessionId: UUID
+    viewId: UUID
     diagramType: DiagramType
     svgWidth?: number
     svgHeight?: number
@@ -64,7 +64,7 @@ export default class OntologyViewTemplates {
     model: ModelRow
   }) => (
     <Page title={'UKDTC'} req={req}>
-      <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
+      <input id="viewId" name="viewId" type="hidden" value={escapeHtml(viewId)} />
       <section id="toolbar">
         <SearchPanel search={search} diagramType={diagramType} svgWidth={svgWidth} svgHeight={svgHeight} />
         <UploadForm />
