@@ -36,6 +36,7 @@ const commentParser = z.preprocess(
 const definedInParser = z.preprocess((v) => nullToUndefined(v), z.string().optional())
 
 const commonEntityFields = {
+  Id: z.string(),
   ClassId: z.string().default(''),
   displayName: localizedTextParser,
   description: localizedTextParser,
