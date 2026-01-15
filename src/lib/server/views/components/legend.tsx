@@ -39,7 +39,7 @@ export const Legend = ({ showContent }: { showContent: boolean }): JSX.Element =
       />
       <LegendItem
         iconClass="extends-edge"
-        title="Extends Edge"
+        title="Extends"
         description="Represents an extends relationship between nodes."
       />
     </div>
