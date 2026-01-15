@@ -15,10 +15,20 @@ import { safeUrl } from './url.js'
 const env = container.resolve(Env)
 
 const perPage = env.get('GH_PER_PAGE')
+const baseUrl = env.get('GH_API_BASE_URL')
+const oauthBaseUrl = env.get('GH_OAUTH_BASE_URL') || 'https://github.com'
+const oauthTokenBaseUrl = env.get('GH_OAUTH_TOKEN_BASE_URL') || 'https://github.com'
 const privateKey = Buffer.from(env.get('GH_APP_PRIVATE_KEY'), 'base64').toString('utf-8')
 
+const createOctokit = (auth: string | object) => {
+  return new Octokit({
+    auth,
+    ...(baseUrl ? { baseUrl } : {}),
+  })
+}
+
 export const authRedirectURL = (returnUrl: string): string => {
-  return safeUrl(`https://github.com/login/oauth/authorize`, {
+  return safeUrl(`${oauthBaseUrl}/login/oauth/authorize`, {
     client_id: env.get('GH_CLIENT_ID'),
     redirect_uri: `${env.get('GH_REDIRECT_ORIGIN')}/github/callback?returnUrl=${returnUrl}`,
   })
@@ -33,7 +43,7 @@ export class GithubRequest {
 
   getInstallations = async (token: string | undefined, page: number) => {
     if (!token) throw new GithubReqError('Missing GitHub token')
-    const octokit = new Octokit({ auth: token })
+    const octokit = createOctokit(token)
 
     const response = await this.requestWrapper(async () =>
       octokit.request('GET /user/installations', {
@@ -48,7 +58,7 @@ export class GithubRequest {
   getRepos = async (token: string | undefined, page: number) => {
     if (!token) throw new GithubReqError('Missing GitHub token')
 
-    const octokit = new Octokit({ auth: token })
+    const octokit = createOctokit(token)
     const response = await this.requestWrapper(async () =>
       octokit.request('GET /user/repos', {
         per_page: perPage,
@@ -60,7 +70,7 @@ export class GithubRequest {
 
   getInstallationRepos = async (token: string | undefined, installationId: number, page: number) => {
     if (!token) throw new GithubReqError('Missing GitHub token')
-    const octokit = new Octokit({ auth: token })
+    const octokit = createOctokit(token)
     const response = await this.requestWrapper(async () =>
       octokit.request('GET /user/installations/{installation_id}/repositories', {
         installation_id: installationId,
@@ -74,7 +84,7 @@ export class GithubRequest {
   getBranches = async (token: string | undefined, owner: string, repo: string, page: number) => {
     if (!token) throw new GithubReqError('Missing GitHub token')
 
-    const octokit = new Octokit({ auth: token })
+    const octokit = createOctokit(token)
     const response = await this.requestWrapper(async () =>
       octokit.request('GET /repos/{owner}/{repo}/branches', {
         owner,
@@ -89,7 +99,7 @@ export class GithubRequest {
   getContents = async (token: string | undefined, owner: string, repo: string, path: string, ref: string) => {
     if (!token) throw new GithubReqError('Missing GitHub token')
 
-    const octokit = new Octokit({ auth: token })
+    const octokit = createOctokit(token)
     const response = await this.requestWrapper(async () =>
       octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
         owner,
@@ -106,7 +116,7 @@ export class GithubRequest {
   }
 
   getAccessToken = async (code: string): Promise<OAuthToken> => {
-    const url = `https://github.com/login/oauth/access_token`
+    const url = `${oauthTokenBaseUrl}/login/oauth/access_token`
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -131,6 +141,7 @@ export class GithubRequest {
   getRepoPermissions = async (token: string, owner: string, repo: string): Promise<ViewAndEditPermission> => {
     const tokenHash = createHash('sha256').update(token).digest('hex')
     const cacheKey = `github_permissions_${tokenHash}_${owner}_${repo}`
+
     const cached = this.cache.get(cacheKey, z.enum(viewAndEditPermissions))
     if (cached) return cached
 
@@ -147,7 +158,7 @@ export class GithubRequest {
     owner: string,
     repo: string
   ): Promise<ViewAndEditPermission> => {
-    const userOctokit = new Octokit({ auth: token })
+    const userOctokit = createOctokit(token)
 
     const userResponse = await this.requestWrapper(async () =>
       userOctokit.request('GET /repos/{owner}/{repo}', {
@@ -169,6 +180,7 @@ export class GithubRequest {
         appId: env.get('GH_CLIENT_ID'),
         privateKey,
       },
+      ...(baseUrl ? { baseUrl } : {}),
     })
 
     const installationRes = await this.requestWrapper(async () =>
@@ -192,7 +204,7 @@ export class GithubRequest {
   }
 
   getAuthenticatedUser = async (token: string) => {
-    const octokit = new Octokit({ auth: token })
+    const octokit = createOctokit(token)
     const response = await this.requestWrapper(async () => octokit.request('GET /user'))
     return {
       login: response.data.login,
@@ -205,7 +217,7 @@ export class GithubRequest {
   getZip = async (token: string | undefined, owner: string, repo: string, ref: string) => {
     if (!token) throw new GithubReqError('Missing GitHub token')
 
-    const octokit = new Octokit({ auth: token })
+    const octokit = createOctokit(token)
 
     const response = await this.requestWrapper(async () =>
       octokit.request('GET /repos/{owner}/{repo}/zipball/{ref}', {
@@ -227,7 +239,7 @@ export class GithubRequest {
   getBranch = async (token: string, owner: string, repo: string, branch: string) => {
     if (!token) throw new GithubReqError('Missing GitHub token')
 
-    const octokit = new Octokit({ auth: token })
+    const octokit = createOctokit(token)
     try {
       const response = await this.requestWrapper(async () =>
         octokit.request(`GET /repos/{owner}/{repo}/git/ref/heads/{branch}`, {
@@ -248,7 +260,7 @@ export class GithubRequest {
   updateBranch = async (token: string, owner: string, repo: string, branch: string, sha: string) => {
     if (!token) throw new GithubReqError('Missing GitHub token')
 
-    const octokit = new Octokit({ auth: token })
+    const octokit = createOctokit(token)
     const response = await this.requestWrapper(async () =>
       octokit.request('PATCH /repos/{owner}/{repo}/git/refs/{ref}', {
         owner,
@@ -264,7 +276,7 @@ export class GithubRequest {
   createBranch = async (token: string, owner: string, repo: string, branch: string, sha: string) => {
     if (!token) throw new GithubReqError('Missing GitHub token')
 
-    const octokit = new Octokit({ auth: token })
+    const octokit = createOctokit(token)
     const response = await this.requestWrapper(async () =>
       octokit.request('POST /repos/{owner}/{repo}/git/refs', {
         owner,
@@ -279,7 +291,7 @@ export class GithubRequest {
   createBlob = async (token: string, owner: string, repo: string, content: string) => {
     if (!token) throw new GithubReqError('Missing GitHub token')
 
-    const octokit = new Octokit({ auth: token })
+    const octokit = createOctokit(token)
     const response = await this.requestWrapper(async () =>
       octokit.request('POST /repos/{owner}/{repo}/git/blobs', {
         owner,
@@ -300,7 +312,7 @@ export class GithubRequest {
   ) => {
     if (!token) throw new GithubReqError('Missing GitHub token')
 
-    const octokit = new Octokit({ auth: token })
+    const octokit = createOctokit(token)
     const response = await this.requestWrapper(async () =>
       octokit.request('POST /repos/{owner}/{repo}/git/trees', {
         owner,
@@ -322,7 +334,7 @@ export class GithubRequest {
   ) => {
     if (!token) throw new GithubReqError('Missing GitHub token')
 
-    const octokit = new Octokit({ auth: token })
+    const octokit = createOctokit(token)
     const response = await this.requestWrapper(async () =>
       octokit.request('POST /repos/{owner}/{repo}/git/commits', {
         owner,
@@ -346,7 +358,7 @@ export class GithubRequest {
   ) => {
     if (!token) throw new GithubReqError('Missing GitHub token')
 
-    const octokit = new Octokit({ auth: token })
+    const octokit = createOctokit(token)
     const response = await this.requestWrapper(async () =>
       octokit.request('POST /repos/{owner}/{repo}/pulls', {
         owner,
@@ -363,7 +375,7 @@ export class GithubRequest {
   getCommit = async (token: string, owner: string, repo: string, ref: string) => {
     if (!token) throw new GithubReqError('Missing GitHub token')
 
-    const octokit = new Octokit({ auth: token })
+    const octokit = createOctokit(token)
     const response = await this.requestWrapper(async () =>
       octokit.request('GET /repos/{owner}/{repo}/commits/{ref}', {
         owner,

@@ -1,0 +1,21 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/repos/digicatapult/dtdl-test-fixtures"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "permissions": {
+            "pull": true
+          }
+        }
+      }
+    }
+  ]
+}

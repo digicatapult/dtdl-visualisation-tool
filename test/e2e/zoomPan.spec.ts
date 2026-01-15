@@ -1,6 +1,9 @@
 import { expect, test } from '@playwright/test'
+import { visualisationUIWiremockPort } from '../globalSetup'
 
 test.describe('zoom + pan', () => {
+  test.use({ baseURL: `http://localhost:${visualisationUIWiremockPort}` })
+
   test('zoom out button', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 })
     await page.goto('./')

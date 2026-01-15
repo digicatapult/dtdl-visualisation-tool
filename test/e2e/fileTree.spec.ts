@@ -1,7 +1,10 @@
 import { expect, test } from '@playwright/test'
+import { visualisationUIWiremockPort } from '../globalSetup'
 import { waitForUpdateLayout } from './helpers/waitForHelpers'
 
 test.describe('file tree', () => {
+  test.use({ baseURL: `http://localhost:${visualisationUIWiremockPort}` })
+
   test('no interface/relationship selected', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 })
     await page.goto('./')

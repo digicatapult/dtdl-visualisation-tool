@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/login/oauth/authorize"
+  },
+  "response": {
+    "status": 302,
+    "headers": {
+      "Location": "{{request.query.redirect_uri}}&code=fake-github-code"
+    },
+    "transformers": ["response-template"]
+  }
+}

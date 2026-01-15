@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { visualisationUIWiremockPort } from '../globalSetup.js'
 import { waitForUpdateLayout, waitForUploadFileFromRoot } from './helpers/waitForHelpers.js'
 
 // Convert import.meta.url to __dirname equivalent
@@ -8,6 +9,8 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 test.describe('multiple sessions', () => {
+  test.use({ baseURL: `http://localhost:${visualisationUIWiremockPort}` })
+
   test('render two simultaneous sessions correctly', async ({ browser }) => {
     test.setTimeout(90000)
 

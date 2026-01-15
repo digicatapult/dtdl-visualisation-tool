@@ -10,10 +10,13 @@
 
 import { expect, test } from '@playwright/test'
 import { POSTHOG_MOCK_PORT } from '../constants.js'
+import { visualisationUIWiremockPort } from '../globalSetup.js'
 
 const POSTHOG_MOCK_URL = `http://localhost:${POSTHOG_MOCK_PORT}`
 
 test.describe('PostHog Server-Side Events', () => {
+  test.use({ baseURL: `http://localhost:${visualisationUIWiremockPort}` })
+
   test('should have captured events from container startup and other tests', async () => {
     // Query mock server for all events captured during the test run
     // This runs alongside other tests and checks that events have been captured

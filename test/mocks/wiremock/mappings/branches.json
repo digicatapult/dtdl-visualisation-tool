@@ -1,0 +1,59 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/repos/[^/]+/[^/]+/branches",
+        "queryParameters": {
+          "page": {
+            "equalTo": "1"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": [
+          {
+            "name": "main"
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/repos/[^/]+/[^/]+/branches",
+        "queryParameters": {
+          "page": {
+            "equalTo": "2"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": []
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/repos/digicatapult/dtdl-visualisation-tool-fake/branches"
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "message": "Not Found"
+        }
+      }
+    }
+  ]
+}

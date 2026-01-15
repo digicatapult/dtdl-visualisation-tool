@@ -1,0 +1,101 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/repos/digicatapult/nidt_ontology_private_without_collaborator/branches"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": [
+          {
+            "name": "main"
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/repos/digicatapult/nidt_ontology_private_without_collaborator/branches",
+        "queryParameters": {
+          "page": {
+            "equalTo": "2"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": []
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/repos/digicatapult/nidt_ontology_private_without_collaborator/contents/",
+        "queryParameters": {
+          "ref": {
+            "equalTo": "main"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": [
+          {
+            "name": "mockFile.json",
+            "path": "mockFile.json",
+            "type": "file"
+          }
+        ]
+      }
+    },
+    {
+      "scenarioName": "privateRepoPermissionsShareOntology",
+      "requiredScenarioState": "authorised",
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/repos/digicatapult/nidt_ontology_private_without_collaborator"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "permissions": {
+            "pull": true
+          }
+        }
+      }
+    },
+    {
+      "scenarioName": "privateRepoPermissionsShareOntology",
+      "requiredScenarioState": "unauthorised",
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/repos/digicatapult/nidt_ontology_private_without_collaborator"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "permissions": {
+            "pull": false
+          }
+        }
+      }
+    }
+  ]
+}

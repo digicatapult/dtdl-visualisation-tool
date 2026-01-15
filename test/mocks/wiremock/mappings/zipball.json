@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/repos/[^/]+/[^/]+/zipball/.*"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/zip"
+    },
+    "bodyFileName": "dtdl-test-fixtures.zip"
+  }
+}
