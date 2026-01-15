@@ -3,6 +3,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 import { modelHistoryCookie } from '../../src/lib/server/models/cookieNames'
+import { visualisationUIWiremockPort } from '../globalSetup'
 import { waitForSuccessResponse, waitForUpdateLayout, waitForUploadFile } from './helpers/waitForHelpers'
 
 // Convert import.meta.url to __dirname equivalent
@@ -10,6 +11,8 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 test.describe('Open Ontology from recently visited', () => {
+  test.use({ baseURL: `http://localhost:${visualisationUIWiremockPort}` })
+
   test('File upload should result in a recent view', async ({ page, context }) => {
     // Set viewport and navigate to the page, smaller viewports hide UI elements
     await page.setViewportSize({ width: 1920, height: 1080 })

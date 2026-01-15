@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/repos/[^/]+/[^/]+/commits/.*"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "sha": "commitSha"
+    }
+  }
+}

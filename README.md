@@ -111,12 +111,16 @@ The application can be run in Docker. `sample/energygrid` is automatically parse
 | GH_APP_PRIVATE_KEY       | y        | -                         | See [GitHub Integration](#github-integration)                                                                                                |
 | GH_CLIENT_ID             | y        | -                         | See [GitHub Integration](#github-integration)                                                                                                |
 | GH_CLIENT_SECRET         | y        | -                         | See [GitHub Integration](#github-integration)                                                                                                |
+| GH_API_BASE_URL          | n        | -                         | Base URL for GitHub API requests (for mocking in tests)                                                                                      |
+| GH_OAUTH_BASE_URL        | n        | -                         | Base URL for GitHub OAuth authorization (for mocking in tests)                                                                               |
+| GH_OAUTH_TOKEN_BASE_URL  | n        | -                         | Base URL for GitHub OAuth token endpoint (for mocking in tests)                                                                              |
 | GH_PER_PAGE              | n        | `50`                      | The number of results per GitHub API request (max 100)                                                                                       |
 | GH_REDIRECT_ORIGIN       | n        | `http://localhost:3000`   | Origin to redirect to for GitHub OAuth callback. See [GitHub Integration](#github-integration)                                               |
 | COOKIE_SESSION_KEYS      | y        | -                         | Secret for signed cookies, devDefault `secret`                                                                                               |
 | PUPPETEER_ARGS           | n        | ''                        | Comma separated string of puppeteer [launch args](https://pptr.dev/api/puppeteer.launchoptions) e.g. `--no-sandbox,--disable-setuid-sandbox` |
 | EDIT_ONTOLOGY            | n        | 'false'                   | Edit toggle is disabled on all ontologys when false and works as normal when true                                                            |
 | JSON_DEPTH_LIMIT         | n        | '10'                      | Maximum depth allowed of DTDL files                                                                                                          |
+| MAX_DTDL_OBJECT_SIZE     | n        | '1000'                    | Maximum number of DTDL objects allowed in a single ontology                                                                                  |
 | STRICT_RATE_LIMIT        | n        | '1000'                    | Number of requests allowed per client on strict routes within the `RATE_LIMIT_WINDOW_MS`                                                     |
 | GLOBAL_RATE_LIMIT        | n        | '10000'                   | Number of requests allowed per client on all routes within the `RATE_LIMIT_WINDOW_MS`                                                        |
 | IP_ALLOW_LIST            | n        | -                         | Comma separated IPs that can make unlimited requests                                                                                         |
@@ -148,36 +152,33 @@ Create a `.env` at root and set:
 - `GH_CLIENT_ID=` to the GitHub App's Client ID (not to be confused with the App ID)
 - `GH_CLIENT_SECRET=` a generated token on the GitHub App.
 
-Additionally end to end tests for GitHub integration require envs of two test users in GitHub: `digicatapult-nidt-user-1` and `digicatapult-nidt-user-2`.
+Additionally end to end tests for GitHub integration require envs of a user in GitHub:
 
-- `GH_TEST_USER=` the `digicatapult-nidt-user-1` account email address.
-- `GH_TEST_PASSWORD=` the `digicatapult-nidt-user-1` account password.
-- `GH_TEST_2FA_SECRET=` the secret shown by clicking `setup key` when [setting up 2FA](https://docs.github.com/en/authentication/securing-your-account-with-two-factor-authentication-2fa/configuring-two-factor-authentication) for the `digicatapult-nidt-user-1`.
-
-- `GH_TEST_USER_2=` the `digicatapult-nidt-user-2` account email address.
-- `GH_TEST_PASSWORD_2=` the `digicatapult-nidt-user-2` account password.
-- `GH_TEST_2FA_SECRET_2=` the secret shown by clicking `setup key` for `digicatapult-nidt-user-2`
+- `GH_TEST_USER=` the account email address.
+- `GH_TEST_PASSWORD=` the account password.
+- `GH_TEST_2FA_SECRET=` the secret shown by clicking `setup key` when [setting up 2FA](https://docs.github.com/en/authentication/securing-your-account-with-two-factor-authentication-2fa/configuring-two-factor-authentication).
 
 ## Analytics
 
 This tool integrates with PostHog for both server-side and client-side analytics tracking. Analytics are disabled by default and can be enabled by setting `POSTHOG_ENABLED=true` and providing a `NEXT_PUBLIC_POSTHOG_KEY`.
 
 **Privacy & Features:**
-*   **Anonymous by Default**: Users are tracked with a random UUID stored in a cookie.
-*   **GitHub Identity**: If a user logs in via GitHub, their analytics are securely aliased to their GitHub identity.
-*   **What is tracked**:
-    *   **Server-side**: Ontology uploads, searches, view changes (diagram type, expansion), and errors.
-    *   **Client-side**: Standard page views and interaction events.
+
+- **Anonymous by Default**: Users are tracked with a random UUID stored in a cookie.
+- **GitHub Identity**: If a user logs in via GitHub, their analytics are securely aliased to their GitHub identity.
+- **What is tracked**:
+  - **Server-side**: Ontology uploads, searches, view changes (diagram type, expansion), and errors.
+  - **Client-side**: Standard page views and interaction events.
 
 ## Privacy Policy
 
 This tool integrates with Iubenda for privacy policy and cookie policy compliance. The widget is disabled by default (opt-in) and can be enabled by setting `IUBENDA_ENABLED=true`.
 
 **Configuration:**
-*   **Widget ID**: Configure using `IUBENDA_WIDGET_ID` to point to your Iubenda privacy policy.
-*   **Display**: The widget appears in the bottom right corner of all pages, providing users access to Privacy Policy and Cookie Policy.
-*   **Testing**: The widget is disabled in test environments by default to prevent interference with E2E tests.
 
+- **Widget ID**: Configure using `IUBENDA_WIDGET_ID` to point to your Iubenda privacy policy.
+- **Display**: The widget appears in the bottom right corner of all pages, providing users access to Privacy Policy and Cookie Policy.
+- **Testing**: The widget is disabled in test environments by default to prevent interference with E2E tests.
 
 ## Testing
 
@@ -207,26 +208,30 @@ npm run test:unit
 
 ### End to End Testing
 
-E2E tests use `playwright` and are described in`test/`.
-
-Install dependencies for playwright with:
+E2E tests use `playwright` and are described in `test/`. Install dependencies with:
 
 ```sh
 npx playwright install
 ```
 
-See [GitHub Integration](#github-integration) for how to configure envs for GitHub e2e tests.
+Most E2E tests use WireMock to mock the GitHub API. WireMock stubs are configured in `test/mocks/wiremock/mappings/`.
 
-Then run:
+The `github.spec.ts` test file performs a real OAuth flow with GitHub and requires test user credentials (see [GitHub Integration](#github-integration) for configuration):
 
-```sh
-npm run test:e2e
-```
+- `GH_TEST_USER` - GitHub test account email
+- `GH_TEST_PASSWORD` - GitHub test account password
+- `GH_TEST_2FA_SECRET` - TOTP secret for 2FA
 
-A browser window will pop up where you can run tests and follow their progress. Alternatively run the tests without the ui:
+Run all E2E tests:
 
 ```sh
 npm run test:playwright
+```
+
+Run with Playwright UI:
+
+```sh
+npm run test:e2e
 ```
 
 Test results are placed in `playwright-report`.

@@ -1,14 +1,13 @@
 import { expect, test } from '@playwright/test'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { visualisationUIWiremockPort } from '../globalSetup.js'
 import { openEditRepo } from './helpers/openEditRepo.js'
 import { waitForSuccessResponse, waitForUpdateLayout } from './helpers/waitForHelpers.js'
 
 test.describe('Add New Node', () => {
-  test('should add a new interface node and verify it appears in the ontology', async ({ browser }) => {
+  test.use({ baseURL: `http://localhost:${visualisationUIWiremockPort}` })
+
+  test('should add a new interface node and verify it appears in the ontology', async ({ page }) => {
     test.setTimeout(60000)
-    const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
-    const page = await context.newPage()
     await openEditRepo(page)
 
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
@@ -54,13 +53,11 @@ test.describe('Add New Node', () => {
     await expect(page.locator('#navigation-panel-details')).toContainText(comment)
 
     await expect(page.locator('#navigation-panel-details')).toContainText('Interface')
-    await context.close()
+    await page.close()
   })
 
-  test('should add a new node to a specific folder', async ({ browser }) => {
+  test('should add a new node to a specific folder', async ({ page }) => {
     test.setTimeout(60000)
-    const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
-    const page = await context.newPage()
     await openEditRepo(page)
 
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
@@ -95,16 +92,14 @@ test.describe('Add New Node', () => {
 
       await waitForSuccessResponse(page, () => page.locator('#create-new-node-button').click(), '/entity/new-node')
 
-      await waitForUpdateLayout(page, () => page.locator('#search').fill(displayName))
+      await waitForUpdateLayout(page, () => page.type('#search', displayName, { delay: 100 }))
       await expect(page.locator('#mermaid-output')).toContainText(displayName)
-      await context.close()
+      await page.close()
     }
   })
 
-  test('should validate required fields', async ({ browser }) => {
+  test('should validate required fields', async ({ page }) => {
     test.setTimeout(60000)
-    const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
-    const page = await context.newPage()
     await openEditRepo(page)
 
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
@@ -130,13 +125,11 @@ test.describe('Add New Node', () => {
     await waitForSuccessResponse(page, () => page.locator('#create-new-node-button').click(), '/entity/new-node')
 
     await expect(page.locator('#mermaid-output')).toContainText('ValidName')
-    await context.close()
+    await page.close()
   })
 
-  test('should handle duplicate display names correctly', async ({ browser }) => {
+  test('should handle duplicate display names correctly', async ({ page }) => {
     test.setTimeout(60000)
-    const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
-    const page = await context.newPage()
     await openEditRepo(page)
 
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
@@ -161,13 +154,11 @@ test.describe('Add New Node', () => {
     } else {
       await expect(page.locator('#navigation-panel')).toBeVisible()
     }
-    await context.close()
+    await page.close()
   })
 
-  test('should cancel creation and return to edit mode', async ({ browser }) => {
+  test('should cancel creation and return to edit mode', async ({ page }) => {
     test.setTimeout(60000)
-    const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
-    const page = await context.newPage()
     await openEditRepo(page)
 
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
@@ -184,12 +175,10 @@ test.describe('Add New Node', () => {
     await expect(page.locator('#create-node-form')).not.toBeVisible()
 
     await expect(page.locator('#add-node-button')).toBeVisible()
-    await context.close()
+    await page.close()
   })
 
-  test('should only be available in edit mode', async ({ browser }) => {
-    const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
-    const page = await context.newPage()
+  test('should only be available in edit mode', async ({ page }) => {
     await openEditRepo(page)
 
     await expect(page.locator('#edit-toggle').getByText('View')).toBeVisible()
@@ -210,13 +199,11 @@ test.describe('Add New Node', () => {
 
     await waitForSuccessResponse(page, () => addNodeButton.click(), '/entity/add-new-node')
     await expect(page.locator('#create-node-form')).toBeVisible()
-    await context.close()
+    await page.close()
   })
 
-  test('should regenerate preview after adding new node', async ({ browser }) => {
+  test('should regenerate preview after adding new node', async ({ page }) => {
     test.setTimeout(60000)
-    const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
-    const page = await context.newPage()
     await openEditRepo(page)
 
     const ontologyUrl = page.url()
@@ -246,7 +233,6 @@ test.describe('Add New Node', () => {
 
     // Verify preview has changed
     expect(previewAfter).not.toBe(previewBefore)
-
-    await context.close()
+    await page.close()
   })
 })

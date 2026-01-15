@@ -1,7 +1,10 @@
 import { expect, test } from '@playwright/test'
+import { visualisationUIWiremockPort } from '../globalSetup'
 import { waitForUpdateLayout } from './helpers/waitForHelpers'
 
 test.describe('highlight', () => {
+  test.use({ baseURL: `http://localhost:${visualisationUIWiremockPort}` })
+
   test('flowchart - interface should change to highlight colour and navigation panel open', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 })
     await page.goto('./')

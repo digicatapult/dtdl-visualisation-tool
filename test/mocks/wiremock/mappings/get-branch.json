@@ -1,0 +1,36 @@
+{
+  "mappings": [
+    {
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/repos/[^/]+/[^/]+/git/ref/heads/main"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "ref": "refs/heads/main",
+          "object": {
+            "sha": "baseSha"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/repos/[^/]+/[^/]+/git/ref/heads/[^/]+"
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {}
+      }
+    }
+  ]
+}

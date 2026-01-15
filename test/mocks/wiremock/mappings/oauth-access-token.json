@@ -1,0 +1,17 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPathPattern": "/login/oauth/access_token"
+  },
+  "response": {
+    "status": 200,
+    "transformers": ["response-template"],
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "access_token": "fake-github-token-{{randomValue length=10 type='ALPHANUMERIC'}}",
+      "expires_in": 28800
+    }
+  }
+}

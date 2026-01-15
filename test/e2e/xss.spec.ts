@@ -1,7 +1,10 @@
 import { expect, test } from '@playwright/test'
+import { visualisationUIWiremockPort } from '../globalSetup'
 import { waitForUpdateLayout } from './helpers/waitForHelpers'
 
 test.describe('xss-vulnerabilities', () => {
+  test.use({ baseURL: `http://localhost:${visualisationUIWiremockPort}` })
+
   const payloads = [
     `<script>alert('XSS')</script>`,
     `<img src='x' onerror='alert("XSS")'>`,
