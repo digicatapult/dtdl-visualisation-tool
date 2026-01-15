@@ -1,0 +1,22 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/repos/[^/]+/[^/]+/installation"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "id": 789012,
+      "account": {
+        "login": "digicatapult"
+      },
+      "permissions": {
+        "contents": "write",
+        "pull_requests": "write"
+      }
+    }
+  }
+}

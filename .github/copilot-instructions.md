@@ -263,7 +263,7 @@ if (process.env.NODE_ENV === 'test') {
 **Example** (from Iubenda integration):
 ```typescript
 // test/globalSetup.ts - Start Iubenda container AFTER OAuth
-const visualisationUIContainer3 = await startVisualisationContainer(
+const visualisationUIIubenda = await startVisualisationContainer(
   {
     containerName: 'dtdl-visualiser-iubenda',
     hostPort: 3002,

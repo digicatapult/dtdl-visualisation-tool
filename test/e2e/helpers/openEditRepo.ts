@@ -27,20 +27,11 @@ export const openEditRepo = async (page: Page) => {
   await expect(repo).toBeVisible()
   await waitForSuccessResponse(page, () => repo.click(), '/branches')
 
-  // Add a small wait for Webkit rendering
-  await page.waitForTimeout(1000)
-
   // click test/dtdl branch
   const branchName = page.locator('.github-list li').filter({ hasText: /^main$/ })
   await expect(branchName).toBeVisible()
-  await branchName.scrollIntoViewIfNeeded()
-  await waitForSuccessResponse(page, () => branchName.click(), '/contents')
 
-  // click edit
-  const dirName = page.locator('.github-list li').filter({ hasText: /edit$/ })
-  await expect(dirName).toBeVisible()
-  await dirName.scrollIntoViewIfNeeded()
-  await waitForSuccessResponse(page, () => dirName.click(), '/contents')
+  await waitForSuccessResponse(page, () => branchName.click(), '/contents')
 
   // get dtdl from github
   await waitForSuccessResponse(page, () => page.click('#select-folder'), '/ontology')

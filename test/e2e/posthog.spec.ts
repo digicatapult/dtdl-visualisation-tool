@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { POSTHOG_MOCK_PORT } from '../constants.js'
+import { visualisationUIWiremockPort } from '../globalSetup.js'
 
 /**
  * PostHog Client-Side E2E Tests
@@ -12,6 +13,8 @@ import { POSTHOG_MOCK_PORT } from '../constants.js'
  */
 
 test.describe('PostHog Client-Side Integration', () => {
+  test.use({ baseURL: `http://localhost:${visualisationUIWiremockPort}` })
+
   test.use({
     viewport: { width: 1440, height: 1080 },
   })

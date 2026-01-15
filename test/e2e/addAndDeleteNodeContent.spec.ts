@@ -1,13 +1,12 @@
 import { expect, Locator, Page, test } from '@playwright/test'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { visualisationUIWiremockPort } from '../globalSetup'
 import { waitForSuccessResponse } from './helpers/waitForHelpers'
 
 test.describe('Test content in ontology', () => {
-  test('add, edit and delete content', async ({ browser }) => {
+  test.use({ baseURL: `http://localhost:${visualisationUIWiremockPort}` })
+
+  test('add, edit and delete content', async ({ page }) => {
     test.setTimeout(110000)
-    const context = await browser.newContext({ storageState: join(tmpdir(), 'user1.json') })
-    const page = await context.newPage()
     await openEditRepo(page)
 
     // turn on edit mode
@@ -217,7 +216,7 @@ test.describe('Test content in ontology', () => {
     await page.fill('#delete-confirmation', 'delete')
     await waitForSuccessResponse(page, () => page.locator('#delete-button').click(), '/content')
     await expect(page.locator('#navigation-panel-details').getByText(`Name: ${commandName}`)).not.toBeVisible()
-    await context.close()
+    await page.close()
   })
 })
 
@@ -261,11 +260,6 @@ const openEditRepo = async (page: Page) => {
   const branchName = page.locator('.github-list li').filter({ hasText: /^main$/ })
   await expect(branchName).toBeVisible()
   await waitForSuccessResponse(page, () => branchName.click(), '/contents')
-
-  // click edit
-  const dirName = page.locator('.github-list li').filter({ hasText: /edit$/ })
-  await expect(dirName).toBeVisible()
-  await waitForSuccessResponse(page, () => dirName.click(), '/contents')
 
   // get dtdl from github
   await waitForSuccessResponse(page, () => page.click('#select-folder'), '/ontology')
