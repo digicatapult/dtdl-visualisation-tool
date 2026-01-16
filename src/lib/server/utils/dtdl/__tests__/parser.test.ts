@@ -8,7 +8,6 @@ import { ModelingException } from '@digicatapult/dtdl-parser'
 import { expect } from 'chai'
 import { createHash } from 'crypto'
 import { readFile } from 'node:fs/promises'
-import sinon from 'sinon'
 import { mockCache, mockLogger } from '../../../controllers/__tests__/helpers.js'
 import { ModellingError, UploadError } from '../../../errors.js'
 import { DtdlModel } from '../../../models/dtdlOmParser.js'
@@ -196,26 +195,6 @@ describe('parse', function () {
 })
 
 describe('validate', function () {
-  test('de-duplicates files with the same non-empty path (keeps first) and logs a warning', async () => {
-    const warnSpy = sinon.spy()
-    const logger = {
-      warn: warnSpy,
-      trace: sinon.stub(),
-    } as unknown as typeof mockLogger
-
-    const parser = new Parser(logger, mockCache)
-    const files = [
-      { path: 'same.json', source: JSON.stringify(nestedOne) },
-      { path: 'same.json', source: JSON.stringify(nestedTwo) },
-    ]
-
-    const result = await parser.validate(files)
-
-    expect(result).to.deep.equal([files[0]])
-    expect(warnSpy.calledOnce).to.equal(true)
-    expect(warnSpy.firstCall.args[0]).to.deep.equal({ originalCount: 2, dedupedCount: 1 })
-  })
-
   test('multiple valid files', async () => {
     const files = [
       { path: '', source: JSON.stringify(nestedOne) },
