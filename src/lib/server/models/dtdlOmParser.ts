@@ -51,7 +51,6 @@ const commonEntityFields = {
 const interfaceParser = z
   .object({
     ...commonEntityFields,
-    Id: z.string(),
     EntityKind: z.literal('Interface'),
     extends: stringArrayParser.transform((v) => v ?? []),
     extendedBy: stringArrayParser.transform((v) => v ?? []),
@@ -68,7 +67,6 @@ const interfaceParser = z
 const relationshipParser = z
   .object({
     ...commonEntityFields,
-    Id: z.string(),
     EntityKind: z.literal('Relationship'),
     ChildOf: z.preprocess((v) => nullToUndefined(v), z.string().optional()),
     target: z.preprocess((v) => nullToUndefined(v), z.string().optional()),
@@ -81,7 +79,6 @@ const relationshipParser = z
 const propertyParser = z
   .object({
     ...commonEntityFields,
-    Id: z.string(),
     EntityKind: z.literal('Property'),
     schema: z.preprocess((v) => nullToUndefined(v), z.string()),
     name: z.string(),
@@ -92,7 +89,6 @@ const propertyParser = z
 const telemetryParser = z
   .object({
     ...commonEntityFields,
-    Id: z.string(),
     EntityKind: z.literal('Telemetry'),
     schema: z.preprocess((v) => nullToUndefined(v), z.string()),
     name: z.string(),
@@ -102,7 +98,6 @@ const telemetryParser = z
 const commandRequestParser = z
   .object({
     ...commonEntityFields,
-    Id: z.string(),
     EntityKind: z.literal('CommandRequest'),
     nullable: z.boolean().optional(),
     schema: z.preprocess((v) => nullToUndefined(v), z.string()),
@@ -113,7 +108,6 @@ const commandRequestParser = z
 const commandResponseParser = z
   .object({
     ...commonEntityFields,
-    Id: z.string(),
     EntityKind: z.literal('CommandResponse'),
     nullable: z.boolean().optional(),
     schema: z.preprocess((v) => nullToUndefined(v), z.string()),
@@ -124,7 +118,6 @@ const commandResponseParser = z
 const commandParser = z
   .object({
     ...commonEntityFields,
-    Id: z.string(),
     EntityKind: z.literal('Command'),
     request: z.preprocess((v) => nullToUndefined(v), z.string().optional()),
     response: z.preprocess((v) => nullToUndefined(v), z.string().optional()),
@@ -135,7 +128,6 @@ const commandParser = z
 const componentParser = z
   .object({
     ...commonEntityFields,
-    Id: z.string(),
     EntityKind: z.literal('Component'),
     schema: z.preprocess((v) => nullToUndefined(v), z.string()),
     name: z.string(),
@@ -145,7 +137,6 @@ const componentParser = z
 const primitiveSchemaParser = z
   .object({
     ...commonEntityFields,
-    Id: z.string(),
     EntityKind: z.enum([
       'Boolean',
       'Byte',
@@ -173,7 +164,6 @@ const primitiveSchemaParser = z
 const enumParser = z
   .object({
     ...commonEntityFields,
-    Id: z.string(),
     EntityKind: z.literal('Enum'),
     enumValues: stringArrayParser.transform((v) => v ?? []),
     valueSchema: z.unknown(),
@@ -183,7 +173,6 @@ const enumParser = z
 const enumValueParser = z
   .object({
     ...commonEntityFields,
-    Id: z.string(),
     EntityKind: z.literal('EnumValue'),
     enumValue: z.union([z.string(), z.number(), z.boolean()]),
     name: z.string(),
@@ -193,7 +182,6 @@ const enumValueParser = z
 const objectParser = z
   .object({
     ...commonEntityFields,
-    Id: z.string(),
     EntityKind: z.literal('Object'),
     fields: stringArrayParser.transform((v) => v ?? []),
   })
@@ -202,7 +190,6 @@ const objectParser = z
 const fieldParser = z
   .object({
     ...commonEntityFields,
-    Id: z.string(),
     EntityKind: z.literal('Field'),
     schema: z.unknown(),
     name: z.string(),
@@ -212,7 +199,6 @@ const fieldParser = z
 const arrayParser = z
   .object({
     ...commonEntityFields,
-    Id: z.string(),
     EntityKind: z.literal('Array'),
     elementSchema: z.unknown(),
   })
@@ -221,7 +207,6 @@ const arrayParser = z
 const mapParser = z
   .object({
     ...commonEntityFields,
-    Id: z.string(),
     EntityKind: z.literal('Map'),
     mapKey: z.unknown(),
     mapValue: z.unknown(),
@@ -231,7 +216,6 @@ const mapParser = z
 const unitParser = z
   .object({
     ...commonEntityFields,
-    Id: z.string(),
     EntityKind: z.literal('Unit'),
     name: z.string().optional(),
   })
