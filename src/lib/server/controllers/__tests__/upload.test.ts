@@ -129,7 +129,7 @@ describe('OpenOntologyController', async () => {
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
       const mockFile = {
         mimetype: 'application/zip',
-        buffer: readFileSync(path.resolve(__dirname, './fixtures/simple.zip')),
+        buffer: readFileSync(path.resolve(__dirname, 'fixtures/simple.zip')),
         originalname: 'test.zip',
       }
       const req = mockReq({})

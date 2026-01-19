@@ -29,7 +29,7 @@ test.describe('Open Ontology from recently visited', () => {
     )
     await expect(page.locator('#main-view').getByText('Local Zip File')).toBeVisible()
 
-    const filePath = path.join(__dirname, '../../src/lib/server/controllers/__tests__/simple.zip')
+    const filePath = path.join(__dirname, 'fixtures/simple.zip')
 
     await waitForUploadFile(page, () => page.locator('#main-view').getByText('Local Zip File').click(), filePath)
 

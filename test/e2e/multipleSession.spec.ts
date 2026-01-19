@@ -27,7 +27,7 @@ test.describe('multiple sessions', () => {
     )
 
     // Upload ontology to second page
-    const filePath = path.join(__dirname, '../../src/lib/server/controllers/__tests__/simple.zip')
+    const filePath = path.join(__dirname, 'fixtures/simple.zip')
     await waitForUploadFileFromRoot(
       pageTwo,
       () => pageTwo.locator('#main-view').getByText('Local Zip File').click(),

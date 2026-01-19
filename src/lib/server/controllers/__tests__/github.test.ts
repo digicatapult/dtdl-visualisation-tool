@@ -151,7 +151,7 @@ export const mockGithubRequest = {
   getContents: getContentsStub,
   getCommit: () => Promise.resolve({ sha: 'currentCommitSha' }),
   getAccessToken: () => Promise.resolve(token),
-  getZip: () => Promise.resolve(readFileSync(path.resolve(__dirname, './fixtures/simple.zip'))),
+  getZip: () => Promise.resolve(readFileSync(path.resolve(__dirname, 'fixtures/simple.zip'))),
   getRepoPermissions: () => Promise.resolve('edit'),
   getAuthenticatedUser: sinon.stub().resolves({
     login: 'testuser',
