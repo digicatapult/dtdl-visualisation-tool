@@ -7,7 +7,7 @@ import { singleton } from 'tsyringe'
 import { ModelRow } from '../../../db/types.js'
 import { DiagramType } from '../../models/mermaidDiagrams.js'
 import { DtdlId, UUID } from '../../models/strings.js'
-import { hasFileTreeErrors } from '../../utils/dtdl/fileTreeErrors.js'
+import Parser from '../../utils/dtdl/parser.js'
 import { DtdlPath } from '../../utils/dtdl/parser.js'
 import { Page } from '../common.js'
 import { AddNode } from '../components/addNode.js'
@@ -226,7 +226,7 @@ export default class OntologyViewTemplates {
             hasChildErrors={hasChildErrors}
           />
         </div>
-        {hasFileTreeErrors(fileTree) && (
+        {Parser.hasFileTreeErrors(fileTree) && (
           <div id="navigation-panel-tree-warning">
             <img src="/public/images/warning.svg" width="54px" height="50px" />
             <p>Only a part of this ontology could be loaded, due to errors.</p>

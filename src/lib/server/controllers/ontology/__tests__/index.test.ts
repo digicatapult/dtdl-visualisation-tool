@@ -1,31 +1,26 @@
+import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
+import pino from 'pino'
 import sinon, { SinonStub } from 'sinon'
 import { ModelDb } from '../../../../db/modelDb.js'
+import { InternalError } from '../../../errors.js'
 import { UpdateParams } from '../../../models/controllerTypes.js'
 import { modelHistoryCookie } from '../../../models/cookieNames.js'
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../../models/renderedDiagram/index.js'
-import { generatedSVGFixture, simpleMockDtdlObjectModel } from '../../../utils/mermaid/__tests__/fixtures.js'
-import { mockGithubRequest } from '../../__tests__/github.test.js'
+import { UUID } from '../../../models/strings.js'
+import { allInterfaceFilter } from '../../../utils/dtdl/extract.js'
+import { DtdlPath } from '../../../utils/dtdl/parser.js'
+import { LRUCache } from '../../../utils/lruCache.js'
+import { generatedSVGFixture, mockDtdlObjectModel } from '../../../utils/mermaid/__tests__/fixtures.js'
+import { SvgGenerator } from '../../../utils/mermaid/generator.js'
+import { SvgMutator } from '../../../utils/mermaid/svgMutator.js'
+import { PostHogService } from '../../../utils/postHog/postHogService.js'
+import SessionStore from '../../../utils/sessions.js'
+import OntologyViewTemplates from '../../../views/templates/ontologyView.js'
+import { complexMockDtdlModel, simpleMockDtdlObjectModel } from '../../__tests__/fixtures/dtdl.fixtures.js'
 import {
-  complexDtdlId,
-  complexMockModelDb,
-  generatorRunStub,
-  mockCache,
-  mockGenerator,
-  mockLogger,
-  mockMutator,
-  mockPostHog,
-  mockReq,
-  mockReqWithCookie,
-  mockSession,
-  sessionSetStub,
-  simpleDtdlId,
-  simpleMockModelDb,
-  templateMock,
-  toHTMLString,
-} from '../../__tests__/helpers.js'
-import {
+  sessionMap,
   validSessionExpanded11Id,
   validSessionExpanded12Id,
   validSessionExpanded2357Id,
@@ -35,8 +30,152 @@ import {
   validSessionId,
   validSessionSomeOtherSearchId,
   validSessionSomeSearchId,
-} from '../../__tests__/sessionFixtures.js'
+} from '../../__tests__/fixtures/session.fixtures.js'
+import { mockGithubRequest } from '../../__tests__/github.test.js'
+import { mockReq, mockReqWithCookie, toHTMLString } from '../../__tests__/helpers.js'
 import { OntologyController } from '../index.js'
+
+const simpleDtdlId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed7'
+const complexDtdlId: UUID = 'e89f119a-fc3b-4ce8-8722-2000a7ebeeab'
+
+const mockModelTable = {
+  [simpleDtdlId]: { id: simpleDtdlId, name: 'Simple Model', parsed: simpleMockDtdlObjectModel },
+  [complexDtdlId]: { id: complexDtdlId, name: 'Complex Model', parsed: complexMockDtdlModel },
+}
+
+const simpleMockModelDb = {
+  getModelById: (id: UUID) => {
+    if (id === 'badId') throw new InternalError(`Failed to find model: ${id}`)
+    if (mockModelTable[id]) {
+      return Promise.resolve(mockModelTable[id])
+    } else {
+      return Promise.resolve(null)
+    }
+  },
+  getDtdlModelAndTree: () =>
+    Promise.resolve({
+      model: {
+        ...mockDtdlObjectModel,
+        'dtmi:test:TestNode;1': {
+          Id: 'dtmi:test:TestNode;1',
+          displayName: 'TestNode',
+          EntityKind: 'Interface',
+        },
+      },
+      fileTree: [],
+    }),
+  getCollection: (dtdlModel: DtdlObjectModel) =>
+    Object.entries(dtdlModel)
+      .filter(allInterfaceFilter)
+      .map(([, entity]) => entity),
+  getGithubModelById: (id: UUID) =>
+    Promise.resolve({
+      id,
+      owner: 'owner',
+      repo: 'repo',
+    }),
+  updateModel: () => Promise.resolve(),
+} as unknown as ModelDb
+
+const complexMockModelDb = {
+  getModelById: (id: UUID) => {
+    if (id === 'badId') throw new InternalError(`Failed to find model: ${id}`)
+    if (mockModelTable[id]) {
+      return Promise.resolve(mockModelTable[id])
+    } else {
+      return Promise.resolve(null)
+    }
+  },
+  getDtdlModelAndTree: () => Promise.resolve({ model: complexMockDtdlModel, fileTree: [] }),
+  getCollection: (dtdlModel: DtdlObjectModel) =>
+    Object.entries(dtdlModel)
+      .filter(allInterfaceFilter)
+      .map(([, entity]) => entity),
+  getGithubModelById: (id: UUID) =>
+    Promise.resolve({
+      id,
+      owner: 'owner',
+      repo: 'repo',
+    }),
+  updateModel: () => Promise.resolve(),
+} as unknown as ModelDb
+
+const templateMock = {
+  MermaidRoot: ({
+    search,
+    canEdit,
+    editDisabledReason,
+  }: {
+    search: string
+    canEdit: boolean
+    editDisabledReason?: 'errors' | 'permissions'
+  }) => `root_${search}_${canEdit}_${editDisabledReason}_root`,
+  mermaidTarget: ({ generatedOutput, target }: { generatedOutput?: JSX.Element; target: string }): JSX.Element =>
+    `mermaidTarget_${generatedOutput}_${target}_mermaidTarget`,
+  searchPanel: ({ search, swapOutOfBand }: { search?: string; swapOutOfBand?: boolean }) =>
+    `searchPanel_${search}_${swapOutOfBand || false}_searchPanel`,
+  navigationPanel: ({ swapOutOfBand, content }: { swapOutOfBand?: boolean; content?: string }) =>
+    `navigationPanel_${swapOutOfBand || false}_${content || ''}_navigationPanel`,
+  svgControls: ({ generatedOutput }: { generatedOutput?: JSX.Element }): JSX.Element =>
+    `svgControls_${generatedOutput}_svgControls`,
+  deleteDialog: () => `deleteDialog_deleteDialog`,
+  githubLink: () => `githubLink_githubLink`,
+  addNode: ({
+    dtdlModelId,
+    displayNameIdMap,
+    folderTree,
+    swapOutOfBand,
+  }: {
+    dtdlModelId: string
+    displayNameIdMap: Record<string, string>
+    folderTree: DtdlPath[]
+    swapOutOfBand?: boolean
+  }) => `addNode_${dtdlModelId}_${Object.keys(displayNameIdMap).length}_${folderTree.length}_${swapOutOfBand}_addNode`,
+} as unknown as OntologyViewTemplates
+
+const mockLogger = pino({ level: 'silent' })
+const mockCache = new LRUCache(10, 1000 * 60)
+
+const sessionSetStub = sinon.stub()
+const mockSession = {
+  get: sinon.stub().callsFake((id) => sessionMap[id]),
+  set: sessionSetStub,
+  update: sinon.stub(),
+} as unknown as SessionStore
+
+const generatorRunStub = sinon.stub().callsFake(() => {
+  const mock = {
+    type: 'svg',
+    content: generatedSVGFixture,
+    renderToString: () => mock.content,
+    renderForMinimap: () => generatedSVGFixture,
+  }
+  return Promise.resolve(mock)
+})
+
+const mockMutator: SvgMutator = {
+  setSVGAttributes: sinon.stub().callsFake((x) => {
+    x.content = x.renderToString() + '_attr'
+    x.renderToString = () => x.content
+  }),
+  setupAnimations: sinon.stub().callsFake((...args) => {
+    const newOutput = args[1]
+    newOutput.content = newOutput.renderToString() + '_animate'
+    newOutput.renderToString = () => newOutput.content
+    return { pan: { x: 100, y: 50 }, zoom: 0.5 }
+  }),
+} as unknown as SvgMutator
+
+const mockGenerator = {
+  run: generatorRunStub,
+} as unknown as SvgGenerator
+
+const mockPostHog = {
+  trackUpdateOntologyView: sinon.stub().resolves(),
+  trackNodeSelected: sinon.stub().resolves(),
+  identifyFromRequest: sinon.stub().resolves(),
+  trackModeToggle: sinon.stub().resolves(),
+} as unknown as PostHogService
 
 export const defaultParams: UpdateParams = {
   sessionId: validSessionId,
@@ -49,7 +188,7 @@ export const defaultParams: UpdateParams = {
   a11y: ['reduce-motion'],
 }
 
-describe('OntologyController', async () => {
+describe('OntologyController', () => {
   afterEach(() => {
     sinon.restore()
     mockCache.clear()
@@ -700,7 +839,7 @@ describe('OntologyController', async () => {
         .then((value) => (value ? toHTMLString(value) : ''))
 
       // GitHub source with 'edit' permission and no errors, so canEdit=true with editDisabledReason=undefined (not included)
-      expect(result).to.equal(`root_undefined_true_root`)
+      expect(result).to.equal(`root_undefined_true_undefined_root`)
 
       getRepoPermissionsStub.restore()
     })

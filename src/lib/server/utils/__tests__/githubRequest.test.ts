@@ -1,15 +1,17 @@
-import { describe, test } from 'mocha'
-
 import { expect } from 'chai'
+import { describe, test } from 'mocha'
+import pino from 'pino'
 import Sinon from 'sinon'
 import { container } from 'tsyringe'
-import { mockCache, mockLogger } from '../../controllers/__tests__/helpers.js'
+
 import { Env } from '../../env/index.js'
 import { GithubReqError } from '../../errors.js'
-import { ICache } from '../cache.js'
 import { GithubRequest } from '../githubRequest.js'
+import { LRUCache } from '../lruCache.js'
 
 const env = container.resolve(Env)
+const mockLogger = pino({ level: 'silent' })
+const mockCache = new LRUCache(10, 1000 * 60)
 
 describe('githubRequest', function () {
   beforeEach(function () {
@@ -17,13 +19,6 @@ describe('githubRequest', function () {
   })
 
   test('getZip errors with upload limit', async function () {
-    const mockCache = {
-      get: Sinon.stub(),
-      set: Sinon.stub(),
-      has: Sinon.stub(),
-      clear: Sinon.stub(),
-      size: Sinon.stub(),
-    } as unknown as ICache
     const githubRequest = new GithubRequest(mockLogger, mockCache)
     Sinon.stub(githubRequest, 'requestWrapper').resolves({
       headers: {

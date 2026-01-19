@@ -326,4 +326,18 @@ export default class Parser {
     const validFiles = files.filter((f) => !f.errors)
     return `[${validFiles.map((f) => f.source).join(',')}]`
   }
+
+  static hasFileTreeErrors(fileTree: DtdlPath[]): boolean {
+    for (const node of fileTree) {
+      if (node.type === 'file' && node.errors && node.errors.length > 0) {
+        return true
+      }
+      if (node.type === 'directory' && node.entries) {
+        if (Parser.hasFileTreeErrors(node.entries)) {
+          return true
+        }
+      }
+    }
+    return false
+  }
 }

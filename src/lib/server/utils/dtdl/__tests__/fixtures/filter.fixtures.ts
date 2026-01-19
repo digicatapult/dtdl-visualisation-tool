@@ -1,5 +1,5 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
-import { DtdlPath } from '../parser'
+import { DtdlPath } from '../../parser'
 
 export const singleInterfaceFirst: DtdlObjectModel = {
   first: {

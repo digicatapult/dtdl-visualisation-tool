@@ -7,24 +7,21 @@ import { container } from 'tsyringe'
 
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
+import pino from 'pino'
+import { ModelDb } from '../../../db/modelDb.js'
 import { Env } from '../../env/index.js'
 import { GithubNotFound, GithubReqError } from '../../errors.js'
 import { octokitTokenCookie } from '../../models/cookieNames.js'
-import { OAuthToken } from '../../models/github.js'
+import { ListItem, OAuthToken } from '../../models/github.js'
+import { ICache } from '../../utils/cache.js'
 import Parser from '../../utils/dtdl/parser.js'
 import { GithubRequest } from '../../utils/githubRequest.js'
-import { simpleMockDtdlObjectModel } from '../../utils/mermaid/__tests__/fixtures.js'
+import { LRUCache } from '../../utils/lruCache.js'
+import { SvgGenerator } from '../../utils/mermaid/generator.js'
+import { PostHogService } from '../../utils/postHog/postHogService.js'
+import OntologyOpenTemplates from '../../views/templates/ontologyOpen.js'
 import { ensureOctokitToken, GithubController } from '../github.js'
-import {
-  mockCache,
-  mockGenerator,
-  mockLogger,
-  mockPostHog,
-  mockReqWithCookie,
-  openOntologyMock,
-  simpleMockModelDb,
-  toHTMLString,
-} from './helpers.js'
+import { mockReqWithCookie, toHTMLString } from './helpers.js'
 
 chai.use(chaiAsPromised)
 const { expect } = chai
@@ -116,6 +113,34 @@ const nestedContents = [
 
 const cookie = { [octokitTokenCookie]: 'someToken' }
 
+const simpleMockModelDb = {
+  insertModel: () => Promise.resolve(1),
+} as unknown as ModelDb
+
+const openOntologyMock = {
+  OpenOntologyRoot: sinon.stub().returns('root_root'),
+  githubPathLabel: ({ path }: { path: string }): JSX.Element => `githubPathLabel_${path}_githubPathLabel`,
+  githubListItems: ({
+    list,
+    nextPageLink,
+    backLink,
+  }: {
+    list: ListItem[]
+    nextPageLink?: string
+    backLink?: string
+  }): JSX.Element =>
+    `githubListItems_${list.map((item) => `${item.text}_${item.link}`).join('_')}_${nextPageLink}_${backLink}_githubListItems`,
+  selectFolder: ({
+    link,
+    swapOutOfBand,
+    stage,
+  }: {
+    link?: string
+    swapOutOfBand?: boolean
+    stage: string
+  }): JSX.Element => `selectFolder_${link}_${swapOutOfBand}_${stage}_selectFolder`,
+} as unknown as OntologyOpenTemplates
+
 const getContentsStub = sinon.stub()
 
 export const mockGithubRequest = {
@@ -126,7 +151,7 @@ export const mockGithubRequest = {
   getContents: getContentsStub,
   getCommit: () => Promise.resolve({ sha: 'currentCommitSha' }),
   getAccessToken: () => Promise.resolve(token),
-  getZip: () => Promise.resolve(readFileSync(path.resolve(__dirname, './simple.zip'))),
+  getZip: () => Promise.resolve(readFileSync(path.resolve(__dirname, './fixtures/simple.zip'))),
   getRepoPermissions: () => Promise.resolve('edit'),
   getAuthenticatedUser: sinon.stub().resolves({
     login: 'testuser',
@@ -138,11 +163,25 @@ export const mockGithubRequest = {
 
 const unzipJsonFilesStub = sinon.stub()
 
-export const mockParser = {
+const mockGenerator = {
+  run: sinon.stub().resolves({
+    renderForMinimap: () => 'preview-svg',
+  }),
+} as unknown as SvgGenerator
+
+const mockParser = {
   validate: sinon.stub().callsFake(async (files) => files),
-  parseAll: sinon.stub().resolves(simpleMockDtdlObjectModel),
+  parseAll: sinon.stub().resolves({}),
   unzipJsonFiles: unzipJsonFilesStub,
 } as unknown as Parser
+
+const mockPostHog = {
+  identifyFromRequest: sinon.stub().resolves(),
+  trackUploadOntology: sinon.stub().resolves(),
+} as unknown as PostHogService
+
+const mockLogger = pino({ level: 'silent' })
+const mockCache = new LRUCache(10, 1000 * 60) as ICache
 
 describe('ensureOctokitToken middleware', () => {
   it('should call next when octokit token is present', () => {

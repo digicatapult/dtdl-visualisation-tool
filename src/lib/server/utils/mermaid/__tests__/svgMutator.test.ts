@@ -5,7 +5,7 @@ import { defaultParams } from '../../../controllers/__tests__/root.test'
 import { MermaidSvgRender } from '../../../models/renderedDiagram'
 import { SvgMutator } from '../svgMutator.js'
 import {
-  simpleMockDtdlObjectModel,
+  mockDtdlObjectModel,
   svgSearchFuelType,
   svgSearchFuelTypeExpandedFossilFuel,
   svgSearchNuclear,
@@ -297,7 +297,7 @@ describe('Generator', function () {
         '<svg id="mermaid-svg" width="1024" height="768"><g class="nodes"/><g class="edgePaths"/><g class="edgeLabels"/></svg>'
 
       const render = new MermaidSvgRender(Buffer.from(controlStringElement))
-      mutator.setSVGAttributes(render, simpleMockDtdlObjectModel, defaultParams)
+      mutator.setSVGAttributes(render, mockDtdlObjectModel, defaultParams)
 
       const attributes = render.svgElement.attributes
       expect(attributes.getNamedItem('hx-include')?.value).to.equal(
@@ -321,7 +321,7 @@ describe('Generator', function () {
         `
 
       const render = new MermaidSvgRender(Buffer.from(controlStringElement))
-      mutator.setSVGAttributes(render, simpleMockDtdlObjectModel, defaultParams)
+      mutator.setSVGAttributes(render, mockDtdlObjectModel, defaultParams)
 
       const fooAttrs = render.document.getElementById('flowchart-dtmi:com:foo:1-1')?.attributes
       expect(fooAttrs?.getNamedItem('hx-get')?.value).to.equal('update-layout')
@@ -354,7 +354,7 @@ describe('Generator', function () {
       </svg>
       `
       const render = new MermaidSvgRender(Buffer.from(controlStringElement))
-      mutator.setSVGAttributes(render, simpleMockDtdlObjectModel, defaultParams)
+      mutator.setSVGAttributes(render, mockDtdlObjectModel, defaultParams)
 
       const fooCornerElement = render.svgElement.querySelector('#flowchart-dtmi\\:com\\:foo\\:1-1 > text.corner-sign')
       expect(fooCornerElement?.innerHTML).to.equal('+')
@@ -394,7 +394,7 @@ describe('Generator', function () {
       </svg>
       `
       const render = new MermaidSvgRender(Buffer.from(controlStringElement))
-      mutator.setSVGAttributes(render, simpleMockDtdlObjectModel, {
+      mutator.setSVGAttributes(render, mockDtdlObjectModel, {
         ...defaultParams,
         highlightNodeId: 'dtmi:com:foo:1',
       })

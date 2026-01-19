@@ -1,4 +1,5 @@
 import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
+import { stateSymbol } from '../../../utils/dtdl/filter'
 
 const emptyEntityProperties = {
   SupplementalTypes: [],
@@ -26,6 +27,25 @@ const emptyRelationshipProperties = {
   displayName: {},
   writable: false,
 }
+
+const visualisationState = {
+  [stateSymbol]: 'search',
+}
+
+export const simpleMockDtdlObjectModel = {
+  'dtmi:com:example;1': {
+    Id: 'dtmi:com:example;1',
+    displayName: {
+      en: 'example 1',
+    },
+    EntityKind: 'Interface',
+    extends: [],
+    ...emptyEntityProperties,
+    ...emptyInterfaceProperties,
+    ...visualisationState,
+  },
+} as DtdlObjectModel
+
 export const complexMockDtdlModel = {
   '1': {
     Id: '1',

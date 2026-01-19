@@ -12,7 +12,7 @@ import {
   multipleInterfaces,
   multipleInterfacesAndRelationship,
   singleInterfaceFirst,
-} from './fixtures.js'
+} from './fixtures/filter.fixtures.js'
 
 const mockSearch = new FuseSearch<EntityType>()
 const setCollection = (model: DtdlObjectModel) =>

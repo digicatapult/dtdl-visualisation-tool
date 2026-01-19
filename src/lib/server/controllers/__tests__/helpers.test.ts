@@ -2,6 +2,7 @@ import * as chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import express from 'express'
 import { afterEach, beforeEach, describe, it } from 'mocha'
+import pino from 'pino'
 import sinon, { SinonStub } from 'sinon'
 import { container } from 'tsyringe'
 import { ModelDb } from '../../../db/modelDb.js'
@@ -10,15 +11,17 @@ import { modelHistoryCookie, octokitTokenCookie } from '../../models/cookieNames
 import { ViewAndEditPermission } from '../../models/github.js'
 import { GithubRequest } from '../../utils/githubRequest.js'
 import { checkEditPermission, checkRemoteBranch, recentFilesFromCookies } from '../helpers.js'
-import { githubDtdlId, mockLogger, previewDtdlId, simpleDtdlId, simpleMockModelDb } from './helpers.js'
 
 chai.use(chaiAsPromised)
 const { expect } = chai
 
-// Mock cookie data
+const githubDtdlId = '550e8400-e29b-41d4-a716-446655440000'
+const previewDtdlId = '550e8400-e29b-41d4-a716-446655440001'
+const simpleDtdlId = '550e8400-e29b-41d4-a716-446655440002'
 const validTimestamp = new Date()
 validTimestamp.setHours(14, 0, 0, 0)
 const invalidModelId = 'invalid-id'
+const mockLogger = pino({ level: 'silent' })
 
 describe('recentFilesFromCookies', () => {
   afterEach(() => {
@@ -27,16 +30,19 @@ describe('recentFilesFromCookies', () => {
 
   it('should handle missing cookie gracefully', async () => {
     const cookies = {}
-    const result = await recentFilesFromCookies(simpleMockModelDb, cookies, mockLogger)
+    const result = await recentFilesFromCookies({} as ModelDb, cookies, mockLogger)
     expect(result).to.deep.equal([])
   })
 
   it('should return recent files for valid cookie history', async () => {
+    const mockModelDb = {
+      getModelById: sinon.stub().resolves({ id: previewDtdlId, name: 'Preview Model', preview: 'Preview' }),
+    } as unknown as ModelDb
     const cookies = {
       [modelHistoryCookie]: [{ id: previewDtdlId, timestamp: validTimestamp.getTime() }],
     }
 
-    const result = await recentFilesFromCookies(simpleMockModelDb, cookies, mockLogger)
+    const result = await recentFilesFromCookies(mockModelDb, cookies, mockLogger)
 
     expect(result).to.deep.equal([
       {
@@ -49,6 +55,14 @@ describe('recentFilesFromCookies', () => {
   })
 
   it('should filter out invalid models from cookie history', async () => {
+    const mockModelDb = {
+      getModelById: sinon.stub().callsFake((id) => {
+        if (id === previewDtdlId) {
+          return Promise.resolve({ id: previewDtdlId, name: 'Preview Model', preview: 'Preview' })
+        }
+        return Promise.resolve(null)
+      }),
+    } as unknown as ModelDb
     const cookies = {
       [modelHistoryCookie]: [
         { id: previewDtdlId, timestamp: validTimestamp.getTime() },
@@ -56,7 +70,7 @@ describe('recentFilesFromCookies', () => {
       ],
     }
 
-    const result = await recentFilesFromCookies(simpleMockModelDb, cookies, mockLogger)
+    const result = await recentFilesFromCookies(mockModelDb, cookies, mockLogger)
 
     expect(result).to.deep.equal([
       {
@@ -72,19 +86,27 @@ describe('recentFilesFromCookies', () => {
     const baseTimestamp = new Date()
     baseTimestamp.setHours(14, 0, 0, 0)
 
-    const simpleModelTimestamp = baseTimestamp.getTime()
-
     const previewModelTimestamp = new Date(baseTimestamp)
     previewModelTimestamp.setHours(15, 0, 0, 0)
 
+    const mockModelDb = {
+      getModelById: sinon.stub().callsFake((id) => {
+        if (id === previewDtdlId) {
+          return Promise.resolve({ id: previewDtdlId, name: 'Preview Model', preview: 'Preview' })
+        }
+        if (id === simpleDtdlId) {
+          return Promise.resolve({ id: simpleDtdlId, name: 'Simple Model', preview: 'Simple' })
+        }
+      }),
+    } as unknown as ModelDb
     const cookies = {
       [modelHistoryCookie]: [
         { id: previewDtdlId, timestamp: previewModelTimestamp.getTime() },
-        { id: simpleDtdlId, timestamp: simpleModelTimestamp },
+        { id: simpleDtdlId, timestamp: baseTimestamp.getTime() },
       ],
     }
 
-    const result = await recentFilesFromCookies(simpleMockModelDb, cookies, mockLogger)
+    const result = await recentFilesFromCookies(mockModelDb, cookies, mockLogger)
 
     expect(result.map((r) => r.fileName)).to.deep.equal(['Preview Model', 'Simple Model'])
   })
