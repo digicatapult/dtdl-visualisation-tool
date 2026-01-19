@@ -1,7 +1,7 @@
 export const commonRerenderAttrs = {
   'hx-target': '#mermaid-output',
   'hx-swap': 'outerHTML  transition:true',
-  'hx-include': '#sessionId, #search-panel, input[name="navigationPanelTab"], #navigationPanelExpanded',
+  'hx-include': '#viewId, #search-panel, input[name="navigationPanelTab"], #navigationPanelExpanded',
   'hx-indicator': '#spinner',
   'hx-disabled-elt': 'select',
 } as const

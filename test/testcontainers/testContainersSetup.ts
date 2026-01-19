@@ -48,6 +48,7 @@ export async function bringUpDatabaseContainer(): Promise<StartedTestContainer> 
     dbUsername: 'postgres',
     dbPassword: 'postgres',
   }
+
   const postgresContainer = await startDatabaseContainer(postgresConfig)
   return postgresContainer
 }
