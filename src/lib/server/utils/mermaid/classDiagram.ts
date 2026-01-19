@@ -1,5 +1,5 @@
-import { DtdlObjectModel, EntityType, InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 import { InternalError } from '../../errors.js'
+import { DtdlEntity, DtdlModel, InterfaceEntity, RelationshipEntity } from '../../models/dtdlOmParser.js'
 import { DtdlId } from '../../models/strings.js'
 import { getDisplayName } from '../dtdl/extract.js'
 import { getVisualisationState } from '../dtdl/filter.js'
@@ -58,21 +58,19 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
 
   safeClassName = (className: string): string => `\`${dtdlIdReplaceSemicolon(className)}\``
 
-  generateMarkdown(dtdlObjectModel: DtdlObjectModel, direction: Direction = ' TD'): string | null {
-    const graph: string[] = []
-    for (const entity in dtdlObjectModel) {
-      const entityObject: EntityType = dtdlObjectModel[entity]
+  generateMarkdown(dtdlObjectModel: DtdlModel, direction: Direction = ' TD'): string | null {
+    const graph = Object.values(dtdlObjectModel).flatMap((entityObject: DtdlEntity) => {
       const markdown = (this.entityKindToMarkdown[entityObject.EntityKind] || defaultMarkdownFn) as NarrowMappingFn<
         (typeof entityObject)['EntityKind']
       >
-      graph.push(...markdown(dtdlObjectModel, entityObject))
-    }
+      return markdown(dtdlObjectModel, entityObject)
+    })
     if (graph.length === 0) {
       return null
     }
     return `${this.diagramType}\n direction ${direction}\n${graph.join('\n')}`
   }
-  createNodeString(entity: EntityType, withClick: boolean = true): string {
+  createNodeString(entity: DtdlEntity, withClick: boolean = true): string {
     let entityMarkdown = `class ${this.safeClassName(entity.Id)}["${getDisplayName(entity)}"] `
     entityMarkdown += withClick ? `\nclick ${this.safeClassName(entity.Id)} call getEntity()` : ``
     return entityMarkdown
@@ -82,7 +80,7 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
     edge += label ? ` : ${label}` : ' : extends'
     return edge
   }
-  relationshipToMarkdown(dtdlObjectModel: DtdlObjectModel, entity: RelationshipType): string[] {
+  relationshipToMarkdown(dtdlObjectModel: DtdlModel, entity: RelationshipEntity): string[] {
     const graph: string[] = []
     if (entity.ChildOf && entity.target && entity.target in dtdlObjectModel) {
       const label = getDisplayName(entity)
@@ -90,7 +88,7 @@ export default class ClassDiagram implements IDiagram<'classDiagram'> {
     }
     return graph
   }
-  interfaceToMarkdown(dtdlObjectModel: DtdlObjectModel, entity: InterfaceType): string[] {
+  interfaceToMarkdown(dtdlObjectModel: DtdlModel, entity: InterfaceEntity): string[] {
     const graph: string[] = [
       this.createNodeString(entity),
       ...entity.extends

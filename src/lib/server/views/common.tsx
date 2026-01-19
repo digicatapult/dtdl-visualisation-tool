@@ -106,7 +106,7 @@ export const EditableText = ({
       // trigger when textarea loses focus and value has changed
       hx-trigger={`blur[this.querySelector('textarea').value !== '${value}'] from:find textarea`}
       hx-vals={JSON.stringify(additionalBody)}
-      hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
+      hx-include="#viewId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
       hx-disabled-elt=".disable-during-update-req"
       hx-swap="outerHTML transition:true"
       hx-target="#mermaid-output"
@@ -158,7 +158,7 @@ export const EditableSelect = ({
       hx-put={`entity/${definedIn}/${putRoute}`}
       hx-trigger={`change[this.querySelector('select').value !== '${text ?? ''}'] from:find select`}
       hx-vals={JSON.stringify(additionalBody)}
-      hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
+      hx-include="#viewId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
       hx-disabled-elt=".disable-during-update-req"
       hx-swap="outerHTML transition:true"
       hx-target="#mermaid-output"

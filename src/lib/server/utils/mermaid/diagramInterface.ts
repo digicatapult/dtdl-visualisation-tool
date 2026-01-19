@@ -1,20 +1,20 @@
-import { DtdlObjectModel, EntityType } from '@digicatapult/dtdl-parser'
-import { DiagramType } from '../../models/mermaidDiagrams'
+import { DtdlEntity, DtdlModel } from '../../models/dtdlOmParser.js'
+import { DiagramType } from '../../models/mermaidDiagrams.js'
 
 export type Direction = ` TD` | ` BT` | ` RL` | ` LR`
 
 export type NarrowEntityType<T, N> = T extends { EntityKind: N } ? T : never
 
-export type NarrowMappingFn<k extends EntityType['EntityKind']> = (
-  dtdlObjectModel: DtdlObjectModel,
-  entity: NarrowEntityType<EntityType, k>
+export type NarrowMappingFn<k extends DtdlEntity['EntityKind']> = (
+  dtdlObjectModel: DtdlModel,
+  entity: NarrowEntityType<DtdlEntity, k>
 ) => string[]
 
 export type EntityTypeToMarkdownFn = {
-  [k in EntityType['EntityKind']]: NarrowMappingFn<k>
+  [k in DtdlEntity['EntityKind']]: NarrowMappingFn<k>
 }
 
 export interface IDiagram<D extends DiagramType> {
   get diagramType(): D
-  generateMarkdown(dtdlObjectModel: DtdlObjectModel, direction: Direction): string | null
+  generateMarkdown(dtdlObjectModel: DtdlModel, direction: Direction): string | null
 }

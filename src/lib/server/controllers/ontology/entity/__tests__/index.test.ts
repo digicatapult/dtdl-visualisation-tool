@@ -1,4 +1,3 @@
-import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import * as chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import { describe, it } from 'mocha'
@@ -8,6 +7,7 @@ import { ModelDb } from '../../../../../db/modelDb.js'
 import { DataError, InternalError } from '../../../../errors.js'
 import { UpdateParams } from '../../../../models/controllerTypes.js'
 import { octokitTokenCookie } from '../../../../models/cookieNames.js'
+import { DtdlModel } from '../../../../models/dtdlOmParser.js'
 import { DtdlId, DtdlSchema, UUID } from '../../../../models/strings.js'
 import { allInterfaceFilter } from '../../../../utils/dtdl/extract.js'
 import { DtdlPath } from '../../../../utils/dtdl/parser.js'
@@ -17,10 +17,10 @@ import { generatedSVGFixture, mockDtdlObjectModel } from '../../../../utils/merm
 import { SvgGenerator } from '../../../../utils/mermaid/generator.js'
 import { SvgMutator } from '../../../../utils/mermaid/svgMutator.js'
 import { PostHogService } from '../../../../utils/postHog/postHogService.js'
-import SessionStore from '../../../../utils/sessions.js'
+import ViewStateStore from '../../../../utils/viewStates.js'
 import OntologyViewTemplates from '../../../../views/templates/ontologyView.js'
 import { simpleMockDtdlObjectModel } from '../../../__tests__/fixtures/dtdl.fixtures.js'
-import { sessionMap, validSessionId } from '../../../__tests__/fixtures/session.fixtures.js'
+import { validViewId, viewStateMap } from '../../../__tests__/fixtures/session.fixtures.js'
 import { dtdlFileFixture, mockReq, mockReqWithCookie, toHTMLString } from '../../../__tests__/helpers.js'
 import { OntologyController } from '../../index.js'
 import { EntityController } from '../index.js'
@@ -136,7 +136,7 @@ const simpleMockModelDb = {
       fileTree: [],
     }),
   addEntityToModel: addEntityToModelStub,
-  getCollection: (dtdlModel: DtdlObjectModel) =>
+  getCollection: (dtdlModel: DtdlModel) =>
     Object.entries(dtdlModel)
       .filter(allInterfaceFilter)
       .map(([, entity]) => entity),
@@ -190,10 +190,10 @@ const mockCache = new LRUCache(10, 1000 * 60)
 const sessionUpdateStub = sinon.stub()
 const sessionSetStub = sinon.stub()
 const mockSession = {
-  get: sinon.stub().callsFake((id) => sessionMap[id]),
+  get: sinon.stub().callsFake((id) => viewStateMap[id]),
   set: sessionSetStub,
   update: sessionUpdateStub,
-} as unknown as SessionStore
+} as unknown as ViewStateStore
 
 const generatorRunStub = sinon.stub().callsFake(() => {
   const mock = {
@@ -229,7 +229,7 @@ const mockPostHog = {
 const mockGithubRequest = {} as unknown as GithubRequest
 
 export const defaultParams: UpdateParams = {
-  sessionId: validSessionId,
+  viewId: validViewId,
   diagramType: 'flowchart',
   svgWidth: 300,
   svgHeight: 100,
@@ -1232,7 +1232,7 @@ describe('EntityController', async () => {
       const model = {
         '1': { EntityKind: 'Interface', extendedBy: ['2'] },
         '2': { EntityKind: 'Interface', extendedBy: ['1'] },
-      } as unknown as DtdlObjectModel
+      } as unknown as DtdlModel
       expect(() => controller.getExtendedBy(model, '1')).to.throw(Error, 'Circular reference in extended bys')
     })
   })
@@ -1309,8 +1309,8 @@ describe('EntityController', async () => {
       await controller.addNewNode(simpleDtdlId, defaultParams)
 
       expect(sessionUpdateStub.callCount).to.equal(initialCallCount + 1)
-      const [sessionId, updates] = sessionUpdateStub.lastCall.args
-      expect(sessionId).to.equal(validSessionId)
+      const [viewId, updates] = sessionUpdateStub.lastCall.args
+      expect(viewId).to.equal(validViewId)
       expect(updates).to.deep.equal({
         highlightNodeId: undefined,
         search: undefined,

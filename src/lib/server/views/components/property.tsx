@@ -1,10 +1,10 @@
 /// <reference types="@kitajs/html/htmx.d.ts" />
 
-import { DtdlObjectModel, PropertyInfo } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
+import type { DtdlModel, PropertyEntity } from '../../models/dtdlOmParser.js'
 import { DTDL_PRIMITIVE_SCHEMA_OPTIONS, DTDL_VALID_WRITABLE_OPTIONS, DtdlId } from '../../models/strings.js'
 import { MAX_DISPLAY_NAME_LENGTH, MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
-import { getDisplayName, getSchemaDisplayName } from '../../utils/dtdl/extract.js'
+import { getCommentText, getDisplayName, getSchemaDisplayName } from '../../utils/dtdl/extract.js'
 import { EditableSelect, EditableText } from '../common.js'
 
 export const PropertyDetails = ({
@@ -14,21 +14,21 @@ export const PropertyDetails = ({
   edit,
   entityId,
 }: {
-  property: PropertyInfo
+  property: PropertyEntity
   name: string
-  model: DtdlObjectModel
+  model: DtdlModel
   edit: boolean
   entityId: DtdlId
 }): JSX.Element => {
-  if (!property.DefinedIn) return <></>
+  const definedIn = property.DefinedIn ?? entityId
 
-  const isExtended = property.DefinedIn !== entityId
+  const isExtended = definedIn !== entityId
   const canEdit = edit && !isExtended
 
   return (
     <div
       class={isExtended ? 'extended-detail' : undefined}
-      title={isExtended ? `Extended from ${getDisplayName(model[property.DefinedIn])}` : undefined}
+      title={isExtended ? `Extended from ${getDisplayName(model[definedIn])}` : undefined}
     >
       <b>Name: </b>
       {escapeHtml(property.name)}
@@ -47,7 +47,7 @@ export const PropertyDetails = ({
       <b>Display Name:</b>
       <EditableText
         edit={canEdit}
-        definedIn={property.DefinedIn}
+        definedIn={definedIn}
         putRoute="propertyDisplayName"
         text={property.displayName?.en}
         additionalBody={{ propertyName: name }}
@@ -56,16 +56,16 @@ export const PropertyDetails = ({
       <b>Schema:</b>
       <EditableSelect
         edit={canEdit}
-        definedIn={property.DefinedIn}
+        definedIn={definedIn}
         putRoute="propertySchema"
-        text={getSchemaDisplayName(model[property.schema])}
+        text={property.schema ? getSchemaDisplayName(model[property.schema]) : ''}
         additionalBody={{ propertyName: name }}
         options={DTDL_PRIMITIVE_SCHEMA_OPTIONS}
       />
       <b>Description:</b>
       {EditableText({
         edit: canEdit,
-        definedIn: property.DefinedIn,
+        definedIn,
         putRoute: 'propertyDescription',
         text: property.description?.en,
         additionalBody: { propertyName: name },
@@ -75,9 +75,9 @@ export const PropertyDetails = ({
       <b>Comment:</b>
       {EditableText({
         edit: canEdit,
-        definedIn: property.DefinedIn,
+        definedIn,
         putRoute: 'propertyComment',
-        text: property.comment,
+        text: getCommentText(property.comment),
         additionalBody: { propertyName: name },
         multiline: true,
         maxLength: MAX_VALUE_LENGTH,
@@ -85,7 +85,7 @@ export const PropertyDetails = ({
       <b>Writable:</b>
       <EditableSelect
         edit={canEdit}
-        definedIn={property.DefinedIn}
+        definedIn={definedIn}
         putRoute="propertyWritable"
         text={String(property.writable)}
         additionalBody={{ propertyName: name }}

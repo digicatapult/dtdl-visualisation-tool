@@ -24,9 +24,9 @@ import { DtdlSchema, type DtdlId, type UUID } from '../../../models/strings.js'
 import { Cache, type ICache } from '../../../utils/cache.js'
 import { dtdlIdReplaceSemicolon } from '../../../utils/mermaid/helpers.js'
 
-import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { DtdlInterface, NullableDtdlSource } from '../../../../db/types.js'
 import { Logger, type ILogger } from '../../../logger.js'
+import { DtdlModel } from '../../../models/dtdlOmParser.js'
 import {
   addContent,
   deleteContent,
@@ -61,7 +61,7 @@ import {
 } from '../../../utils/dtdl/entityUpdate.js'
 import { getDisplayName, isInterface, isNamedEntity } from '../../../utils/dtdl/extract.js'
 import { DtdlPath } from '../../../utils/dtdl/parser.js'
-import SessionStore from '../../../utils/sessions.js'
+import ViewStateStore from '../../../utils/viewStates.js'
 import { AddContentForm } from '../../../views/components/addContent.js'
 import OntologyViewTemplates from '../../../views/templates/ontologyView.js'
 import { checkEditPermission } from '../../helpers.js'
@@ -77,7 +77,7 @@ export class EntityController extends HTMLController {
     private modelDb: ModelDb,
     private ontologyController: OntologyController,
     private templates: OntologyViewTemplates,
-    private sessionStore: SessionStore,
+    private viewStateStore: ViewStateStore,
     @inject(Cache) private cache: ICache,
     @inject(Logger) private logger: ILogger
   ) {
@@ -87,7 +87,7 @@ export class EntityController extends HTMLController {
   @SuccessResponse(200)
   @Get('/add-new-node')
   public async addNewNode(@Path() ontologyId: UUID, @Queries() params: UpdateParams): Promise<HTML | void> {
-    this.sessionStore.update(params.sessionId, { highlightNodeId: undefined, search: undefined })
+    this.viewStateStore.update(params.viewId, { highlightNodeId: undefined, search: undefined })
 
     const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(ontologyId)
     const displayNameIdMap = this.getDisplayNameIdMap(baseModel)
@@ -157,7 +157,7 @@ export class EntityController extends HTMLController {
     // Regenerate preview after adding new node (intentional fire and forget)
     this.modelDb.regeneratePreview(ontologyId).catch((err) => this.logger.debug({ err }, 'Preview regeneration failed'))
 
-    this.sessionStore.update(updateParams.sessionId, {
+    this.viewStateStore.update(updateParams.viewId, {
       highlightNodeId: dtdlIdReplaceSemicolon(newId),
       search: undefined,
     })
@@ -628,7 +628,7 @@ export class EntityController extends HTMLController {
     // Regenerate preview after deleting interface (intentional fire and forget)
     this.modelDb.regeneratePreview(ontologyId).catch((err) => this.logger.debug({ err }, 'Preview regeneration failed'))
 
-    this.sessionStore.update(updateParams.sessionId, { highlightNodeId: '' })
+    this.viewStateStore.update(updateParams.viewId, { highlightNodeId: '' })
     return this.ontologyController.updateLayout(req, ontologyId, updateParams)
   }
 
@@ -715,7 +715,7 @@ export class EntityController extends HTMLController {
     this.cache.clear()
   }
 
-  getExtendedBy = (model: DtdlObjectModel, entityId: DtdlId, visited = new Set<DtdlId>()): DtdlId[] => {
+  getExtendedBy = (model: DtdlModel, entityId: DtdlId, visited = new Set<DtdlId>()): DtdlId[] => {
     if (visited.has(entityId)) throw new Error('Circular reference in extended bys')
 
     visited.add(entityId)
@@ -724,7 +724,7 @@ export class EntityController extends HTMLController {
     return entity.extendedBy.flatMap((e) => [e, ...this.getExtendedBy(model, e, visited)])
   }
 
-  private getDisplayNameIdMap(model: DtdlObjectModel): Record<string, string> {
+  private getDisplayNameIdMap(model: DtdlModel): Record<string, string> {
     return Object.fromEntries(
       Object.entries(model)
         .filter(([, node]) => isInterface(node))
@@ -750,7 +750,7 @@ export class EntityController extends HTMLController {
       }))
   }
 
-  private extractCommonDtmiPrefix(model: DtdlObjectModel): string {
+  private extractCommonDtmiPrefix(model: DtdlModel): string {
     const interfaceIds = Object.entries(model)
       .filter(([, node]) => node.EntityKind === 'Interface')
       .map(([id]) => id)

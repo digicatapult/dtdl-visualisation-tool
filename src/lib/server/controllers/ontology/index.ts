@@ -1,4 +1,3 @@
-import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { Get, Middlewares, Path, Produces, Queries, Query, Request, Route, SuccessResponse } from '@tsoa/runtime'
 import express from 'express'
 import { randomUUID } from 'node:crypto'
@@ -16,6 +15,7 @@ import {
   type UpdateParams,
 } from '../../models/controllerTypes.js'
 import { modelHistoryCookie, octokitTokenCookie, posthogIdCookie } from '../../models/cookieNames.js'
+import { DtdlEntity, DtdlModel } from '../../models/dtdlOmParser.js'
 import { ViewAndEditPermission } from '../../models/github.js'
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../models/renderedDiagram/index.js'
 import { type UUID } from '../../models/strings.js'
@@ -30,7 +30,7 @@ import { dtdlIdReinstateSemicolon } from '../../utils/mermaid/helpers.js'
 import { SvgMutator } from '../../utils/mermaid/svgMutator.js'
 import { ensurePostHogId, PostHogService } from '../../utils/postHog/postHogService.js'
 import { RateLimiter } from '../../utils/rateLimit.js'
-import SessionStore, { Session } from '../../utils/sessions.js'
+import ViewStateStore, { ViewState } from '../../utils/viewStates.js'
 import { ErrorPage } from '../../views/components/errors.js'
 import OntologyViewTemplates from '../../views/templates/ontologyView.js'
 import { HTML, HTMLController } from '../HTMLController.js'
@@ -58,7 +58,7 @@ export class OntologyController extends HTMLController {
     private postHog: PostHogService,
     @inject(Logger) private logger: ILogger,
     @inject(Cache) private cache: ICache,
-    private sessionStore: SessionStore,
+    private viewStateStore: ViewStateStore,
     private githubRequest: GithubRequest
   ) {
     super()
@@ -82,18 +82,18 @@ export class OntologyController extends HTMLController {
       search: params.search,
     })
 
-    let sessionId = params.sessionId
+    let viewId = params.viewId
 
-    if (!sessionId || !this.sessionStore.get(sessionId)) {
-      sessionId = randomUUID()
-      const session = {
+    if (!viewId || !this.viewStateStore.get(viewId)) {
+      viewId = randomUUID()
+      const viewState = {
         layout: 'elk' as const,
         diagramType: params.diagramType,
         search: params.search,
         highlightNodeId: params.highlightNodeId,
         expandedIds: [],
       }
-      this.sessionStore.set(sessionId, session)
+      this.viewStateStore.set(viewId, viewState)
     }
 
     res.cookie(
@@ -136,7 +136,7 @@ export class OntologyController extends HTMLController {
     return this.html(
       this.templates.MermaidRoot({
         search: params.search,
-        sessionId,
+        viewId,
         diagramType: params.diagramType,
         canEdit,
         editDisabledReason,
@@ -156,14 +156,14 @@ export class OntologyController extends HTMLController {
   ): Promise<HTML> {
     this.logger.debug('search: %o', { search: params.search })
 
-    const session = this.sessionStore.get(params.sessionId)
+    const session = this.viewStateStore.get(params.viewId)
     const octokitToken = req.signedCookies[octokitTokenCookie]
 
     // get the base dtdl model that we will derive the graph from
     const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
-    const search = new FuseSearch(this.modelDb.getCollection(baseModel))
+    const search = new FuseSearch<DtdlEntity>(this.modelDb.getCollection(baseModel))
 
-    const newSession: Session = {
+    const newSession: ViewState = {
       diagramType: params.diagramType,
       layout: 'elk' as const,
       search: params.search,
@@ -233,7 +233,7 @@ export class OntologyController extends HTMLController {
     })
 
     // store the updated session
-    this.sessionStore.set(params.sessionId, { ...session, ...newSession })
+    this.viewStateStore.set(params.viewId, { ...session, ...newSession })
 
     // replace the current url
     const current = this.getCurrentPathQuery(req)
@@ -283,11 +283,11 @@ export class OntologyController extends HTMLController {
   public async editModel(
     @Request() req: express.Request,
     @Path() dtdlModelId: UUID,
-    @Query() sessionId: UUID,
+    @Query() viewId: UUID,
     @Query() editMode: boolean,
     @Query() navigationPanelExpanded?: boolean
   ): Promise<HTML> {
-    const session = this.sessionStore.get(sessionId)
+    const session = this.viewStateStore.get(viewId)
 
     // get the base dtdl model that we will derive the graph from
     const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
@@ -296,7 +296,7 @@ export class OntologyController extends HTMLController {
     if (Parser.hasFileTreeErrors(fileTree)) {
       throw new UnauthorisedError('Cannot edit ontology with errors. Please fix all errors before editing.')
     }
-    this.sessionStore.update(sessionId, { editMode })
+    this.viewStateStore.update(viewId, { editMode })
 
     // Track mode toggle event using persistent POSTHOG_ID cookie (fire-and-forget)
     this.postHog.trackModeToggle(req.signedCookies[octokitTokenCookie], req.signedCookies[posthogIdCookie], {
@@ -366,9 +366,9 @@ export class OntologyController extends HTMLController {
   private manipulateOutput(
     output: MermaidSvgRender | PlainTextRender,
     dtdlModelId: UUID,
-    model: DtdlObjectModel,
-    oldSession: Session,
-    newSession: Session,
+    model: DtdlModel,
+    oldSession: ViewState,
+    newSession: ViewState,
     params: UpdateParams
   ) {
     if (output.type === 'text') {
@@ -407,8 +407,8 @@ export class OntologyController extends HTMLController {
     a11yPrefs: Set<A11yPreference>,
     newOutput: MermaidSvgRender,
     dtdlModelId: UUID,
-    oldSession: Session,
-    newSession: Session,
+    oldSession: ViewState,
+    newSession: ViewState,
     currentZoom: number,
     currentPanX: number,
     currentPanY: number,
@@ -471,7 +471,7 @@ export class OntologyController extends HTMLController {
 
   private async generateRawOutput(
     dtdlModelId: UUID,
-    model: DtdlObjectModel,
+    model: DtdlModel,
     session: GenerateParams
   ): Promise<MermaidSvgRender | PlainTextRender> {
     const cacheKey = dtdlCacheKey(dtdlModelId, session)
@@ -485,7 +485,7 @@ export class OntologyController extends HTMLController {
     return output
   }
 
-  private truncateExpandedIds(truncateId: string, model: DtdlObjectModel, expandedIds: string[]): string[] {
+  private truncateExpandedIds(truncateId: string, model: DtdlModel, expandedIds: string[]): string[] {
     const relatedIds = getRelatedIdsById(model, truncateId)
     const truncateIdIndex = expandedIds.findIndex((id) => id === truncateId)
 

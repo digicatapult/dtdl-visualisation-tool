@@ -1,10 +1,10 @@
 /// <reference types="@kitajs/html/htmx.d.ts" />
 
-import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
 import express from 'express'
 import { singleton } from 'tsyringe'
 import { ModelRow } from '../../../db/types.js'
+import { DtdlModel } from '../../models/dtdlOmParser.js'
 import { DiagramType } from '../../models/mermaidDiagrams.js'
 import { DtdlId, UUID } from '../../models/strings.js'
 import Parser from '../../utils/dtdl/parser.js'
@@ -42,7 +42,7 @@ export default class OntologyViewTemplates {
 
   public MermaidRoot = ({
     search,
-    sessionId,
+    viewId,
     diagramType,
     svgWidth,
     svgHeight,
@@ -53,7 +53,7 @@ export default class OntologyViewTemplates {
     model,
   }: {
     search?: string
-    sessionId: UUID
+    viewId: UUID
     diagramType: DiagramType
     svgWidth?: number
     svgHeight?: number
@@ -64,7 +64,7 @@ export default class OntologyViewTemplates {
     model: ModelRow
   }) => (
     <Page title={'UKDTC'} req={req}>
-      <input id="sessionId" name="sessionId" type="hidden" value={escapeHtml(sessionId)} />
+      <input id="viewId" name="viewId" type="hidden" value={escapeHtml(viewId)} />
       <section id="toolbar">
         <SearchPanel search={search} diagramType={diagramType} svgWidth={svgWidth} svgHeight={svgHeight} />
         <UploadForm />
@@ -112,7 +112,7 @@ export default class OntologyViewTemplates {
   }: {
     swapOutOfBand?: boolean
     entityId?: DtdlId
-    model: DtdlObjectModel
+    model: DtdlModel
     expanded: boolean
     edit: boolean
     tab: 'details' | 'tree'

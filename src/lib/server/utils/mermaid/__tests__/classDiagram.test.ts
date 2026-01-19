@@ -1,8 +1,8 @@
-import { InterfaceType, RelationshipType } from '@digicatapult/dtdl-parser'
 import { assert, expect } from 'chai'
 import { JSDOM } from 'jsdom'
 import { describe, it } from 'mocha'
-import ClassDiagram, { arrowTypes, extractClassNodeCoordinate } from '../classDiagram'
+import { InterfaceEntity, RelationshipEntity } from '../../../models/dtdlOmParser.js'
+import ClassDiagram, { arrowTypes, extractClassNodeCoordinate } from '../classDiagram.js'
 import { classDiagramFixture, mockDtdlModelWithProperty, mockDtdlObjectModel } from './fixtures'
 import { parseMermaid } from './helpers'
 
@@ -30,7 +30,7 @@ describe('ClassDiagram', function () {
     it('should return a list of mermaid markdown string that represents an interface ', () => {
       const interfaceAsMarkdown = classDiagram.interfaceToMarkdown(
         mockDtdlObjectModel,
-        mockDtdlObjectModel['dtmi:com:example_extended;1'] as InterfaceType
+        mockDtdlObjectModel['dtmi:com:example_extended;1'] as InterfaceEntity
       )
       const test = [
         'class `dtmi:com:example_extended:1`["example extended"] \nclick `dtmi:com:example_extended:1` call getEntity()',
@@ -42,7 +42,7 @@ describe('ClassDiagram', function () {
     it('should return a list of mermaid markdown string that represents a relationship', () => {
       const propertyAsMarkdown = classDiagram.interfaceToMarkdown(
         mockDtdlObjectModel,
-        mockDtdlModelWithProperty['dtmi:com:example;1'] as InterfaceType
+        mockDtdlModelWithProperty['dtmi:com:example;1'] as InterfaceEntity
       )
       const test = [
         'class `dtmi:com:example:1`["example 1"] \nclick `dtmi:com:example:1` call getEntity()',
@@ -56,7 +56,7 @@ describe('ClassDiagram', function () {
     it('should return a list of mermaid markdown string that represents a relationship', () => {
       const relationshipAsMarkdown = classDiagram.relationshipToMarkdown(
         mockDtdlObjectModel,
-        mockDtdlObjectModel['dtmi:com:example_relationship;1'] as RelationshipType
+        mockDtdlObjectModel['dtmi:com:example_relationship;1'] as RelationshipEntity
       )
       const test = ['`dtmi:com:example:1` -- `dtmi:com:example_related:1` : A relationship']
       expect(relationshipAsMarkdown).to.deep.equal(test)
@@ -64,7 +64,7 @@ describe('ClassDiagram', function () {
     it('should return undefined for a relationship with an undefined interface', () => {
       const relationshipAsMarkdown = classDiagram.relationshipToMarkdown(
         mockDtdlObjectModel,
-        mockDtdlObjectModel['dtmi:com:example_relationship_undefined_interface;1'] as RelationshipType
+        mockDtdlObjectModel['dtmi:com:example_relationship_undefined_interface;1'] as RelationshipEntity
       )
       const test = []
       expect(relationshipAsMarkdown).to.deep.equal(test)

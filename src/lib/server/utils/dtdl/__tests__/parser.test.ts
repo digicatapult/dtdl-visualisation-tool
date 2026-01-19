@@ -4,13 +4,14 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import Parser, { type DtdlPath } from '../parser.js'
 
-import { DtdlObjectModel, ModelingException } from '@digicatapult/dtdl-parser'
+import { ModelingException } from '@digicatapult/dtdl-parser'
 import { expect } from 'chai'
 import { createHash } from 'crypto'
 import { readFile } from 'node:fs/promises'
 import pino from 'pino'
 import sinon from 'sinon'
 import { ModellingError, UploadError } from '../../../errors.js'
+import { DtdlModel } from '../../../models/dtdlOmParser.js'
 import { ICache } from '../../cache.js'
 import { LRUCache } from '../../lruCache.js'
 import bom from './fixtures/bom/bom.json' assert { type: 'json' }
@@ -263,7 +264,7 @@ describe('extractDtdlPaths', function () {
       Id: nestedTwo['@id'],
       EntityKind: 'Interface',
     },
-  } as DtdlObjectModel
+  } as DtdlModel
 
   test('extracts paths from simple DTDL', () => {
     const files = [{ path: 'file.json', source: JSON.stringify(nestedOne) }]

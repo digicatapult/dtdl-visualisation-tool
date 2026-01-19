@@ -1,7 +1,6 @@
 import path from 'node:path'
 import url from 'node:url'
 
-import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import type { LayoutLoaderDefinition, Mermaid, MermaidConfig } from 'mermaid'
 import puppeteer, { Browser, Page } from 'puppeteer'
 import { inject, singleton } from 'tsyringe'
@@ -9,6 +8,7 @@ import { inject, singleton } from 'tsyringe'
 import { Semaphore } from 'async-mutex'
 import { Env } from '../../env/index.js'
 import { Logger, type ILogger } from '../../logger.js'
+import { DtdlModel } from '../../models/dtdlOmParser.js'
 import { DiagramType } from '../../models/mermaidDiagrams.js'
 import { Layout } from '../../models/mermaidLayouts.js'
 import { MermaidSvgRender, PlainTextRender } from '../../models/renderedDiagram/index.js'
@@ -54,7 +54,7 @@ export class SvgGenerator {
   }
 
   async run(
-    dtdlObject: DtdlObjectModel,
+    dtdlObject: DtdlModel,
     diagramType: DiagramType,
     layout: Layout,
     isRetry: boolean = false
@@ -96,7 +96,7 @@ export class SvgGenerator {
     }
   }
 
-  private countRenderableEntities(dtdlObject: DtdlObjectModel): number {
+  private countRenderableEntities(dtdlObject: DtdlModel): number {
     return Object.entries(dtdlObject).reduce((count, [, entityType]) => {
       if (
         entityType.EntityKind === 'Interface' ||

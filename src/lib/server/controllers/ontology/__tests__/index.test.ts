@@ -11,27 +11,27 @@ import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../
 import { UUID } from '../../../models/strings.js'
 import { allInterfaceFilter } from '../../../utils/dtdl/extract.js'
 import { DtdlPath } from '../../../utils/dtdl/parser.js'
+import { GithubRequest } from '../../../utils/githubRequest.js'
 import { LRUCache } from '../../../utils/lruCache.js'
 import { generatedSVGFixture, mockDtdlObjectModel } from '../../../utils/mermaid/__tests__/fixtures.js'
 import { SvgGenerator } from '../../../utils/mermaid/generator.js'
 import { SvgMutator } from '../../../utils/mermaid/svgMutator.js'
 import { PostHogService } from '../../../utils/postHog/postHogService.js'
-import SessionStore from '../../../utils/sessions.js'
+import ViewStateStore from '../../../utils/viewStates.js'
 import OntologyViewTemplates from '../../../views/templates/ontologyView.js'
 import { complexMockDtdlModel, simpleMockDtdlObjectModel } from '../../__tests__/fixtures/dtdl.fixtures.js'
 import {
-  sessionMap,
-  validSessionExpanded11Id,
-  validSessionExpanded12Id,
-  validSessionExpanded2357Id,
-  validSessionExpanded235Id,
-  validSessionExpanded759Id,
-  validSessionExpanded9XId,
-  validSessionId,
-  validSessionSomeOtherSearchId,
-  validSessionSomeSearchId,
+  validViewExpanded11Id,
+  validViewExpanded12Id,
+  validViewExpanded2357Id,
+  validViewExpanded235Id,
+  validViewExpanded759Id,
+  validViewExpanded9XId,
+  validViewId,
+  validViewSomeOtherSearchId,
+  validViewSomeSearchId,
+  viewStateMap,
 } from '../../__tests__/fixtures/session.fixtures.js'
-import { mockGithubRequest } from '../../__tests__/github.test.js'
 import { mockReq, mockReqWithCookie, toHTMLString } from '../../__tests__/helpers.js'
 import { OntologyController } from '../index.js'
 
@@ -138,10 +138,10 @@ const mockCache = new LRUCache(10, 1000 * 60)
 
 const sessionSetStub = sinon.stub()
 const mockSession = {
-  get: sinon.stub().callsFake((id) => sessionMap[id]),
+  get: sinon.stub().callsFake((id) => viewStateMap[id]),
   set: sessionSetStub,
   update: sinon.stub(),
-} as unknown as SessionStore
+} as unknown as ViewStateStore
 
 const generatorRunStub = sinon.stub().callsFake(() => {
   const mock = {
@@ -177,8 +177,10 @@ const mockPostHog = {
   trackModeToggle: sinon.stub().resolves(),
 } as unknown as PostHogService
 
+export const mockGithubRequest = {} as unknown as GithubRequest
+
 export const defaultParams: UpdateParams = {
-  sessionId: validSessionId,
+  viewId: validViewId,
   diagramType: 'flowchart',
   svgWidth: 300,
   svgHeight: 100,
@@ -347,7 +349,7 @@ describe('OntologyController', () => {
       })
 
       expect(stub.callCount).lessThanOrEqual(initCallCount + 1)
-      expect(stub.lastCall.args[0]).to.equal(validSessionId)
+      expect(stub.lastCall.args[0]).to.equal(validViewId)
       expect(stub.lastCall.args[1]).to.deep.equal({
         diagramType: 'flowchart',
         expandedIds: [],
@@ -364,7 +366,7 @@ describe('OntologyController', () => {
         'hx-current-url': 'http://localhost:3000/some/path',
       })
       await controller
-        .updateLayout(req, simpleDtdlId, { ...defaultParams, sessionId: validSessionExpanded11Id })
+        .updateLayout(req, simpleDtdlId, { ...defaultParams, viewId: validViewExpanded11Id })
         .then(toHTMLString)
 
       expect(stub.firstCall.args).to.deep.equal(['HX-Push-Url', '/some/path?diagramType=flowchart'])
@@ -377,7 +379,7 @@ describe('OntologyController', () => {
         'hx-current-url': 'http://localhost:3000/some/path',
       })
       await controller
-        .updateLayout(req, simpleDtdlId, { ...defaultParams, sessionId: validSessionExpanded12Id })
+        .updateLayout(req, simpleDtdlId, { ...defaultParams, viewId: validViewExpanded12Id })
         .then(toHTMLString)
 
       expect(stub.firstCall.args).to.deep.equal(['HX-Push-Url', '/some/path?diagramType=flowchart'])
@@ -397,8 +399,8 @@ describe('OntologyController', () => {
 
     it('should ignore lastSearch param when caching', async () => {
       const req = mockReq({})
-      await controller.updateLayout(req, simpleDtdlId, { ...defaultParams, sessionId: validSessionSomeSearchId })
-      await controller.updateLayout(req, simpleDtdlId, { ...defaultParams, sessionId: validSessionSomeOtherSearchId })
+      await controller.updateLayout(req, simpleDtdlId, { ...defaultParams, viewId: validViewSomeSearchId })
+      await controller.updateLayout(req, simpleDtdlId, { ...defaultParams, viewId: validViewSomeOtherSearchId })
 
       expect(mockCache.size()).to.equal(1)
 
@@ -415,7 +417,7 @@ describe('OntologyController', () => {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '5',
-        sessionId: validSessionExpanded235Id,
+        viewId: validViewExpanded235Id,
       })
       const session = sessionSetStub.lastCall.args[1]
       expect(session.expandedIds).to.deep.equal(['2', '3'])
@@ -429,7 +431,7 @@ describe('OntologyController', () => {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '1',
-        sessionId: validSessionExpanded235Id,
+        viewId: validViewExpanded235Id,
       })
 
       const session = sessionSetStub.lastCall.args[1]
@@ -444,7 +446,7 @@ describe('OntologyController', () => {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '2',
-        sessionId: validSessionExpanded235Id,
+        viewId: validViewExpanded235Id,
       })
 
       const session = sessionSetStub.lastCall.args[1]
@@ -459,7 +461,7 @@ describe('OntologyController', () => {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '3',
-        sessionId: validSessionExpanded2357Id,
+        viewId: validViewExpanded2357Id,
       })
       const session = sessionSetStub.lastCall.args[1]
       expect(session.expandedIds).to.deep.equal(['2', '5'])
@@ -473,7 +475,7 @@ describe('OntologyController', () => {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '5',
-        sessionId: validSessionExpanded759Id,
+        viewId: validViewExpanded759Id,
       })
 
       const session = sessionSetStub.lastCall.args[1]
@@ -488,7 +490,7 @@ describe('OntologyController', () => {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '9',
-        sessionId: validSessionExpanded9XId,
+        viewId: validViewExpanded9XId,
       })
 
       const session = sessionSetStub.lastCall.args[1]
@@ -611,7 +613,7 @@ describe('OntologyController', () => {
     it('should return rendered navigation panel template', async () => {
       const req = mockReq({})
       const mockHtmlOutput = [`navigationPanel_false__navigationPanel`, `githubLink_githubLink`].join('')
-      const result = await controller.editModel(req, simpleDtdlId, validSessionId, true).then(toHTMLString)
+      const result = await controller.editModel(req, simpleDtdlId, validViewId, true).then(toHTMLString)
 
       expect(result).to.equal(mockHtmlOutput)
     })
@@ -658,7 +660,7 @@ describe('OntologyController', () => {
       )
 
       const req = mockReq({})
-      await expect(controllerWithErrors.editModel(req, simpleDtdlId, validSessionId, true)).to.be.rejectedWith(
+      await expect(controllerWithErrors.editModel(req, simpleDtdlId, validViewId, true)).to.be.rejectedWith(
         'Cannot edit ontology with errors. Please fix all errors before editing.'
       )
     })
@@ -706,7 +708,7 @@ describe('OntologyController', () => {
       )
 
       const req = mockReq({})
-      await expect(controllerNestedErrors.editModel(req, simpleDtdlId, validSessionId, true)).to.be.rejectedWith(
+      await expect(controllerNestedErrors.editModel(req, simpleDtdlId, validViewId, true)).to.be.rejectedWith(
         'Cannot edit ontology with errors. Please fix all errors before editing.'
       )
     })
@@ -741,7 +743,7 @@ describe('OntologyController', () => {
       )
 
       const req = mockReq({})
-      const result = await controllerNoErrors.editModel(req, simpleDtdlId, validSessionId, true).then(toHTMLString)
+      const result = await controllerNoErrors.editModel(req, simpleDtdlId, validViewId, true).then(toHTMLString)
 
       expect(result).to.equal([`navigationPanel_false__navigationPanel`, `githubLink_githubLink`].join(''))
     })

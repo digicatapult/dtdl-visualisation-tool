@@ -6,7 +6,7 @@ import { ModelDb } from '../../../db/modelDb.js'
 import { UpdateParams } from '../../models/controllerTypes.js'
 import { UUID } from '../../models/strings.js'
 import { RootController } from '../root.js'
-import { validSessionId } from './fixtures/session.fixtures.js'
+import { validViewId } from './fixtures/session.fixtures.js'
 
 const defaultDtdlId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed9'
 
@@ -19,7 +19,7 @@ const templateMock = {} as never
 const mockLogger = pino({ level: 'silent' })
 
 export const defaultParams: UpdateParams = {
-  sessionId: validSessionId,
+  viewId: validViewId,
   diagramType: 'flowchart',
   svgWidth: 300,
   svgHeight: 100,

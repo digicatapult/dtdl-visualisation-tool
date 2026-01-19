@@ -1,4 +1,4 @@
-import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
+import { DtdlModel } from '../../../models/dtdlOmParser'
 import { stateSymbol } from '../../../utils/dtdl/filter'
 
 const emptyEntityProperties = {
@@ -11,7 +11,7 @@ const emptyEntityProperties = {
   ClassId: 'dtmi:dtdl:class:SomeClass;2',
 }
 const emptyInterfaceProperties = {
-  contents: {},
+  contents: [],
   commands: {},
   components: {},
   properties: {},
@@ -44,7 +44,7 @@ export const simpleMockDtdlObjectModel = {
     ...emptyInterfaceProperties,
     ...visualisationState,
   },
-} as DtdlObjectModel
+} as DtdlModel
 
 export const complexMockDtdlModel = {
   '1': {
@@ -239,4 +239,4 @@ export const complexMockDtdlModel = {
     ...emptyEntityProperties,
     ...emptyRelationshipProperties,
   },
-} as DtdlObjectModel
+} as DtdlModel
