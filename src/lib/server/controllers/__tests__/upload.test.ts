@@ -62,7 +62,7 @@ const mockPostHog = {
 const mockLogger = pino({ level: 'silent' })
 const mockCache = new LRUCache(10, 1000 * 60) as ICache
 
-describe('OpenOntologyController', async () => {
+describe('OpenOntologyController', () => {
   const controller = new OpenOntologyController(
     mockModelDb,
     mockGenerator,

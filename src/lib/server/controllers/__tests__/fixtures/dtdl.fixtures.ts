@@ -1,5 +1,5 @@
-import { DtdlModel } from '../../../models/dtdlOmParser'
-import { stateSymbol } from '../../../utils/dtdl/filter'
+import { DtdlModel } from '../../../models/dtdlOmParser.js'
+import { stateSymbol } from '../../../utils/dtdl/filter.js'
 
 const emptyEntityProperties = {
   SupplementalTypes: [],
