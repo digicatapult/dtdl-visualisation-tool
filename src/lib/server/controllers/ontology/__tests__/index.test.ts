@@ -177,7 +177,10 @@ const mockPostHog = {
   trackModeToggle: sinon.stub().resolves(),
 } as unknown as PostHogService
 
-export const mockGithubRequest = {} as unknown as GithubRequest
+export const mockGithubRequest = {
+  getCommit: () => Promise.resolve({ sha: 'currentCommitSha' }),
+  getRepoPermissions: () => Promise.resolve('edit'),
+} as unknown as GithubRequest
 
 export const defaultParams: UpdateParams = {
   viewId: validViewId,
