@@ -1,4 +1,4 @@
-import { DtdlObjectModel, EntityType, getInterop, ModelingException, parseDtdl } from '@digicatapult/dtdl-parser'
+import { getInterop, ModelingException, parseDtdl } from '@digicatapult/dtdl-parser'
 import { createHash } from 'crypto'
 import { Dirent } from 'node:fs'
 import { readdir, readFile } from 'node:fs/promises'
@@ -10,20 +10,20 @@ import { DEFAULT_DB_STRING_LENGTH, DtdlFile } from '../../../db/types.js'
 import { Env } from '../../env/index.js'
 import { ModellingError, UploadError } from '../../errors.js'
 import { Logger, type ILogger } from '../../logger.js'
-import { dtdlObjectModelParser } from '../../models/dtdlOmParser.js'
+import { DtdlEntity, DtdlModel, dtdlObjectModelParser } from '../../models/dtdlOmParser.js'
 import { Cache, type ICache } from '../cache.js'
 
 export type DtdlPathFileEntryContent = {
   type: 'fileEntryContent'
   id: string
   name: string
-  dtdlType: EntityType['EntityKind']
+  dtdlType: DtdlEntity['EntityKind']
 }
 export type DtdlPathFileEntry = {
   type: 'fileEntry'
   name: string
   id: string
-  dtdlType: EntityType['EntityKind']
+  dtdlType: DtdlEntity['EntityKind']
   entries: DtdlPathFileEntryContent[]
 }
 type DtdlPathFile = {
@@ -157,7 +157,7 @@ export default class Parser {
     return filesWithErrors
   }
 
-  async parseAll(files: DtdlFile[]): Promise<DtdlObjectModel> {
+  async parseAll(files: DtdlFile[]): Promise<DtdlModel> {
     const source = Parser.fileSourceToString(files)
 
     const dtdlHashKey = createHash('sha256').update(source).digest('base64')
@@ -172,12 +172,14 @@ export default class Parser {
     if (parsedDtdl.ExceptionKind) {
       throw new ModellingError(`${parsedDtdl.ExceptionKind} error. Open details:`, JSON.stringify(parsedDtdl))
     }
-    this.cache.set<DtdlObjectModel>(dtdlHashKey, parsedDtdl)
 
-    return parsedDtdl
+    const validatedDtdl = dtdlObjectModelParser.parse(parsedDtdl)
+    this.cache.set<DtdlModel>(dtdlHashKey, validatedDtdl)
+
+    return validatedDtdl
   }
 
-  extractDtdlPaths(files: DtdlFile[], model: DtdlObjectModel): DtdlPath[] {
+  extractDtdlPaths(files: DtdlFile[], model: DtdlModel): DtdlPath[] {
     // for each file parse the source and extract the entities along their file system path
     const dtdlFilePaths = files.map((file) => {
       const filePath = path.parse(file.path)
@@ -246,7 +248,7 @@ export default class Parser {
   }
 
   // extracts DTDL entities from the parsed source and builds a DtdlPathFile structure
-  private extractDtdlEntities(name: string, source: DtdlFileSource, model: DtdlObjectModel): DtdlPathFile {
+  private extractDtdlEntities(name: string, source: DtdlFileSource, model: DtdlModel): DtdlPathFile {
     if (Array.isArray(source)) {
       return {
         type: 'file',
@@ -263,12 +265,10 @@ export default class Parser {
     }
 
     const refEntries: DtdlPathFileEntryContent[] = [
-      'properties' in parsedEntry ? this.extractDtdlPathFileContents(parsedEntry.properties, model, entityId) : [],
-      'relationships' in parsedEntry
-        ? this.extractDtdlPathFileContents(parsedEntry.relationships, model, entityId)
-        : [],
-      'telemetries' in parsedEntry ? this.extractDtdlPathFileContents(parsedEntry.telemetries, model, entityId) : [],
-      'commands' in parsedEntry ? this.extractDtdlPathFileContents(parsedEntry.commands, model, entityId) : [],
+      this.extractDtdlPathFileContentsSafe(parsedEntry.properties, model, entityId),
+      this.extractDtdlPathFileContentsSafe(parsedEntry.relationships, model, entityId),
+      this.extractDtdlPathFileContentsSafe(parsedEntry.telemetries, model, entityId),
+      this.extractDtdlPathFileContentsSafe(parsedEntry.commands, model, entityId),
     ].flat()
 
     const entries = [
@@ -289,7 +289,7 @@ export default class Parser {
   // extracts the contents of properties and relationships from the model, filtering by the definedIn property matching parent entity ID
   private extractDtdlPathFileContents(
     contents: string[] | Record<string, string>,
-    model: DtdlObjectModel,
+    model: DtdlModel,
     parentEntityId: string
   ): DtdlPathFileEntryContent[] {
     const ids = Array.isArray(contents) ? contents : Object.values(contents)
@@ -304,12 +304,34 @@ export default class Parser {
     return result
   }
 
-  private extractDtdlPathFileEntry(entry: EntityType) {
+  private extractDtdlPathFileContentsSafe(
+    contents: unknown,
+    model: DtdlModel,
+    parentEntityId: string
+  ): DtdlPathFileEntryContent[] {
+    if (Array.isArray(contents)) {
+      return this.extractDtdlPathFileContents(contents, model, parentEntityId)
+    }
+
+    if (contents && typeof contents === 'object') {
+      return this.extractDtdlPathFileContents(contents as Record<string, string>, model, parentEntityId)
+    }
+
+    return []
+  }
+
+  private extractDtdlPathFileEntry(entry: DtdlEntity) {
+    const name =
+      typeof entry.displayName?.en === 'string'
+        ? entry.displayName.en
+        : 'name' in entry && typeof entry.name === 'string'
+          ? entry.name
+          : entry.Id
     return {
       type: 'fileEntryContent' as const,
       id: entry.Id,
       dtdlType: entry.EntityKind,
-      name: entry.displayName?.en ?? ('name' in entry ? entry.name : entry.Id),
+      name,
     }
   }
 
@@ -324,6 +346,10 @@ export default class Parser {
 
   static fileSourceToString(files: DtdlFile[]): string {
     const validFiles = files.filter((f) => !f.errors)
-    return `[${validFiles.map((f) => f.source).join(',')}]`
+    const combined = validFiles.flatMap((f) => {
+      const parsed = JSON.parse(f.source) as unknown
+      return Array.isArray(parsed) ? parsed : [parsed]
+    })
+    return JSON.stringify(combined)
   }
 }

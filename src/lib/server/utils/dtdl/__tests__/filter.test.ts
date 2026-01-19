@@ -1,8 +1,8 @@
 import { expect } from 'chai'
 import { describe, test } from 'mocha'
 
-import { DtdlObjectModel, EntityType } from '@digicatapult/dtdl-parser'
 import { InvalidQueryError } from '../../../errors.js'
+import { DtdlEntity, DtdlModel } from '../../../models/dtdlOmParser.js'
 import { FuseSearch } from '../../fuseSearch.js'
 import { filterModelByDisplayName, getRelatedIdsById, getVisualisationState, searchInterfaces } from '../filter.js'
 import {
@@ -14,9 +14,8 @@ import {
   singleInterfaceFirst,
 } from './fixtures.js'
 
-const mockSearch = new FuseSearch<EntityType>()
-const setCollection = (model: DtdlObjectModel) =>
-  mockSearch.setCollection(Object.entries(model).map(([, entity]) => entity))
+const mockSearch = new FuseSearch<DtdlEntity>()
+const setCollection = (model: DtdlModel) => mockSearch.setCollection(Object.entries(model).map(([, entity]) => entity))
 
 describe('filterModelByDisplayName', function () {
   test('should return empty object for empty model', function () {

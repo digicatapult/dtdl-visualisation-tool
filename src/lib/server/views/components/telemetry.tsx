@@ -1,10 +1,10 @@
 /// <reference types="@kitajs/html/htmx.d.ts" />
 
-import { DtdlObjectModel, TelemetryInfo } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
+import type { DtdlModel, TelemetryEntity } from '../../models/dtdlOmParser.js'
 import { DTDL_PRIMITIVE_SCHEMA_OPTIONS } from '../../models/strings.js'
 import { MAX_DISPLAY_NAME_LENGTH, MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
-import { getDisplayName, getSchemaDisplayName } from '../../utils/dtdl/extract.js'
+import { getCommentText, getDisplayName, getSchemaDisplayName } from '../../utils/dtdl/extract.js'
 import { EditableSelect, EditableText } from '../common.js'
 
 export const TelemetryDetails = ({
@@ -14,21 +14,21 @@ export const TelemetryDetails = ({
   edit,
   entityId,
 }: {
-  telemetry: TelemetryInfo
+  telemetry: TelemetryEntity
   name: string
-  model: DtdlObjectModel
+  model: DtdlModel
   edit: boolean
   entityId: string
 }): JSX.Element => {
-  if (!telemetry.DefinedIn) return <></>
+  const definedIn = telemetry.DefinedIn ?? entityId
 
-  const isExtended = telemetry.DefinedIn !== entityId
+  const isExtended = definedIn !== entityId
   const canEdit = edit && !isExtended
 
   return (
     <div
       class={isExtended ? 'extended-detail' : undefined}
-      title={isExtended ? `Extended from ${getDisplayName(model[telemetry.DefinedIn])}` : undefined}
+      title={isExtended ? `Extended from ${getDisplayName(model[definedIn])}` : undefined}
     >
       <b>Name: </b>
       {escapeHtml(name)}
@@ -47,7 +47,7 @@ export const TelemetryDetails = ({
       <b>Display Name:</b>
       <EditableText
         edit={canEdit}
-        definedIn={telemetry.DefinedIn}
+        definedIn={definedIn}
         putRoute="telemetryDisplayName"
         text={telemetry.displayName?.en}
         additionalBody={{ telemetryName: name }}
@@ -56,16 +56,16 @@ export const TelemetryDetails = ({
       <b>Schema:</b>
       <EditableSelect
         edit={canEdit}
-        definedIn={telemetry.DefinedIn}
+        definedIn={definedIn}
         putRoute="telemetrySchema"
-        text={getSchemaDisplayName(model[telemetry.schema])}
+        text={telemetry.schema ? getSchemaDisplayName(model[telemetry.schema]) : ''}
         additionalBody={{ telemetryName: name }}
         options={DTDL_PRIMITIVE_SCHEMA_OPTIONS}
       />
       <b>Description:</b>
       <EditableText
         edit={canEdit}
-        definedIn={telemetry.DefinedIn}
+        definedIn={definedIn}
         putRoute="telemetryDescription"
         text={telemetry.description?.en}
         additionalBody={{ telemetryName: name }}
@@ -75,9 +75,9 @@ export const TelemetryDetails = ({
       <b>Comment:</b>
       {EditableText({
         edit: canEdit,
-        definedIn: telemetry.DefinedIn,
+        definedIn,
         putRoute: 'telemetryComment',
-        text: telemetry.comment,
+        text: getCommentText(telemetry.comment),
         additionalBody: { telemetryName: name },
         multiline: true,
         maxLength: MAX_VALUE_LENGTH,

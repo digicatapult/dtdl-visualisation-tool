@@ -1,10 +1,10 @@
 /// <reference types="@kitajs/html/htmx.d.ts" />
 
-import { CommandInfo, DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
+import type { CommandEntity, DtdlModel } from '../../models/dtdlOmParser.js'
 import { DTDL_PRIMITIVE_SCHEMA_OPTIONS, DtdlId } from '../../models/strings.js'
 import { MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
-import { getSchemaDisplayName, isCommandRequest, isCommandResponse } from '../../utils/dtdl/extract.js'
+import { getCommentText, getSchemaDisplayName, isCommandRequest, isCommandResponse } from '../../utils/dtdl/extract.js'
 import { AccordionSection, EditableSelect, EditableText } from '../common.js'
 
 export const CommandDetails = ({
@@ -14,15 +14,15 @@ export const CommandDetails = ({
   edit,
   entityId,
 }: {
-  command: CommandInfo
+  command: CommandEntity
   name: string
-  model: DtdlObjectModel
+  model: DtdlModel
   edit: boolean
   entityId: DtdlId
 }): JSX.Element => {
-  if (!command.DefinedIn) return <></>
+  const definedIn = command.DefinedIn ?? entityId
 
-  const isExtended = command.DefinedIn !== entityId
+  const isExtended = definedIn !== entityId
   const canEdit = edit && !isExtended
 
   const requestId = command.request
@@ -34,7 +34,7 @@ export const CommandDetails = ({
   return (
     <div
       class={isExtended ? 'extended-detail' : undefined}
-      title={isExtended ? `Extended from ${model[command.DefinedIn]?.displayName?.en || command.DefinedIn}` : undefined}
+      title={isExtended ? `Extended from ${model[definedIn]?.displayName?.en || definedIn}` : undefined}
     >
       <b>Name: </b>
       {escapeHtml(name)}
@@ -53,9 +53,9 @@ export const CommandDetails = ({
       <b>Display Name:</b>
       {EditableText({
         edit: canEdit,
-        definedIn: command.DefinedIn,
+        definedIn,
         putRoute: 'commandDisplayName',
-        text: command.displayName.en,
+        text: command.displayName?.en ?? '',
         additionalBody: { commandName: name },
         maxLength: 64,
       })}
@@ -63,9 +63,9 @@ export const CommandDetails = ({
       <b>Description:</b>
       {EditableText({
         edit: canEdit,
-        definedIn: command.DefinedIn,
+        definedIn,
         putRoute: 'commandDescription',
-        text: command.description.en,
+        text: command.description?.en ?? '',
         additionalBody: { commandName: name },
         multiline: true,
         maxLength: MAX_VALUE_LENGTH,
@@ -73,9 +73,9 @@ export const CommandDetails = ({
       <b>Comment:</b>
       {EditableText({
         edit: canEdit,
-        definedIn: command.DefinedIn,
+        definedIn,
         putRoute: 'commandComment',
-        text: command.comment,
+        text: getCommentText(command.comment),
         additionalBody: { commandName: name },
         multiline: true,
         maxLength: MAX_VALUE_LENGTH,
@@ -87,7 +87,7 @@ export const CommandDetails = ({
         <b>Request Display Name:</b>
         {EditableText({
           edit: canEdit,
-          definedIn: command.DefinedIn,
+          definedIn,
           putRoute: 'commandRequestDisplayName',
           text: requestEntity?.displayName?.en ?? '',
           additionalBody: { commandName: name },
@@ -97,9 +97,9 @@ export const CommandDetails = ({
         <b>Request comment:</b>
         {EditableText({
           edit: canEdit,
-          definedIn: command.DefinedIn,
+          definedIn,
           putRoute: 'commandRequestComment',
-          text: requestEntity?.comment ?? '',
+          text: requestEntity ? getCommentText(requestEntity.comment) : '',
           additionalBody: { commandName: name },
           multiline: true,
           maxLength: MAX_VALUE_LENGTH,
@@ -107,7 +107,7 @@ export const CommandDetails = ({
         <b>Request description:</b>
         {EditableText({
           edit: canEdit,
-          definedIn: command.DefinedIn,
+          definedIn,
           putRoute: 'commandRequestDescription',
           text: requestEntity?.description?.en ?? '',
           additionalBody: { commandName: name },
@@ -117,7 +117,7 @@ export const CommandDetails = ({
         <b>Schema:</b>
         <EditableSelect
           edit={canEdit}
-          definedIn={command.DefinedIn}
+          definedIn={definedIn}
           putRoute="commandRequestSchema"
           text={requestEntity?.schema ? getSchemaDisplayName(model[requestEntity.schema]) : undefined}
           additionalBody={{ commandName: name }}
@@ -131,7 +131,7 @@ export const CommandDetails = ({
         <b>Response Display Name:</b>
         {EditableText({
           edit: canEdit,
-          definedIn: command.DefinedIn,
+          definedIn,
           putRoute: 'commandResponseDisplayName',
           text: responseEntity?.displayName?.en ?? '',
           additionalBody: { commandName: name },
@@ -141,9 +141,9 @@ export const CommandDetails = ({
         <b>Response comment:</b>
         {EditableText({
           edit: canEdit,
-          definedIn: command.DefinedIn,
+          definedIn,
           putRoute: 'commandResponseComment',
-          text: responseEntity?.comment ?? '',
+          text: responseEntity ? getCommentText(responseEntity.comment) : '',
           additionalBody: { commandName: name },
           multiline: true,
           maxLength: MAX_VALUE_LENGTH,
@@ -151,7 +151,7 @@ export const CommandDetails = ({
         <b>Response description:</b>
         {EditableText({
           edit: canEdit,
-          definedIn: command.DefinedIn,
+          definedIn,
           putRoute: 'commandResponseDescription',
           text: responseEntity?.description?.en ?? '',
           additionalBody: { commandName: name },
@@ -161,7 +161,7 @@ export const CommandDetails = ({
         <b>Schema:</b>
         <EditableSelect
           edit={canEdit}
-          definedIn={command.DefinedIn}
+          definedIn={definedIn}
           putRoute="commandResponseSchema"
           text={responseEntity?.schema ? getSchemaDisplayName(model[responseEntity.schema]) : undefined}
           additionalBody={{ commandName: name }}

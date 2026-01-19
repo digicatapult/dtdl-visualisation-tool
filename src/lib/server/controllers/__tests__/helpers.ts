@@ -2,12 +2,12 @@ import express from 'express'
 import { Readable } from 'node:stream'
 import { pino } from 'pino'
 
-import { DtdlObjectModel, EntityType } from '@digicatapult/dtdl-parser'
 import sinon from 'sinon'
 import Database from '../../../db/index.js'
 import { ModelDb } from '../../../db/modelDb.js'
 import { InternalError } from '../../errors.js'
 import { posthogIdCookie } from '../../models/cookieNames.js'
+import { DtdlEntity, DtdlModel } from '../../models/dtdlOmParser.js'
 import { ListItem } from '../../models/github.js'
 import { DtdlId, type UUID } from '../../models/strings.js'
 import { allInterfaceFilter } from '../../utils/dtdl/extract.js'
@@ -352,7 +352,7 @@ export const simpleMockModelDb = {
       fileTree: [],
     }),
   addEntityToModel: addEntityToModelStub,
-  getCollection: (dtdlModel: DtdlObjectModel) =>
+  getCollection: (dtdlModel: DtdlModel) =>
     Object.entries(dtdlModel)
       .filter(allInterfaceFilter)
       .map(([, entity]) => entity),
@@ -371,7 +371,7 @@ export const complexMockModelDb = {
   insertModel: () => Promise.resolve(1),
   deleteDefaultModel: () => Promise.resolve(mockModelTable[defaultDtdlId]),
   getDtdlModelAndTree: () => Promise.resolve({ model: complexMockDtdlModel, fileTree: [] }),
-  getCollection: (dtdlModel: DtdlObjectModel) =>
+  getCollection: (dtdlModel: DtdlModel) =>
     Object.entries(dtdlModel)
       .filter(allInterfaceFilter)
       .map(([, entity]) => entity),
@@ -385,7 +385,7 @@ export const mockSession = {
   update: sessionUpdateStub,
 } as unknown as ViewStateStore
 
-export const mockSearch = new FuseSearch<EntityType>(Object.values(simpleMockDtdlObjectModel))
+export const mockSearch = new FuseSearch<DtdlEntity>(Object.values(simpleMockDtdlObjectModel))
 
 export const generatorRunStub = sinon.stub().callsFake(() => {
   const mock = {

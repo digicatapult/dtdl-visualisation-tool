@@ -1,10 +1,10 @@
 /// <reference types="@kitajs/html/htmx.d.ts" />
 
-import { DtdlObjectModel, RelationshipInfo } from '@digicatapult/dtdl-parser'
 import { escapeHtml } from '@kitajs/html'
+import type { DtdlModel, RelationshipEntity } from '../../models/dtdlOmParser.js'
 import { DtdlId } from '../../models/strings.js'
 import { MAX_DISPLAY_NAME_LENGTH, MAX_VALUE_LENGTH } from '../../utils/dtdl/entityUpdate.js'
-import { getDisplayName } from '../../utils/dtdl/extract.js'
+import { getCommentText, getDisplayName } from '../../utils/dtdl/extract.js'
 import { EditableSelect, EditableText } from '../common.js'
 
 export const RelationshipDetails = ({
@@ -15,9 +15,9 @@ export const RelationshipDetails = ({
   entityId,
   interfaceOptions,
 }: {
-  relationship: RelationshipInfo
+  relationship: RelationshipEntity
   name: string
-  model: DtdlObjectModel
+  model: DtdlModel
   edit: boolean
   entityId: DtdlId
   interfaceOptions: Array<{ value: string; label: string }>
@@ -26,7 +26,7 @@ export const RelationshipDetails = ({
   const relationshipDefinedIn = relationship.DefinedIn ?? definedIn
 
   // Determine if this relationship is inherited or defined on the current interface
-  const isInherited = relationship.DefinedIn !== definedIn
+  const isInherited = relationshipDefinedIn !== definedIn
 
   // Get display name for the inherited interface
   const inheritedFromEntity = model[relationshipDefinedIn]
@@ -89,7 +89,7 @@ export const RelationshipDetails = ({
         edit={edit && !isInherited}
         definedIn={relationshipDefinedIn}
         putRoute="relationshipComment"
-        text={relationship.comment}
+        text={getCommentText(relationship.comment)}
         additionalBody={{ relationshipName: name }}
         multiline={true}
         maxLength={MAX_VALUE_LENGTH}

@@ -1,4 +1,3 @@
-import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import * as chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import { describe, it } from 'mocha'
@@ -7,6 +6,7 @@ import { ModelDb } from '../../../../../db/modelDb.js'
 import { DataError } from '../../../../errors.js'
 import { UpdateParams } from '../../../../models/controllerTypes.js'
 import { octokitTokenCookie } from '../../../../models/cookieNames.js'
+import { DtdlModel } from '../../../../models/dtdlOmParser.js'
 import { DtdlSchema } from '../../../../models/strings.js'
 import { generatedSVGFixture } from '../../../../utils/mermaid/__tests__/fixtures.js'
 import { mockGithubRequest } from '../../../__tests__/github.test.js'
@@ -1052,7 +1052,7 @@ describe('EntityController', async () => {
       const model = {
         '1': { EntityKind: 'Interface', extendedBy: ['2'] },
         '2': { EntityKind: 'Interface', extendedBy: ['1'] },
-      } as unknown as DtdlObjectModel
+      } as unknown as DtdlModel
       expect(() => controller.getExtendedBy(model, '1')).to.throw(Error, 'Circular reference in extended bys')
     })
   })
