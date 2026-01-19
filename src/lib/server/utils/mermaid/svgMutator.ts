@@ -7,7 +7,7 @@ import { type DiagramType } from '../../models/mermaidDiagrams.js'
 import { type MermaidSvgRender } from '../../models/renderedDiagram/index.js'
 import { type MermaidId } from '../../models/strings.js'
 import { getDisplayName, isRelationship } from '../dtdl/extract.js'
-import { Session } from '../sessions.js'
+import { ViewState } from '../viewStates.js'
 import { extractClassNodeCoordinate } from './classDiagram.js'
 import { extractFlowchartNodeCoordinates } from './flowchart.js'
 import {
@@ -142,7 +142,7 @@ export class SvgMutator {
 
     // modify the viewbox to match the available container
     svg.svgElement.setAttribute('viewBox', `0 0 ${params.svgWidth} ${params.svgHeight}`)
-    svg.svgElement.setAttribute('hx-include', '#sessionId, #search-panel, input[name="navigationPanelTab"]')
+    svg.svgElement.setAttribute('hx-include', '#viewId, #search-panel, input[name="navigationPanelTab"]')
 
     // mutate nodes to make them clickable and styled correctly
     svg.mapGraphNodes((node) => {
@@ -218,7 +218,7 @@ export class SvgMutator {
   }
 
   setupAnimations(
-    newSession: Session,
+    newSession: ViewState,
     newOutput: MermaidSvgRender,
     oldOutput: MermaidSvgRender,
     currentZoom: number,

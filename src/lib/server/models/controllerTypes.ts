@@ -1,4 +1,4 @@
-import { Session } from '../utils/sessions.js'
+import { ViewState } from '../utils/viewStates.js'
 import { DiagramType } from './mermaidDiagrams.js'
 import { DtdlId, UUID } from './strings.js'
 
@@ -11,14 +11,14 @@ export interface RootParams {
   highlightNodeId?: string
 
   search?: string
-  sessionId?: UUID
+  viewId?: UUID
 }
 export const urlQueryKeys = ['diagramType', 'highlightNodeId', 'search'] as const satisfies (keyof RootParams)[]
 export type UrlQueryKeys = (typeof urlQueryKeys)[number]
 
 export type A11yPreference = 'reduce-motion'
 export interface UpdateParams extends RootParams {
-  sessionId: UUID
+  viewId: UUID
   shouldExpand?: boolean
   shouldTruncate?: boolean
   svgWidth: number
@@ -38,7 +38,7 @@ export interface CookieHistoryParams {
 
 export const relevantParams = ['search', 'diagramType', 'layout', 'expandedIds'] as const
 export type GenerateParamKeys = (typeof relevantParams)[number]
-export type GenerateParams = Pick<UpdateParams & Session, GenerateParamKeys>
+export type GenerateParams = Pick<UpdateParams & ViewState, GenerateParamKeys>
 
 export type AttributeParamKeys = 'svgWidth' | 'svgHeight' | 'highlightNodeId' | 'diagramType'
 export type AttributeParams = Pick<UpdateParams, AttributeParamKeys>

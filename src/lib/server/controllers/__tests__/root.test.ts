@@ -4,10 +4,10 @@ import sinon from 'sinon'
 import { UpdateParams } from '../../models/controllerTypes.js'
 import { RootController } from '../root'
 import { defaultDtdlId, mockCache, mockLogger, simpleMockModelDb, templateMock } from './helpers'
-import { validSessionId } from './sessionFixtures.js'
+import { validViewId } from './sessionFixtures.js'
 
 export const defaultParams: UpdateParams = {
-  sessionId: validSessionId,
+  viewId: validViewId,
   diagramType: 'flowchart',
   svgWidth: 300,
   svgHeight: 100,

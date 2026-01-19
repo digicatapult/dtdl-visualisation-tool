@@ -62,7 +62,7 @@ export const AddContentForm = ({
     <form
       hx-post={`entity/${entityId}/content`}
       hx-ext="json-enc"
-      hx-include="#sessionId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
+      hx-include="#viewId, #svgWidth, #svgHeight, #currentZoom, #currentPanX, #currentPanY, #search, #diagram-type-select"
       hx-swap="outerHTML"
       hx-target="#mermaid-output"
       hx-indicator="#spinner"

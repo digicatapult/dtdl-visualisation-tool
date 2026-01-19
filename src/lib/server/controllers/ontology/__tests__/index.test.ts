@@ -26,20 +26,20 @@ import {
   toHTMLString,
 } from '../../__tests__/helpers.js'
 import {
-  validSessionExpanded11Id,
-  validSessionExpanded12Id,
-  validSessionExpanded2357Id,
-  validSessionExpanded235Id,
-  validSessionExpanded759Id,
-  validSessionExpanded9XId,
-  validSessionId,
-  validSessionSomeOtherSearchId,
-  validSessionSomeSearchId,
+  validViewExpanded11Id,
+  validViewExpanded12Id,
+  validViewExpanded2357Id,
+  validViewExpanded235Id,
+  validViewExpanded759Id,
+  validViewExpanded9XId,
+  validViewId,
+  validViewSomeOtherSearchId,
+  validViewSomeSearchId,
 } from '../../__tests__/sessionFixtures.js'
 import { OntologyController } from '../index.js'
 
 export const defaultParams: UpdateParams = {
-  sessionId: validSessionId,
+  viewId: validViewId,
   diagramType: 'flowchart',
   svgWidth: 300,
   svgHeight: 100,
@@ -208,7 +208,7 @@ describe('OntologyController', async () => {
       })
 
       expect(stub.callCount).lessThanOrEqual(initCallCount + 1)
-      expect(stub.lastCall.args[0]).to.equal(validSessionId)
+      expect(stub.lastCall.args[0]).to.equal(validViewId)
       expect(stub.lastCall.args[1]).to.deep.equal({
         diagramType: 'flowchart',
         expandedIds: [],
@@ -225,7 +225,7 @@ describe('OntologyController', async () => {
         'hx-current-url': 'http://localhost:3000/some/path',
       })
       await controller
-        .updateLayout(req, simpleDtdlId, { ...defaultParams, sessionId: validSessionExpanded11Id })
+        .updateLayout(req, simpleDtdlId, { ...defaultParams, viewId: validViewExpanded11Id })
         .then(toHTMLString)
 
       expect(stub.firstCall.args).to.deep.equal(['HX-Push-Url', '/some/path?diagramType=flowchart'])
@@ -238,7 +238,7 @@ describe('OntologyController', async () => {
         'hx-current-url': 'http://localhost:3000/some/path',
       })
       await controller
-        .updateLayout(req, simpleDtdlId, { ...defaultParams, sessionId: validSessionExpanded12Id })
+        .updateLayout(req, simpleDtdlId, { ...defaultParams, viewId: validViewExpanded12Id })
         .then(toHTMLString)
 
       expect(stub.firstCall.args).to.deep.equal(['HX-Push-Url', '/some/path?diagramType=flowchart'])
@@ -258,8 +258,8 @@ describe('OntologyController', async () => {
 
     it('should ignore lastSearch param when caching', async () => {
       const req = mockReq({})
-      await controller.updateLayout(req, simpleDtdlId, { ...defaultParams, sessionId: validSessionSomeSearchId })
-      await controller.updateLayout(req, simpleDtdlId, { ...defaultParams, sessionId: validSessionSomeOtherSearchId })
+      await controller.updateLayout(req, simpleDtdlId, { ...defaultParams, viewId: validViewSomeSearchId })
+      await controller.updateLayout(req, simpleDtdlId, { ...defaultParams, viewId: validViewSomeOtherSearchId })
 
       expect(mockCache.size()).to.equal(1)
 
@@ -276,7 +276,7 @@ describe('OntologyController', async () => {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '5',
-        sessionId: validSessionExpanded235Id,
+        viewId: validViewExpanded235Id,
       })
       const session = sessionSetStub.lastCall.args[1]
       expect(session.expandedIds).to.deep.equal(['2', '3'])
@@ -290,7 +290,7 @@ describe('OntologyController', async () => {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '1',
-        sessionId: validSessionExpanded235Id,
+        viewId: validViewExpanded235Id,
       })
 
       const session = sessionSetStub.lastCall.args[1]
@@ -305,7 +305,7 @@ describe('OntologyController', async () => {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '2',
-        sessionId: validSessionExpanded235Id,
+        viewId: validViewExpanded235Id,
       })
 
       const session = sessionSetStub.lastCall.args[1]
@@ -320,7 +320,7 @@ describe('OntologyController', async () => {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '3',
-        sessionId: validSessionExpanded2357Id,
+        viewId: validViewExpanded2357Id,
       })
       const session = sessionSetStub.lastCall.args[1]
       expect(session.expandedIds).to.deep.equal(['2', '5'])
@@ -334,7 +334,7 @@ describe('OntologyController', async () => {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '5',
-        sessionId: validSessionExpanded759Id,
+        viewId: validViewExpanded759Id,
       })
 
       const session = sessionSetStub.lastCall.args[1]
@@ -349,7 +349,7 @@ describe('OntologyController', async () => {
         ...defaultParams,
         shouldTruncate: true,
         highlightNodeId: '9',
-        sessionId: validSessionExpanded9XId,
+        viewId: validViewExpanded9XId,
       })
 
       const session = sessionSetStub.lastCall.args[1]
@@ -472,7 +472,7 @@ describe('OntologyController', async () => {
     it('should return rendered navigation panel template', async () => {
       const req = mockReq({})
       const mockHtmlOutput = [`navigationPanel_false__navigationPanel`, `githubLink_githubLink`].join('')
-      const result = await controller.editModel(req, simpleDtdlId, validSessionId, true).then(toHTMLString)
+      const result = await controller.editModel(req, simpleDtdlId, validViewId, true).then(toHTMLString)
 
       expect(result).to.equal(mockHtmlOutput)
     })
@@ -519,7 +519,7 @@ describe('OntologyController', async () => {
       )
 
       const req = mockReq({})
-      await expect(controllerWithErrors.editModel(req, simpleDtdlId, validSessionId, true)).to.be.rejectedWith(
+      await expect(controllerWithErrors.editModel(req, simpleDtdlId, validViewId, true)).to.be.rejectedWith(
         'Cannot edit ontology with errors. Please fix all errors before editing.'
       )
     })
@@ -567,7 +567,7 @@ describe('OntologyController', async () => {
       )
 
       const req = mockReq({})
-      await expect(controllerNestedErrors.editModel(req, simpleDtdlId, validSessionId, true)).to.be.rejectedWith(
+      await expect(controllerNestedErrors.editModel(req, simpleDtdlId, validViewId, true)).to.be.rejectedWith(
         'Cannot edit ontology with errors. Please fix all errors before editing.'
       )
     })
@@ -602,7 +602,7 @@ describe('OntologyController', async () => {
       )
 
       const req = mockReq({})
-      const result = await controllerNoErrors.editModel(req, simpleDtdlId, validSessionId, true).then(toHTMLString)
+      const result = await controllerNoErrors.editModel(req, simpleDtdlId, validViewId, true).then(toHTMLString)
 
       expect(result).to.equal([`navigationPanel_false__navigationPanel`, `githubLink_githubLink`].join(''))
     })
