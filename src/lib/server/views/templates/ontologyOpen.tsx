@@ -10,6 +10,11 @@ import { RecentFile } from '../../models/openTypes.js'
 import { safeUrl } from '../../utils/url.js'
 import { Page } from '../common.js'
 
+type RefreshButtonProps = {
+  refreshLink?: string
+  swapOutOfBand?: boolean
+}
+
 type SelectFolderProps =
   | {
       link: string
@@ -134,15 +139,18 @@ export default class OntologyOpenTemplates {
             hx-on-htmx-after-settle="this.scrollTop = 0"
           ></ul>
         </div>
-        <a
-          class="new-tab-link"
-          href={`https://github.com/apps/${env.get('GH_APP_NAME')}`}
-          target="_blank"
-          rel="noopener"
-          aria-label="Authorise repos (opens in a new tab)"
-        >
-          Repo missing? Authorise on GitHub ↗
-        </a>
+        <div id="github-refresh-wrapper">
+          <a
+            class="new-tab-link"
+            href={`https://github.com/apps/${env.get('GH_APP_NAME')}`}
+            target="_blank"
+            rel="noopener"
+            aria-label="Authorise repos (opens in a new tab)"
+          >
+            Repo missing? Authorise on GitHub ↗
+          </a>
+          <this.RefreshButton />
+        </div>
         <this.selectFolder stage="repo" />
       </div>
     )
@@ -153,6 +161,26 @@ export default class OntologyOpenTemplates {
       <b id="github-path-label" hx-swap-oob={swapOutOfBand ? 'true' : undefined} hx-swap="outerHTML">
         {escapeHtml(path)}
       </b>
+    )
+  }
+
+  public RefreshButton = ({ refreshLink, swapOutOfBand }: RefreshButtonProps) => {
+    const isEnabled = refreshLink !== undefined
+    return (
+      <button
+        id="refresh-repos-button"
+        type="button"
+        class="refresh-button"
+        hx-swap-oob={swapOutOfBand ? 'true' : undefined}
+        hx-get={refreshLink}
+        hx-target=".github-list"
+        hx-indicator="#spin"
+        hx-disabled-elt="this"
+        disabled={!isEnabled}
+        title={isEnabled ? 'Refresh repository list' : 'Navigate to repositories to refresh'}
+      >
+        ↻ Refresh
+      </button>
     )
   }
 

@@ -119,6 +119,9 @@ export class GithubController extends HTMLController {
         path: 'Your installations:',
         swapOutOfBand: true,
       }),
+      this.templates.RefreshButton({
+        swapOutOfBand: true,
+      }),
       this.templates.githubListItems({
         list: installations,
         nextPageLink: safeUrl(`/github/installations`, { page: `${page + 1}` }),
@@ -152,9 +155,18 @@ export class GithubController extends HTMLController {
       link: safeUrl(`/github/branches`, { owner, repo: name, page: '1' }),
     }))
 
+    const refreshLink = safeUrl(`/github/repos`, {
+      ...(installationId && { installationId }),
+      page: '1',
+    })
+
     return this.html(
       this.templates.githubPathLabel({
         path: 'Repositories:',
+        swapOutOfBand: true,
+      }),
+      this.templates.RefreshButton({
+        refreshLink,
         swapOutOfBand: true,
       }),
       this.templates.githubListItems({
@@ -187,6 +199,9 @@ export class GithubController extends HTMLController {
     return this.html(
       this.templates.githubPathLabel({
         path: `${owner}/${repo}`,
+        swapOutOfBand: true,
+      }),
+      this.templates.RefreshButton({
         swapOutOfBand: true,
       }),
       this.templates.githubListItems({
@@ -246,6 +261,9 @@ export class GithubController extends HTMLController {
     return this.html(
       this.templates.githubPathLabel({
         path: `${owner}/${repo}/${ref}${path === '.' ? '' : `/${path}`}`,
+        swapOutOfBand: true,
+      }),
+      this.templates.RefreshButton({
         swapOutOfBand: true,
       }),
       this.templates.githubListItems({
