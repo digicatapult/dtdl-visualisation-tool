@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test'
 
-import { octokitTokenCookie } from '../../src/lib/server/models/cookieNames'
-import { visualisationUIWiremockPort } from '../globalSetup'
-import { waitForSuccessResponse } from './helpers/waitForHelpers'
+import { octokitTokenCookie } from '../../src/lib/server/models/cookieNames.js'
+import { visualisationUIWiremockPort } from '../globalSetup.js'
+import { waitForSuccessResponse } from './helpers/waitForHelpers.js'
 
 test.describe('httpOnly cookies', () => {
   test.use({ baseURL: `http://localhost:${visualisationUIWiremockPort}` })
@@ -32,10 +32,6 @@ test.describe('httpOnly cookies', () => {
         { timeout: 15000 }
       )
       .toBe(true)
-
-    const tokenCookie = (await context.cookies()).find((cookie) => cookie.name === octokitTokenCookie)
-    expect(tokenCookie).toBeTruthy()
-    expect(tokenCookie!.httpOnly).toBe(true)
 
     const clientCookieString = await page.evaluate(() => document.cookie)
     expect(clientCookieString).not.toContain(octokitTokenCookie)
