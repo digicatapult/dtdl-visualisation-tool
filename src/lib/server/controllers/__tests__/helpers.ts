@@ -4,6 +4,8 @@ import { Readable } from 'node:stream'
 import sinon from 'sinon'
 import { posthogIdCookie } from '../../models/cookieNames.js'
 
+export const getStub = <T>(obj: T, method: keyof T): sinon.SinonStub => obj[method] as sinon.SinonStub
+
 export const propertyName = 'someProperty'
 export const otherPropertyName = 'someOtherProperty'
 export const relationshipName = 'someRelationship'
