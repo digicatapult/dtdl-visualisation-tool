@@ -30,7 +30,7 @@ test.describe('Upload ontology from local drive', () => {
 
     // Upload ontology and wait for file to load dtdl
     // Error zip
-    let filePath = path.join(__dirname, '../../src/lib/server/controllers/__tests__/error.zip')
+    let filePath = path.join(__dirname, 'fixtures/error.zip')
 
     const warningSVGResponsePromise = page.waitForResponse(
       (resp) => /\/warning\.svg$/.test(resp.url()) && resp.status() === 200
@@ -41,7 +41,7 @@ test.describe('Upload ontology from local drive', () => {
     await expect(page.getByText('Modelling error')).toBeVisible()
 
     // All valid zip
-    filePath = path.join(__dirname, '../../src/lib/server/controllers/__tests__/simple.zip')
+    filePath = path.join(__dirname, 'fixtures/simple.zip')
 
     await waitForUploadFile(page, () => page.locator('#main-view').getByText('Local Zip File').click(), filePath)
 
@@ -56,7 +56,7 @@ test.describe('Upload ontology from local drive', () => {
       () => page.locator('#main-view').getByTitle('Upload New Ontology').click(),
       '/menu'
     )
-    filePath = path.join(__dirname, '../../src/lib/server/controllers/__tests__/someInvalid.zip')
+    filePath = path.join(__dirname, 'fixtures/someInvalid.zip')
     await waitForUploadFile(page, () => page.locator('#main-view').getByText('Local Zip File').click(), filePath)
     await expect(page.locator('#mermaid-output').getByText('IdentifiedObject')).toBeVisible()
     await expect(page.locator('#navigation-panel-tree-warning')).toBeInViewport()

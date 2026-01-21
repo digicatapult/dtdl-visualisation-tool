@@ -2,27 +2,60 @@ import { describe, test } from 'mocha'
 
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import Parser from '../parser.js'
+import Parser, { type DtdlPath } from '../parser.js'
 
 import { ModelingException } from '@digicatapult/dtdl-parser'
 import { expect } from 'chai'
 import { createHash } from 'crypto'
 import { readFile } from 'node:fs/promises'
-import { mockCache, mockLogger } from '../../../controllers/__tests__/helpers.js'
+import pino from 'pino'
+import sinon from 'sinon'
 import { ModellingError, UploadError } from '../../../errors.js'
 import { DtdlModel } from '../../../models/dtdlOmParser.js'
+import { ICache } from '../../cache.js'
+import { LRUCache } from '../../lruCache.js'
 import bom from './fixtures/bom/bom.json' assert { type: 'json' }
 import complexNested from './fixtures/complexNested/complexNested.json' assert { type: 'json' }
 import nestedTwo from './fixtures/nestedDtdl/nested/two.json' assert { type: 'json' }
 import nestedOne from './fixtures/nestedDtdl/one.json' assert { type: 'json' }
 import valid from './fixtures/someInvalid/valid.json' assert { type: 'json' }
 import withPropsAndRels from './fixtures/withPropertiesAndRelationships.json' assert { type: 'json' }
-import { createMockCache } from './helpers.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+const mockLogger = pino({ level: 'silent' })
+const mockCache = new LRUCache(10, 1000 * 60)
 const parser = new Parser(mockLogger, mockCache)
+
+function createMockCache(
+  hashKey: string,
+  parsedValue: unknown,
+  hasCache: boolean
+): {
+  mockCache: ICache
+  hasStub: sinon.SinonStub
+  getStub: sinon.SinonStub
+  setSpy: sinon.SinonSpy
+} {
+  const hasStub = sinon.stub().returns(hasCache)
+  const getStub = sinon.stub().callsFake((key) => {
+    if (hashKey === key) return parsedValue
+    return undefined
+  })
+  const setSpy = sinon.spy()
+
+  return {
+    mockCache: {
+      has: hasStub,
+      get: getStub,
+      set: setSpy,
+    } as unknown as ICache,
+    hasStub,
+    getStub,
+    setSpy,
+  }
+}
 
 describe('getJsonfiles', function () {
   test('nested directories', async () => {
@@ -512,5 +545,50 @@ describe('extractDtdlPaths', function () {
         ],
       },
     ])
+  })
+})
+
+describe('hasFileTreeErrors', function () {
+  const error: ModelingException = { ExceptionKind: 'Resolution', UndefinedIdentifiers: ['test'] }
+
+  test('returns false when no files have errors', () => {
+    const fileTree: DtdlPath[] = [
+      {
+        type: 'file',
+        name: 'test.json',
+        entries: [],
+      },
+    ]
+    expect(Parser.hasFileTreeErrors(fileTree)).to.equal(false)
+  })
+
+  test('returns true when file has errors', () => {
+    const fileTree: DtdlPath[] = [
+      {
+        type: 'file',
+        name: 'test.json',
+        entries: [],
+        errors: [error],
+      },
+    ]
+    expect(Parser.hasFileTreeErrors(fileTree)).to.equal(true)
+  })
+
+  test('returns true when file in directory has errors', () => {
+    const fileTree: DtdlPath[] = [
+      {
+        type: 'directory',
+        name: 'directory',
+        entries: [
+          {
+            type: 'file',
+            name: 'test.json',
+            entries: [],
+            errors: [error],
+          },
+        ],
+      },
+    ]
+    expect(Parser.hasFileTreeErrors(fileTree)).to.equal(true)
   })
 })

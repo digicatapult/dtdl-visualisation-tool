@@ -1,29 +1,33 @@
 import { expect } from 'chai'
 import { afterEach, describe, it } from 'mocha'
 import { pino } from 'pino'
-import puppeteer, { Browser } from 'puppeteer'
+import puppeteer, { Browser, Page } from 'puppeteer'
 import sinon from 'sinon'
 
+import { simpleMockDtdlObjectModel } from '../../../controllers/__tests__/fixtures/dtdl.fixtures'
 import { defaultParams } from '../../../controllers/__tests__/root.test'
 import { MermaidSvgRender, PlainTextRender } from '../../../models/renderedDiagram'
 import { SvgGenerator } from '../generator'
-import {
-  generatedSVGFixture,
-  mockDtdlObjectModel,
-  pageMock,
-  simpleMockDtdlObjectModel,
-  svgSearchFuelTypeExpandedFossilFuel,
-} from './fixtures'
+import { generatedSVGFixture, mockDtdlObjectModel, svgSearchFuelTypeExpandedFossilFuel } from './fixtures'
 import { checkIfStringIsSVG, mockEnvClass } from './helpers'
 
 export const parallelTest = 2
 export const nonParallelTest = 1
 
+const pageMock = (renderFunction: sinon.SinonStub) => {
+  return {
+    $eval: renderFunction,
+    on: sinon.stub(),
+    goto: sinon.stub().resolves(),
+    addScriptTag: sinon.stub().resolves(),
+    evaluate: sinon.stub().resolves(),
+  } as unknown as Page
+}
+
 describe('Generator', function () {
   this.timeout(10000)
   const logger = pino({ level: 'silent' })
   const mockEnv = mockEnvClass()
-  const generator = new SvgGenerator(logger, nonParallelTest, mockEnv)
 
   afterEach(() => {
     sinon.restore()
@@ -31,13 +35,15 @@ describe('Generator', function () {
 
   describe('run', () => {
     it('should return no graph for empty object model', async () => {
+      const generator = new SvgGenerator(logger, nonParallelTest, mockEnv)
       const generatedOutput = await generator.run({}, defaultParams.diagramType, 'elk' as const)
       expect(generatedOutput.type).to.equal('text')
       expect(generatedOutput.renderToString()).to.equal(`The filtered ontology has no entities to display`)
     })
 
     it('should return a simple svg', async () => {
-      const generatedOutput = await generator.run(simpleMockDtdlObjectModel, defaultParams.diagramType, 'elk' as const)
+      const generator = new SvgGenerator(logger, nonParallelTest, mockEnv)
+      const generatedOutput = await generator.run(mockDtdlObjectModel, defaultParams.diagramType, 'elk' as const)
       expect(generatedOutput.type).to.equal('svg')
       expect(checkIfStringIsSVG(generatedOutput.renderToString())).to.equal(true)
     })
@@ -46,7 +52,7 @@ describe('Generator', function () {
       const stub = sinon.stub(puppeteer, 'launch').onFirstCall().rejects('Error').callThrough()
       const generator = new SvgGenerator(logger, parallelTest, mockEnv)
 
-      const generatedOutput = await generator.run(simpleMockDtdlObjectModel, defaultParams.diagramType, 'elk' as const)
+      const generatedOutput = await generator.run(mockDtdlObjectModel, defaultParams.diagramType, 'elk' as const)
 
       expect(generatedOutput.type).to.equal('svg')
       expect(checkIfStringIsSVG(generatedOutput.renderToString())).to.equal(true)
@@ -59,7 +65,7 @@ describe('Generator', function () {
 
       let error: Error | null = null
       try {
-        await generator.run(simpleMockDtdlObjectModel, defaultParams.diagramType, 'elk' as const)
+        await generator.run(mockDtdlObjectModel, defaultParams.diagramType, 'elk' as const)
       } catch (err) {
         error = err as Error
       }
@@ -114,7 +120,7 @@ describe('Generator', function () {
       const runs: Promise<MermaidSvgRender | PlainTextRender>[] = []
       // render one more ontology than the number of pages available
       for (let i = 0; i < parallelTest + 1; i++) {
-        runs.push(gen.run(simpleMockDtdlObjectModel, 'flowchart', 'elk' as const))
+        runs.push(gen.run(mockDtdlObjectModel, 'flowchart', 'elk' as const))
       }
       await Promise.all(runs)
       expect(
@@ -142,7 +148,7 @@ describe('Generator', function () {
       const gen = new SvgGenerator(logger, parallelTest, mockEnv)
       const runs: Promise<MermaidSvgRender | PlainTextRender>[] = []
       for (let i = 0; i < parallelTest; i++) {
-        runs.push(gen.run(simpleMockDtdlObjectModel, 'flowchart', 'elk' as const))
+        runs.push(gen.run(mockDtdlObjectModel, 'flowchart', 'elk' as const))
       }
       const results = await Promise.all(runs)
       expect(results.length).to.equal(parallelTest)

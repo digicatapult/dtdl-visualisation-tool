@@ -1,5 +1,5 @@
-import { DtdlModel } from '../../../models/dtdlOmParser.js'
-import { DtdlPath } from '../parser.js'
+import { DtdlModel } from '../../../../models/dtdlOmParser.js'
+import { DtdlPath } from '../../parser.js'
 
 const entityDefaults = {
   ClassId: '',

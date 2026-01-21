@@ -1,30 +1,25 @@
+import { DtdlObjectModel } from '@digicatapult/dtdl-parser'
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
-import sinon, { SinonStub } from 'sinon'
+import pino, { Logger } from 'pino'
+import sinon from 'sinon'
 import { ModelDb } from '../../../../db/modelDb.js'
+import { InternalError } from '../../../errors.js'
 import { UpdateParams } from '../../../models/controllerTypes.js'
 import { modelHistoryCookie } from '../../../models/cookieNames.js'
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../../models/renderedDiagram/index.js'
-import { generatedSVGFixture, simpleMockDtdlObjectModel } from '../../../utils/mermaid/__tests__/fixtures.js'
-import { mockGithubRequest } from '../../__tests__/github.test.js'
-import {
-  complexDtdlId,
-  complexMockModelDb,
-  generatorRunStub,
-  mockCache,
-  mockGenerator,
-  mockLogger,
-  mockMutator,
-  mockPostHog,
-  mockReq,
-  mockReqWithCookie,
-  mockSession,
-  sessionSetStub,
-  simpleDtdlId,
-  simpleMockModelDb,
-  templateMock,
-  toHTMLString,
-} from '../../__tests__/helpers.js'
+import { UUID } from '../../../models/strings.js'
+import { allInterfaceFilter } from '../../../utils/dtdl/extract.js'
+import { DtdlPath } from '../../../utils/dtdl/parser.js'
+import { GithubRequest } from '../../../utils/githubRequest.js'
+import { LRUCache } from '../../../utils/lruCache.js'
+import { generatedSVGFixture, mockDtdlObjectModel } from '../../../utils/mermaid/__tests__/fixtures.js'
+import { SvgGenerator } from '../../../utils/mermaid/generator.js'
+import { SvgMutator } from '../../../utils/mermaid/svgMutator.js'
+import { PostHogService } from '../../../utils/postHog/postHogService.js'
+import ViewStateStore from '../../../utils/viewStates.js'
+import OntologyViewTemplates from '../../../views/templates/ontologyView.js'
+import { complexMockDtdlModel, simpleMockDtdlObjectModel } from '../../__tests__/fixtures/dtdl.fixtures.js'
 import {
   validViewExpanded11Id,
   validViewExpanded12Id,
@@ -35,8 +30,18 @@ import {
   validViewId,
   validViewSomeOtherSearchId,
   validViewSomeSearchId,
-} from '../../__tests__/sessionFixtures.js'
+  viewStateMap,
+} from '../../__tests__/fixtures/session.fixtures.js'
+import { getStub, mockReq, mockReqWithCookie, toHTMLString } from '../../__tests__/helpers.js'
 import { OntologyController } from '../index.js'
+
+const simpleDtdlId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed7'
+const complexDtdlId: UUID = 'e89f119a-fc3b-4ce8-8722-2000a7ebeeab'
+
+const mockModelTable = {
+  [simpleDtdlId]: { id: simpleDtdlId, name: 'Simple Model', parsed: simpleMockDtdlObjectModel },
+  [complexDtdlId]: { id: complexDtdlId, name: 'Complex Model', parsed: complexMockDtdlModel },
+}
 
 export const defaultParams: UpdateParams = {
   viewId: validViewId,
@@ -49,38 +54,187 @@ export const defaultParams: UpdateParams = {
   a11y: ['reduce-motion'],
 }
 
-describe('OntologyController', async () => {
-  afterEach(() => {
-    sinon.restore()
-    mockCache.clear()
+describe('OntologyController', () => {
+  let simpleMockModelDb: ModelDb
+  let complexMockModelDb: ModelDb
+  let templateMock: OntologyViewTemplates
+  let mockLogger: Logger
+  let mockCache: LRUCache
+  let mockSession: ViewStateStore
+  let mockMutator: SvgMutator
+  let mockGenerator: SvgGenerator
+  let mockPostHog: PostHogService
+  let mockGithubRequest: GithubRequest
+  let controller: OntologyController
+  let complexController: OntologyController
+
+  beforeEach(() => {
+    simpleMockModelDb = {
+      getModelById: (id: UUID) => {
+        if (id === 'badId') throw new InternalError(`Failed to find model: ${id}`)
+        if (mockModelTable[id]) {
+          return Promise.resolve(mockModelTable[id])
+        } else {
+          return Promise.resolve(null)
+        }
+      },
+      getDtdlModelAndTree: () =>
+        Promise.resolve({
+          model: {
+            ...mockDtdlObjectModel,
+            'dtmi:test:TestNode;1': {
+              Id: 'dtmi:test:TestNode;1',
+              displayName: 'TestNode',
+              EntityKind: 'Interface',
+            },
+          },
+          fileTree: [],
+        }),
+      getCollection: (dtdlModel: DtdlObjectModel) =>
+        Object.entries(dtdlModel)
+          .filter(allInterfaceFilter)
+          .map(([, entity]) => entity),
+      getGithubModelById: (id: UUID) =>
+        Promise.resolve({
+          id,
+          owner: 'owner',
+          repo: 'repo',
+        }),
+      updateModel: () => Promise.resolve(),
+    } as unknown as ModelDb
+
+    complexMockModelDb = {
+      getModelById: (id: UUID) => {
+        if (id === 'badId') throw new InternalError(`Failed to find model: ${id}`)
+        if (mockModelTable[id]) {
+          return Promise.resolve(mockModelTable[id])
+        } else {
+          return Promise.resolve(null)
+        }
+      },
+      getDtdlModelAndTree: () => Promise.resolve({ model: complexMockDtdlModel, fileTree: [] }),
+      getCollection: (dtdlModel: DtdlObjectModel) =>
+        Object.entries(dtdlModel)
+          .filter(allInterfaceFilter)
+          .map(([, entity]) => entity),
+      getGithubModelById: (id: UUID) =>
+        Promise.resolve({
+          id,
+          owner: 'owner',
+          repo: 'repo',
+        }),
+      updateModel: () => Promise.resolve(),
+    } as unknown as ModelDb
+
+    templateMock = {
+      MermaidRoot: ({
+        search,
+        canEdit,
+        editDisabledReason,
+      }: {
+        search: string
+        canEdit: boolean
+        editDisabledReason?: 'errors' | 'permissions'
+      }) => `root_${search}_${canEdit}_${editDisabledReason}_root`,
+      mermaidTarget: ({ generatedOutput, target }: { generatedOutput?: JSX.Element; target: string }): JSX.Element =>
+        `mermaidTarget_${generatedOutput}_${target}_mermaidTarget`,
+      searchPanel: ({ search, swapOutOfBand }: { search?: string; swapOutOfBand?: boolean }) =>
+        `searchPanel_${search}_${swapOutOfBand || false}_searchPanel`,
+      navigationPanel: ({ swapOutOfBand, content }: { swapOutOfBand?: boolean; content?: string }) =>
+        `navigationPanel_${swapOutOfBand || false}_${content || ''}_navigationPanel`,
+      svgControls: ({ generatedOutput }: { generatedOutput?: JSX.Element }): JSX.Element =>
+        `svgControls_${generatedOutput}_svgControls`,
+      deleteDialog: () => `deleteDialog_deleteDialog`,
+      githubLink: () => `githubLink_githubLink`,
+      addNode: ({
+        dtdlModelId,
+        displayNameIdMap,
+        folderTree,
+        swapOutOfBand,
+      }: {
+        dtdlModelId: string
+        displayNameIdMap: Record<string, string>
+        folderTree: DtdlPath[]
+        swapOutOfBand?: boolean
+      }) =>
+        `addNode_${dtdlModelId}_${Object.keys(displayNameIdMap).length}_${folderTree.length}_${swapOutOfBand}_addNode`,
+    } as unknown as OntologyViewTemplates
+
+    mockLogger = pino({ level: 'silent' })
+    mockCache = new LRUCache(10, 1000 * 60)
+
+    mockSession = {
+      get: sinon.stub().callsFake((id) => viewStateMap[id]),
+      set: sinon.stub(),
+      update: sinon.stub(),
+    } as unknown as ViewStateStore
+
+    mockGenerator = {
+      run: sinon.stub().callsFake(() => {
+        const mock = {
+          type: 'svg',
+          content: generatedSVGFixture,
+          renderToString: () => mock.content,
+          renderForMinimap: () => generatedSVGFixture,
+        }
+        return Promise.resolve(mock)
+      }),
+    } as unknown as SvgGenerator
+
+    mockMutator = {
+      setSVGAttributes: sinon.stub().callsFake((x) => {
+        x.content = x.renderToString() + '_attr'
+        x.renderToString = () => x.content
+      }),
+      setupAnimations: sinon.stub().callsFake((...args) => {
+        const newOutput = args[1]
+        newOutput.content = newOutput.renderToString() + '_animate'
+        newOutput.renderToString = () => newOutput.content
+        return { pan: { x: 100, y: 50 }, zoom: 0.5 }
+      }),
+    } as unknown as SvgMutator
+
+    mockPostHog = {
+      trackUpdateOntologyView: sinon.stub().resolves(),
+      trackNodeSelected: sinon.stub().resolves(),
+      identifyFromRequest: sinon.stub().resolves(),
+      trackModeToggle: sinon.stub().resolves(),
+    } as unknown as PostHogService
+
+    mockGithubRequest = {
+      getCommit: () => Promise.resolve({ sha: 'currentCommitSha' }),
+      getRepoPermissions: () => Promise.resolve('edit'),
+    } as unknown as GithubRequest
+
+    controller = new OntologyController(
+      simpleMockModelDb,
+      mockGenerator,
+      mockMutator,
+      templateMock,
+      mockPostHog,
+      mockLogger,
+      mockCache,
+      mockSession,
+      mockGithubRequest
+    )
+    complexController = new OntologyController(
+      complexMockModelDb,
+      mockGenerator,
+      mockMutator,
+      templateMock,
+      mockPostHog,
+      mockLogger,
+      mockCache,
+      mockSession,
+      mockGithubRequest
+    )
   })
 
-  const controller = new OntologyController(
-    simpleMockModelDb,
-    mockGenerator,
-    mockMutator,
-    templateMock,
-    mockPostHog,
-    mockLogger,
-    mockCache,
-    mockSession,
-    mockGithubRequest
-  )
-  const complexController = new OntologyController(
-    complexMockModelDb,
-    mockGenerator,
-    mockMutator,
-    templateMock,
-    mockPostHog,
-    mockLogger,
-    mockCache,
-    mockSession,
-    mockGithubRequest
-  )
+  afterEach(() => {
+    sinon.restore()
+  })
 
   describe('view', () => {
-    afterEach(() => sinon.restore())
-
     it('should return rendered root template', async () => {
       const req = mockReqWithCookie({})
       const result = await controller
@@ -95,7 +249,7 @@ describe('OntologyController', async () => {
       await controller.view(simpleDtdlId, { ...defaultParams }, req)
 
       if (req.res) {
-        const cookieStub = req.res.cookie as SinonStub
+        const cookieStub = getStub(req.res, 'cookie')
         expect(cookieStub.calledOnce).to.equal(true)
         const [cookieName, cookieValue] = cookieStub.firstCall.args
         expect(cookieName).to.equal(modelHistoryCookie)
@@ -197,8 +351,8 @@ describe('OntologyController', async () => {
     })
 
     it('should update the stored session', async () => {
-      const stub = sessionSetStub
-      const initCallCount = stub.callCount
+      const sessionSetStub = getStub(mockSession, 'set')
+      const initCallCount = sessionSetStub.callCount
 
       const req = mockReq({})
       await controller.updateLayout(req, simpleDtdlId, {
@@ -207,9 +361,9 @@ describe('OntologyController', async () => {
         highlightNodeId: 'dtmi:com:example;1',
       })
 
-      expect(stub.callCount).lessThanOrEqual(initCallCount + 1)
-      expect(stub.lastCall.args[0]).to.equal(validViewId)
-      expect(stub.lastCall.args[1]).to.deep.equal({
+      expect(sessionSetStub.callCount).lessThanOrEqual(initCallCount + 1)
+      expect(sessionSetStub.lastCall.args[0]).to.equal(validViewId)
+      expect(sessionSetStub.lastCall.args[1]).to.deep.equal({
         diagramType: 'flowchart',
         expandedIds: [],
         layout: 'elk',
@@ -246,6 +400,7 @@ describe('OntologyController', async () => {
 
     it('should cache generated output - keyed by params', async () => {
       const req = mockReq({})
+      const generatorRunStub = getStub(mockGenerator, 'run')
       const generatorRunCount = generatorRunStub.callCount
       await controller.updateLayout(req, simpleDtdlId, defaultParams)
       const fromCache = mockCache.get(`diagramType=flowchart&dtdlId=${simpleDtdlId}&layout=elk`, renderedDiagramParser)
@@ -278,7 +433,7 @@ describe('OntologyController', async () => {
         highlightNodeId: '5',
         viewId: validViewExpanded235Id,
       })
-      const session = sessionSetStub.lastCall.args[1]
+      const session = getStub(mockSession, 'set').lastCall.args[1]
       expect(session.expandedIds).to.deep.equal(['2', '3'])
     })
 
@@ -293,7 +448,7 @@ describe('OntologyController', async () => {
         viewId: validViewExpanded235Id,
       })
 
-      const session = sessionSetStub.lastCall.args[1]
+      const session = getStub(mockSession, 'set').lastCall.args[1]
       expect(session.expandedIds).to.deep.equal(['2', '3', '5'])
     })
 
@@ -308,7 +463,7 @@ describe('OntologyController', async () => {
         viewId: validViewExpanded235Id,
       })
 
-      const session = sessionSetStub.lastCall.args[1]
+      const session = getStub(mockSession, 'set').lastCall.args[1]
       expect(session.expandedIds).to.deep.equal(['3'])
     })
 
@@ -322,7 +477,7 @@ describe('OntologyController', async () => {
         highlightNodeId: '3',
         viewId: validViewExpanded2357Id,
       })
-      const session = sessionSetStub.lastCall.args[1]
+      const session = getStub(mockSession, 'set').lastCall.args[1]
       expect(session.expandedIds).to.deep.equal(['2', '5'])
     })
 
@@ -337,7 +492,7 @@ describe('OntologyController', async () => {
         viewId: validViewExpanded759Id,
       })
 
-      const session = sessionSetStub.lastCall.args[1]
+      const session = getStub(mockSession, 'set').lastCall.args[1]
       expect(session.expandedIds).to.deep.equal(['7', '9'])
     })
 
@@ -352,7 +507,7 @@ describe('OntologyController', async () => {
         viewId: validViewExpanded9XId,
       })
 
-      const session = sessionSetStub.lastCall.args[1]
+      const session = getStub(mockSession, 'set').lastCall.args[1]
       expect(session.expandedIds).to.deep.equal([])
     })
 
@@ -680,7 +835,7 @@ describe('OntologyController', async () => {
           }),
       } as unknown as ModelDb
 
-      const getRepoPermissionsStub = sinon.stub(mockGithubRequest, 'getRepoPermissions').resolves('edit' as const)
+      sinon.stub(mockGithubRequest, 'getRepoPermissions').resolves('edit' as const)
 
       const controllerNoErrors = new OntologyController(
         mockModelDbNoErrors,
@@ -699,10 +854,7 @@ describe('OntologyController', async () => {
         .view(simpleDtdlId, { ...defaultParams }, req)
         .then((value) => (value ? toHTMLString(value) : ''))
 
-      // GitHub source with 'edit' permission and no errors, so canEdit=true with editDisabledReason=undefined (not included)
-      expect(result).to.equal(`root_undefined_true_root`)
-
-      getRepoPermissionsStub.restore()
+      expect(result).to.equal(`root_undefined_true_undefined_root`)
     })
 
     it('should disable edit when errors exist in nested directories', async () => {
@@ -767,7 +919,7 @@ describe('OntologyController', async () => {
           }),
       } as unknown as ModelDb
 
-      const getRepoPermissionsStub = sinon.stub(mockGithubRequest, 'getRepoPermissions').resolves('view' as const)
+      sinon.stub(mockGithubRequest, 'getRepoPermissions').resolves('view' as const)
 
       const controllerGithub = new OntologyController(
         mockModelDbGithub,
@@ -786,11 +938,7 @@ describe('OntologyController', async () => {
         .view(simpleDtdlId, { ...defaultParams }, req)
         .then((value) => (value ? toHTMLString(value) : ''))
 
-      // Verify template was rendered with appropriate permissions
       expect(result).to.equal(`root_undefined_false_permissions_root`)
-
-      // Restore the stub
-      getRepoPermissionsStub.restore()
     })
   })
 })
