@@ -1,6 +1,80 @@
 {
   "mappings": [
     {
+      "scenarioName": "refreshRepos",
+      "requiredScenarioState": "beforeRefresh",
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/user/repos",
+        "queryParameters": {
+          "page": {
+            "equalTo": "1"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": [
+          {
+            "full_name": "digicatapult/dtdl-test-fixtures",
+            "name": "dtdl-test-fixtures",
+            "owner": {
+              "login": "digicatapult"
+            },
+            "permissions": {
+              "push": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "scenarioName": "refreshRepos",
+      "requiredScenarioState": "afterRefresh",
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/user/repos",
+        "queryParameters": {
+          "page": {
+            "equalTo": "1"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": [
+          {
+            "full_name": "digicatapult/dtdl-test-fixtures",
+            "name": "dtdl-test-fixtures",
+            "owner": {
+              "login": "digicatapult"
+            },
+            "permissions": {
+              "push": true
+            }
+          },
+          {
+            "full_name": "digicatapult/newly-authorized-repo",
+            "name": "newly-authorized-repo",
+            "owner": {
+              "login": "digicatapult"
+            },
+            "permissions": {
+              "push": true
+            }
+          }
+        ]
+      }
+    },
+    {
       "request": {
         "method": "GET",
         "urlPathPattern": "/user/installations/[0-9]+/repositories",

@@ -184,6 +184,8 @@ describe('GithubController', async () => {
         swapOutOfBand?: boolean
         stage: string
       }): JSX.Element => `selectFolder_${link}_${swapOutOfBand}_${stage}_selectFolder`,
+      RefreshButton: ({ refreshLink, swapOutOfBand }: { refreshLink?: string; swapOutOfBand?: boolean }): JSX.Element =>
+        `RefreshButton_${refreshLink}_${swapOutOfBand}_RefreshButton`,
     } as unknown as OntologyOpenTemplates
 
     mockGithubReq = {
@@ -287,6 +289,7 @@ describe('GithubController', async () => {
       expect(html).to.equal(
         [
           `githubPathLabel_Your installations:_githubPathLabel`,
+          `RefreshButton_undefined_true_RefreshButton`,
           `githubListItems_${mockInstallationAccountLogin}_${onClickLink}_${mockInstallationAccountName}_${onClickLink}_Installation ${mockInstallationId}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`,
         ].join('')
       )
@@ -298,6 +301,7 @@ describe('GithubController', async () => {
     it('should return user repo full names in list', async () => {
       const onClickLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=1`
       const nextPageLink = `/github/repos?page=${page + 1}`
+      const refreshLink = `/github/repos?page=1`
       const backLink = undefined
       const result = await controller.repos(page, mockReqWithCookie(cookie))
 
@@ -310,6 +314,7 @@ describe('GithubController', async () => {
       expect(html).to.equal(
         [
           `githubPathLabel_Repositories:_githubPathLabel`,
+          `RefreshButton_${refreshLink}_true_RefreshButton`,
           `githubListItems_${mockFullName}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`,
         ].join('')
       )
@@ -318,6 +323,7 @@ describe('GithubController', async () => {
     it('should return installation repo full names in list', async () => {
       const onClickLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=1`
       const nextPageLink = `/github/repos?installationId=${mockInstallationId}&page=${page + 1}`
+      const refreshLink = `/github/repos?installationId=${mockInstallationId}&page=1`
       const backLink = `/github/installations?page=1`
       const result = await controller.repos(page, mockReqWithCookie(cookie), mockInstallationId.toString())
 
@@ -330,6 +336,7 @@ describe('GithubController', async () => {
       expect(html).to.equal(
         [
           `githubPathLabel_Repositories:_githubPathLabel`,
+          `RefreshButton_${refreshLink}_true_RefreshButton`,
           `githubListItems_${mockFullName}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`,
         ].join('')
       )
@@ -353,6 +360,7 @@ describe('GithubController', async () => {
       expect(html).to.equal(
         [
           `githubPathLabel_${mockOwner}/${mockRepo}_githubPathLabel`,
+          `RefreshButton_undefined_true_RefreshButton`,
           `githubListItems_${mockBranch}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`,
           `selectFolder_undefined_true_branch_selectFolder`,
         ].join('')
@@ -379,6 +387,7 @@ describe('GithubController', async () => {
       expect(html).to.equal(
         [
           `githubPathLabel_${mockOwner}/${mockRepo}/${mockBranch}_githubPathLabel`,
+          `RefreshButton_undefined_true_RefreshButton`,
           `githubListItems_📄 ${mockFileName}_${onClickLinkFile}_📂 ${mockDir}_${onClickLinkDir}_${nextPageLink}_${backLink}_githubListItems`,
           `selectFolder_${selectFolderLink}_true_folder_selectFolder`,
         ].join('')
@@ -402,6 +411,7 @@ describe('GithubController', async () => {
       expect(html).to.equal(
         [
           `githubPathLabel_${mockOwner}/${mockRepo}/${mockBranch}/${mockDirPath}_githubPathLabel`,
+          `RefreshButton_undefined_true_RefreshButton`,
           `githubListItems_📄 ${mockFileName}_${onClickLinkFile}_${nextPageLink}_${backLink}_githubListItems`,
           `selectFolder_${selectFolderLink}_true_folder_selectFolder`,
         ].join('')
@@ -485,6 +495,7 @@ describe('GithubController', async () => {
       expect(await toHTMLString(result)).to.equal(
         [
           `githubPathLabel_${mockOwner}/${mockRepo}/${mockBranch}_githubPathLabel`,
+          `RefreshButton_undefined_true_RefreshButton`,
           `githubListItems_📄 ${mockFileName}_${onClickLinkFile}_📂 ${mockDir}_${onClickLinkDir}_${nextPageLink}_${backLink}_githubListItems`,
           `selectFolder_${selectFolderLink}_true_folder_selectFolder`,
         ].join('')
@@ -510,6 +521,7 @@ describe('GithubController', async () => {
       expect(await toHTMLString(result)).to.equal(
         [
           `githubPathLabel_${mockOwner}/${mockRepo}/${mockBranch}_githubPathLabel`,
+          `RefreshButton_undefined_true_RefreshButton`,
           `githubListItems_📄 ${mockFileName}_${onClickLinkFile}_📂 ${mockDir}_${onClickLinkDir}_${nextPageLink}_${backLink}_githubListItems`,
           `selectFolder_${selectFolderLink}_true_folder_selectFolder`,
         ].join('')
@@ -527,6 +539,7 @@ describe('GithubController', async () => {
       expect(await toHTMLString(result)).to.equal(
         [
           `githubPathLabel_${mockOwner}/${mockRepo}_githubPathLabel`,
+          `RefreshButton_undefined_true_RefreshButton`,
           `githubListItems_${mockBranch}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`,
           `selectFolder_undefined_true_branch_selectFolder`,
         ].join('')
@@ -546,6 +559,7 @@ describe('GithubController', async () => {
       expect(await toHTMLString(result)).to.equal(
         [
           `githubPathLabel_${mockOwner}/${mockRepo}_githubPathLabel`,
+          `RefreshButton_undefined_true_RefreshButton`,
           `githubListItems_${mockBranch}_${onClickLink}_${nextPageLink}_${backLink}_githubListItems`,
           `selectFolder_undefined_true_branch_selectFolder`,
         ].join('')
@@ -579,6 +593,7 @@ describe('GithubController', async () => {
     expect(await toHTMLString(result)).to.equal(
       [
         `githubPathLabel_${expectedLabel}_githubPathLabel`,
+        `RefreshButton_undefined_true_RefreshButton`,
         `githubListItems_📄 ${mockFileName}_${onClickLinkFile}_${nextPageLink}_${backLink}_githubListItems`,
         `selectFolder_${selectFolderLink}_true_folder_selectFolder`,
       ].join('')

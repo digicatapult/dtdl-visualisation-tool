@@ -80,6 +80,39 @@ a.new-tab-link:hover {
   justify-content: space-between;
 }
 
+#github-refresh-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.refresh-button {
+  background-color: var(--active-button-color);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.refresh-button:hover:not(:disabled) {
+  background-color: hsl(from var(--active-button-color) h s 40%);
+}
+
+.refresh-button:disabled {
+  background-color: var(--disabled-button-color);
+  cursor: not-allowed;
+  filter: opacity(0.5);
+}
+
+.refresh-button.htmx-request {
+  pointer-events: none;
+  filter: opacity(0.7);
+}
+
 #github-list-wrapper {
   display: grid;
   height: 100%;
@@ -139,7 +172,7 @@ a.new-tab-link:hover {
   color: #555;
 }
 
-#publish-dialog input[type="text"],
+#publish-dialog input[type='text'],
 #publish-dialog textarea {
   padding: 0.5rem;
   border: 1px solid #ccc;
@@ -165,8 +198,7 @@ a.new-tab-link:hover {
   margin: 0;
 }
 
-
-#publish-dialog button[type="submit"] {
+#publish-dialog button[type='submit'] {
   background-color: var(--active-button-color);
   color: white;
   margin: 1rem 0 0 0;
@@ -181,7 +213,7 @@ a.new-tab-link:hover {
   cursor: pointer;
 }
 
-#publish-dialog:has(input[name="publishType"][value="currentBranch"]:checked) .pr-fields {
+#publish-dialog:has(input[name='publishType'][value='currentBranch']:checked) .pr-fields {
   opacity: 0.5;
   pointer-events: none;
   user-select: none;
