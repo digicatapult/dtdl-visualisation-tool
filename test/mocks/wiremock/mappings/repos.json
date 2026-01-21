@@ -75,29 +75,6 @@
       }
     },
     {
-      "scenarioName": "refreshReposError",
-      "requiredScenarioState": "errorState",
-      "priority": 1,
-      "request": {
-        "method": "GET",
-        "urlPathPattern": "/user/repos",
-        "queryParameters": {
-          "page": {
-            "equalTo": "1"
-          }
-        }
-      },
-      "response": {
-        "status": 500,
-        "headers": {
-          "Content-Type": "application/json"
-        },
-        "jsonBody": {
-          "message": "Internal Server Error"
-        }
-      }
-    },
-    {
       "request": {
         "method": "GET",
         "urlPathPattern": "/user/installations/[0-9]+/repositories",
