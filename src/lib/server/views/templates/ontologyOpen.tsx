@@ -179,7 +179,7 @@ export default class OntologyOpenTemplates {
         disabled={!isEnabled}
         title={isEnabled ? 'Refresh repository list' : 'Navigate to repositories to refresh'}
       >
-        ↻ Refresh
+        Refresh
       </button>
     )
   }
