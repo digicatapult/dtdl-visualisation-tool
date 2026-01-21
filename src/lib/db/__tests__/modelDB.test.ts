@@ -9,7 +9,7 @@ import { UUID } from '../../server/models/strings.js'
 import {
   singleInterfaceFirst as defaultModel,
   singleInterfaceFirstFilePaths,
-} from '../../server/utils/dtdl/__tests__/fixtures.js'
+} from '../../server/utils/dtdl/__tests__/fixtures/filter.fixtures.js'
 import Parser from '../../server/utils/dtdl/parser.js'
 import { SvgGenerator } from '../../server/utils/mermaid/generator.js'
 import Database from '../index.js'

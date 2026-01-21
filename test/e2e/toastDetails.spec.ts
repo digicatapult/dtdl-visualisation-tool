@@ -29,7 +29,7 @@ test.describe('Upload ontology from local drive', () => {
     await expect(page.locator('#main-view').getByText('Local Zip File')).toBeVisible()
 
     // Upload ontology and wait for file to load dtdl
-    const filePath = path.join(__dirname, '../../src/lib/server/controllers/__tests__/error.zip')
+    const filePath = path.join(__dirname, 'fixtures/error.zip')
 
     const warningSVGResponsePromise = page.waitForResponse(
       (resp) => resp.url().includes('/warning.svg') && resp.status() === 200

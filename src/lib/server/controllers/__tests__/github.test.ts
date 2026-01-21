@@ -7,24 +7,21 @@ import { container } from 'tsyringe'
 
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
+import pino, { Logger } from 'pino'
+import { ModelDb } from '../../../db/modelDb.js'
 import { Env } from '../../env/index.js'
 import { GithubNotFound, GithubReqError } from '../../errors.js'
 import { octokitTokenCookie } from '../../models/cookieNames.js'
-import { OAuthToken } from '../../models/github.js'
+import { ListItem, OAuthToken } from '../../models/github.js'
+import { ICache } from '../../utils/cache.js'
 import Parser from '../../utils/dtdl/parser.js'
 import { GithubRequest } from '../../utils/githubRequest.js'
-import { simpleMockDtdlObjectModel } from '../../utils/mermaid/__tests__/fixtures.js'
+import { LRUCache } from '../../utils/lruCache.js'
+import { SvgGenerator } from '../../utils/mermaid/generator.js'
+import { PostHogService } from '../../utils/postHog/postHogService.js'
+import OntologyOpenTemplates from '../../views/templates/ontologyOpen.js'
 import { ensureOctokitToken, GithubController } from '../github.js'
-import {
-  mockCache,
-  mockGenerator,
-  mockLogger,
-  mockPostHog,
-  mockReqWithCookie,
-  openOntologyMock,
-  simpleMockModelDb,
-  toHTMLString,
-} from './helpers.js'
+import { getStub, mockReqWithCookie, toHTMLString } from './helpers.js'
 
 chai.use(chaiAsPromised)
 const { expect } = chai
@@ -116,34 +113,6 @@ const nestedContents = [
 
 const cookie = { [octokitTokenCookie]: 'someToken' }
 
-const getContentsStub = sinon.stub()
-
-export const mockGithubRequest = {
-  getInstallations: () => Promise.resolve(installations),
-  getRepos: () => Promise.resolve(repos),
-  getInstallationRepos: () => Promise.resolve(repos),
-  getBranches: () => Promise.resolve(branches),
-  getContents: getContentsStub,
-  getCommit: () => Promise.resolve({ sha: 'currentCommitSha' }),
-  getAccessToken: () => Promise.resolve(token),
-  getZip: () => Promise.resolve(readFileSync(path.resolve(__dirname, './simple.zip'))),
-  getRepoPermissions: () => Promise.resolve('edit'),
-  getAuthenticatedUser: sinon.stub().resolves({
-    login: 'testuser',
-    id: 12345,
-    email: 'test@example.com',
-    name: 'Test User',
-  }),
-} as unknown as GithubRequest
-
-const unzipJsonFilesStub = sinon.stub()
-
-export const mockParser = {
-  validate: sinon.stub().callsFake(async (files) => files),
-  parseAll: sinon.stub().resolves(simpleMockDtdlObjectModel),
-  unzipJsonFiles: unzipJsonFilesStub,
-} as unknown as Parser
-
 describe('ensureOctokitToken middleware', () => {
   it('should call next when octokit token is present', () => {
     const nextSpy = sinon.spy()
@@ -178,20 +147,97 @@ describe('ensureOctokitToken middleware', () => {
 })
 
 describe('GithubController', async () => {
-  const controller = new GithubController(
-    simpleMockModelDb,
-    openOntologyMock,
-    mockGithubRequest,
-    mockGenerator,
-    mockParser,
-    mockPostHog,
-    mockLogger,
-    mockCache
-  )
+  let mockModelDb: ModelDb
+  let mockTemplates: OntologyOpenTemplates
+  let mockGithubReq: GithubRequest
+  let mockGen: SvgGenerator
+  let mockParse: Parser
+  let mockPostHogService: PostHogService
+  let mockLogger: Logger
+  let mockCache: ICache
+  let controller: GithubController
+
+  beforeEach(() => {
+    mockModelDb = {
+      insertModel: sinon.stub().resolves(1),
+    } as unknown as ModelDb
+
+    mockTemplates = {
+      OpenOntologyRoot: sinon.stub().returns('root_root'),
+      githubPathLabel: ({ path }: { path: string }): JSX.Element => `githubPathLabel_${path}_githubPathLabel`,
+      githubListItems: ({
+        list,
+        nextPageLink,
+        backLink,
+      }: {
+        list: ListItem[]
+        nextPageLink?: string
+        backLink?: string
+      }): JSX.Element =>
+        `githubListItems_${list.map((item) => `${item.text}_${item.link}`).join('_')}_${nextPageLink}_${backLink}_githubListItems`,
+      selectFolder: ({
+        link,
+        swapOutOfBand,
+        stage,
+      }: {
+        link?: string
+        swapOutOfBand?: boolean
+        stage: string
+      }): JSX.Element => `selectFolder_${link}_${swapOutOfBand}_${stage}_selectFolder`,
+    } as unknown as OntologyOpenTemplates
+
+    mockGithubReq = {
+      getInstallations: sinon.stub().resolves(installations),
+      getRepos: sinon.stub().resolves(repos),
+      getInstallationRepos: sinon.stub().resolves(repos),
+      getBranches: sinon.stub().resolves(branches),
+      getContents: sinon.stub(),
+      getCommit: sinon.stub().resolves({ sha: 'currentCommitSha' }),
+      getAccessToken: sinon.stub().resolves(token),
+      getZip: sinon.stub().resolves(readFileSync(path.resolve(__dirname, 'fixtures/simple.zip'))),
+      getRepoPermissions: sinon.stub().resolves('edit'),
+      getAuthenticatedUser: sinon.stub().resolves({
+        login: 'testuser',
+        id: 12345,
+        email: 'test@example.com',
+        name: 'Test User',
+      }),
+    } as unknown as GithubRequest
+
+    mockGen = {
+      run: sinon.stub().resolves({
+        renderForMinimap: () => 'preview-svg',
+      }),
+    } as unknown as SvgGenerator
+
+    mockParse = {
+      validate: sinon.stub().callsFake(async (files) => files),
+      parseAll: sinon.stub().resolves({}),
+      unzipJsonFiles: sinon.stub(),
+    } as unknown as Parser
+
+    mockPostHogService = {
+      identifyFromRequest: sinon.stub().resolves(),
+      trackUploadOntology: sinon.stub().resolves(),
+    } as unknown as PostHogService
+
+    mockLogger = pino({ level: 'silent' })
+    mockCache = new LRUCache(10, 1000 * 60) as ICache
+
+    controller = new GithubController(
+      mockModelDb,
+      mockTemplates,
+      mockGithubReq,
+      mockGen,
+      mockParse,
+      mockPostHogService,
+      mockLogger,
+      mockCache
+    )
+  })
 
   afterEach(() => {
     sinon.restore()
-    getContentsStub.reset()
   })
 
   describe('/picker', () => {
@@ -316,7 +362,7 @@ describe('GithubController', async () => {
 
   describe('/contents', () => {
     it('should return contents of branch at root path in list', async () => {
-      getContentsStub.resolves(contents)
+      getStub(mockGithubReq, 'getContents').resolves(contents)
       const nextPageLink = undefined
       const onClickLinkFile = undefined
       const onClickLinkDir = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=${mockDirPath}&ref=${mockBranch}`
@@ -340,7 +386,7 @@ describe('GithubController', async () => {
     })
 
     it('should return contents of branch at a nested path in list', async () => {
-      getContentsStub.resolves(nestedContents)
+      getStub(mockGithubReq, 'getContents').resolves(nestedContents)
       const nextPageLink = undefined
       const onClickLinkFile = undefined
       const backLink = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=${mockRootPath}&ref=${mockBranch}`
@@ -365,20 +411,19 @@ describe('GithubController', async () => {
 
   describe('/directory', () => {
     it('should insert and redirect to valid ontology', async () => {
-      unzipJsonFilesStub.resolves([{ path: '', contents: '' }])
+      getStub(mockParse, 'unzipJsonFiles').resolves([{ path: '', contents: '' }])
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
-      const insertModel = sinon.spy(simpleMockModelDb, 'insertModel')
 
       await controller.directory(mockOwner, mockRepo, mockRootPath, mockBranch, mockReqWithCookie(cookie))
 
-      // assert model and file inserted
-      expect(insertModel.calledOnce).to.equal(true)
+      const insertModelStub = getStub(mockModelDb, 'insertModel')
+      expect(insertModelStub.calledOnce).to.equal(true)
 
       expect(setHeaderSpy.calledWith('HX-Redirect', `/ontology/1/view`)).to.equal(true)
     })
 
     it('should throw error if no json files found', async () => {
-      unzipJsonFilesStub.resolves([])
+      getStub(mockParse, 'unzipJsonFiles').resolves([])
       await expect(controller.directory('', '', '', '', mockReqWithCookie(cookie))).to.be.rejectedWith(
         GithubReqError,
         `No valid '.json' files found`
@@ -416,6 +461,7 @@ describe('GithubController', async () => {
     })
 
     it('invalid nested path but valid parent dir - should fallback and return contents of parent dir', async () => {
+      const getContentsStub = getStub(mockGithubReq, 'getContents')
       getContentsStub.onCall(0).rejects(new GithubNotFound('Some error'))
       getContentsStub.onCall(1).resolves(nestedContents)
 
@@ -426,7 +472,7 @@ describe('GithubController', async () => {
     })
 
     it('valid branch - should return contents of branch at root path in list', async () => {
-      getContentsStub.resolves(contents)
+      getStub(mockGithubReq, 'getContents').resolves(contents)
       const nextPageLink = undefined
       const onClickLinkFile = undefined
       const onClickLinkDir = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=${mockDirPath}&ref=${mockBranch}`
@@ -446,6 +492,7 @@ describe('GithubController', async () => {
     })
 
     it('invalid path but valid branch - should fallback and return contents of branch at root path in list', async () => {
+      const getContentsStub = getStub(mockGithubReq, 'getContents')
       getContentsStub.onCall(0).rejects(new GithubNotFound('Some error'))
       getContentsStub.onCall(1).resolves(contents)
       const nextPageLink = undefined
@@ -487,7 +534,7 @@ describe('GithubController', async () => {
     })
 
     it('invalid branch but valid owner/repo - should fallback and return branch names in list', async () => {
-      getContentsStub.onCall(0).rejects(new GithubNotFound('Some error'))
+      getStub(mockGithubReq, 'getContents').onCall(0).rejects(new GithubNotFound('Some error'))
 
       const onClickLink = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=.&ref=${mockBranch}`
       const nextPageLink = `/github/branches?owner=${mockOwner}&repo=${mockRepo}&page=${2}`
@@ -511,7 +558,7 @@ describe('GithubController', async () => {
 
     it('should throw error if unknown error thrown in navigation attempt', async () => {
       const unknownError = new Error('Unknown error')
-      getContentsStub.onCall(0).rejects(unknownError)
+      getStub(mockGithubReq, 'getContents').onCall(0).rejects(unknownError)
 
       await expect(
         controller.navigate(`${mockOwner}/${mockRepo}/${mockBranch}/${mockDirPath}`, mockReqWithCookie(cookie))
@@ -520,7 +567,7 @@ describe('GithubController', async () => {
   })
 
   const testValidNestedPath = async ({ path, expectedLabel }: { path: string; expectedLabel: string }) => {
-    getContentsStub.resolves(nestedContents)
+    getStub(mockGithubReq, 'getContents').resolves(nestedContents)
     const nextPageLink = undefined
     const onClickLinkFile = undefined
     const backLink = `/github/contents?owner=${mockOwner}&repo=${mockRepo}&path=${mockRootPath}&ref=${mockBranch}`

@@ -2,13 +2,7 @@ import { describe, test } from 'mocha'
 
 import { expect } from 'chai'
 import { DtdlInterface } from '../../../../db/types'
-import {
-  dtdlFileFixture,
-  propertyName,
-  relationshipName,
-  simpleDtdlFileEntityId,
-  telemetryName,
-} from '../../../controllers/__tests__/helpers'
+import { dtdlFileFixture, propertyName, relationshipName, telemetryName } from '../../../controllers/__tests__/helpers'
 import { DataError } from '../../../errors'
 import {
   addContent,
@@ -35,7 +29,7 @@ import {
 } from '../entityUpdate'
 
 const newValue = 'updated'
-const baseFile = dtdlFileFixture(simpleDtdlFileEntityId)
+const baseFile = dtdlFileFixture('dtmi:com:one;1')
 
 describe('entity updates', function () {
   describe('happy path', function () {

@@ -1,10 +1,22 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
+import pino from 'pino'
 import sinon from 'sinon'
+import { ModelDb } from '../../../db/modelDb.js'
 import { UpdateParams } from '../../models/controllerTypes.js'
-import { RootController } from '../root'
-import { defaultDtdlId, mockCache, mockLogger, simpleMockModelDb, templateMock } from './helpers'
-import { validViewId } from './sessionFixtures.js'
+import { UUID } from '../../models/strings.js'
+import { RootController } from '../root.js'
+import { validViewId } from './fixtures/session.fixtures.js'
+
+const defaultDtdlId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed9'
+
+const simpleMockModelDb = {
+  getDefaultModel: () => Promise.resolve({ id: defaultDtdlId }),
+} as unknown as ModelDb
+
+const templateMock = {} as never
+
+const mockLogger = pino({ level: 'silent' })
 
 export const defaultParams: UpdateParams = {
   viewId: validViewId,
@@ -17,10 +29,9 @@ export const defaultParams: UpdateParams = {
   a11y: ['reduce-motion'],
 }
 
-describe('RootController', async () => {
+describe('RootController', () => {
   afterEach(() => {
     sinon.restore()
-    mockCache.clear()
   })
 
   const controller = new RootController(simpleMockModelDb, templateMock, mockLogger)

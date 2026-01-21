@@ -20,9 +20,8 @@ import { ViewAndEditPermission } from '../../models/github.js'
 import { MermaidSvgRender, PlainTextRender, renderedDiagramParser } from '../../models/renderedDiagram/index.js'
 import { type UUID } from '../../models/strings.js'
 import { Cache, type ICache } from '../../utils/cache.js'
-import { hasFileTreeErrors } from '../../utils/dtdl/fileTreeErrors.js'
 import { filterModelByDisplayName, getRelatedIdsById } from '../../utils/dtdl/filter.js'
-import { DtdlPath } from '../../utils/dtdl/parser.js'
+import Parser, { DtdlPath } from '../../utils/dtdl/parser.js'
 import { FuseSearch } from '../../utils/fuseSearch.js'
 import { authRedirectURL, GithubRequest } from '../../utils/githubRequest.js'
 import { SvgGenerator } from '../../utils/mermaid/generator.js'
@@ -128,7 +127,7 @@ export class OntologyController extends HTMLController {
     }
 
     const { fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
-    const hasErrors = hasFileTreeErrors(fileTree)
+    const hasErrors = Parser.hasFileTreeErrors(fileTree)
     const canEdit = permission === 'edit' && !hasErrors
     const editDisabledReason = hasErrors ? 'errors' : permission !== 'edit' ? 'permissions' : undefined
     this.setHeader('Cache-Control', 'no-store')
@@ -293,7 +292,7 @@ export class OntologyController extends HTMLController {
     const { model: baseModel, fileTree } = await this.modelDb.getDtdlModelAndTree(dtdlModelId)
     const githubModelRow = await checkRemoteBranch(dtdlModelId, req, this.modelDb, this.githubRequest)
 
-    if (hasFileTreeErrors(fileTree)) {
+    if (Parser.hasFileTreeErrors(fileTree)) {
       throw new UnauthorisedError('Cannot edit ontology with errors. Please fix all errors before editing.')
     }
     this.viewStateStore.update(viewId, { editMode })

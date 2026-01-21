@@ -3,24 +3,21 @@ import chaiAsPromised from 'chai-as-promised'
 import { readFileSync } from 'fs'
 import { describe, it } from 'mocha'
 import path from 'path'
+import pino, { Logger } from 'pino'
 import sinon from 'sinon'
+import { ModelDb } from '../../../db/modelDb.js'
 import { UploadError } from '../../errors.js'
 import { modelHistoryCookie } from '../../models/cookieNames.js'
+import { UUID } from '../../models/strings.js'
+import { ICache } from '../../utils/cache.js'
 import Parser from '../../utils/dtdl/parser.js'
-import { simpleMockDtdlObjectModel } from '../../utils/mermaid/__tests__/fixtures.js'
+import { LRUCache } from '../../utils/lruCache.js'
+import { SvgGenerator } from '../../utils/mermaid/generator.js'
+import { PostHogService } from '../../utils/postHog/postHogService.js'
+import OntologyOpenTemplates from '../../views/templates/ontologyOpen.js'
 import { OpenOntologyController } from '../upload.js'
-import {
-  mockCache,
-  mockGenerator,
-  mockLogger,
-  mockPostHog,
-  mockReq,
-  mockReqWithCookie,
-  openOntologyMock,
-  previewDtdlId,
-  simpleMockModelDb,
-  toHTMLString,
-} from './helpers.js'
+import { simpleMockDtdlObjectModel } from './fixtures/dtdl.fixtures.js'
+import { getStub, mockReq, mockReqWithCookie, toHTMLString } from './helpers.js'
 
 chai.use(chaiAsPromised)
 const { expect } = chai
@@ -28,40 +25,82 @@ const { expect } = chai
 const __filename = new URL(import.meta.url).pathname
 const __dirname = path.dirname(__filename)
 
-const unzipJsonFilesStub = sinon.stub()
+const previewDtdlId: UUID = 'b89f1597-2f84-4b15-a8ff-78eda0da5ed8'
 
-export const mockParser = {
-  validate: sinon.stub().callsFake(async (files) => files),
-  parseAll: sinon.stub().resolves(simpleMockDtdlObjectModel),
-  unzipJsonFiles: unzipJsonFilesStub,
-} as unknown as Parser
+describe('OpenOntologyController', () => {
+  let mockParser: Parser
+  let mockModelDb: ModelDb
+  let mockGenerator: SvgGenerator
+  let mockOpenOntology: OntologyOpenTemplates
+  let mockPostHog: PostHogService
+  let mockLogger: Logger
+  let mockCache: ICache
+  let controller: OpenOntologyController
 
-describe('OpenOntologyController', async () => {
-  const controller = new OpenOntologyController(
-    simpleMockModelDb,
-    mockGenerator,
-    openOntologyMock,
-    mockParser,
-    mockPostHog,
-    mockLogger,
-    mockCache
-  )
+  beforeEach(() => {
+    mockParser = {
+      validate: sinon.stub().callsFake(async (files) => files),
+      parseAll: sinon.stub().resolves(simpleMockDtdlObjectModel),
+      unzipJsonFiles: sinon.stub(),
+    } as unknown as Parser
+
+    mockModelDb = {
+      getModelById: sinon.stub().callsFake((id: UUID) => {
+        if (id === 'invalid') return Promise.resolve(null)
+        return Promise.resolve({ id: previewDtdlId, name: 'preview' })
+      }),
+      insertModel: sinon.stub().resolves('1'),
+    } as unknown as ModelDb
+
+    mockGenerator = {
+      run: sinon.stub().resolves({
+        renderForMinimap: () => 'preview-svg',
+      }),
+    } as unknown as SvgGenerator
+
+    mockOpenOntology = {
+      OpenOntologyRoot: sinon.stub().returns('root_root'),
+      getMenu: sinon
+        .stub()
+        .callsFake(({ showContent }: { showContent: boolean }) => `uploadMethod_${showContent}_uploadMethod`),
+    } as unknown as OntologyOpenTemplates
+
+    mockPostHog = {
+      trackUploadOntology: sinon.stub().resolves(),
+    } as unknown as PostHogService
+
+    mockLogger = pino({ level: 'silent' })
+    mockCache = new LRUCache(10, 1000 * 60) as ICache
+
+    controller = new OpenOntologyController(
+      mockModelDb,
+      mockGenerator,
+      mockOpenOntology,
+      mockParser,
+      mockPostHog,
+      mockLogger,
+      mockCache
+    )
+  })
 
   afterEach(() => {
     sinon.restore()
   })
 
   describe('/', () => {
-    const req = mockReqWithCookie({})
     it('Should return rendered open ontology template', async () => {
+      const req = mockReqWithCookie({})
       const result = await controller.open(req).then(toHTMLString)
       expect(result).to.equal(`root_root`)
     })
+
     it('Should set HX-Push-Url header when session ID is provided', async () => {
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
+      const req = mockReqWithCookie({})
       await controller.open(req)
       expect(setHeaderSpy.calledWith('HX-Push-Url', `/open`)).to.equal(true)
     })
+
     it('Should handle missing cookie gracefully', async () => {
       const reqWithoutCookie = mockReqWithCookie({})
       reqWithoutCookie.signedCookies = {}
@@ -69,6 +108,7 @@ describe('OpenOntologyController', async () => {
       const result = await controller.open(reqWithoutCookie).then(toHTMLString)
       expect(result).to.equal(`root_root`)
     })
+
     it('Should filter out invalid models from cookie history', async () => {
       const req = mockReqWithCookie({
         [modelHistoryCookie]: [
@@ -77,15 +117,14 @@ describe('OpenOntologyController', async () => {
         ],
       })
 
-      const openOntologyRootSpy = sinon.spy(openOntologyMock, 'OpenOntologyRoot')
-
       await controller.open(req).then(toHTMLString)
 
-      const calledWithFiles = openOntologyRootSpy.firstCall.args[0].recentFiles
+      const calledWithFiles = getStub(mockOpenOntology, 'OpenOntologyRoot').lastCall.args[0].recentFiles
       expect(calledWithFiles).to.have.lengthOf(1)
       expect(calledWithFiles[0].dtdlModelId).to.equal(previewDtdlId)
     })
   })
+
   describe('menu', () => {
     it('Should return rendered upload method template', async () => {
       const result = await controller.getMenu(true).then(toHTMLString)
@@ -95,20 +134,18 @@ describe('OpenOntologyController', async () => {
 
   describe('zip upload', () => {
     it('should insert to db and redirect to view on success', async () => {
-      unzipJsonFilesStub.resolves([{ path: '', contents: '' }])
+      getStub(mockParser, 'unzipJsonFiles').resolves([{ path: '', contents: '' }])
       const setHeaderSpy = sinon.spy(controller, 'setHeader')
-      const insertModel = sinon.spy(simpleMockModelDb, 'insertModel')
       const mockFile = {
         mimetype: 'application/zip',
-        buffer: readFileSync(path.resolve(__dirname, './simple.zip')),
+        buffer: readFileSync(path.resolve(__dirname, 'fixtures/simple.zip')),
         originalname: 'test.zip',
       }
       const req = mockReq({})
       await controller.uploadZip(mockFile as Express.Multer.File, req)
       const hxRedirectHeader = setHeaderSpy.firstCall.args[1]
 
-      // assert model and file inserted
-      expect(insertModel.calledOnce).to.equal(true)
+      expect(getStub(mockModelDb, 'insertModel').calledOnce).to.equal(true)
       expect(hxRedirectHeader).to.equal(`/ontology/1/view`)
     })
 
@@ -125,10 +162,10 @@ describe('OpenOntologyController', async () => {
     })
 
     it('should throw error if no json files found', async () => {
-      unzipJsonFilesStub.resolves([])
+      getStub(mockParser, 'unzipJsonFiles').resolves([])
       const mockFile = {
         mimetype: 'application/zip',
-        buffer: readFileSync(path.resolve(__dirname, './simple.zip')),
+        buffer: Buffer.from(''),
       }
       const req = mockReq({})
 
