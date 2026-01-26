@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.9.38",
+  "version": "0.9.39",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -54,7 +54,7 @@
     "commander": "^14.0.2",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
-    "cors": "^2.8.5",
+    "cors": "^2.8.6",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
     "envalid": "^8.1.1",
@@ -74,14 +74,14 @@
     "pino-http": "^11.0.0",
     "posthog-node": "^5.24.1",
     "prettier": "^3.8.1",
-    "puppeteer": "^24.35.0",
+    "puppeteer": "^24.36.0",
     "react": "^19.2.3",
     "reflect-metadata": "^0.2.2",
     "svg-pan-zoom": "^3.6.2",
     "tsoa": "^6.6.0",
     "tsyringe": "^4.10.0",
     "unzipper": "^0.12.3",
-    "zod": "^4.3.5"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",
