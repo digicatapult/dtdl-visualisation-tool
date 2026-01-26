@@ -7,6 +7,8 @@ permissions:
 jobs:
   semgrep:
     uses: digicatapult/shared-workflows/.github/workflows/scan-vulns.yml@main
+    permissions:
+      security-events: write
     with:
       enable_semgrep_action: true
       extra_args: '--config="p/default"'

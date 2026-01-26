@@ -11,6 +11,8 @@ concurrency:
 jobs:
   static-checks-npm:
     uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@main
+    permissions:
+      security-events: write
     with:
       matrix_commands: '["lint", "depcheck", "check", "xss-scan"]'
       enable_semgrep_action: true
@@ -22,6 +24,8 @@ jobs:
 
   tests-npm:
     uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
+    permissions:
+      pull-requests: write
     with:
       docker_compose_file: ''
       npm_build_command: 'npm run build'
@@ -36,6 +40,7 @@ jobs:
 
   e2e-tests-npm:
     uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
+    permissions: {}
     with:
       docker_compose_file: ''
       node_version: '24'
@@ -45,14 +50,11 @@ jobs:
         {
           "PUPPETEER_ARGS": "--no-sandbox,--disable-setuid-sandbox"
         }
-    permissions:
-      contents: write
     secrets: inherit
 
   build-docker:
     uses: digicatapult/shared-workflows/.github/workflows/build-docker.yml@main
     permissions:
+      contents: read
       packages: write
-      contents: write
       security-events: write
-      actions: read
