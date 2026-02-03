@@ -9,6 +9,7 @@ jobs:
     uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@main
     permissions:
       security-events: write
+      contents: read
     with:
       matrix_commands: '["lint", "depcheck", "check", "xss-scan"]'
       node_version: '24'
@@ -17,6 +18,7 @@ jobs:
     uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
     permissions:
       pull-requests: write
+      contents: read
     with:
       docker_compose_file: ''
       npm_build_command: 'npm run build'
@@ -30,7 +32,8 @@ jobs:
 
   e2e-tests-npm:
     uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
-    permissions: {}
+    permissions:
+      contents: read
     with:
       docker_compose_file: ''
       pre_test_command: 'npm ci && npx playwright install-deps && npx playwright install'
@@ -44,7 +47,8 @@ jobs:
 
   generate-sbom-npm:
     uses: digicatapult/shared-workflows/.github/workflows/generate-sbom-npm.yml@main
-    permissions: {}
+    permissions:
+      contents: read
     with:
       additional_args: '--ignore-npm-errors'
       enable_check_version: true

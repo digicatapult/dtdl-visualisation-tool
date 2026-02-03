@@ -13,6 +13,8 @@ jobs:
     uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@main
     permissions:
       security-events: write
+      contents: read
+      actions: read
     with:
       matrix_commands: '["lint", "depcheck", "check", "xss-scan"]'
       enable_semgrep_action: true
@@ -26,6 +28,7 @@ jobs:
     uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
     permissions:
       pull-requests: write
+      contents: read
     with:
       docker_compose_file: ''
       npm_build_command: 'npm run build'
@@ -40,7 +43,8 @@ jobs:
 
   e2e-tests-npm:
     uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
-    permissions: {}
+    permissions:
+      contents: read
     with:
       docker_compose_file: ''
       node_version: '24'
