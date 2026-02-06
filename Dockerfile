@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.20
+# syntax=docker/dockerfile:1.21
 FROM node:24-bookworm-slim AS builder
 
 WORKDIR /dtdl-visualisation-tool
