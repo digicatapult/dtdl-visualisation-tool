@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.9.59",
+  "version": "0.9.60",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -39,7 +39,7 @@
     }
   },
   "dependencies": {
-    "@digicatapult/dtdl-parser": "^1.1.40",
+    "@digicatapult/dtdl-parser": "^1.1.42",
     "@kitajs/html": "^4.2.13",
     "@kitajs/ts-html-plugin": "^4.1.4",
     "@mermaid-js/mermaid-cli": "^11.12.0",
@@ -90,7 +90,7 @@
     "@playwright/test": "^1.58.2",
     "@swc-node/register": "^1.11.1",
     "@swc/cli": "^0.8.0",
-    "@swc/core": "^1.15.13",
+    "@swc/core": "^1.15.17",
     "@types/adm-zip": "^0.5.7",
     "@types/chai": "^5.2.3",
     "@types/chai-as-promised": "^8.0.2",
@@ -98,7 +98,7 @@
     "@types/express": "^5.0.6",
     "@types/jsdom": "^27.0.0",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^22.19.12",
+    "@types/node": "^22.19.13",
     "@types/pino-http": "^6.1.0",
     "@types/sinon": "^21.0.0",
     "@types/supertest": "^6.0.3",
