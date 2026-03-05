@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.9.62",
+  "version": "0.9.63",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -96,7 +96,7 @@
     "@types/chai-as-promised": "^8.0.2",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
-    "@types/jsdom": "^27.0.0",
+    "@types/jsdom": "^28.0.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.19.13",
     "@types/pino-http": "^6.1.0",
