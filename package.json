@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.9.62",
+  "version": "0.9.63",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -39,7 +39,7 @@
     }
   },
   "dependencies": {
-    "@digicatapult/dtdl-parser": "^1.1.42",
+    "@digicatapult/dtdl-parser": "^1.1.43",
     "@kitajs/html": "^4.2.13",
     "@kitajs/ts-html-plugin": "^4.1.4",
     "@mermaid-js/mermaid-cli": "^11.12.0",
@@ -68,13 +68,13 @@
     "knex": "^3.1.0",
     "lru-cache": "^11.2.6",
     "mermaid": "^11.12.3",
-    "multer": "^2.0.2",
+    "multer": "^2.1.1",
     "pg": "^8.19.0",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
-    "posthog-node": "^5.26.0",
+    "posthog-node": "^5.26.2",
     "prettier": "^3.8.1",
-    "puppeteer": "^24.37.5",
+    "puppeteer": "^24.38.0",
     "react": "^19.2.4",
     "reflect-metadata": "^0.2.2",
     "svg-pan-zoom": "^3.6.2",
@@ -119,7 +119,7 @@
     "playwright-ctrf-json-reporter": "^0.0.27",
     "prettier-plugin-organize-imports": "^4.3.0",
     "rimraf": "^6.1.3",
-    "sinon": "^21.0.1",
+    "sinon": "^21.0.2",
     "supertest": "^7.2.2",
     "testcontainers": "^11.12.0",
     "tmp": "^0.2.5",
