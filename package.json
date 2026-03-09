@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.9.63",
+  "version": "0.9.64",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -72,7 +72,7 @@
     "pg": "^8.20.0",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
-    "posthog-node": "^5.27.1",
+    "posthog-node": "^5.28.0",
     "prettier": "^3.8.1",
     "puppeteer": "^24.38.0",
     "react": "^19.2.4",
@@ -84,8 +84,8 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.4",
-    "@eslint/js": "^9.39.3",
+    "@eslint/eslintrc": "^3.3.5",
+    "@eslint/js": "^9.39.4",
     "@octokit/request-error": "^7.1.0",
     "@playwright/test": "^1.58.2",
     "@swc-node/register": "^1.11.1",
@@ -98,7 +98,7 @@
     "@types/express": "^5.0.6",
     "@types/jsdom": "^27.0.0",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^22.19.13",
+    "@types/node": "^22.19.15",
     "@types/pino-http": "^6.1.0",
     "@types/sinon": "^21.0.0",
     "@types/supertest": "^6.0.3",
@@ -109,7 +109,7 @@
     "adm-zip": "^0.5.16",
     "chai-as-promised": "^8.0.2",
     "depcheck": "^1.4.7",
-    "eslint": "^9.39.3",
+    "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "globals": "^17.4.0",
