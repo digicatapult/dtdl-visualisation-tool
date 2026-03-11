@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.9.65",
+  "version": "0.9.66",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -101,7 +101,7 @@
     "@types/node": "^22.19.15",
     "@types/pino-http": "^6.1.0",
     "@types/sinon": "^21.0.0",
-    "@types/supertest": "^6.0.3",
+    "@types/supertest": "^7.2.0",
     "@types/tmp": "^0.2.6",
     "@types/unzipper": "^0.10.11",
     "@typescript-eslint/eslint-plugin": "^8.56.1",
