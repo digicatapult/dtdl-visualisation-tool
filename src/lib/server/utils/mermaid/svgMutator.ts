@@ -25,7 +25,7 @@ export class SvgMutator {
     classDiagram: extractClassNodeCoordinate,
   } satisfies Record<DiagramType, (el: Element) => BoundingBox>
 
-  private nodeIdPattern = /^[^-]+-(.+)-\d+$/
+  private nodeIdPattern = /^(?:mermaid-svg-)?[^-]+-(.+)-\d+$/
   private edgePattern = /^[^_]+_(.*?)(?:_\d+)+$/
   getMermaidIdFromId = (nodeId: string, elementType: 'node' | 'edge'): MermaidId | null => {
     const mermaidId = nodeId.match(elementType === 'node' ? this.nodeIdPattern : this.edgePattern)
