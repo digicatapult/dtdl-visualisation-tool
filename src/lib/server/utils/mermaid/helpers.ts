@@ -1,6 +1,8 @@
 import { InternalError } from '../../errors.js'
 import { DtdlId, MermaidId } from '../../models/strings.js'
 
+export const SVG_ID = 'mermaid-svg'
+
 export type BoundingBox = {
   x: number
   y: number
