@@ -38,9 +38,9 @@ describe('Mermaid Invariants', function () {
     it('should set element ids based on node ids', function () {
       const ids = mermaidRender.mapGraphNodes((node) => node.id).sort()
       expect(ids).to.deep.equal([
-        'flowchart-dtmi:com:example:1-0',
-        'flowchart-dtmi:com:example_extended:1-2',
-        'flowchart-dtmi:com:example_related:1-6',
+        'mermaid-svg-flowchart-dtmi:com:example:1-0',
+        'mermaid-svg-flowchart-dtmi:com:example_extended:1-2',
+        'mermaid-svg-flowchart-dtmi:com:example_related:1-6',
       ])
     })
 
@@ -74,8 +74,8 @@ describe('Mermaid Invariants', function () {
       const pairs = mermaidRender.mapGraphEdges((edge) => edge.id || '').sort()
 
       expect(pairs).to.deep.equal([
-        'L_dtmi:com:example:1_dtmi:com:example_extended:1_0_0',
-        'L_dtmi:com:example:1_dtmi:com:example_related:1_0_0',
+        'mermaid-svg-L_dtmi:com:example:1_dtmi:com:example_extended:1_0_0',
+        'mermaid-svg-L_dtmi:com:example:1_dtmi:com:example_related:1_0_0',
       ])
     })
 
@@ -93,8 +93,8 @@ describe('Mermaid Invariants', function () {
         .sort((a, b) => a[0].localeCompare(b[0]))
 
       expect(pairs).to.deep.equal([
-        ['L_dtmi:com:example:1_dtmi:com:example_extended:1_0_0', 'extends'],
-        ['L_dtmi:com:example:1_dtmi:com:example_related:1_0_0', 'A'],
+        ['mermaid-svg-L_dtmi:com:example:1_dtmi:com:example_extended:1_0_0', 'extends'],
+        ['mermaid-svg-L_dtmi:com:example:1_dtmi:com:example_related:1_0_0', 'A'],
       ])
     })
 
@@ -177,7 +177,7 @@ describe('Mermaid Invariants', function () {
     it('should contain marker elements within the svg', function () {
       const svg = mermaidRender.svgElement
       const markers = [...svg.querySelectorAll('.marker')]
-      expect(markers.length).to.equal(6)
+      expect(markers.length).to.equal(12)
     })
   })
 
@@ -204,9 +204,9 @@ describe('Mermaid Invariants', function () {
     it('should set element ids based on node ids', function () {
       const ids = mermaidRender.mapGraphNodes((node) => node.id).sort()
       expect(ids).to.deep.equal([
-        'classId-dtmi:com:example:1-0',
-        'classId-dtmi:com:example_extended:1-1',
-        'classId-dtmi:com:example_related:1-2',
+        'mermaid-svg-classId-dtmi:com:example:1-0',
+        'mermaid-svg-classId-dtmi:com:example_extended:1-1',
+        'mermaid-svg-classId-dtmi:com:example_related:1-2',
       ])
     })
 
@@ -238,8 +238,8 @@ describe('Mermaid Invariants', function () {
       const pairs = mermaidRender.mapGraphEdges((edge) => edge.id || '').sort()
 
       expect(pairs).to.deep.equal([
-        'id_dtmi:com:example:1_dtmi:com:example_related:1_2_0',
-        'id_dtmi:com:example_extended:1_dtmi:com:example:1_1_0',
+        'mermaid-svg-id_dtmi:com:example:1_dtmi:com:example_related:1_2_0',
+        'mermaid-svg-id_dtmi:com:example_extended:1_dtmi:com:example:1_1_0',
       ])
     })
 
@@ -257,8 +257,8 @@ describe('Mermaid Invariants', function () {
         .sort((a, b) => a[0].localeCompare(b[0]))
 
       expect(pairs).to.deep.equal([
-        ['id_dtmi:com:example_extended:1_dtmi:com:example:1_1_0', 'extends'],
-        ['id_dtmi:com:example:1_dtmi:com:example_related:1_2_0', 'A'],
+        ['mermaid-svg-id_dtmi:com:example_extended:1_dtmi:com:example:1_1_0', 'extends'],
+        ['mermaid-svg-id_dtmi:com:example:1_dtmi:com:example_related:1_2_0', 'A'],
       ])
     })
 
@@ -361,7 +361,7 @@ describe('Mermaid Invariants', function () {
     it('should contain marker elements within the svg', function () {
       const svg = mermaidRender.svgElement
       const markers = [...svg.querySelectorAll('.marker')]
-      expect(markers.length).to.equal(10)
+      expect(markers.length).to.equal(20)
     })
 
     it('should set markerUnits to userSpaceOnUse for extends marker', function () {

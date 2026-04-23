@@ -16,6 +16,7 @@ import { Pool, type IPool } from '../../pool.js'
 import ClassDiagram from './classDiagram.js'
 import { IDiagram } from './diagramInterface.js'
 import Flowchart from './flowchart.js'
+import { SVG_ID } from './helpers.js'
 
 const mermaidJsPath = path.resolve(
   path.dirname(url.fileURLToPath(import.meta.resolve('mermaid', import.meta.url))),
@@ -178,7 +179,7 @@ export class SvgGenerator {
   }
 
   private async render(page: Page, layout: Layout, definition: string) {
-    const svgId = 'mermaid-svg'
+    const svgId = SVG_ID
     const mermaidConfig: MermaidConfig = {
       flowchart: {
         useMaxWidth: false,

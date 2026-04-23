@@ -11,6 +11,7 @@ import { ViewState } from '../viewStates.js'
 import { extractClassNodeCoordinate } from './classDiagram.js'
 import { extractFlowchartNodeCoordinates } from './flowchart.js'
 import {
+  SVG_ID,
   boundingBoxFromBoundary,
   boundingBoxIntersects,
   dtdlIdReplaceSemicolon,
@@ -25,7 +26,7 @@ export class SvgMutator {
     classDiagram: extractClassNodeCoordinate,
   } satisfies Record<DiagramType, (el: Element) => BoundingBox>
 
-  private nodeIdPattern = /^[^-]+-(.+)-\d+$/
+  private nodeIdPattern = new RegExp(`^(?:${SVG_ID}-)?[^-]+-(.+)-\\d+$`)
   private edgePattern = /^[^_]+_(.*?)(?:_\d+)+$/
   getMermaidIdFromId = (nodeId: string, elementType: 'node' | 'edge'): MermaidId | null => {
     const mermaidId = nodeId.match(elementType === 'node' ? this.nodeIdPattern : this.edgePattern)
