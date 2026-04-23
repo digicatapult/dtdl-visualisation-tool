@@ -17,7 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get-version.outputs.VERSION }}
-      commit_sha: ${{ steps.get-version.outputs.COMMIT_SHA }}
     steps:
       - name: Checkout main branch
         uses: actions/checkout@v6
@@ -36,7 +35,6 @@ jobs:
           VERSION="${VERSION#v}"
           
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-          echo "COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
           echo "Latest tag version: $VERSION"
 
   get-deployed-version:
@@ -88,7 +86,7 @@ jobs:
           DEVLAKE_WEBHOOK_TOKEN: ${{ secrets.DEVLAKE_WEBHOOK_TOKEN }}
         run: |
           FINISHED_DATE=$(date -u +%Y-%m-%dT%H:%M:%S+00:00)
-          curl -f "$DEVLAKE_WEBHOOK_URL" \
+          curl -f --max-time 30 --retry 3 --retry-all-errors "$DEVLAKE_WEBHOOK_URL" \
             -X POST \
             -H 'Content-Type: application/json' \
             -H "Authorization: Bearer $DEVLAKE_WEBHOOK_TOKEN" \
@@ -103,7 +101,7 @@ jobs:
                   \"refName\": \"main\",
                   \"startedDate\": \"${{ github.event.workflow_run.created_at }}\",
                   \"finishedDate\": \"$FINISHED_DATE\",
-                  \"commitSha\": \"${{ needs.get-repo-version.outputs.commit_sha }}\"
+                  "commitSha": "${{ github.event.workflow_run.head_sha }}"
                 }
               ]
             }"
