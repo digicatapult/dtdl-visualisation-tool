@@ -101,7 +101,7 @@ jobs:
                   \"refName\": \"main\",
                   \"startedDate\": \"${{ github.event.workflow_run.created_at }}\",
                   \"finishedDate\": \"$FINISHED_DATE\",
-                  "commitSha": "${{ github.event.workflow_run.head_sha }}"
+                  \"commitSha\": \"${{ github.event.workflow_run.head_sha }}\"
                 }
               ]
             }"
