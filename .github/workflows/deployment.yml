@@ -87,17 +87,22 @@ jobs:
           DEVLAKE_WEBHOOK_URL: ${{ secrets.DEVLAKE_WEBHOOK_URL }}
           DEVLAKE_WEBHOOK_TOKEN: ${{ secrets.DEVLAKE_WEBHOOK_TOKEN }}
         run: |
+          FINISHED_DATE=$(date -u +%Y-%m-%dT%H:%M:%S+00:00)
           curl -f "$DEVLAKE_WEBHOOK_URL" \
             -X POST \
             -H 'Content-Type: application/json' \
             -H "Authorization: Bearer $DEVLAKE_WEBHOOK_TOKEN" \
             -d "{
               \"id\": \"${{ github.run_id }}\",
+              \"startedDate\": \"${{ github.event.workflow_run.created_at }}\",
+              \"finishedDate\": \"$FINISHED_DATE\",
               \"result\": \"SUCCESS\",
               \"deploymentCommits\": [
                 {
                   \"repoUrl\": \"${{ github.server_url }}/${{ github.repository }}\",
                   \"refName\": \"main\",
+                  \"startedDate\": \"${{ github.event.workflow_run.created_at }}\",
+                  \"finishedDate\": \"$FINISHED_DATE\",
                   \"commitSha\": \"${{ needs.get-repo-version.outputs.commit_sha }}\"
                 }
               ]
