@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get-version.outputs.VERSION }}
+      commit_sha: ${{ steps.get-version.outputs.COMMIT_SHA }}
     steps:
       - name: Checkout main branch
         uses: actions/checkout@v6
@@ -35,6 +36,7 @@ jobs:
           VERSION="${VERSION#v}"
           
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
           echo "Latest tag version: $VERSION"
 
   get-deployed-version:
@@ -79,6 +81,27 @@ jobs:
         run: |
           echo "Latest tag version: ${{ needs.get-repo-version.outputs.version }}"
           echo "Deployed version: ${{ needs.get-deployed-version.outputs.deployed_version }}"
-      
+
+      - name: Notify DevLake of deployment
+        env:
+          DEVLAKE_WEBHOOK_URL: ${{ secrets.DEVLAKE_WEBHOOK_URL }}
+          DEVLAKE_WEBHOOK_TOKEN: ${{ secrets.DEVLAKE_WEBHOOK_TOKEN }}
+        run: |
+          curl -f "$DEVLAKE_WEBHOOK_URL" \
+            -X POST \
+            -H 'Content-Type: application/json' \
+            -H "Authorization: Bearer $DEVLAKE_WEBHOOK_TOKEN" \
+            -d "{
+              \"id\": \"${{ github.run_id }}\",
+              \"result\": \"SUCCESS\",
+              \"deploymentCommits\": [
+                {
+                  \"repoUrl\": \"${{ github.server_url }}/${{ github.repository }}\",
+                  \"refName\": \"main\",
+                  \"commitSha\": \"${{ needs.get-repo-version.outputs.commit_sha }}\"
+                }
+              ]
+            }"
+
       - name: Success
         run: echo "Success - versions match"
