@@ -79,9 +79,10 @@ jobs:
         env:
           DEVLAKE_WEBHOOK_URL: ${{ secrets.DEVLAKE_WEBHOOK_URL }}
           DEVLAKE_WEBHOOK_TOKEN: ${{ secrets.DEVLAKE_WEBHOOK_TOKEN }}
+          HEAD_COMMIT_MESSAGE: ${{ github.event.workflow_run.head_commit.message }}
         run: |
           FINISHED_DATE=$(date -u +%Y-%m-%dT%H:%M:%S+00:00)
-          DISPLAY_TITLE="v${{ needs.get-deployed-version.outputs.deployed_version }}: $(echo "${{ github.event.workflow_run.head_commit.message }}" | head -1)"
+          DISPLAY_TITLE="v${{ needs.get-deployed-version.outputs.deployed_version }}: $(echo "$HEAD_COMMIT_MESSAGE" | head -1)"
           curl -f --max-time 30 --retry 3 --retry-all-errors "$DEVLAKE_WEBHOOK_URL" \
             -X POST \
             -H 'Content-Type: application/json' \
