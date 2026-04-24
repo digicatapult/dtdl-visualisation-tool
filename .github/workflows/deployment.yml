@@ -6,15 +6,10 @@ on:
     types: [completed]
 
 jobs:
-  check-release-success:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion != 'success' }}
-    steps:
-      - run: echo 1
-
   get-repo-version:
     name: 'Get repo version'
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     outputs:
       version: ${{ steps.get-version.outputs.VERSION }}
     steps:
@@ -92,6 +87,7 @@ jobs:
             -H "Authorization: Bearer $DEVLAKE_WEBHOOK_TOKEN" \
             -d "{
               \"id\": \"${{ github.run_id }}\",
+              \"displayTitle\": \"v${{ needs.get-deployed-version.outputs.deployed_version }}\",
               \"startedDate\": \"${{ github.event.workflow_run.created_at }}\",
               \"finishedDate\": \"$FINISHED_DATE\",
               \"result\": \"SUCCESS\",
