@@ -86,7 +86,7 @@ jobs:
             -H 'Content-Type: application/json' \
             -H "Authorization: Bearer $DEVLAKE_WEBHOOK_TOKEN" \
             -d "{
-              \"id\": \"${{ github.run_id }}\",
+              \"id\": \"dtdl-visualisation-tool-${{ github.run_id }}\",
               \"displayTitle\": \"v${{ needs.get-deployed-version.outputs.deployed_version }}\",
               \"startedDate\": \"${{ github.event.workflow_run.created_at }}\",
               \"finishedDate\": \"$FINISHED_DATE\",
@@ -95,6 +95,7 @@ jobs:
                 {
                   \"repoUrl\": \"${{ github.server_url }}/${{ github.repository }}\",
                   \"refName\": \"main\",
+                  \"displayTitle\": \"v${{ needs.get-deployed-version.outputs.deployed_version }}\",
                   \"startedDate\": \"${{ github.event.workflow_run.created_at }}\",
                   \"finishedDate\": \"$FINISHED_DATE\",
                   \"commitSha\": \"${{ github.event.workflow_run.head_sha }}\"
