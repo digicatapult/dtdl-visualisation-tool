@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.9.88",
+  "version": "0.9.89",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -63,7 +63,7 @@
     "fuse.js": "^7.3.0",
     "htmx-ext-json-enc": "^2.0.3",
     "htmx-ext-response-targets": "^2.0.4",
-    "htmx.org": "^2.0.9",
+    "htmx.org": "^2.0.10",
     "jsdom": "^29.0.2",
     "knex": "^3.2.9",
     "lru-cache": "^11.3.5",
@@ -72,7 +72,7 @@
     "pg": "^8.20.0",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
-    "posthog-node": "^5.29.2",
+    "posthog-node": "^5.29.4",
     "prettier": "^3.8.3",
     "puppeteer": "^24.42.0",
     "react": "^19.2.5",
