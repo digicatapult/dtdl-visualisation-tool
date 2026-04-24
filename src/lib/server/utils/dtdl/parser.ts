@@ -75,7 +75,7 @@ export default class Parser {
       const source = await readFile(fullPath, 'utf-8')
       const noBomJson = source.replace(/^\uFEFF/, '')
 
-      let json = {}
+      let json: unknown
       try {
         json = JSON.parse(noBomJson) // Validate JSON
       } catch {
@@ -122,7 +122,7 @@ export default class Parser {
       const fileBuffer = await file.buffer()
       const source = fileBuffer.toString().replace(/^\uFEFF/, '') // Remove BOM
 
-      let json = {}
+      let json: unknown
       try {
         json = JSON.parse(source) // Validate JSON
       } catch {
@@ -335,7 +335,7 @@ export default class Parser {
     }
   }
 
-  isWithinDepthLimit(obj: object, currentDepth = 1) {
+  isWithinDepthLimit(obj: unknown, currentDepth = 1) {
     if (currentDepth > env.get('JSON_DEPTH_LIMIT'))
       throw new UploadError(`JSON too deeply nested, max depth is ${env.get('JSON_DEPTH_LIMIT')}`)
 
