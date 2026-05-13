@@ -84,7 +84,7 @@ export class MermaidSvgRender extends RenderedDiagram<'svg'> {
       throw new InternalError('Error finding nodes in MermaidSVG')
     }
 
-    const edges = svg.querySelector('g.edges, g.edgePaths')
+    const edges = svg.querySelector('g.edgePaths')
     const edgeLabels = svg.querySelector('g.edgeLabels')
     if (!edges || !edgeLabels) {
       throw new InternalError('Error finding edges in MermaidSVG')
