@@ -28,7 +28,7 @@ describe('MermaidSvgRender', function () {
       expect(() => new MermaidSvgRender(svgBuffer)).to.throw(InternalError)
     })
     it('should return an instance with edges', function () {
-      const svgBuffer = Buffer.from('<svg><g class="nodes"/><g class="edges"/><g class="edgeLabels"/></svg>')
+      const svgBuffer = Buffer.from('<svg><g class="nodes"/><g class="edgePaths"/><g class="edgeLabels"/></svg>')
       expect(new MermaidSvgRender(svgBuffer)).instanceOf(MermaidSvgRender)
     })
     it('should return an instance with edgePaths', function () {
@@ -39,7 +39,7 @@ describe('MermaidSvgRender', function () {
 
   describe('mapGraphNodes', function () {
     const svgBuffer = Buffer.from(
-      '<svg><g class="nodes"><g id="foo"/><g id="bar"/></g><g class="edges"/><g class="edgeLabels"/></svg>'
+      '<svg><g class="nodes"><g id="foo"/><g id="bar"/></g><g class="edgePaths"/><g class="edgeLabels"/></svg>'
     )
 
     it('should call function for edge child of nodes element', function () {
@@ -68,7 +68,7 @@ describe('MermaidSvgRender', function () {
 
   describe('mapGraphEdges', function () {
     const svgBuffer = Buffer.from(
-      '<svg><g class="nodes"></g><g class="edges"><g id="foo"/><g id="bar"/></g><g class="edgeLabels"><g id="foo-label"/><g id="bar-label"/></g></svg>'
+      '<svg><g class="nodes"></g><g class="edgePaths"><g id="foo"/><g id="bar"/></g><g class="edgeLabels"><g id="foo-label"/><g id="bar-label"/></g></svg>'
     )
 
     it('should call function for edge child of nodes element', function () {

@@ -17,6 +17,11 @@ import ClassDiagram from './classDiagram.js'
 import { IDiagram } from './diagramInterface.js'
 import Flowchart from './flowchart.js'
 import { SVG_ID } from './helpers.js'
+import { fileUrlToInterceptUrl, interceptRequestHandler } from './puppeteerIntercept.js'
+
+type GlobalExtMermaid = {
+  mermaid: Mermaid
+}
 
 const mermaidJsPath = path.resolve(
   path.dirname(url.fileURLToPath(import.meta.resolve('mermaid', import.meta.url))),
@@ -164,11 +169,20 @@ export class SvgGenerator {
 
       await page.goto(url.pathToFileURL(mermaidHTMLPath).href)
       await page.addScriptTag({ path: mermaidJsPath })
-      await page.addScriptTag({
-        content: `import elkLayouts from '${url.pathToFileURL(elkLayoutJsPath).href}';
-globalThis.mermaid.registerLayoutLoaders(elkLayouts);`,
-        type: 'module',
-      })
+
+      // Intercept requests for elk ESM files (entry point + chunks) and serve
+      // them from the local filesystem as HTTPS responses. Chrome blocks ESM
+      // import() from file:// URLs so this fake-HTTPS intercept is required.
+      const elkEntryUrl = fileUrlToInterceptUrl(url.pathToFileURL(elkLayoutJsPath))
+      page.on('request', interceptRequestHandler)
+      await page.setRequestInterception(true)
+
+      await page.evaluate(async (elkEntryUrl) => {
+        const { default: elkLayouts } = await import(elkEntryUrl)
+        const { mermaid } = globalThis as unknown as GlobalExtMermaid
+        mermaid.registerLayoutLoaders(elkLayouts)
+      }, elkEntryUrl)
+
       await page.evaluate(async () => {
         await Promise.all(Array.from(document.fonts, (font) => font.load()))
       })
@@ -196,7 +210,7 @@ globalThis.mermaid.registerLayoutLoaders(elkLayouts);`,
     const svg = await page.$eval(
       '#container',
       async (container, mermaidConfig, definition, svgId) => {
-        const { mermaid } = globalThis as unknown as { mermaid: Mermaid }
+        const { mermaid } = globalThis as unknown as GlobalExtMermaid
 
         mermaid.initialize({ startOnLoad: false, ...mermaidConfig })
         const { svg: svgText } = await mermaid.render(svgId, definition, container)

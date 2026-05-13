@@ -21,6 +21,7 @@ const pageMock = (renderFunction: sinon.SinonStub) => {
     goto: sinon.stub().resolves(),
     addScriptTag: sinon.stub().resolves(),
     evaluate: sinon.stub().resolves(),
+    setRequestInterception: sinon.stub().resolves(),
   } as unknown as Page
 }
 

@@ -14,8 +14,7 @@ import { mockDtdlObjectModel } from './fixtures.js'
 import { nonParallelTest } from './generator.test.js'
 import { expectStringIsFiniteNumber, getChildrenByClass, mockEnvClass } from './helpers.js'
 
-describe.only('Mermaid Invariants', function () {
-  this.timeout(10000)
+describe('Mermaid Invariants', function () {
   describe('flowchart', function () {
     let mermaidRender: MermaidSvgRender
 
