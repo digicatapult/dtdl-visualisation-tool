@@ -1,7 +1,7 @@
 import path from 'node:path'
 import url from 'node:url'
 
-import type { LayoutLoaderDefinition, Mermaid, MermaidConfig } from 'mermaid'
+import type { Mermaid, MermaidConfig } from 'mermaid'
 import puppeteer, { Browser, Page } from 'puppeteer'
 import { inject, singleton } from 'tsyringe'
 
@@ -28,11 +28,10 @@ const mermaidHTMLPath = path.resolve(
   'dist',
   'index.html'
 )
-
-type GlobalExtMermaidAndElk = {
-  mermaid: Mermaid
-  elkLayouts: LayoutLoaderDefinition[]
-}
+const elkLayoutJsPath = path.resolve(
+  path.dirname(url.fileURLToPath(import.meta.resolve('@mermaid-js/layout-elk', import.meta.url))),
+  'mermaid-layout-elk.esm.mjs'
+)
 
 @singleton()
 export class SvgGenerator {
@@ -165,10 +164,13 @@ export class SvgGenerator {
 
       await page.goto(url.pathToFileURL(mermaidHTMLPath).href)
       await page.addScriptTag({ path: mermaidJsPath })
+      await page.addScriptTag({
+        content: `import elkLayouts from '${url.pathToFileURL(elkLayoutJsPath).href}';
+globalThis.mermaid.registerLayoutLoaders(elkLayouts);`,
+        type: 'module',
+      })
       await page.evaluate(async () => {
         await Promise.all(Array.from(document.fonts, (font) => font.load()))
-        const { mermaid, elkLayouts } = globalThis as unknown as GlobalExtMermaidAndElk
-        mermaid.registerLayoutLoaders(elkLayouts)
       })
       pages.push(page)
     }
@@ -194,7 +196,7 @@ export class SvgGenerator {
     const svg = await page.$eval(
       '#container',
       async (container, mermaidConfig, definition, svgId) => {
-        const { mermaid } = globalThis as unknown as GlobalExtMermaidAndElk
+        const { mermaid } = globalThis as unknown as { mermaid: Mermaid }
 
         mermaid.initialize({ startOnLoad: false, ...mermaidConfig })
         const { svg: svgText } = await mermaid.render(svgId, definition, container)
