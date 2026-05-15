@@ -39,7 +39,7 @@
 }
 
 #mermaid-svg {
-  g:is(.edges, .edgePaths) > path {
+  g.edgePaths > path {
     fill-opacity: 0;
     stroke: #333333;
     fill: #333333;

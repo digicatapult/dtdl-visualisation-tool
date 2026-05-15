@@ -1,5 +1,6 @@
 ignores: [
     '@mermaid-js/mermaid-cli',
+    '@mermaid-js/layout-elk',
     '@swc-node/register',
     'prettier-plugin-organize-imports',
     'rimraf',

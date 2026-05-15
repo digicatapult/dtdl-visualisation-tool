@@ -1,7 +1,7 @@
 import path from 'node:path'
 import url from 'node:url'
 
-import type { LayoutLoaderDefinition, Mermaid, MermaidConfig } from 'mermaid'
+import type { Mermaid, MermaidConfig } from 'mermaid'
 import puppeteer, { Browser, Page } from 'puppeteer'
 import { inject, singleton } from 'tsyringe'
 
@@ -17,6 +17,11 @@ import ClassDiagram from './classDiagram.js'
 import { IDiagram } from './diagramInterface.js'
 import Flowchart from './flowchart.js'
 import { SVG_ID } from './helpers.js'
+import { fileUrlToInterceptUrl, interceptRequestHandler } from './puppeteerIntercept.js'
+
+type GlobalExtMermaid = {
+  mermaid: Mermaid
+}
 
 const mermaidJsPath = path.resolve(
   path.dirname(url.fileURLToPath(import.meta.resolve('mermaid', import.meta.url))),
@@ -28,11 +33,10 @@ const mermaidHTMLPath = path.resolve(
   'dist',
   'index.html'
 )
-
-type GlobalExtMermaidAndElk = {
-  mermaid: Mermaid
-  elkLayouts: LayoutLoaderDefinition[]
-}
+const elkLayoutJsPath = path.resolve(
+  path.dirname(url.fileURLToPath(import.meta.resolve('@mermaid-js/layout-elk', import.meta.url))),
+  'mermaid-layout-elk.esm.mjs'
+)
 
 @singleton()
 export class SvgGenerator {
@@ -165,10 +169,22 @@ export class SvgGenerator {
 
       await page.goto(url.pathToFileURL(mermaidHTMLPath).href)
       await page.addScriptTag({ path: mermaidJsPath })
+
+      // Intercept requests for elk ESM files (entry point + chunks) and serve
+      // them from the local filesystem as HTTPS responses. Chrome blocks ESM
+      // import() from file:// URLs so this fake-HTTPS intercept is required.
+      const elkEntryUrl = fileUrlToInterceptUrl(url.pathToFileURL(elkLayoutJsPath))
+      page.on('request', interceptRequestHandler)
+      await page.setRequestInterception(true)
+
+      await page.evaluate(async (elkEntryUrl) => {
+        const { default: elkLayouts } = await import(elkEntryUrl)
+        const { mermaid } = globalThis as unknown as GlobalExtMermaid
+        mermaid.registerLayoutLoaders(elkLayouts)
+      }, elkEntryUrl)
+
       await page.evaluate(async () => {
         await Promise.all(Array.from(document.fonts, (font) => font.load()))
-        const { mermaid, elkLayouts } = globalThis as unknown as GlobalExtMermaidAndElk
-        mermaid.registerLayoutLoaders(elkLayouts)
       })
       pages.push(page)
     }
@@ -194,7 +210,7 @@ export class SvgGenerator {
     const svg = await page.$eval(
       '#container',
       async (container, mermaidConfig, definition, svgId) => {
-        const { mermaid } = globalThis as unknown as GlobalExtMermaidAndElk
+        const { mermaid } = globalThis as unknown as GlobalExtMermaid
 
         mermaid.initialize({ startOnLoad: false, ...mermaidConfig })
         const { svg: svgText } = await mermaid.render(svgId, definition, container)
