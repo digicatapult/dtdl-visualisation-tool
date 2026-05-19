@@ -6,6 +6,7 @@ WORKDIR /dtdl-visualisation-tool
 COPY package*.json ./
 COPY tsconfig.json ./
 
+ENV PUPPETEER_SKIP_DOWNLOAD=true
 RUN npm ci 
 COPY . .
 RUN npm run build
@@ -15,7 +16,7 @@ FROM node:24-bookworm-slim AS service
 
 ENV PPTRUSER_UID=10042
 ENV NODE_OPTIONS="--no-warnings"
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_SKIP_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV CHROME_PUPPETEER_PATH=/usr/bin/chromium
 
