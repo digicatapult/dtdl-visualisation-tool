@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.9.114",
+  "version": "0.9.115",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -39,7 +39,7 @@
     }
   },
   "dependencies": {
-    "@digicatapult/dtdl-parser": "^1.1.66",
+    "@digicatapult/dtdl-parser": "^1.1.67",
     "@kitajs/html": "^4.2.13",
     "@kitajs/ts-html-plugin": "^4.1.4",
     "@mermaid-js/layout-elk": "^0.2.1",
@@ -61,7 +61,7 @@
     "envalid": "^8.1.1",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
-    "fuse.js": "^7.4.1",
+    "fuse.js": "^7.4.2",
     "htmx-ext-json-enc": "^2.0.3",
     "htmx-ext-response-targets": "^2.0.4",
     "htmx.org": "^2.0.10",
@@ -73,7 +73,7 @@
     "pg": "^8.21.0",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
-    "posthog-node": "^5.35.14",
+    "posthog-node": "^5.36.4",
     "prettier": "^3.8.3",
     "puppeteer": "^25.1.0",
     "react": "^19.2.7",
@@ -99,7 +99,7 @@
     "@types/express": "^5.0.6",
     "@types/jsdom": "^28.0.3",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^22.19.19",
+    "@types/node": "^22.19.20",
     "@types/pino-http": "^6.1.0",
     "@types/sinon": "^21.0.1",
     "@types/supertest": "^7.2.0",
@@ -125,7 +125,7 @@
     "testcontainers": "^12.0.1",
     "tmp": "^0.2.7",
     "typescript": "^5.9.3",
-    "undici": "^8.3.0"
+    "undici": "^8.4.0"
   },
   "engines": {
     "node": "24.x",
