@@ -75,6 +75,7 @@ jobs:
       packages: write
       security-events: write
     with:
+      scan_container: true
       push_dockerhub: true
       push_ghcr: true
     secrets:
