@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.9.121",
+  "version": "0.9.122",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -107,7 +107,7 @@
     "@types/unzipper": "^0.10.11",
     "@typescript-eslint/eslint-plugin": "^8.61.0",
     "@typescript-eslint/parser": "^8.61.0",
-    "adm-zip": "^0.5.17",
+    "adm-zip": "^0.6.0",
     "chai-as-promised": "^8.0.2",
     "depcheck": "^1.4.7",
     "eslint": "^10.5.0",
