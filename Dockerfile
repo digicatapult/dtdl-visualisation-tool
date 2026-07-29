@@ -3,6 +3,8 @@ FROM node:24-bookworm-slim AS builder
 
 WORKDIR /dtdl-visualisation-tool
 
+RUN npm install -g npm@12.0.1
+
 COPY package*.json ./
 COPY tsconfig.json ./
 
@@ -13,6 +15,8 @@ RUN npm run build
 
 # Service
 FROM node:24-bookworm-slim AS service
+
+RUN npm install -g npm@12.0.1
 
 ENV PPTRUSER_UID=10042
 ENV NODE_OPTIONS="--no-warnings"
