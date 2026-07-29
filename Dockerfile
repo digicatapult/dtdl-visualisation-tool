@@ -30,6 +30,7 @@ RUN groupadd -r pptruser && useradd -u $PPTRUSER_UID -rm -g pptruser -G audio,vi
 WORKDIR /dtdl-visualisation-tool
 
 COPY package*.json ./
+RUN npm install -g npm@12.0.1
 RUN npm ci --omit=dev
 
 COPY public ./public
