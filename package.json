@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.9.126",
+  "version": "0.9.127",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -65,7 +65,7 @@
     "htmx-ext-json-enc": "^2.0.3",
     "htmx-ext-response-targets": "^2.0.4",
     "htmx.org": "^2.0.10",
-    "jsdom": "^29.1.1",
+    "jsdom": "^30.0.0",
     "knex": "^3.3.0",
     "lru-cache": "^11.5.2",
     "mermaid": "^11.16.0",
