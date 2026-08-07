@@ -10,5 +10,6 @@ ignores: [
     'htmx.org',
     'svg-pan-zoom',
     'playwright-ctrf-json-reporter',
-    'pg'
+    'pg',
+    "tsc-native"
 ]

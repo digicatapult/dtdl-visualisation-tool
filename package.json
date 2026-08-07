@@ -21,7 +21,7 @@
     "tsoa:build": "tsoa spec-and-routes",
     "local": "npm i -g && dtdl-visualiser",
     "lint": "eslint .",
-    "check": "npm run tsoa:build && tsc --noEmit",
+    "check": "npm run tsoa:build && node_modules/tsc-native/bin/tsc --noEmit",
     "xss-scan": "xss-scan",
     "db:cmd": "node --import @swc-node/register/esm-register ./node_modules/.bin/knex",
     "db:migrate": "npm run db:cmd -- migrate:latest",
@@ -36,6 +36,9 @@
   "overrides": {
     "@mermaid-js/mermaid-cli": {
       "puppeteer": "$puppeteer"
+    },
+    "@kitajs/ts-html-plugin": {
+      "typescript": "$typescript"
     }
   },
   "dependencies": {
@@ -123,7 +126,8 @@
     "supertest": "^7.2.2",
     "testcontainers": "^12.0.4",
     "tmp": "^0.2.7",
-    "typescript": "^5.9.3",
+    "tsc-native": "npm:typescript@^7.0.2",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
     "undici": "^8.9.0"
   },
   "engines": {

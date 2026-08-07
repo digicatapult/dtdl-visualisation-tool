@@ -14,12 +14,12 @@ import { ModellingError, UploadError } from '../../../errors.js'
 import { DtdlModel } from '../../../models/dtdlOmParser.js'
 import { ICache } from '../../cache.js'
 import { LRUCache } from '../../lruCache.js'
-import bom from './fixtures/bom/bom.json' assert { type: 'json' }
-import complexNested from './fixtures/complexNested/complexNested.json' assert { type: 'json' }
-import nestedTwo from './fixtures/nestedDtdl/nested/two.json' assert { type: 'json' }
-import nestedOne from './fixtures/nestedDtdl/one.json' assert { type: 'json' }
-import valid from './fixtures/someInvalid/valid.json' assert { type: 'json' }
-import withPropsAndRels from './fixtures/withPropertiesAndRelationships.json' assert { type: 'json' }
+import bom from './fixtures/bom/bom.json' with { type: 'json' }
+import complexNested from './fixtures/complexNested/complexNested.json' with { type: 'json' }
+import nestedTwo from './fixtures/nestedDtdl/nested/two.json' with { type: 'json' }
+import nestedOne from './fixtures/nestedDtdl/one.json' with { type: 'json' }
+import valid from './fixtures/someInvalid/valid.json' with { type: 'json' }
+import withPropsAndRels from './fixtures/withPropertiesAndRelationships.json' with { type: 'json' }
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
