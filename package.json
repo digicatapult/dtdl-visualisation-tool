@@ -109,7 +109,6 @@
     "@typescript-eslint/parser": "^8.65.0",
     "adm-zip": "^0.6.0",
     "chai-as-promised": "^8.0.2",
-    "depcheck": "^1.4.7",
     "eslint": "^10.8.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
