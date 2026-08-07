@@ -3,8 +3,8 @@
 import 'reflect-metadata'
 
 import { getInterop, validateDirectories } from '@digicatapult/dtdl-parser'
-import chalk from 'chalk'
 import { Command } from 'commander'
+import { styleText } from 'node:util'
 import { container } from 'tsyringe'
 import Database from './lib/db/index.js'
 import { ModelDb } from './lib/db/modelDb.js'
@@ -20,7 +20,7 @@ import version from './version.js'
 const program = new Command()
 
 const { red: r } = {
-  red: (txt: string) => chalk.redBright(txt),
+  red: (txt: string) => styleText('redBright', txt),
 }
 
 program
