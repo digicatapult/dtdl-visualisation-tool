@@ -151,7 +151,7 @@ export class PostHogService {
 
       // Use GitHub login as distinct ID, alias with anonymous ID
       await this.identify(`github:${user.login}`, {
-        github_id: user.id,
+        github_id: typeof user.id === 'bigint' ? user.id.toString() : user.id,
         github_login: user.login,
         github_email: user.email,
         github_name: user.name,
