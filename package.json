@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.9.140",
+  "version": "0.9.141",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -42,7 +42,7 @@
     }
   },
   "dependencies": {
-    "@digicatapult/dtdl-parser": "^1.1.87",
+    "@digicatapult/dtdl-parser": "^1.1.89",
     "@kitajs/html": "^4.2.13",
     "@kitajs/ts-html-plugin": "^4.1.4",
     "@mermaid-js/layout-elk": "^0.2.2",
@@ -93,7 +93,7 @@
     "@playwright/test": "^1.62.1",
     "@swc-node/register": "^1.12.1",
     "@swc/cli": "^0.8.1",
-    "@swc/core": "^1.16.0",
+    "@swc/core": "^1.16.1",
     "@types/adm-zip": "^0.5.8",
     "@types/chai": "^5.2.3",
     "@types/chai-as-promised": "^8.0.2",
