@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.9.142",
+  "version": "0.9.143",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -59,7 +59,7 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "date-fns": "^4.4.0",
-    "dotenv": "^17.4.2",
+    "dotenv": "^18.0.0",
     "envalid": "^8.2.0",
     "express": "^5.2.1",
     "express-rate-limit": "^8.6.2",
