@@ -219,7 +219,7 @@ export class SvgGenerator {
         const svg = container.getElementsByTagName?.('svg')?.[0]
 
         // fix scaling of extends arrow marker for class diagrams
-        svg.querySelector('#mermaid-svg_class-extensionStart')?.setAttribute('markerUnits', 'userSpaceOnUse')
+        svg.querySelector('#mermaid-svg_classDiagram-extensionStart')?.setAttribute('markerUnits', 'userSpaceOnUse')
 
         const xmlSerializer = new XMLSerializer()
         return xmlSerializer.serializeToString(svg)

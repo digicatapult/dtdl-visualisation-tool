@@ -336,7 +336,7 @@ describe('Mermaid Invariants', function () {
 
     it('should set markerUnits to userSpaceOnUse for extends marker', function () {
       const svg = mermaidRender.svgElement
-      const marker = svg.querySelector('#mermaid-svg_class-extensionStart')
+      const marker = svg.querySelector('#mermaid-svg_classDiagram-extensionStart')
       expect(marker).to.not.equal(null)
       expect(marker?.getAttribute('markerUnits')).to.equal('userSpaceOnUse')
     })

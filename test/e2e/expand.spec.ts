@@ -63,7 +63,7 @@ test.describe('expand', () => {
       .locator('g.label-container')
       .locator('path')
       .first()
-    await expect(path).toHaveAttribute('fill', '#ECECFF')
+    await expect(path).toHaveCSS('fill', 'rgb(251, 242, 145)')
 
     // unexpand icon shown
     const unexpand = page.locator('#mermaid-output').locator('[id*=ACDCTerminal]').getByText('-', { exact: true })

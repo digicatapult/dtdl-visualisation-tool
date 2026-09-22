@@ -52,21 +52,18 @@ test.describe('highlight', () => {
       await page.locator('#zoom-out').click()
     }
 
-    await waitForUpdateLayout(page, () =>
-      page.locator('#mermaid-output').getByText('Terminal', { exact: true }).click()
-    )
+    const node = page.locator('#mermaid-output g.node').filter({
+      has: page.getByText('Terminal', { exact: true }),
+    })
+
+    await waitForUpdateLayout(page, () => node.getByText('Terminal', { exact: true }).click())
     await page.locator('#navigation-panel').getByText('Details', { exact: true }).click()
 
     await expect(page.locator('#navigation-panel-details').getByText('Terminal', { exact: true })).toBeVisible()
 
-    const path = page
-      .locator('#mermaid-output')
-      .locator('[id*=ACDCTerminal]')
-      .locator('g.label-container')
-      .locator('path')
-      .first()
+    const path = node.locator('g.label-container > path').first()
 
-    await expect(path).toHaveAttribute('fill', '#ECECFF')
+    await expect(path).toHaveCSS('fill', 'rgb(251, 242, 145)')
   })
 
   test('class diagram - relationship should change to highlight colour and navigation panel open', async ({ page }) => {
