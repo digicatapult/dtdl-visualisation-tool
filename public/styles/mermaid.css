@@ -16,7 +16,7 @@
 }
 
 #mermaid-svg.classDiagram {
-  g.node > :is(.label-container, .divider) > path {
+  g.node[data-color-id] > :is(.label-container, .divider) > path {
     stroke-dasharray: 5, 5;
     fill: #ffffff;
     stroke: #000000;
