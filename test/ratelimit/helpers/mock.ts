@@ -22,7 +22,7 @@ export const withDispatcherMock = (context: MockDispatcherContext) => {
 export const mockAllowLocalIp = () => {
   const testEnv = cleanEnv(process.env, {
     ...envConfig,
-    IP_ALLOW_LIST: strArrayValidator({ default: ['::ffff:127.0.0.1'] }),
+    IP_ALLOW_LIST: strArrayValidator({ default: ['127.0.0.1', '::ffff:127.0.0.1'] }),
   })
 
   class MockEnv {

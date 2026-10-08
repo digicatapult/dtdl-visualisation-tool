@@ -43,7 +43,7 @@ export default async (): Promise<Express> => {
   const multerOptions = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: env.get('UPLOAD_LIMIT_MB') * 1024 * 1024,
+      fileSize: Math.floor(env.get('UPLOAD_LIMIT_MB') * 1024 * 1024),
     },
   })
   app.use(cookieParser(env.get('COOKIE_SESSION_KEYS')))
