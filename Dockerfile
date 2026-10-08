@@ -27,7 +27,7 @@ ENV CHROME_PUPPETEER_PATH=/usr/bin/chromium
 COPY sample ./sample
 COPY scripts ./scripts
 
-RUN apt-get update && apt-get install -y chromium --no-install-recommends
+RUN apt-get update && apt-get upgrade -y && apt-get install -y chromium --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd -r pptruser && useradd -u $PPTRUSER_UID -rm -g pptruser -G audio,video pptruser
 
