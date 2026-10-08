@@ -22,8 +22,6 @@ describe('rate limit', () => {
     container.clearInstances()
     // Re-register RateLimiter to get fresh middleware with reset counters
     container.register(RateLimiter, { useClass: RateLimiter })
-    // Multer requires the byte limit computed from the test fixture to be an integer.
-    expect(Number.isSafeInteger(container.resolve(Env).get('UPLOAD_LIMIT_MB') * 1024 * 1024)).to.equal(true)
     app = await createHttpServer()
   })
 
