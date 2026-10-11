@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.9.151",
+  "version": "0.9.152",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -90,7 +90,7 @@
     "@eslint/eslintrc": "^3.3.7",
     "@eslint/js": "^10.0.1",
     "@octokit/request-error": "^7.1.2",
-    "@playwright/test": "^1.63.0",
+    "@playwright/test": "^1.64.0",
     "@swc-node/register": "^1.12.1",
     "@swc/cli": "^0.8.1",
     "@swc/core": "^1.16.13",
