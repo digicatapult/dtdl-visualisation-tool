@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.9.160",
+  "version": "0.9.161",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -42,7 +42,7 @@
     }
   },
   "dependencies": {
-    "@digicatapult/dtdl-parser": "^1.1.110",
+    "@digicatapult/dtdl-parser": "^1.1.111",
     "@kitajs/html": "^4.2.13",
     "@kitajs/ts-html-plugin": "^4.1.4",
     "@mermaid-js/layout-elk": "^1.0.1",
@@ -75,7 +75,7 @@
     "pg": "^8.23.1",
     "pino": "^10.4.0",
     "pino-http": "^11.0.0",
-    "posthog-node": "^5.56.2",
+    "posthog-node": "^5.56.4",
     "prettier": "^3.9.10",
     "puppeteer": "^25.15.0",
     "react": "^19.3.1",
@@ -103,7 +103,7 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.20.5",
     "@types/pino-http": "^6.1.0",
-    "@types/sinon": "^22.0.0",
+    "@types/sinon": "^22.0.1",
     "@types/supertest": "^7.2.1",
     "@types/tmp": "^0.2.6",
     "@types/unzipper": "^0.10.11",
