@@ -111,7 +111,7 @@ test.describe('Test edit ontology', () => {
     expect(targetValue).toBeTruthy()
     // Change the target to the new interface
     await waitForSuccessResponse(page, () => targetDropdown.selectOption(targetValue!), '/relationshipTarget')
-    await page.waitForTimeout(500)
+    await expect(page.locator(`select.nav-panel-editable option[value="${targetValue}"][selected]`)).toHaveCount(1)
     // Verify the edge label updated in the diagram
     await expect(page.locator('#mermaid-output').getByText(newRelationshipDisplayName)).toBeVisible()
 
@@ -124,12 +124,8 @@ test.describe('Test edit ontology', () => {
 
     // test inherited relationship is read-only and has styling
     // Need to scroll down to see the Relationships section which contains inherited relationships
-    await page.locator('#navigation-panel-details').evaluate((el) => {
-      el.scrollTop = el.scrollHeight
-    })
-    await page.waitForTimeout(500)
-
     const inheritedRelationship = page.locator('.inherited-relationship').first()
+    await inheritedRelationship.scrollIntoViewIfNeeded()
     await expect(inheritedRelationship).toBeVisible()
 
     // Check that inherited relationship has gray background
@@ -166,8 +162,6 @@ test.describe('Test edit ontology', () => {
     await waitForSuccessResponse(page, () => page.locator('#edit-toggle .switch').first().click(), '/edit-model')
     await expect(page.locator('#edit-toggle').getByText('View')).toBeVisible()
     await page.locator('#navigation-panel').getByText('Details', { exact: true }).click()
-
-    await page.waitForTimeout(500)
 
     await expect
       .poll(async () => {
@@ -253,15 +247,18 @@ const testNavPanelEdit = async (
   const textArea = page.locator('.nav-panel-editable').getByText(textToEdit)
   await textArea.click()
   await textArea.fill(newValue)
-  await page.waitForTimeout(100)
 
   // optionally test that inputs are disabled during request
   if (testInputDisabledDuringRequest) {
-    await page.route(`**/entity/**${successRoute}`, async (route) => {
-      await expect(textArea).toBeDisabled()
-      await expect(page.locator('.disable-during-update-req').first()).toBeDisabled()
-      await route.continue()
-    })
+    await page.route(
+      `**/entity/**${successRoute}`,
+      async (route) => {
+        await expect(textArea).toBeDisabled()
+        await expect(page.locator('.disable-during-update-req').first()).toBeDisabled()
+        await route.continue()
+      },
+      { times: 1 }
+    )
   }
 
   await waitForSuccessResponse(
@@ -272,13 +269,21 @@ const testNavPanelEdit = async (
     },
     successRoute
   )
-  await page.waitForTimeout(500)
+  const updatedTextArea = page.locator(`form[hx-put$="${successRoute}"]`).getByText(newValue, { exact: true })
+  // Filling changes value, not textContent; this waits for the server-rendered replacement.
+  await expect(updatedTextArea).toHaveText(newValue)
+  await expect(updatedTextArea).toBeEnabled()
+  await expect(page.locator('.htmx-request, .htmx-swapping, .htmx-settling')).toHaveCount(0)
 }
 
 const testNavPanelDropdownEdit = async (page: Page, currentValue: string, newOption: string, successRoute: string) => {
   const dropdown = page.locator(`select.nav-panel-editable:has(option[value="${currentValue}"][selected])`).first()
   await waitForSuccessResponse(page, () => dropdown.selectOption(newOption), successRoute)
-  await page.waitForTimeout(500)
+  await expect(page.locator(`form[hx-put$="${successRoute}"] option[value="${newOption}"][selected]`)).toHaveCount(1)
+  await expect(
+    page.locator(`form[hx-put$="${successRoute}"] select:has(option[value="${newOption}"][selected])`)
+  ).toBeEnabled()
+  await expect(page.locator('.htmx-request, .htmx-swapping, .htmx-settling')).toHaveCount(0)
 }
 
 const getStyledComponent = async (page: Page, selector: string, pseudoElement: string, property: string) => {

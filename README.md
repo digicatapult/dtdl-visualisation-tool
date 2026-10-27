@@ -4,7 +4,7 @@ A CLI tool for visualising dtdl ontologies.
 
 ## Prerequisites
 
-`node` >= 24
+`node` >= 24.22.1 and < 25 (includes the CVE-2026-111497 Brotli fix)
 Docker
 
 ## Getting started
