@@ -5,3 +5,13 @@ playwright-report
 .vscode
 test-results
 test-examples
+.git
+.env
+.env.*
+*.pem
+*.key
+.npmrc
+build
+coverage
+npm-debug.log*
+openspec

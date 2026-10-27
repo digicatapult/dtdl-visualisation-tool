@@ -6,22 +6,22 @@ on:
 
 jobs:
   static-checks-npm:
-    uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@main
+    uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@5f09f5d6707e0c4fc42f7187885b6a1ee83d8433 # main
     permissions:
       security-events: write
     with:
       matrix_commands: '["lint", "depcheck", "check", "xss-scan"]'
-      node_version: '24'
+      node_version: '24.22.1'
 
   tests-npm:
-    uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
+    uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@5f09f5d6707e0c4fc42f7187885b6a1ee83d8433 # main
     permissions:
       pull-requests: write
     with:
       docker_compose_file: ''
       npm_build_command: 'npm run build'
       tests: '["test:unit", "test:integration", "test:ratelimit"]'
-      node_version: '24'
+      node_version: '24.22.1'
       env_vars: |
         {
           "TMPDIR": "${{ github.workspace }}",
@@ -29,13 +29,13 @@ jobs:
         }
 
   e2e-tests-npm:
-    uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
+    uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@5f09f5d6707e0c4fc42f7187885b6a1ee83d8433 # main
     permissions: {}
     with:
       docker_compose_file: ''
       pre_test_command: 'npm ci && npx playwright install-deps && npx playwright install'
       test_command: 'npm run test:playwright || exit 1'
-      node_version: '24'
+      node_version: '24.22.1'
       env_vars: |
         {
           "PUPPETEER_ARGS": "--no-sandbox,--disable-setuid-sandbox"
@@ -43,9 +43,10 @@ jobs:
     secrets: inherit
 
   generate-sbom-npm:
-    uses: digicatapult/shared-workflows/.github/workflows/generate-sbom-npm.yml@main
+    uses: digicatapult/shared-workflows/.github/workflows/generate-sbom-npm.yml@5f09f5d6707e0c4fc42f7187885b6a1ee83d8433 # main
     permissions: {}
     with:
+      node_version: '24.22.1'
       additional_args: '--ignore-npm-errors'
       enable_check_version: true
       enable_dtrack_project: true
@@ -56,12 +57,12 @@ jobs:
       DTRACK_PARENT_GUID: ${{ secrets.DTRACK_PARENT_GUID }}
 
   migration-checks:
-    uses: digicatapult/shared-workflows/.github/workflows/migration-checks-npm.yml@main
+    uses: digicatapult/shared-workflows/.github/workflows/migration-checks-npm.yml@5f09f5d6707e0c4fc42f7187885b6a1ee83d8433 # main
     permissions:
       contents: read
     with:
       migrations_dir: src/lib/db/migrations
-      postgres_image: postgres:18.4-alpine
+      postgres_image: postgres:18.6-alpine@sha256:10a5c69a83035ab5239f5620d708520e8b28f5aa1f2b20143e6024532edadfb5
       db_name: dtdl-visualisation-tool
 
   build-docker:
@@ -70,13 +71,14 @@ jobs:
       - tests-npm
       - static-checks-npm
       - migration-checks
-    uses: digicatapult/shared-workflows/.github/workflows/build-docker.yml@main
+    uses: digicatapult/shared-workflows/.github/workflows/build-docker.yml@5f09f5d6707e0c4fc42f7187885b6a1ee83d8433 # main
     permissions:
       contents: read
       packages: write
       security-events: write
     with:
       scan_container: true
+      scan_fail_severity: 'HIGH,CRITICAL'
       push_dockerhub: true
       push_ghcr: true
     secrets:
@@ -87,7 +89,7 @@ jobs:
     needs:
       - build-docker
       - generate-sbom-npm
-    uses: digicatapult/shared-workflows/.github/workflows/release-github.yml@main
+    uses: digicatapult/shared-workflows/.github/workflows/release-github.yml@5f09f5d6707e0c4fc42f7187885b6a1ee83d8433 # main
     permissions:
       contents: write
       pull-requests: read

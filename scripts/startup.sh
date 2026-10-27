@@ -1,3 +1,4 @@
 #!/bin/sh
-npx knex migrate:latest --env production
-dtdl-visualiser parse -p /sample/energygrid
+set -e
+knex migrate:latest --env production
+exec dtdl-visualiser parse -p /sample/energygrid

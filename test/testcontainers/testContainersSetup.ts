@@ -176,7 +176,11 @@ export async function startVisualisationContainer(
 
   const container = await containerBuilder
     .withName(env.containerName)
-    .withCommand(['sh', '-c', 'npx knex migrate:latest --env production; dtdl-visualiser parse -p /sample/energygrid'])
+    .withCommand([
+      'sh',
+      '-ec',
+      'knex migrate:latest --env production; exec dtdl-visualiser parse -p /sample/energygrid',
+    ])
     .start()
   logger.info(`Started container ${containerName}`)
   logger.info(`Started container on port ${container.getMappedPort(containerPort)}`)

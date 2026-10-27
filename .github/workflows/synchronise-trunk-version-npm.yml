@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   synchronise-trunk-version-npm:
-    uses: digicatapult/shared-workflows/.github/workflows/synchronise-trunk-version-npm.yml@main
+    uses: digicatapult/shared-workflows/.github/workflows/synchronise-trunk-version-npm.yml@5f09f5d6707e0c4fc42f7187885b6a1ee83d8433 # main
     with:
       trunk-branch: "main"
     secrets:

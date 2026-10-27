@@ -1,6 +1,20 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "local>digicatapult/renovate-config"
+  "extends": ["local>digicatapult/renovate-config"],
+  "packageRules": [
+    {
+      "matchManagers": ["npm"],
+      "rangeStrategy": "pin",
+      "automerge": false
+    },
+    {
+      "matchManagers": ["dockerfile", "docker-compose"],
+      "pinDigests": true
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "pinDigests": true,
+      "automerge": false
+    }
   ]
 }
