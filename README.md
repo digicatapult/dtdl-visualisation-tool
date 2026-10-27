@@ -4,7 +4,7 @@ A CLI tool for visualising dtdl ontologies.
 
 ## Prerequisites
 
-`node` >= 24.22.1 and < 25; `npm` 12.2.1
+`node` >= 24.22.1 and < 25 (includes the CVE-2026-111497 Brotli fix)
 Docker
 
 ## Getting started
@@ -12,7 +12,7 @@ Docker
 The build command should be run first to create the converted ts files.
 
 ```shell
-npm ci
+npm i
 npm run build
 ```
 
@@ -92,48 +92,6 @@ The service will be available on `http://localhost:3000`
 The application can be run in Docker. `sample/energygrid` is automatically parsed at start up.
 
 `docker build -t dtdl-visualiser .` and run with `docker run -p 3000:3000 dtdl-visualiser`.
-
-### Reproducible security updates
-
-- Both stages use Node.js 24.22.1 with the same official multi-platform image digest.
-  The index includes `linux/amd64` and `linux/arm64`; Docker selects the appropriate manifest.
-  This release fixes CVE-2026-111497 in Node's Brotli decoder. Upgrading Express alone is insufficient.
-- Direct dependencies, development dependencies and TypeScript aliases use exact versions.
-  Run `npm ci`, not `npm install`, to reproduce the lockfile. Only required SWC and Puppeteer install scripts
-  are approved for npm 12; Docker skips browser downloads and uses Debian Chromium instead.
-- npm 12.2.1 is pinned for builds. The production image intentionally contains no npm, npx, Yarn or Corepack:
-  use `knex migrate:latest --env production` inside the image, not `npx knex`.
-  The CLI remains available as `dtdl-visualiser`.
-- Chromium 156.0.8078.47 and OS dependencies come from signed Debian snapshots dated `20261027T000000Z`.
-  Snapshot metadata expiry checking is disabled, but signature and package hash verification remain enabled.
-  HTTP is used because the slim base has no CA bundle at this point; APT authenticates the signed repositories.
-  This fixes package inputs, not image build timestamps. Refresh both snapshot URLs and the Chromium version
-  together after checking Debian security updates; a pinned snapshot does not receive patches automatically.
-- The runtime runs as UID 10042, contains only production npm dependencies and excludes test fixtures,
-  local environment files, private key files and Git metadata. Build tooling remains in the builder stage.
-- Renovate remains enabled and proposes exact dependency, image-digest and action-SHA updates through PRs.
-  npm/action automerge is disabled locally. Runtime engine updates remain manual under the shared preset.
-- CI audits both production and development dependencies daily and on PRs, failing on high/critical findings.
-  Container scanning gates fixable high/critical findings; the complete report still includes unfixed findings.
-  Reusable workflows are pinned, but their nested actions/tools remain controlled by the shared repository.
-  Those workflows use `npm ci` with the npm bundled in Node 24.22.1 (11.19.1); they do not expose an npm-version
-  input. The dedicated dependency-security job and Docker builder use npm 12.2.1.
-
-The security update deliberately preserves JSON/form compression support (including Brotli), the existing
-100 KB body-parser defaults, upload-size limits, rate-limit policy and response semantics. The patched
-body-parser and Node runtime address compressed-input advisories without rejecting existing clients.
-Multer's file-size bound, ZIP expansion/depth/object limits and generated single-file upload handling remain
-in place; per-process rate limiting is not a substitute for ingress limits across multiple replicas.
-
-The KaTeX 0.18.10 override brings the CLI/layout dependencies onto the already-used Mermaid math renderer
-version. The ts-deepmerge 8.0.0 override fixes reserved prototype-method overrides in TSOA's build-time merge.
-Remove these overrides when upstream constraints include secure versions. Existing Puppeteer and TypeScript
-compatibility overrides remain. Unrelated major upgrades are intentionally deferred.
-
-`npm audit` does not inspect Node itself, OS packages or npm's bundled dependencies. npm 12.2.1 still bundles
-affected Undici/ip-address versions; no newer stable npm was available at review time. It is build-only,
-not part of the serving image. Debian's scanner-reported deferred/unfixed issues also need ongoing review;
-an audit exit code of zero is not a claim that the entire container has no vulnerabilities.
 
 ## Environment variables
 

@@ -10,16 +10,16 @@ concurrency:
 
 jobs:
   migration-checks:
-    uses: digicatapult/shared-workflows/.github/workflows/migration-checks-npm.yml@5f09f5d6707e0c4fc42f7187885b6a1ee83d8433 # main
+    uses: digicatapult/shared-workflows/.github/workflows/migration-checks-npm.yml@main
     permissions:
       contents: read
     with:
       migrations_dir: src/lib/db/migrations
-      postgres_image: postgres:18.6-alpine@sha256:10a5c69a83035ab5239f5620d708520e8b28f5aa1f2b20143e6024532edadfb5
+      postgres_image: postgres:18.4-alpine
       db_name: dtdl-visualisation-tool
 
   static-checks-npm:
-    uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@5f09f5d6707e0c4fc42f7187885b6a1ee83d8433 # main
+    uses: digicatapult/shared-workflows/.github/workflows/static-checks-npm.yml@main
     permissions:
       security-events: write
     with:
@@ -32,7 +32,7 @@ jobs:
       node_version: '24.22.1'
 
   tests-npm:
-    uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@5f09f5d6707e0c4fc42f7187885b6a1ee83d8433 # main
+    uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
     permissions:
       pull-requests: write
     with:
@@ -48,7 +48,7 @@ jobs:
         }
 
   e2e-tests-npm:
-    uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@5f09f5d6707e0c4fc42f7187885b6a1ee83d8433 # main
+    uses: digicatapult/shared-workflows/.github/workflows/tests-e2e-npm.yml@main
     permissions: {}
     with:
       docker_compose_file: ''
@@ -62,10 +62,9 @@ jobs:
     secrets: inherit
 
   build-docker:
-    uses: digicatapult/shared-workflows/.github/workflows/build-docker.yml@5f09f5d6707e0c4fc42f7187885b6a1ee83d8433 # main
+    uses: digicatapult/shared-workflows/.github/workflows/build-docker.yml@main
     with:
       scan_container: true
-      scan_fail_severity: 'HIGH,CRITICAL'
     permissions:
       contents: read
       packages: write

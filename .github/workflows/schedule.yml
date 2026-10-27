@@ -6,7 +6,7 @@ permissions:
   security-events: write
 jobs:
   semgrep:
-    uses: digicatapult/shared-workflows/.github/workflows/scan-vulns.yml@5f09f5d6707e0c4fc42f7187885b6a1ee83d8433 # main
+    uses: digicatapult/shared-workflows/.github/workflows/scan-vulns.yml@main
     permissions:
       security-events: write
     with:
