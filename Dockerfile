@@ -1,5 +1,5 @@
-# syntax=docker/dockerfile:1.28
-FROM node:24.22.1-bookworm-slim AS builder
+# syntax=docker/dockerfile:1.28@sha256:bb22d9815c728170f72750f4e5b0d672e06176142e1d602c7e66c050100b7e5b
+FROM node:24.22.1-bookworm-slim@sha256:be8204d4bd327363357f532187b752ff62759c31bedf98e9e18fc08c9cbd605c AS builder
 
 WORKDIR /dtdl-visualisation-tool
 
@@ -14,7 +14,7 @@ COPY . .
 RUN npm run build
 
 # Service
-FROM node:24.22.1-bookworm-slim AS service
+FROM node:24.22.1-bookworm-slim@sha256:be8204d4bd327363357f532187b752ff62759c31bedf98e9e18fc08c9cbd605c AS service
 
 RUN npm install -g npm@12.0.1
 
