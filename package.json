@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.9.163",
+  "version": "0.9.164",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -60,7 +60,7 @@
     "cors": "^2.8.6",
     "date-fns": "^4.4.0",
     "dotenv": "^18.0.9",
-    "envalid": "^8.2.0",
+    "envalid": "^9.0.0",
     "express": "^5.3.0",
     "express-rate-limit": "^8.7.1",
     "fuse.js": "^7.5.0",
