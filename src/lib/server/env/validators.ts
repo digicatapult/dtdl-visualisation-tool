@@ -1,6 +1,6 @@
-import envalid from 'envalid'
+import { makeValidator } from 'envalid'
 
-export const strArrayValidator = envalid.makeValidator((input) => {
+export const strArrayValidator = makeValidator((input) => {
   const arr = input
     .split(',')
     .map((s) => s.trim())
@@ -14,6 +14,6 @@ export const strArrayValidator = envalid.makeValidator((input) => {
   return res
 })
 
-export const optionalStrValidator = envalid.makeValidator((input) => {
+export const optionalStrValidator = makeValidator((input) => {
   return input === '' ? undefined : input
 })
