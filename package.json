@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.9.180",
+  "version": "0.9.181",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -75,8 +75,8 @@
     "pg": "^8.23.1",
     "pino": "^10.4.0",
     "pino-http": "^11.0.0",
-    "posthog-node": "^5.69.0",
-    "prettier": "^3.10.0",
+    "posthog-node": "^5.70.0",
+    "prettier": "^3.10.1",
     "puppeteer": "^25.17.0",
     "react": "^19.3.1",
     "reflect-metadata": "^0.2.2",
