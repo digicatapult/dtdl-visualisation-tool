@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.9.186",
+  "version": "0.9.187",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -62,7 +62,7 @@
     "dotenv": "^18.0.10",
     "envalid": "^9.0.0",
     "express": "^5.3.0",
-    "express-rate-limit": "^8.7.4",
+    "express-rate-limit": "^8.7.5",
     "fuse.js": "^7.5.0",
     "htmx-ext-json-enc": "^2.0.3",
     "htmx-ext-response-targets": "^2.0.4",
@@ -124,7 +124,7 @@
     "rimraf": "^6.1.4",
     "sinon": "^22.1.0",
     "supertest": "^7.3.2",
-    "testcontainers": "^12.2.1",
+    "testcontainers": "^12.2.2",
     "tmp": "^0.2.7",
     "tsc-native": "npm:typescript@^7.0.2",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
