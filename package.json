@@ -1,6 +1,6 @@
 {
   "name": "dtdl-visualisation-tool",
-  "version": "0.9.192",
+  "version": "0.9.193",
   "description": "CLI tool for dtdl visualisation",
   "main": "build/index.js",
   "bin": {
@@ -101,7 +101,7 @@
     "@types/express": "^5.0.6",
     "@types/jsdom": "^30.0.0",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^26.6.7",
+    "@types/node": "^26.6.10",
     "@types/pino-http": "^6.1.0",
     "@types/sinon": "^22.0.2",
     "@types/supertest": "^7.2.1",
